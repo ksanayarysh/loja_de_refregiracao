@@ -42,6 +42,8 @@ async def init_db():
             active BOOLEAN NOT NULL DEFAULT TRUE,
             created_at TIMESTAMPTZ NOT NULL DEFAULT now()
         );
+        """))
+        await conn.execute(text("""
         CREATE TABLE IF NOT EXISTS sales (
           id BIGSERIAL PRIMARY KEY,
           sold_at DATE NOT NULL DEFAULT CURRENT_DATE,
@@ -52,10 +54,10 @@ async def init_db():
           note TEXT,
           created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
         );
-        
-        CREATE INDEX IF NOT EXISTS idx_sales_sold_at ON sales(sold_at);
-        CREATE INDEX IF NOT EXISTS idx_sales_product_id ON sales(product_id);
+
         """))
+        await conn.execute(text("CREATE INDEX IF NOT EXISTS idx_sales_sold_at ON sales(sold_at)"))
+        await conn.execute(text("CREATE INDEX IF NOT EXISTS idx_sales_product_id ON sales(product_id)"))
 
 
 @app.on_event("startup")
