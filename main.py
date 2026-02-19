@@ -11,11 +11,15 @@ from sqlalchemy.orm import sessionmaker
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
-DATABASE_URL = os.environ["DATABASE_URL"]  # Railway обычно даёт это
-if DATABASE_URL.startswith("postgres://"):
-    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+psycopg://", 1)
-elif DATABASE_URL.startswith("postgresql://"):
-    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg://", 1)
+DATABASE_URL = os.environ["DATABASE_URL"]
+
+DATABASE_URL = DATABASE_URL.replace("postgresql+psycopg2://", "postgresql+psycopg://")
+DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg://")
+DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+psycopg://")
+
+print("DB URL (masked):", DATABASE_URL.split("@")[-1])
+import psycopg
+print("Using psycopg version:", psycopg.__version__)
 
 ADMIN_USER = os.environ.get("ADMIN_USER", "admin")
 ADMIN_PASS = os.environ.get("ADMIN_PASS", "change-me")
