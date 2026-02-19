@@ -12,6 +12,11 @@ app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
 DATABASE_URL = os.environ["DATABASE_URL"]  # Railway обычно даёт это
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+psycopg://", 1)
+elif DATABASE_URL.startswith("postgresql://"):
+    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg://", 1)
+
 ADMIN_USER = os.environ.get("ADMIN_USER", "admin")
 ADMIN_PASS = os.environ.get("ADMIN_PASS", "change-me")
 
