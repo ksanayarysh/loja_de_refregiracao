@@ -13,13 +13,11 @@ templates = Jinja2Templates(directory="templates")
 
 DATABASE_URL = os.environ["DATABASE_URL"]
 
-DATABASE_URL = DATABASE_URL.replace("postgresql+psycopg2://", "postgresql+psycopg://")
-DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg://")
-DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+psycopg://")
+DATABASE_URL = DATABASE_URL.replace("postgresql+psycopg://", "postgresql+psycopg2://")
+DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg2://")
+DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+psycopg2://")
 
 print("DB URL (masked):", DATABASE_URL.split("@")[-1])
-import psycopg
-print("Using psycopg version:", psycopg.__version__)
 
 ADMIN_USER = os.environ.get("ADMIN_USER", "admin")
 ADMIN_PASS = os.environ.get("ADMIN_PASS", "change-me")
