@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nova Venda</title>
+  <style>
+    :root { font-size: 20px; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:#f6f7fb; margin:0; }
+    .wrap { max-width: 760px; margin: 0 auto; padding: 24px 16px; }
+    .card { background:#fff; border-radius:18px; box-shadow: 0 6px 18px rgba(0,0,0,.08); padding: 18px; }
+    h1 { margin: 0 0 8px; font-size: 1.6rem; }
+    .sub { margin: 0 0 16px; color:#555; line-height:1.4; }
+    label { display:block; font-weight: 900; margin: 14px 0 8px; }
+    input, select, textarea {
+      width: 100%;
+      padding: 14px 14px;
+      border-radius: 14px;
+      border: 1px solid #d6d9e0;
+      font-size: 1rem;
+      background: #fff;
+      box-sizing: border-box;
+    }
+    textarea { min-height: 90px; resize: vertical; }
+    .row { display:grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .btns { display:flex; gap:12px; flex-wrap:wrap; margin-top: 18px; }
+    button, a.btn {
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 0;
+      font-weight: 900;
+      font-size: 1rem;
+      cursor: pointer;
+      text-decoration:none;
+      display:inline-block;
+      text-align:center;
+    }
+    button.primary { background:#111827; color:#fff; }
+    a.btn.secondary { background:#374151; color:#fff; }
+    .msg { padding: 12px 14px; border-radius: 14px; margin: 10px 0 14px; font-weight: 800; }
+    .err { background:#fef2f2; border:1px solid #fecaca; color:#7f1d1d; }
+    .ok { background:#ecfdf5; border:1px solid #bbf7d0; color:#065f46; }
+    .hint { color:#6b7280; font-size: .95rem; margin-top: 6px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Registrar Venda</h1>
+      <p class="sub">Preencha com calma. O sistema calcula o total, mas você pode corrigir se precisar.</p>
+
+      {% if error %}
+        <div class="msg err">{{ error }}</div>
+      {% endif %}
+      {% if success %}
+        <div class="msg ok">{{ success }}</div>
+      {% endif %}
+
+      <form method="post" action="/sales/new" id="saleForm">
+        <label for="sold_at">Data</label>
+        <input id="sold_at" name="sold_at" type="date" value="{{ today }}" required>
+
+        <label for="product_id">Produto</label>
+        <select id="product_id" name="product_id" required>
+          <option value="" disabled selected>Selecione...</option>
+          {% for p in products %}
+            <option value="{{ p['id'] }}"
+                    data-price="{{ p['sale_price'] or 0 }}"
+                    data-unit="{{ p['unit'] or '' }}">
+              {{ p['name'] }} {% if p['unit'] %} ({{ p['unit'] }}){% endif %}
+            </option>
+          {% endfor %}
+        </select>
+        <div class="hint" id="unitHint"></div>
+
+        <div class="row">
+          <div>
+            <label for="qty">Quantidade</label>
+            <input id="qty" name="qty" inputmode="decimal" placeholder="Ex: 1 ou 0,5" required>
+          </div>
+          <div>
+            <label for="unit_price">Preço (unit.)</label>
+            <input id="unit_price" name="unit_price" inputmode="decimal" placeholder="Auto (do produto)">
+            <div class="hint">Se deixar vazio, usa o preço do produto.</div>
+          </div>
+        </div>
+
+        <label for="total">Total</label>
+        <input id="total" name="total" inputmode="decimal" placeholder="Auto (quantidade × preço)">
+        <div class="hint">Você pode corrigir o total manualmente (desconto, etc.).</div>
+
+        <label for="note">Observação (opcional)</label>
+        <textarea id="note" name="note" placeholder="Ex: desconto, cliente, motivo..."></textarea>
+
+        <div class="btns">
+          <button class="primary" type="submit">Salvar venda</button>
+          <a class="btn secondary" href="/products">Ver produtos</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const productSel = document.getElementById("product_id");
+    const qtyEl = document.getElementById("qty");
+    const priceEl = document.getElementById("unit_price");
+    const totalEl = document.getElementById("total");
+    const unitHint = document.getElementById("unitHint");
+
+    function parseNum(v) {
+      if (!v) return null;
+      v = (""+v).trim().replace(",", ".");
+      const n = Number(v);
+      return Number.isFinite(n) ? n : null;
+    }
+
+    function fmt2(n) {
+      return (Math.round(n * 100) / 100).toFixed(2);
+    }
+
+    function getSelectedPrice() {
+      const opt = productSel.selectedOptions[0];
+      if (!opt) return null;
+      return parseNum(opt.dataset.price);
+    }
+
+    function updateUnitHint() {
+      const opt = productSel.selectedOptions[0];
+      if (!opt) { unitHint.textContent = ""; return; }
+      const unit = opt.dataset.unit || "";
+      unitHint.textContent = unit ? ("Unidade: " + unit) : "";
+    }
+
+    function autoFillPriceIfEmpty() {
+      if (priceEl.value.trim() !== "") return;
+      const p = getSelectedPrice();
+      if (p !== null) priceEl.value = fmt2(p);
+    }
+
+    function recalcTotal() {
+      const q = parseNum(qtyEl.value);
+      const p = parseNum(priceEl.value) ?? getSelectedPrice();
+      if (q === null || p === null) return;
+      totalEl.value = fmt2(q * p);
+    }
+
+    productSel.addEventListener("change", () => {
+      updateUnitHint();
+      autoFillPriceIfEmpty();
+      recalcTotal();
+    });
+    qtyEl.addEventListener("input", () => recalcTotal());
+    priceEl.addEventListener("input", () => recalcTotal());
+
+    // initial
+    updateUnitHint();
+  </script>
+</body>
+</html>

@@ -42,6 +42,19 @@ async def init_db():
             active BOOLEAN NOT NULL DEFAULT TRUE,
             created_at TIMESTAMPTZ NOT NULL DEFAULT now()
         );
+        CREATE TABLE IF NOT EXISTS sales (
+          id BIGSERIAL PRIMARY KEY,
+          sold_at DATE NOT NULL DEFAULT CURRENT_DATE,
+          product_id BIGINT NOT NULL REFERENCES products(id),
+          qty NUMERIC(12,3) NOT NULL CHECK (qty > 0),
+          unit_price NUMERIC(12,2) NOT NULL CHECK (unit_price >= 0),
+          total NUMERIC(12,2) NOT NULL CHECK (total >= 0),
+          note TEXT,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        );
+        
+        CREATE INDEX IF NOT EXISTS idx_sales_sold_at ON sales(sold_at);
+        CREATE INDEX IF NOT EXISTS idx_sales_product_id ON sales(product_id);
         """))
 
 
