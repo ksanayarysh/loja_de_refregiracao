@@ -10,15 +10,33 @@
     .wrap { max-width: 720px; margin: 0 auto; padding: 24px 16px; }
     .card { background:#fff; border-radius:16px; box-shadow: 0 6px 18px rgba(0,0,0,.08); padding: 20px; }
     h1 { margin: 0 0 6px; font-size: 1.6rem; }
-    .hint { color:#555; margin:0 0 18px; line-height:1.4; }
     label { display:block; font-weight:600; margin: 14px 0 6px; }
-    input, select { width:100%; padding: 14px 12px; border-radius: 12px; border:1px solid #d6d9e0; font-size:1rem; }
+    input, select { width:100%; padding: 14px 12px; border-radius: 12px; border:1px solid #d6d9e0; font-size:1rem; box-sizing:border-box; }
     input:focus, select:focus { outline: 3px solid rgba(99,102,241,.25); border-color:#6366f1; }
-    .row { display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     .btn { margin-top: 18px; width:100%; padding: 14px 16px; border:0; border-radius: 14px; font-weight:700; font-size:1.05rem; background:#111827; color:#fff; cursor:pointer; }
     .btn:active { transform: translateY(1px); }
-    .ok { background:#ecfdf5; border:1px solid #a7f3d0; color:#065f46; padding: 12px; border-radius: 12px; margin-bottom: 14px; }
     .small { font-size:.95rem; color:#555; margin-top:10px; }
+
+    .ok {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background:#ecfdf5;
+      border:1px solid #a7f3d0;
+      color:#065f46;
+      padding: 14px 16px;
+      border-radius: 12px;
+      margin-bottom: 18px;
+      font-weight: 600;
+      animation: fadeIn .3s ease;
+    }
+    .ok-icon { font-size: 1.4rem; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
     @media (max-width: 560px) { .row { grid-template-columns: 1fr; } }
   </style>
 </head>
@@ -27,21 +45,28 @@
     <div class="card">
       <h1>Cadastro de Produto</h1>
 
+      {% if request.query_params.get('ok') %}
+      <div class="ok">
+        <span class="ok-icon">✅</span>
+        Produto salvo com sucesso!
+      </div>
+      {% endif %}
+
       <form method="post" action="/products/new">
         <label for="name">Nome do produto</label>
         <input id="name" name="name" required placeholder="Ex.: Filtro 1/4" autocomplete="off">
 
         <label for="unit">Unidade</label>
         <select id="unit" name="unit">
-			<option value="un">un (unidade)</option>
-            <option value="kg">kg</option>
+          <option value="un">un (unidade)</option>
+          <option value="kg">kg</option>
         </select>
 
         <label for="sale_price">Preço de venda (R$)</label>
         <input id="sale_price" name="sale_price" inputmode="decimal" placeholder="Ex.: 35,00">
 
         <button class="btn" type="submit">Salvar produto</button>
-        <div class="small">Dica: se errar, é só cadastrar de novo. Depois a gente adiciona “editar”.</div>
+        <div class="small">Dica: se errar, é só cadastrar de novo. Depois a gente adiciona "editar".</div>
       </form>
     </div>
   </div>
