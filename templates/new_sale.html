@@ -47,8 +47,6 @@
   <div class="wrap">
     <div class="card">
       <h1>Registrar Venda</h1>
-      <p class="sub">Preencha com calma. O sistema calcula o total, mas você pode corrigir se precisar.</p>
-
       {% if error %}
         <div class="msg err">{{ error }}</div>
       {% endif %}
@@ -76,12 +74,11 @@
         <div class="row">
           <div>
             <label for="qty">Quantidade</label>
-            <input id="qty" name="qty" inputmode="decimal" placeholder="Ex: 1 ou 0,5" required>
+            <input id="qty" name="qty" inputmode="decimal" placeholder="Ex: 1" required>
           </div>
           <div>
             <label for="unit_price">Preço (unit.)</label>
             <input id="unit_price" name="unit_price" inputmode="decimal" placeholder="Auto (do produto)">
-            <div class="hint">Se deixar vazio, usa o preço do produto.</div>
           </div>
         </div>
 
@@ -101,59 +98,76 @@
   </div>
 
   <script>
-    const productSel = document.getElementById("product_id");
-    const qtyEl = document.getElementById("qty");
-    const priceEl = document.getElementById("unit_price");
-    const totalEl = document.getElementById("total");
-    const unitHint = document.getElementById("unitHint");
+  const productSel = document.getElementById("product_id");
+  const qtyEl = document.getElementById("qty");
+  const priceEl = document.getElementById("unit_price");
+  const totalEl = document.getElementById("total");
+  const unitHint = document.getElementById("unitHint");
 
-    function parseNum(v) {
-      if (!v) return null;
-      v = (""+v).trim().replace(",", ".");
-      const n = Number(v);
-      return Number.isFinite(n) ? n : null;
+  let priceWasManuallyEdited = false;
+
+  function parseNum(v) {
+    if (!v) return null;
+    v = (""+v).trim().replace(",", ".");
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  function fmt2(n) {
+    return (Math.round(n * 100) / 100).toFixed(2);
+  }
+
+  function selectedOpt() {
+    return productSel.selectedOptions && productSel.selectedOptions[0] ? productSel.selectedOptions[0] : null;
+  }
+
+  function getSelectedPrice() {
+    const opt = selectedOpt();
+    if (!opt) return null;
+    return parseNum(opt.dataset.price);
+  }
+
+  function updateUnitHint() {
+    const opt = selectedOpt();
+    if (!opt) { unitHint.textContent = ""; return; }
+    const unit = opt.dataset.unit || "";
+    unitHint.textContent = unit ? ("Unidade: " + unit) : "";
+  }
+
+  function setPriceFromProduct(force=false) {
+    const p = getSelectedPrice();
+    if (p === null) return;
+    if (force || !priceWasManuallyEdited) {
+      priceEl.value = fmt2(p);
+      priceWasManuallyEdited = false; // цена теперь “из товара”
     }
+  }
 
-    function fmt2(n) {
-      return (Math.round(n * 100) / 100).toFixed(2);
-    }
+  function recalcTotal() {
+    const q = parseNum(qtyEl.value);
+    const p = parseNum(priceEl.value) ?? getSelectedPrice();
+    if (q === null || p === null) return;
+    totalEl.value = fmt2(q * p);
+  }
 
-    function getSelectedPrice() {
-      const opt = productSel.selectedOptions[0];
-      if (!opt) return null;
-      return parseNum(opt.dataset.price);
-    }
+  // если пользователь тронул цену вручную, больше не перезаписываем при смене товара
+  priceEl.addEventListener("input", () => {
+    priceWasManuallyEdited = priceEl.value.trim() !== "";
+    recalcTotal();
+  });
 
-    function updateUnitHint() {
-      const opt = productSel.selectedOptions[0];
-      if (!opt) { unitHint.textContent = ""; return; }
-      const unit = opt.dataset.unit || "";
-      unitHint.textContent = unit ? ("Unidade: " + unit) : "";
-    }
+  qtyEl.addEventListener("input", () => recalcTotal());
 
-    function autoFillPriceIfEmpty() {
-      if (priceEl.value.trim() !== "") return;
-      const p = getSelectedPrice();
-      if (p !== null) priceEl.value = fmt2(p);
-    }
-
-    function recalcTotal() {
-      const q = parseNum(qtyEl.value);
-      const p = parseNum(priceEl.value) ?? getSelectedPrice();
-      if (q === null || p === null) return;
-      totalEl.value = fmt2(q * p);
-    }
-
-    productSel.addEventListener("change", () => {
-      updateUnitHint();
-      autoFillPriceIfEmpty();
-      recalcTotal();
-    });
-    qtyEl.addEventListener("input", () => recalcTotal());
-    priceEl.addEventListener("input", () => recalcTotal());
-
-    // initial
+  productSel.addEventListener("change", () => {
     updateUnitHint();
-  </script>
+    setPriceFromProduct(false); // поменяет цену, если её не правили вручную
+    recalcTotal();
+  });
+
+  // начальная инициализация
+  updateUnitHint();
+  // если цена пустая при загрузке, подставим
+  if (priceEl.value.trim() === "") setPriceFromProduct(true);
+</script>
 </body>
 </html>
