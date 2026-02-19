@@ -200,3 +200,129 @@ async def products_list(
             "direction": "desc" if direction.lower() == "desc" else "asc",
         },
     )
+
+from datetime import date
+from decimal import Decimal, ROUND_HALF_UP
+from fastapi import Form
+from sqlalchemy import text
+
+def money2(x) -> Decimal:
+    return (Decimal(str(x))).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+@app.get("/sales/new", response_class=HTMLResponse)
+async def sales_new(request: Request, _=Depends(basic_auth)):
+    async with engine.connect() as conn:
+        res = await conn.execute(text("""
+            SELECT id, name, sale_price, unit
+            FROM products
+            WHERE active = TRUE
+            ORDER BY name
+        """))
+        products = res.mappings().all()
+
+    return templates.TemplateResponse(
+        "new_sale.html",
+        {
+            "request": request,
+            "today": date.today().isoformat(),
+            "products": products,
+            "error": None,
+            "success": None,
+        },
+    )
+
+@app.post("/sales/new", response_class=HTMLResponse)
+async def sales_create(
+    request: Request,
+    sold_at: str = Form(...),
+    product_id: int = Form(...),
+    qty: str = Form(...),
+    unit_price: str = Form(""),   # можно не вводить, подставим
+    total: str = Form(""),        # можно не вводить, пересчитаем
+    note: str = Form(""),
+    _=Depends(basic_auth),
+):
+    error = None
+    success = None
+
+    try:
+        qty_d = Decimal(qty.replace(",", "."))
+        if qty_d <= 0:
+            raise ValueError("qty must be > 0")
+    except Exception:
+        error = "Quantidade inválida. Ex: 1 ou 0,5"
+        qty_d = None
+
+    async with engine.begin() as conn:
+        # список продуктов для повторного рендера
+        res = await conn.execute(text("""
+            SELECT id, name, sale_price, unit
+            FROM products
+            WHERE active = TRUE
+            ORDER BY name
+        """))
+        products = res.mappings().all()
+
+        # достанем текущую цену товара (для автоподстановки)
+        p = await conn.execute(
+            text("SELECT sale_price FROM products WHERE id = :pid AND active = TRUE"),
+            {"pid": product_id},
+        )
+        row = p.first()
+        if row is None:
+            error = "Produto inválido (não encontrado)."
+
+        if not error:
+            default_price = Decimal(str(row[0] or 0))
+            # unit_price: если пусто, берём из products
+            if unit_price.strip():
+                try:
+                    price_d = Decimal(unit_price.replace(",", "."))
+                except Exception:
+                    error = "Preço inválido. Ex: 35 ou 35,50"
+                    price_d = None
+            else:
+                price_d = default_price
+
+            if not error:
+                price_d = money2(price_d)
+
+                # total: если пусто, считаем; если введено, берём, но нормализуем
+                if total.strip():
+                    try:
+                        total_d = Decimal(total.replace(",", "."))
+                    except Exception:
+                        error = "Total inválido."
+                        total_d = None
+                else:
+                    total_d = qty_d * price_d
+
+                if not error:
+                    total_d = money2(total_d)
+
+                    await conn.execute(
+                        text("""
+                            INSERT INTO sales (sold_at, product_id, qty, unit_price, total, note)
+                            VALUES (:sold_at::date, :product_id, :qty, :unit_price, :total, :note)
+                        """),
+                        {
+                            "sold_at": sold_at,
+                            "product_id": product_id,
+                            "qty": qty_d,
+                            "unit_price": price_d,
+                            "total": total_d,
+                            "note": note.strip() or None,
+                        },
+                    )
+                    success = "Venda registrada."
+
+    return templates.TemplateResponse(
+        "new_sale.html",
+        {
+            "request": request,
+            "today": sold_at or date.today().isoformat(),
+            "products": products,
+            "error": error,
+            "success": success,
+        },
+    )
