@@ -122,3 +122,24 @@ async def create_product(
         )
 
     return RedirectResponse(url="/products/new?ok=1", status_code=303)
+
+from fastapi.responses import HTMLResponse
+from sqlalchemy import text
+
+@app.get("/products", response_class=HTMLResponse)
+async def products_list(request: Request, _=Depends(basic_auth)):
+    # Если у тебя engine/conn уже async — оставь как есть.
+    # Ниже пример для SQLAlchemy AsyncEngine: async_engine
+    async with engine.connect() as conn:
+        result = await conn.execute(text("""
+            SELECT name, sale_price, unit
+            FROM products
+            WHERE active = TRUE
+            ORDER BY name
+        """))
+        rows = result.all()
+
+    return templates.TemplateResponse(
+        "products_list.html",
+        {"request": request, "rows": rows},
+    )

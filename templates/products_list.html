@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lista de Produtos</title>
+  <style>
+    :root { font-size: 18px; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:#f6f7fb; margin:0; }
+    .wrap { max-width: 900px; margin: 0 auto; padding: 24px 16px; }
+    .card { background:#fff; border-radius:16px; box-shadow: 0 6px 18px rgba(0,0,0,.08); padding: 18px; }
+    h1 { margin: 0 0 10px; font-size: 1.6rem; }
+    .sub { margin: 0 0 16px; color:#555; line-height:1.4; }
+    table { width:100%; border-collapse: collapse; }
+    th, td { padding: 14px 12px; border-bottom: 1px solid #e7e9ee; text-align:left; font-size: 1.05rem; }
+    th { background:#f2f4f8; font-weight: 800; position: sticky; top: 0; }
+    .price { white-space: nowrap; font-weight: 800; }
+    .unit { white-space: nowrap; color:#333; }
+    .empty { padding: 14px; background:#fff7ed; border:1px solid #fed7aa; border-radius: 12px; color:#7c2d12; }
+    .topbar { display:flex; gap:10px; margin: 10px 0 14px; flex-wrap: wrap; }
+    .btn { display:inline-block; padding: 12px 14px; border-radius: 12px; background:#111827; color:#fff; text-decoration:none; font-weight: 800; }
+    .btn.secondary { background:#374151; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Produtos (ativos)</h1>
+      <p class="sub">Nome, preço e unidade. Simples. Legível. Sem drama.</p>
+
+      <div class="topbar">
+        <a class="btn" href="/products/new">+ Cadastrar produto</a>
+        <a class="btn secondary" href="/products">Atualizar lista</a>
+      </div>
+
+      {% if not rows or rows|length == 0 %}
+        <div class="empty">Nenhum produto cadastrado ainda.</div>
+      {% else %}
+        <table aria-label="Lista de produtos">
+          <thead>
+            <tr>
+              <th>Produto</th>
+              <th>Preço</th>
+              <th>Unidade</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in rows %}
+              <tr>
+                <td>{{ r[0] }}</td>
+                <td class="price">R$ {{ "%.2f"|format(r[1] or 0) }}</td>
+                <td class="unit">{{ r[2] or "" }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% endif %}
+    </div>
+  </div>
+</body>
+</html>
