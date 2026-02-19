@@ -124,22 +124,64 @@ async def create_product(
     return RedirectResponse(url="/products/new?ok=1", status_code=303)
 
 from fastapi.responses import HTMLResponse
+
+from math import ceil
+from fastapi import Query
 from sqlalchemy import text
 
+# Разрешённые поля сортировки (ключ из URL -> реальная колонка в SQL)
+SORT_FIELDS = {
+    "name": "p.name",
+    "unit": "p.unit",
+    "sale_price": "p.sale_price",
+    "min_stock": "p.min_stock",
+    "active": "p.active",
+    "created_at": "p.created_at",
+    "id": "p.id",
+}
+
 @app.get("/products", response_class=HTMLResponse)
-async def products_list(request: Request, _=Depends(basic_auth)):
-    # Если у тебя engine/conn уже async — оставь как есть.
-    # Ниже пример для SQLAlchemy AsyncEngine: async_engine
+async def products_list(
+    request: Request,
+    page: int = Query(1, ge=1),
+    per_page: int = Query(25, ge=5, le=200),
+    sort: str = Query("name"),
+    direction: str = Query("asc"),
+    _=Depends(basic_auth),
+):
+    sort_col = SORT_FIELDS.get(sort, SORT_FIELDS["name"])
+    direction_sql = "DESC" if direction.lower() == "desc" else "ASC"
+    offset = (page - 1) * per_page
+
     async with engine.connect() as conn:
-        result = await conn.execute(text("""
-            SELECT name, sale_price, unit
-            FROM products
-            WHERE active = TRUE
-            ORDER BY name
-        """))
-        rows = result.all()
+        total = await conn.execute(text("SELECT COUNT(*) FROM products p WHERE p.active = TRUE"))
+        total_count = int(total.scalar() or 0)
+
+        rows_res = await conn.execute(
+            text(f"""
+                SELECT p.id, p.name, p.sale_price, p.unit
+                FROM products p
+                WHERE p.active = TRUE
+                ORDER BY {sort_col} {direction_sql}, p.id ASC
+                LIMIT :limit OFFSET :offset
+            """),
+            {"limit": per_page, "offset": offset},
+        )
+        rows = rows_res.mappings().all()  # list[RowMapping]
+
+    total_pages = max(1, ceil(total_count / per_page))
+    page = min(page, total_pages)
 
     return templates.TemplateResponse(
         "products_list.html",
-        {"request": request, "rows": rows},
+        {
+            "request": request,
+            "rows": rows,
+            "page": page,
+            "per_page": per_page,
+            "total_pages": total_pages,
+            "total_count": total_count,
+            "sort": sort if sort in SORT_FIELDS else "name",
+            "direction": "desc" if direction.lower() == "desc" else "asc",
+        },
     )

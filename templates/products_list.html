@@ -3,34 +3,62 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Lista de Produtos</title>
+  <title>Produtos</title>
   <style>
     :root { font-size: 18px; }
     body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:#f6f7fb; margin:0; }
-    .wrap { max-width: 900px; margin: 0 auto; padding: 24px 16px; }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 24px 16px; }
     .card { background:#fff; border-radius:16px; box-shadow: 0 6px 18px rgba(0,0,0,.08); padding: 18px; }
-    h1 { margin: 0 0 10px; font-size: 1.6rem; }
-    .sub { margin: 0 0 16px; color:#555; line-height:1.4; }
-    table { width:100%; border-collapse: collapse; }
-    th, td { padding: 14px 12px; border-bottom: 1px solid #e7e9ee; text-align:left; font-size: 1.05rem; }
-    th { background:#f2f4f8; font-weight: 800; position: sticky; top: 0; }
-    .price { white-space: nowrap; font-weight: 800; }
-    .unit { white-space: nowrap; color:#333; }
-    .empty { padding: 14px; background:#fff7ed; border:1px solid #fed7aa; border-radius: 12px; color:#7c2d12; }
-    .topbar { display:flex; gap:10px; margin: 10px 0 14px; flex-wrap: wrap; }
+    h1 { margin: 0 0 8px; font-size: 1.6rem; }
+    .sub { margin: 0 0 14px; color:#555; line-height:1.4; }
+    .topbar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin: 10px 0 14px; }
     .btn { display:inline-block; padding: 12px 14px; border-radius: 12px; background:#111827; color:#fff; text-decoration:none; font-weight: 800; }
     .btn.secondary { background:#374151; }
+    .pill { padding: 10px 12px; border-radius: 12px; background:#f2f4f8; color:#111827; font-weight:700; }
+    table { width:100%; border-collapse: collapse; }
+    th, td { padding: 14px 12px; border-bottom: 1px solid #e7e9ee; text-align:left; font-size: 1.05rem; }
+    th { background:#f2f4f8; font-weight: 900; position: sticky; top: 0; }
+    th a { color:#111827; text-decoration:none; display:inline-flex; gap:8px; align-items:center; }
+    th a:hover { text-decoration:underline; }
+    .price { white-space: nowrap; font-weight: 900; }
+    .unit { white-space: nowrap; color:#333; }
+    .pager { display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between; margin-top: 14px; }
+    .pages { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+    .pagebtn { padding: 10px 12px; border-radius: 12px; background:#f2f4f8; text-decoration:none; color:#111827; font-weight:800; }
+    .pagebtn.active { background:#111827; color:#fff; }
+    .pagebtn.disabled { opacity:.45; pointer-events:none; }
+    select { padding: 10px 12px; border-radius: 12px; border:1px solid #d6d9e0; font-size:1rem; }
+    .empty { padding: 14px; background:#fff7ed; border:1px solid #fed7aa; border-radius: 12px; color:#7c2d12; }
   </style>
 </head>
 <body>
+  {% set base = "/products" %}
+  {% set dir_toggle = "desc" if direction == "asc" else "asc" %}
+  {% macro url(page, sort_key=None, dir_key=None, per=per_page) -%}
+    {{ base }}?page={{ page }}&per_page={{ per }}&sort={{ sort_key or sort }}&direction={{ dir_key or direction }}
+  {%- endmacro %}
+
   <div class="wrap">
     <div class="card">
-      <h1>Produtos (ativos)</h1>
-      <p class="sub">Nome, preço e unidade. Simples. Legível. Sem drama.</p>
+      <h1>Produtos</h1>
+      <p class="sub">Lista de produtos ativos. Clique no título da coluna para ordenar.</p>
 
       <div class="topbar">
         <a class="btn" href="/products/new">+ Cadastrar produto</a>
-        <a class="btn secondary" href="/products">Atualizar lista</a>
+        <a class="btn secondary" href="{{ url(1) }}">Atualizar</a>
+        <span class="pill">{{ total_count }} itens</span>
+
+        <form method="get" action="/products" style="margin-left:auto; display:flex; gap:10px; align-items:center;">
+          <input type="hidden" name="page" value="1">
+          <input type="hidden" name="sort" value="{{ sort }}">
+          <input type="hidden" name="direction" value="{{ direction }}">
+          <label for="per_page" style="font-weight:800; color:#111827;">Por página</label>
+          <select id="per_page" name="per_page" onchange="this.form.submit()">
+            {% for n in [10,25,50,100,200] %}
+              <option value="{{ n }}" {% if per_page == n %}selected{% endif %}>{{ n }}</option>
+            {% endfor %}
+          </select>
+        </form>
       </div>
 
       {% if not rows or rows|length == 0 %}
@@ -39,21 +67,62 @@
         <table aria-label="Lista de produtos">
           <thead>
             <tr>
-              <th>Produto</th>
-              <th>Preço</th>
-              <th>Unidade</th>
+              <th>
+                <a href="{{ url(1, 'name', (dir_toggle if sort=='name' else 'asc')) }}">
+                  Produto
+                  {% if sort=='name' %}{{ '↑' if direction=='asc' else '↓' }}{% endif %}
+                </a>
+              </th>
+              <th>
+                <a href="{{ url(1, 'sale_price', (dir_toggle if sort=='sale_price' else 'asc')) }}">
+                  Preço
+                  {% if sort=='sale_price' %}{{ '↑' if direction=='asc' else '↓' }}{% endif %}
+                </a>
+              </th>
+              <th>
+                <a href="{{ url(1, 'unit', (dir_toggle if sort=='unit' else 'asc')) }}">
+                  Unidade
+                  {% if sort=='unit' %}{{ '↑' if direction=='asc' else '↓' }}{% endif %}
+                </a>
+              </th>
             </tr>
           </thead>
           <tbody>
             {% for r in rows %}
               <tr>
-                <td>{{ r[0] }}</td>
-                <td class="price">R$ {{ "%.2f"|format(r[1] or 0) }}</td>
-                <td class="unit">{{ r[2] or "" }}</td>
+                <td>{{ r["name"] }}</td>
+                <td class="price">R$ {{ "%.2f"|format(r["sale_price"] or 0) }}</td>
+                <td class="unit">{{ r["unit"] or "" }}</td>
               </tr>
             {% endfor %}
           </tbody>
         </table>
+
+        <div class="pager">
+          <div class="pages">
+            <a class="pagebtn {{ 'disabled' if page<=1 else '' }}" href="{{ url(page-1 if page>1 else 1) }}">‹ Anterior</a>
+
+            {% set start = page-2 if page-2>1 else 1 %}
+            {% set end = page+2 if page+2<total_pages else total_pages %}
+            {% if start > 1 %}
+              <a class="pagebtn" href="{{ url(1) }}">1</a>
+              {% if start > 2 %}<span style="padding:0 6px;">…</span>{% endif %}
+            {% endif %}
+
+            {% for p in range(start, end+1) %}
+              <a class="pagebtn {{ 'active' if p==page else '' }}" href="{{ url(p) }}">{{ p }}</a>
+            {% endfor %}
+
+            {% if end < total_pages %}
+              {% if end < total_pages-1 %}<span style="padding:0 6px;">…</span>{% endif %}
+              <a class="pagebtn" href="{{ url(total_pages) }}">{{ total_pages }}</a>
+            {% endif %}
+
+            <a class="pagebtn {{ 'disabled' if page>=total_pages else '' }}" href="{{ url(page+1 if page<total_pages else total_pages) }}">Próxima ›</a>
+          </div>
+
+          <div class="pill">Página {{ page }} / {{ total_pages }}</div>
+        </div>
       {% endif %}
     </div>
   </div>
