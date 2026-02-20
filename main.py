@@ -299,14 +299,15 @@ async def sales_create(
 
                 if not error:
                     total_d = money2(total_d)
+                    sold_at_date = date.fromisoformat(sold_at)
 
                     await conn.execute(
                         text("""
                             INSERT INTO sales (sold_at, product_id, qty, unit_price, total, note)
-                            VALUES (CAST(:sold_at AS date), :product_id, :qty, :unit_price, :total, :note)
+                            VALUES :sold_at, :product_id, :qty, :unit_price, :total, :note)
                         """),
                         {
-                            "sold_at": sold_at,
+                            "sold_at": sold_at_date,
                             "product_id": product_id,
                             "qty": qty_d,
                             "unit_price": price_d,
