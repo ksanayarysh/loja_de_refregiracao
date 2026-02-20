@@ -301,20 +301,11 @@ async def sales_create(
                     total_d = money2(total_d)
                     sold_at_date = date.fromisoformat(sold_at)
 
-                    await conn.execute(
-                        text("""
-                            INSERT INTO sales (sold_at, product_id, qty, unit_price, total, note)
-                            VALUES :sold_at, :product_id, :qty, :unit_price, :total, :note)
-                        """),
-                        {
-                            "sold_at": sold_at_date,
-                            "product_id": product_id,
-                            "qty": qty_d,
-                            "unit_price": price_d,
-                            "total": total_d,
-                            "note": note.strip() or None,
-                        },
+                    await conn.exec_driver_sql(
+                        "INSERT INTO sales (sold_at, product_id, qty, unit_price, total, note) VALUES ($1,$2,$3,$4,$5,$6)",
+                        (sold_at_date, product_id, qty_d, price_d, total_d, note.strip() or None)
                     )
+
                     success = "Venda registrada."
 
     return templates.TemplateResponse(
