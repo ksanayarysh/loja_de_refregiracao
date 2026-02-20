@@ -39,3 +39,7 @@ async def api_products(search: str = "", unit: str = "", _=Depends(basic_auth)):
             params,
         )
         return [dict(r) for r in res.mappings().all()]
+
+@app.get("/calc", response_class=HTMLResponse)
+async def calc_page(request: Request, _=Depends(basic_auth)):
+    return templates.TemplateResponse("calc.html", {"request": request})

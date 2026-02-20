@@ -1,0 +1,300 @@
+<!DOCTYPE HTML>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Calculadora de Gás</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background-color: bisque;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 2rem;
+      margin-bottom: 8px;
+      color: black;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #555;
+      margin-bottom: 32px;
+      font-size: 1.1rem;
+    }
+
+    /* GAS CARDS */
+    .gas-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      max-width: 700px;
+      margin: 0 auto 36px;
+    }
+
+    .gas-card {
+      background: #fff;
+      border: 3px solid #ccc;
+      border-radius: 12px;
+      padding: 20px 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .2s, transform .15s;
+      user-select: none;
+    }
+
+    .gas-card:hover {
+      border-color: #007bff;
+      transform: translateY(-2px);
+    }
+
+    .gas-card.selected {
+      border-color: #007bff;
+      background: #e8f0ff;
+    }
+
+    .gas-card .gas-name {
+      font-size: 1.4rem;
+      font-weight: bold;
+      color: #E2144A;
+      margin-bottom: 8px;
+    }
+
+    .gas-card .gas-price {
+      font-size: 1.1rem;
+      color: #333;
+    }
+
+    .gas-card .gas-unit {
+      font-size: .85rem;
+      color: #888;
+      margin-top: 2px;
+    }
+
+    /* CALC BOXES */
+    .calc-wrapper {
+      max-width: 500px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .calc-box {
+      background: #fff;
+      border: 2px solid #ccc;
+      border-radius: 12px;
+      padding: 24px;
+    }
+
+    .calc-box h2 {
+      font-size: 1.3rem;
+      margin-bottom: 18px;
+      color: black;
+    }
+
+    .calc-box label {
+      display: block;
+      font-size: 1.1rem;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: bold;
+    }
+
+    .calc-box input[type="number"] {
+      width: 100%;
+      padding: 14px;
+      font-size: 1.3rem;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+      margin-bottom: 14px;
+      outline: none;
+      transition: border-color .2s;
+    }
+    .calc-box input:focus { border-color: #007bff; }
+
+    .calc-btn {
+      width: 100%;
+      padding: 14px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      background: #28a745;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .calc-btn:hover { background: #1e7e34; }
+
+    .resultado {
+      display: none;
+      margin-top: 16px;
+      padding: 16px;
+      background: #e8f5e9;
+      border: 2px solid #28a745;
+      border-radius: 8px;
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #1a6e2e;
+      text-align: center;
+    }
+    .resultado.show { display: block; }
+    .resultado small {
+      display: block;
+      font-size: .9rem;
+      font-weight: normal;
+      color: #555;
+      margin-top: 4px;
+    }
+
+    .no-gas {
+      display: none;
+      color: red;
+      font-size: 1rem;
+      margin-top: 8px;
+      text-align: center;
+    }
+    .no-gas.show { display: block; }
+
+    @media (max-width: 500px) {
+      .gas-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+      .gas-card .gas-name { font-size: 1.1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<h1>🧊 Calculadora de Gás</h1>
+<p class="subtitle">Selecione o gás e digite a quantidade</p>
+
+<!-- GAS SELECTION -->
+<div class="gas-grid" id="gas-grid">
+  <!-- preenchido pelo JS -->
+</div>
+
+<p class="no-gas" id="no-gas-msg">⚠️ Selecione um gás acima primeiro!</p>
+
+<!-- CALC: Gramas → R$ -->
+<div class="calc-wrapper">
+  <div class="calc-box">
+    <h2>📦 Gramas → R$</h2>
+    <label for="input-g">Quantidade em gramas:</label>
+    <input type="number" id="input-g" min="0" step="any" placeholder="Ex: 500">
+    <button class="calc-btn" onclick="calcGramas()">Calcular valor em R$</button>
+    <div class="resultado" id="result-g"></div>
+  </div>
+
+  <div class="calc-box">
+    <h2>💰 R$ → Gramas</h2>
+    <label for="input-r">Valor em R$:</label>
+    <input type="number" id="input-r" min="0" step="any" placeholder="Ex: 35,00">
+    <button class="calc-btn" onclick="calcReais()">Calcular quantidade em gramas</button>
+    <div class="resultado" id="result-r"></div>
+  </div>
+</div>
+
+<script>
+  let selectedPrice = null;
+  let selectedName = null;
+
+  // ── Carregar produtos kg ──
+  async function loadGases() {
+    const grid = document.getElementById('gas-grid');
+    try {
+      const res = await fetch('/api/products?unit=kg');
+      const data = await res.json();
+
+      if (!data.length) {
+        grid.innerHTML = '<p style="color:#888;text-align:center;grid-column:1/-1">Nenhum produto em kg cadastrado.</p>';
+        return;
+      }
+
+      data.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'gas-card';
+        card.innerHTML = `
+          <div class="gas-name">${p.name}</div>
+          <div class="gas-price">R$ ${parseFloat(p.sale_price).toFixed(2)}</div>
+          <div class="gas-unit">por kg</div>
+        `;
+        card.addEventListener('click', () => selectGas(card, p));
+        grid.appendChild(card);
+      });
+    } catch {
+      grid.innerHTML = '<p style="color:red;grid-column:1/-1">Erro ao carregar produtos.</p>';
+    }
+  }
+
+  function selectGas(card, product) {
+    document.querySelectorAll('.gas-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    selectedPrice = parseFloat(product.sale_price);
+    selectedName = product.name;
+    document.getElementById('no-gas-msg').classList.remove('show');
+    // limpa resultados anteriores
+    document.getElementById('result-g').classList.remove('show');
+    document.getElementById('result-r').classList.remove('show');
+  }
+
+  function checkGasSelected() {
+    if (!selectedPrice) {
+      document.getElementById('no-gas-msg').classList.add('show');
+      return false;
+    }
+    return true;
+  }
+
+  function calcGramas() {
+    if (!checkGasSelected()) return;
+    const g = parseFloat(document.getElementById('input-g').value);
+    const res = document.getElementById('result-g');
+    if (isNaN(g) || g <= 0) {
+      res.innerHTML = 'Digite uma quantidade válida.';
+      res.style.background = '#fff3cd';
+      res.style.borderColor = '#ffc107';
+      res.style.color = '#856404';
+      res.classList.add('show');
+      return;
+    }
+    const total = (g * selectedPrice / 1000).toFixed(2);
+    res.style.background = '#e8f5e9';
+    res.style.borderColor = '#28a745';
+    res.style.color = '#1a6e2e';
+    res.innerHTML = `R$ ${total}<small>${g}g de ${selectedName}</small>`;
+    res.classList.add('show');
+  }
+
+  function calcReais() {
+    if (!checkGasSelected()) return;
+    const r = parseFloat(document.getElementById('input-r').value.replace(',', '.'));
+    const res = document.getElementById('result-r');
+    if (isNaN(r) || r <= 0) {
+      res.innerHTML = 'Digite um valor válido.';
+      res.style.background = '#fff3cd';
+      res.style.borderColor = '#ffc107';
+      res.style.color = '#856404';
+      res.classList.add('show');
+      return;
+    }
+    const grams = (r / selectedPrice * 1000).toFixed(1);
+    res.style.background = '#e8f5e9';
+    res.style.borderColor = '#28a745';
+    res.style.color = '#1a6e2e';
+    res.innerHTML = `${grams} gramas<small>R$ ${r.toFixed(2)} de ${selectedName}</small>`;
+    res.classList.add('show');
+  }
+
+  // Enter nos inputs
+  document.getElementById('input-g').addEventListener('keydown', e => { if (e.key === 'Enter') calcGramas(); });
+  document.getElementById('input-r').addEventListener('keydown', e => { if (e.key === 'Enter') calcReais(); });
+
+  loadGases();
+</script>
+
+</body>
+</html>
