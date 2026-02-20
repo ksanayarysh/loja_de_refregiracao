@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vendas</title>
+  <style>
+    :root { font-size: 18px; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:#f6f7fb; margin:0; }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 24px 16px; }
+    .card { background:#fff; border-radius:16px; box-shadow: 0 6px 18px rgba(0,0,0,.08); padding: 18px; }
+    h1 { margin: 0 0 8px; font-size: 1.6rem; }
+    .topbar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin: 10px 0 14px; }
+    .btn { display:inline-block; padding: 12px 14px; border-radius: 12px; background:#111827; color:#fff; text-decoration:none; font-weight: 800; border:none; cursor:pointer; font-size:1rem; font-family:inherit; }
+    .btn.secondary { background:#374151; }
+    .pill { padding: 10px 12px; border-radius: 12px; background:#f2f4f8; color:#111827; font-weight:700; }
+    table { width:100%; border-collapse: collapse; }
+    th, td { padding: 14px 12px; border-bottom: 1px solid #e7e9ee; text-align:left; font-size: 1.05rem; }
+    th { background:#f2f4f8; font-weight: 900; position: sticky; top: 0; }
+    th a { color:#111827; text-decoration:none; display:inline-flex; gap:8px; align-items:center; }
+    th a:hover { text-decoration:underline; }
+    .price { white-space: nowrap; font-weight: 900; }
+    .unit { white-space: nowrap; color:#333; }
+    .pager { display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between; margin-top: 14px; }
+    .pages { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+    .pagebtn { padding: 10px 12px; border-radius: 12px; background:#f2f4f8; text-decoration:none; color:#111827; font-weight:800; }
+    .pagebtn.active { background:#111827; color:#fff; }
+    .pagebtn.disabled { opacity:.45; pointer-events:none; }
+    select, input[type="date"] { padding: 10px 12px; border-radius: 12px; border:1px solid #d6d9e0; font-size:1rem; font-family:inherit; background:#fff; }
+    .empty { padding: 14px; background:#fff7ed; border:1px solid #fed7aa; border-radius: 12px; color:#7c2d12; }
+    .summary { display:grid; grid-template-columns: repeat(3,1fr); gap:12px; margin-bottom:16px; }
+    .sum-card { background:#f2f4f8; border-radius:12px; padding:14px 16px; }
+    .sum-label { font-size:.75rem; font-weight:800; color:#555; text-transform:uppercase; letter-spacing:.05em; margin-bottom:4px; }
+    .sum-value { font-size:1.3rem; font-weight:900; }
+    .filters { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:14px; }
+    .filters label { font-weight:800; color:#111827; font-size:.95rem; }
+    nav { background:#111827; padding:12px 24px; display:flex; gap:20px; align-items:center; }
+    nav a { color:#9ca3af; text-decoration:none; font-weight:700; font-size:.95rem; transition:color .2s; }
+    nav a:hover, nav a.active { color:#fff; }
+    nav .nav-brand { color:#fff; font-weight:900; font-size:1.1rem; margin-right:10px; }
+    @media(max-width:600px){ .summary{grid-template-columns:1fr;} }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <span class="nav-brand">🛍 Loja</span>
+    <a href="/products/new">+ Produto</a>
+    <a href="/products">Produtos</a>
+    <a href="/sales/new">+ Venda</a>
+    <a href="/sales" class="active">Vendas</a>
+  </nav>
+  {% set base = "/sales" %}
+  {% set dir_toggle = "desc" if direction == "asc" else "asc" %}
+  {% macro url(p, sort_key=None, dir_key=None) -%}
+    {{ base }}?page={{ p }}&per_page={{ per_page }}&sort={{ sort_key or sort }}&direction={{ dir_key or direction }}&date_from={{ date_from or '' }}&date_to={{ date_to or '' }}&product_id={{ product_id_filter or '' }}
+  {%- endmacro %}
+
+  <div class="wrap">
+    <div class="card">
+      <h1>Vendas</h1>
+
+      <!-- Filtros -->
+      <form method="get" action="/sales">
+        <div class="filters">
+          <label>De</label>
+          <input type="date" name="date_from" value="{{ date_from or '' }}">
+          <label>Até</label>
+          <input type="date" name="date_to" value="{{ date_to or '' }}">
+          <select name="product_id">
+            <option value="">Todos os produtos</option>
+            {% for p in all_products %}
+              <option value="{{ p.id }}" {% if p.id|string == product_id_filter %}selected{% endif %}>{{ p.name }}</option>
+            {% endfor %}
+          </select>
+          <input type="hidden" name="page" value="1">
+          <input type="hidden" name="sort" value="{{ sort }}">
+          <input type="hidden" name="direction" value="{{ direction }}">
+          <button type="submit" class="btn" style="padding:10px 16px;">Filtrar</button>
+          <a class="btn secondary" href="/sales" style="padding:10px 16px;">Limpar</a>
+        </div>
+      </form>
+
+      <!-- Resumo -->
+      <div class="summary">
+        <div class="sum-card">
+          <div class="sum-label">Total período</div>
+          <div class="sum-value">R$ {{ "%.2f"|format(total_revenue) }}</div>
+        </div>
+        <div class="sum-card">
+          <div class="sum-label">Vendas</div>
+          <div class="sum-value">{{ total_count }}</div>
+        </div>
+        <div class="sum-card">
+          <div class="sum-label">Ticket médio</div>
+          <div class="sum-value">R$ {{ "%.2f"|format(avg_ticket) }}</div>
+        </div>
+      </div>
+
+      <div class="topbar">
+        <a class="btn" href="/sales/new">+ Nova venda</a>
+        <a class="btn secondary" href="{{ url(page) }}">Atualizar</a>
+        <span class="pill">{{ total_count }} registros</span>
+
+        <form method="get" action="/sales" style="margin-left:auto; display:flex; gap:10px; align-items:center;">
+          <input type="hidden" name="page" value="1">
+          <input type="hidden" name="sort" value="{{ sort }}">
+          <input type="hidden" name="direction" value="{{ direction }}">
+          <input type="hidden" name="date_from" value="{{ date_from or '' }}">
+          <input type="hidden" name="date_to" value="{{ date_to or '' }}">
+          <input type="hidden" name="product_id" value="{{ product_id_filter or '' }}">
+          <label for="per_page" style="font-weight:800; color:#111827;">Por página</label>
+          <select id="per_page" name="per_page" onchange="this.form.submit()">
+            {% for n in [10,25,50,100,200] %}
+              <option value="{{ n }}" {% if per_page == n %}selected{% endif %}>{{ n }}</option>
+            {% endfor %}
+          </select>
+        </form>
+      </div>
+
+      {% if not rows or rows|length == 0 %}
+        <div class="empty">Nenhuma venda encontrada para o período selecionado.</div>
+      {% else %}
+        <table>
+          <thead>
+            <tr>
+              <th>
+                <a href="{{ url(1, 'sold_at', (dir_toggle if sort=='sold_at' else 'desc')) }}">
+                  Data {% if sort=='sold_at' %}{{ '↑' if direction=='asc' else '↓' }}{% endif %}
+                </a>
+              </th>
+              <th>Produto</th>
+              <th>
+                <a href="{{ url(1, 'qty', (dir_toggle if sort=='qty' else 'asc')) }}">
+                  Qtd {% if sort=='qty' %}{{ '↑' if direction=='asc' else '↓' }}{% endif %}
+                </a>
+              </th>
+              <th>
+                <a href="{{ url(1, 'unit_price', (dir_toggle if sort=='unit_price' else 'asc')) }}">
+                  Preço unit. {% if sort=='unit_price' %}{{ '↑' if direction=='asc' else '↓' }}{% endif %}
+                </a>
+              </th>
+              <th>
+                <a href="{{ url(1, 'total', (dir_toggle if sort=='total' else 'asc')) }}">
+                  Total {% if sort=='total' %}{{ '↑' if direction=='asc' else '↓' }}{% endif %}
+                </a>
+              </th>
+              <th>Obs.</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in rows %}
+              <tr>
+                <td>{{ r.sold_at.strftime('%d/%m/%Y') }}</td>
+                <td>
+                  {{ r.product_name }}
+                  <br><small style="color:#888; font-size:.8rem;">{{ r.unit }}</small>
+                </td>
+                <td class="unit">{{ r.qty }}</td>
+                <td class="price">R$ {{ "%.2f"|format(r.unit_price or 0) }}</td>
+                <td class="price">R$ {{ "%.2f"|format(r.total or 0) }}</td>
+                <td style="color:#555; font-size:.9rem;">{{ r.note or '—' }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <div class="pager">
+          <div class="pages">
+            <a class="pagebtn {{ 'disabled' if page<=1 else '' }}" href="{{ url(page-1 if page>1 else 1) }}">‹ Anterior</a>
+
+            {% set start = page-2 if page-2>1 else 1 %}
+            {% set end = page+2 if page+2<total_pages else total_pages %}
+            {% if start > 1 %}
+              <a class="pagebtn" href="{{ url(1) }}">1</a>
+              {% if start > 2 %}<span style="padding:0 6px;">…</span>{% endif %}
+            {% endif %}
+
+            {% for p in range(start, end+1) %}
+              <a class="pagebtn {{ 'active' if p==page else '' }}" href="{{ url(p) }}">{{ p }}</a>
+            {% endfor %}
+
+            {% if end < total_pages %}
+              {% if end < total_pages-1 %}<span style="padding:0 6px;">…</span>{% endif %}
+              <a class="pagebtn" href="{{ url(total_pages) }}">{{ total_pages }}</a>
+            {% endif %}
+
+            <a class="pagebtn {{ 'disabled' if page>=total_pages else '' }}" href="{{ url(page+1 if page<total_pages else total_pages) }}">Próxima ›</a>
+          </div>
+          <div class="pill">Página {{ page }} / {{ total_pages }}</div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</body>
+</html>
