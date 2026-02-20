@@ -1,0 +1,416 @@
+<!DOCTYPE HTML>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>M.T.F Refrigeração</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background-color: bisque;
+      min-height: 100vh;
+    }
+
+    h1 {
+      color: black;
+      text-align: center;
+      padding: 18px 0 10px;
+      font-size: 1.8rem;
+    }
+
+    /* ── NAVBAR ── */
+    .navbar {
+      background-color: bisque;
+      padding: 10px 16px;
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      border-bottom: 1px solid #ccc;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .search-container { display: flex; align-items: center; }
+
+    .search-input {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px 0 0 4px;
+      outline: none;
+      font-size: .95rem;
+      width: 220px;
+    }
+
+    .search-button {
+      padding: 8px 12px;
+      border: none;
+      background-color: #007bff;
+      color: white;
+      border-radius: 0 4px 4px 0;
+      cursor: pointer;
+      font-size: .95rem;
+    }
+    .search-button:hover { background-color: #0056b3; }
+
+    /* ── LAYOUT ── */
+    .layout {
+      display: flex;
+      gap: 0;
+      min-height: calc(100vh - 120px);
+    }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      width: 160px;
+      flex-shrink: 0;
+      border-right: 1px solid #ccc;
+      padding: 16px 0;
+      background: bisque;
+    }
+
+    .sidebar ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      width: 100%;
+    }
+
+    .sidebar ul li { position: relative; }
+
+    .sidebar ul li a {
+      display: block;
+      text-decoration: none;
+      color: #E2144A;
+      background: #fff;
+      padding: 7px 10px;
+      border: 1px solid #ccc;
+      border-left: none;
+      font-size: .9rem;
+    }
+    .sidebar ul li a:hover {
+      text-decoration: underline;
+      font-weight: bold;
+      background: #ccc;
+    }
+
+    .sidebar .submenu {
+      display: none;
+      position: absolute;
+      left: 149px;
+      top: 0;
+      width: 150px;
+      z-index: 10;
+    }
+    .sidebar ul li:hover .submenu { display: block; }
+
+    /* ── CONTENT ── */
+    .content {
+      flex: 1;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* ── QUICK LINKS ── */
+    .quick-links {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .quick-links a {
+      padding: 10px 18px;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      text-decoration: none;
+      color: #E2144A;
+      font-weight: bold;
+      font-size: .9rem;
+      transition: background .2s;
+    }
+    .quick-links a:hover { background: #ccc; }
+    .quick-links a.primary {
+      background: #007bff;
+      color: #fff;
+      border-color: #007bff;
+    }
+    .quick-links a.primary:hover { background: #0056b3; }
+
+    /* ── SEARCH RESULTS ── */
+    #search-results {
+      display: none;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 12px;
+      max-width: 500px;
+    }
+    #search-results.show { display: block; }
+    #search-results h3 { font-size: .9rem; color: #555; margin-bottom: 10px; }
+
+    .result-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #eee;
+      font-size: .9rem;
+    }
+    .result-item:last-child { border-bottom: none; }
+    .result-price { font-weight: bold; color: #007bff; }
+
+    /* ── CALCULATOR ── */
+    .calc-section {
+      max-width: 340px;
+    }
+
+    .calc-section h3 {
+      font-size: 1rem;
+      margin-bottom: 14px;
+      color: black;
+    }
+
+    .calc-section label {
+      display: block;
+      font-size: .9rem;
+      margin-bottom: 4px;
+      color: black;
+    }
+
+    .calc-section select,
+    .calc-section input[type="number"] {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: .95rem;
+      background: #fff;
+    }
+
+    .calc-toggle {
+      display: flex;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .calc-toggle input[type="radio"] { display: none; }
+    .calc-toggle label {
+      flex: 1;
+      text-align: center;
+      padding: 8px;
+      cursor: pointer;
+      font-size: .85rem;
+      background: #fff;
+      color: black;
+      margin: 0;
+      border-right: 1px solid #ccc;
+    }
+    .calc-toggle label:last-of-type { border-right: none; }
+    .calc-toggle input:checked + label {
+      background: #007bff;
+      color: #fff;
+      font-weight: bold;
+    }
+
+    .calc-btn {
+      width: 100%;
+      padding: 10px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: bold;
+    }
+    .calc-btn:hover { background-color: #1e7e34; }
+
+    #resultado {
+      font-weight: bold;
+      margin-top: 12px;
+      color: blue;
+      font-size: 1.05rem;
+    }
+
+    @media (max-width: 600px) {
+      .layout { flex-direction: column; }
+      .sidebar { width: 100%; border-right: none; border-bottom: 1px solid #ccc; }
+      .sidebar .submenu { left: 0; top: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<h1>M.T.F Refrigeração</h1>
+
+<!-- NAVBAR -->
+<header class="navbar">
+  <div class="search-container">
+    <input type="text" id="search-input" placeholder="pesquisar produto..." class="search-input">
+    <button class="search-button" onclick="searchProducts()">pesquisar</button>
+  </div>
+</header>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <ul>
+      <li><a href="/">Início</a></li>
+      <li>
+        <a href="#">Produtos ▸</a>
+        <ul class="submenu">
+          <li><a href="/products">Lista</a></li>
+          <li><a href="/products/new">+ Cadastrar</a></li>
+        </ul>
+      </li>
+      <li>
+        <a href="#">Vendas ▸</a>
+        <ul class="submenu">
+          <li><a href="/sales">Lista</a></li>
+          <li><a href="/sales/new">+ Nova venda</a></li>
+        </ul>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- CONTENT -->
+  <main class="content">
+
+    <!-- Quick links -->
+    <div class="quick-links">
+      <a href="/products/new" class="primary">+ Cadastrar produto</a>
+      <a href="/sales/new" class="primary">+ Nova venda</a>
+      <a href="/products">Lista de produtos</a>
+      <a href="/sales">Lista de vendas</a>
+    </div>
+
+    <!-- Search results -->
+    <div id="search-results">
+      <h3>Resultados:</h3>
+      <div id="results-list"></div>
+    </div>
+
+    <!-- Calculator -->
+    <div class="calc-section">
+      <h3>Calculadora de gás (kg)</h3>
+
+      <label>Produto (gás em kg):</label>
+      <select id="calc-product">
+        <option value="" disabled selected>Selecione o produto...</option>
+      </select>
+
+      <label>Modo:</label>
+      <div class="calc-toggle">
+        <input type="radio" name="calc-mode" id="mode-g" value="g" checked>
+        <label for="mode-g">Gramas → R$</label>
+        <input type="radio" name="calc-mode" id="mode-r" value="r">
+        <label for="mode-r">R$ → Gramas</label>
+      </div>
+
+      <label id="calc-label">Quantidade em gramas:</label>
+      <input type="number" id="valorX" min="0" step="any" placeholder="Ex: 500">
+
+      <button class="calc-btn" onclick="calcular()">calcular</button>
+      <div id="resultado"></div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  // ── Modo label ──
+  document.querySelectorAll('input[name="calc-mode"]').forEach(r => {
+    r.addEventListener('change', () => {
+      const mode = document.querySelector('input[name="calc-mode"]:checked').value;
+      document.getElementById('calc-label').textContent =
+        mode === 'g' ? 'Quantidade em gramas:' : 'Valor em R$:';
+      document.getElementById('valorX').placeholder =
+        mode === 'g' ? 'Ex: 500' : 'Ex: 35,00';
+      document.getElementById('resultado').innerHTML = '';
+    });
+  });
+
+  // ── Carregar produtos kg ──
+  async function loadProducts() {
+    try {
+      const res = await fetch('/api/products?unit=kg');
+      const data = await res.json();
+      const sel = document.getElementById('calc-product');
+      data.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.sale_price;
+        opt.textContent = `${p.name} — R$ ${parseFloat(p.sale_price).toFixed(2)}/kg`;
+        sel.appendChild(opt);
+      });
+    } catch {}
+  }
+  loadProducts();
+
+  // ── Calculadora ──
+  function calcular() {
+    const pricePerKg = parseFloat(document.getElementById('calc-product').value);
+    const x = parseFloat(document.getElementById('valorX').value.replace(',', '.'));
+    const mode = document.querySelector('input[name="calc-mode"]:checked').value;
+    const res = document.getElementById('resultado');
+
+    if (!pricePerKg || isNaN(x) || x <= 0) {
+      res.innerHTML = 'Preencha todos os campos.';
+      res.style.color = 'red';
+      return;
+    }
+
+    res.style.color = 'blue';
+    const pricePerG = pricePerKg / 1000;
+
+    if (mode === 'g') {
+      res.innerHTML = `Resultado: R$ ${(x * pricePerG).toFixed(2)}`;
+    } else {
+      res.innerHTML = `Resultado: ${(x / pricePerG).toFixed(1)} g`;
+    }
+  }
+
+  document.getElementById('valorX').addEventListener('keydown', e => {
+    if (e.key === 'Enter') calcular();
+  });
+
+  // ── Busca ──
+  async function searchProducts() {
+    const q = document.getElementById('search-input').value.trim();
+    if (!q) return;
+
+    const container = document.getElementById('search-results');
+    const list = document.getElementById('results-list');
+    list.innerHTML = '<div class="result-item" style="color:#888">Buscando...</div>';
+    container.classList.add('show');
+
+    try {
+      const res = await fetch(`/api/products?search=${encodeURIComponent(q)}`);
+      const data = await res.json();
+      if (!data.length) {
+        list.innerHTML = '<div class="result-item" style="color:#888">Nenhum produto encontrado.</div>';
+        return;
+      }
+      list.innerHTML = data.map(p => `
+        <div class="result-item">
+          <span>${p.name} <span style="color:#aaa;font-size:.8rem">(${p.unit})</span></span>
+          <span class="result-price">R$ ${parseFloat(p.sale_price).toFixed(2)}</span>
+        </div>
+      `).join('');
+    } catch {
+      list.innerHTML = '<div class="result-item" style="color:red">Erro ao buscar.</div>';
+    }
+  }
+
+  document.getElementById('search-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') searchProducts();
+  });
+</script>
+
+</body>
+</html>

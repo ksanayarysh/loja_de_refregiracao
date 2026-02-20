@@ -32,6 +32,14 @@
   </style>
 </head>
 <body>
+  <nav>
+    <span class="nav-brand">🛍 Loja</span>
+    <a href="/products/new">+ Produto</a>
+    <a href="/products">Produtos</a>
+    <a href="/sales/new">+ Venda</a>
+    <a href="/sales" class="active">Vendas</a>
+  </nav>
+
   {% set base = "/products" %}
   {% set dir_toggle = "desc" if direction == "asc" else "asc" %}
   {% macro url(page, sort_key=None, dir_key=None, per=per_page) -%}
