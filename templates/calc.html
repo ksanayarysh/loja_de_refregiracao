@@ -55,7 +55,9 @@
 
     .gas-table thead th.selected {
       border-color: #007bff;
-      background: #e8f0ff;
+      border-width: 4px;
+      background: #cfe2ff;
+      box-shadow: 0 0 0 4px rgba(0,123,255,.18);
     }
 
     .gas-name {
@@ -87,7 +89,8 @@
 
     .gas-table tbody td.selected {
       border-color: #007bff;
-      background: #f0f5ff;
+      border-width: 3px;
+      background: #e8f0ff;
     }
 
     .section-title {
@@ -156,7 +159,20 @@
       color: #856404;
     }
 
-    /* Separator row label */
+    .cart-btn {
+      width: 100%;
+      padding: 11px;
+      font-size: 1rem;
+      font-weight: bold;
+      background: #fff;
+      color: #E2144A;
+      border: 2px solid #E2144A;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: background .2s, color .2s;
+    }
+    .cart-btn:hover { background: #E2144A; color: #fff; }
     .row-label {
       font-size: 1rem;
       font-weight: bold;
@@ -240,6 +256,7 @@
                onkeydown="if(event.key==='Enter') calcG(${i})">
         <button class="calc-btn" onclick="calcG(${i})">Calcular R$</button>
         <div class="resultado" id="res-g-${i}"></div>
+        <button class="cart-btn" onclick="">🛒 Adicionar ao carrinho</button>
       `;
       row1.appendChild(td);
     });
@@ -260,6 +277,7 @@
                onkeydown="if(event.key==='Enter') calcR(${i})">
         <button class="calc-btn" onclick="calcR(${i})">Calcular gramas</button>
         <div class="resultado" id="res-r-${i}"></div>
+        <button class="cart-btn" onclick="">🛒 Adicionar ao carrinho</button>
       `;
       row2.appendChild(td);
     });
