@@ -58,6 +58,7 @@ async def sales_create(
     unit_price: str = Form(""),
     total: str = Form(""),
     note: str = Form(""),
+    payment_type: str = Form("dinheiro"),
     _=Depends(basic_auth),
 ):
     error = None
@@ -112,8 +113,8 @@ async def sales_create(
                     total_d = money2(total_d)
                     sold_at_date = date.fromisoformat(sold_at)
                     await conn.exec_driver_sql(
-                        "INSERT INTO sales (sold_at, product_id, qty, unit_price, total, note) VALUES ($1,$2,$3,$4,$5,$6)",
-                        (sold_at_date, product_id, qty_d, price_d, total_d, note.strip() or None),
+                        "INSERT INTO sales (sold_at, product_id, qty, unit_price, total, note, payment_type) VALUES ($1,$2,$3,$4,$5,$6,$7)",
+                        (sold_at_date, product_id, qty_d, price_d, total_d, note.strip() or None, payment_type)
                     )
                     success = "Venda registrada."
 

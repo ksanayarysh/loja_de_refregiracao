@@ -3,64 +3,150 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Vendas</title>
+  <title>Vendas — M.T.F</title>
   <style>
-    :root { font-size: 18px; }
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:#f6f7fb; margin:0; }
-    .wrap { max-width: 980px; margin: 0 auto; padding: 24px 16px; }
-    .card { background:#fff; border-radius:16px; box-shadow: 0 6px 18px rgba(0,0,0,.08); padding: 18px; }
-    h1 { margin: 0 0 8px; font-size: 1.6rem; }
-    .topbar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin: 10px 0 14px; }
-    .btn { display:inline-block; padding: 12px 14px; border-radius: 12px; background:#111827; color:#fff; text-decoration:none; font-weight: 800; border:none; cursor:pointer; font-size:1rem; font-family:inherit; }
-    .btn.secondary { background:#374151; }
-    .pill { padding: 10px 12px; border-radius: 12px; background:#f2f4f8; color:#111827; font-weight:700; }
-    table { width:100%; border-collapse: collapse; }
-    th, td { padding: 14px 12px; border-bottom: 1px solid #e7e9ee; text-align:left; font-size: 1.05rem; }
-    th { background:#f2f4f8; font-weight: 900; position: sticky; top: 0; }
-    th a { color:#111827; text-decoration:none; display:inline-flex; gap:8px; align-items:center; }
-    th a:hover { text-decoration:underline; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, Helvetica, sans-serif; background: bisque; min-height: 100vh; font-size: 15px; }
+
+    .navbar {
+      background: bisque; padding: 10px 16px;
+      display: flex; align-items: center; border-bottom: 1px solid #ccc;
+      gap: 20px; flex-wrap: wrap;
+    }
+    .nav-brand { font-weight: 900; font-size: 1.1rem; color: #111; text-decoration: none; }
+    .navbar a { color: #E2144A; text-decoration: none; font-weight: 700; font-size: .95rem; }
+    .navbar a:hover { text-decoration: underline; }
+    .navbar a.active { color: #111; font-weight: 900; }
+
+    .layout { display: flex; min-height: calc(100vh - 50px); }
+
+    .sidebar { width: 160px; flex-shrink: 0; border-right: 1px solid #ccc; padding: 16px 0; background: bisque; }
+    .sidebar ul { list-style: none; }
+    .sidebar ul li { position: relative; }
+    .sidebar ul li a { display: block; text-decoration: none; color: #E2144A; background: #fff; padding: 7px 10px; border: 1px solid #ccc; border-left: none; font-size: .9rem; }
+    .sidebar ul li a:hover { background: #ccc; font-weight: bold; }
+    .sidebar .submenu { display: none; position: absolute; left: 149px; top: 0; width: 150px; z-index: 10; }
+    .sidebar ul li:hover .submenu { display: block; }
+
+    .content { flex: 1; padding: 24px; overflow-x: auto; }
+
+    .card { background: #fff; border-radius: 14px; box-shadow: 0 4px 14px rgba(0,0,0,.08); padding: 20px; }
+
+    h1 { font-size: 1.4rem; margin-bottom: 14px; color: #111; }
+
+    /* SUMMARY */
+    .summary { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 16px; }
+    .sum-card { background: bisque; border-radius: 10px; padding: 12px 14px; border: 1px solid #ccc; }
+    .sum-label { font-size: .72rem; font-weight: 800; color: #555; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 3px; }
+    .sum-value { font-size: 1.2rem; font-weight: 900; color: #111; }
+
+    /* FILTERS */
+    .filters { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+    .filters label { font-weight: 800; color: #111; font-size: .9rem; }
+    select, input[type="date"] { padding: 8px 10px; border-radius: 8px; border: 1px solid #ccc; font-size: .9rem; font-family: inherit; background: #fff; }
+    .btn { display: inline-block; padding: 8px 14px; border-radius: 8px; background: #111827; color: #fff; text-decoration: none; font-weight: 800; border: none; cursor: pointer; font-size: .9rem; font-family: inherit; }
+    .btn.secondary { background: #fff; color: #E2144A; border: 1px solid #ccc; }
+    .btn.secondary:hover { background: #ccc; }
+    .btn:hover { background: #374151; }
+
+    /* TOPBAR */
+    .topbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+    .pill { padding: 8px 12px; border-radius: 8px; background: bisque; border: 1px solid #ccc; color: #111; font-weight: 700; font-size: .88rem; }
+
+    /* TABLE */
+    table { width: 100%; border-collapse: collapse; min-width: 680px; }
+    th, td { padding: 11px 10px; border-bottom: 1px solid #e7e9ee; text-align: left; font-size: .9rem; }
+    th { background: bisque; font-weight: 900; position: sticky; top: 0; }
+    th a { color: #111; text-decoration: none; }
+    th a:hover { text-decoration: underline; }
     .price { white-space: nowrap; font-weight: 900; }
-    .unit { white-space: nowrap; color:#333; }
-    .pager { display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between; margin-top: 14px; }
-    .pages { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
-    .pagebtn { padding: 10px 12px; border-radius: 12px; background:#f2f4f8; text-decoration:none; color:#111827; font-weight:800; }
-    .pagebtn.active { background:#111827; color:#fff; }
-    .pagebtn.disabled { opacity:.45; pointer-events:none; }
-    select, input[type="date"] { padding: 10px 12px; border-radius: 12px; border:1px solid #d6d9e0; font-size:1rem; font-family:inherit; background:#fff; }
-    .empty { padding: 14px; background:#fff7ed; border:1px solid #fed7aa; border-radius: 12px; color:#7c2d12; }
-    .summary { display:grid; grid-template-columns: repeat(3,1fr); gap:12px; margin-bottom:16px; }
-    .sum-card { background:#f2f4f8; border-radius:12px; padding:14px 16px; }
-    .sum-label { font-size:.75rem; font-weight:800; color:#555; text-transform:uppercase; letter-spacing:.05em; margin-bottom:4px; }
-    .sum-value { font-size:1.3rem; font-weight:900; }
-    .filters { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:14px; }
-    .filters label { font-weight:800; color:#111827; font-size:.95rem; }
-    nav { background:#111827; padding:12px 24px; display:flex; gap:20px; align-items:center; }
-    nav a { color:#9ca3af; text-decoration:none; font-weight:700; font-size:.95rem; transition:color .2s; }
-    nav a:hover, nav a.active { color:#fff; }
-    nav .nav-brand { color:#fff; font-weight:900; font-size:1.1rem; margin-right:10px; }
-    @media(max-width:600px){ .summary{grid-template-columns:1fr;} }
+    .empty { padding: 14px; background: #fff7ed; border: 1px solid #fed7aa; border-radius: 10px; color: #7c2d12; }
+
+    /* PAYMENT BADGE */
+    .pay-badge {
+      display: inline-block; padding: 3px 8px; border-radius: 6px;
+      font-size: .78rem; font-weight: 800; white-space: nowrap;
+    }
+    .pay-dinheiro   { background: #dcfce7; color: #166534; }
+    .pay-pix        { background: #dbeafe; color: #1e40af; }
+    .pay-cartao_credito { background: #fef3c7; color: #92400e; }
+    .pay-cartao_debito  { background: #f3e8ff; color: #6b21a8; }
+
+    /* PAGER */
+    .pager { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: space-between; margin-top: 14px; }
+    .pages { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+    .pagebtn { padding: 8px 11px; border-radius: 8px; background: bisque; border: 1px solid #ccc; text-decoration: none; color: #111; font-weight: 800; font-size: .85rem; }
+    .pagebtn.active { background: #111827; color: #fff; border-color: #111827; }
+    .pagebtn.disabled { opacity: .4; pointer-events: none; }
+
+    @media (max-width: 600px) {
+      .layout { flex-direction: column; }
+      .sidebar { width: 100%; border-right: none; border-bottom: 1px solid #ccc; }
+      .summary { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
 
-  <nav>
-    <span class="nav-brand">🛍 Loja</span>
-    <a href="/products/new">+ Produto</a>
-    <a href="/products">Produtos</a>
-    <a href="/sales/new">+ Venda</a>
-    <a href="/sales" class="active">Vendas</a>
-  </nav>
-  {% set base = "/sales" %}
-  {% set dir_toggle = "desc" if direction == "asc" else "asc" %}
-  {% macro url(p, sort_key=None, dir_key=None) -%}
-    {{ base }}?page={{ p }}&per_page={{ per_page }}&sort={{ sort_key or sort }}&direction={{ dir_key or direction }}&date_from={{ date_from or '' }}&date_to={{ date_to or '' }}&product_id={{ product_id_filter or '' }}
-  {%- endmacro %}
+<header class="navbar">
+  <a href="/" class="nav-brand">🛍 M.T.F</a>
+  <a href="/">Início</a>
+  <a href="/products">Produtos</a>
+  <a href="/products/new">+ Produto</a>
+  <a href="/sales" class="active">Vendas</a>
+  <a href="/sales/new">+ Venda</a>
+  <a href="/calc">Calculadora</a>
+</header>
 
-  <div class="wrap">
+<div class="layout">
+  <nav class="sidebar">
+    <ul>
+      <li><a href="/">Início</a></li>
+      <li>
+        <a href="#">Produtos ▸</a>
+        <ul class="submenu">
+          <li><a href="/products">Lista</a></li>
+          <li><a href="/products/new">+ Cadastrar</a></li>
+        </ul>
+      </li>
+      <li>
+        <a href="#">Vendas ▸</a>
+        <ul class="submenu">
+          <li><a href="/sales">Lista</a></li>
+          <li><a href="/sales/new">+ Nova</a></li>
+        </ul>
+      </li>
+      <li><a href="/calc">Calculadora</a></li>
+    </ul>
+  </nav>
+
+  <main class="content">
     <div class="card">
       <h1>Vendas</h1>
 
-      <!-- Filtros -->
+      {% set base = "/sales" %}
+      {% set dir_toggle = "desc" if direction == "asc" else "asc" %}
+      {% macro url(p, sort_key=None, dir_key=None) -%}
+        {{ base }}?page={{ p }}&per_page={{ per_page }}&sort={{ sort_key or sort }}&direction={{ dir_key or direction }}&date_from={{ date_from or '' }}&date_to={{ date_to or '' }}&product_id={{ product_id_filter or '' }}
+      {%- endmacro %}
+
+      <!-- SUMMARY -->
+      <div class="summary">
+        <div class="sum-card">
+          <div class="sum-label">Total período</div>
+          <div class="sum-value">R$ {{ "%.2f"|format(total_revenue) }}</div>
+        </div>
+        <div class="sum-card">
+          <div class="sum-label">Nº de vendas</div>
+          <div class="sum-value">{{ total_count }}</div>
+        </div>
+        <div class="sum-card">
+          <div class="sum-label">Ticket médio</div>
+          <div class="sum-value">R$ {{ "%.2f"|format(total_revenue / total_count if total_count else 0) }}</div>
+        </div>
+      </div>
+
+      <!-- FILTERS -->
       <form method="get" action="/sales">
         <div class="filters">
           <label>De</label>
@@ -76,37 +162,24 @@
           <input type="hidden" name="page" value="1">
           <input type="hidden" name="sort" value="{{ sort }}">
           <input type="hidden" name="direction" value="{{ direction }}">
-          <button type="submit" class="btn" style="padding:10px 16px;">Filtrar</button>
-          <a class="btn secondary" href="/sales" style="padding:10px 16px;">Limpar</a>
+          <button type="submit" class="btn">Filtrar</button>
+          <a class="btn secondary" href="/sales">Limpar</a>
         </div>
       </form>
 
-      <!-- Resumo -->
-      <div class="summary">
-        <div class="sum-card">
-          <div class="sum-label">Total período</div>
-          <div class="sum-value">R$ {{ "%.2f"|format(total_revenue) }}</div>
-        </div>
-        <div class="sum-card">
-          <div class="sum-label">Vendas</div>
-          <div class="sum-value">{{ total_count }}</div>
-        </div>
-      </div>
-
+      <!-- TOPBAR -->
       <div class="topbar">
         <a class="btn" href="/sales/new">+ Nova venda</a>
-        <a class="btn secondary" href="{{ url(page) }}">Atualizar</a>
         <span class="pill">{{ total_count }} registros</span>
-
-        <form method="get" action="/sales" style="margin-left:auto; display:flex; gap:10px; align-items:center;">
+        <form method="get" action="/sales" style="margin-left:auto;display:flex;gap:8px;align-items:center;">
           <input type="hidden" name="page" value="1">
           <input type="hidden" name="sort" value="{{ sort }}">
           <input type="hidden" name="direction" value="{{ direction }}">
           <input type="hidden" name="date_from" value="{{ date_from or '' }}">
           <input type="hidden" name="date_to" value="{{ date_to or '' }}">
           <input type="hidden" name="product_id" value="{{ product_id_filter or '' }}">
-          <label for="per_page" style="font-weight:800; color:#111827;">Por página</label>
-          <select id="per_page" name="per_page" onchange="this.form.submit()">
+          <label style="font-weight:800;font-size:.88rem;">Por página</label>
+          <select name="per_page" onchange="this.form.submit()">
             {% for n in [10,25,50,100,200] %}
               <option value="{{ n }}" {% if per_page == n %}selected{% endif %}>{{ n }}</option>
             {% endfor %}
@@ -120,42 +193,27 @@
         <table>
           <thead>
             <tr>
-              <th>
-                <a href="{{ url(1, 'sold_at', (dir_toggle if sort=='sold_at' else 'desc')) }}">
-                  Data {% if sort=='sold_at' %}{{ '↑' if direction=='asc' else '↓' }}{% endif %}
-                </a>
-              </th>
+              <th><a href="{{ url(1, 'sold_at', (dir_toggle if sort=='sold_at' else 'desc')) }}">Data {% if sort=='sold_at' %}{{ '↑' if direction=='asc' else '↓' }}{% endif %}</a></th>
               <th>Produto</th>
-              <th>
-                <a href="{{ url(1, 'qty', (dir_toggle if sort=='qty' else 'asc')) }}">
-                  Qtd {% if sort=='qty' %}{{ '↑' if direction=='asc' else '↓' }}{% endif %}
-                </a>
-              </th>
-              <th>
-                <a href="{{ url(1, 'unit_price', (dir_toggle if sort=='unit_price' else 'asc')) }}">
-                  Preço unit. {% if sort=='unit_price' %}{{ '↑' if direction=='asc' else '↓' }}{% endif %}
-                </a>
-              </th>
-              <th>
-                <a href="{{ url(1, 'total', (dir_toggle if sort=='total' else 'asc')) }}">
-                  Total {% if sort=='total' %}{{ '↑' if direction=='asc' else '↓' }}{% endif %}
-                </a>
-              </th>
+              <th><a href="{{ url(1, 'qty', (dir_toggle if sort=='qty' else 'asc')) }}">Qtd {% if sort=='qty' %}{{ '↑' if direction=='asc' else '↓' }}{% endif %}</a></th>
+              <th><a href="{{ url(1, 'unit_price', (dir_toggle if sort=='unit_price' else 'asc')) }}">Preço unit. {% if sort=='unit_price' %}{{ '↑' if direction=='asc' else '↓' }}{% endif %}</a></th>
+              <th><a href="{{ url(1, 'total', (dir_toggle if sort=='total' else 'asc')) }}">Total {% if sort=='total' %}{{ '↑' if direction=='asc' else '↓' }}{% endif %}</a></th>
+              <th>Pagamento</th>
               <th>Obs.</th>
             </tr>
           </thead>
           <tbody>
             {% for r in rows %}
+              {% set pt = r.payment_type or 'dinheiro' %}
+              {% set pt_labels = {'dinheiro':'💵 Dinheiro','pix':'📱 Pix','cartao_credito':'💳 Crédito','cartao_debito':'💳 Débito'} %}
               <tr>
                 <td>{{ r.sold_at.strftime('%d/%m/%Y') }}</td>
-                <td>
-                  {{ r.product_name }}
-                  <br><small style="color:#888; font-size:.8rem;">{{ r.unit }}</small>
-                </td>
-                <td class="unit">{{ r.qty }}</td>
+                <td>{{ r.product_name }}<br><small style="color:#888;font-size:.78rem;">{{ r.unit }}</small></td>
+                <td>{{ r.qty }}</td>
                 <td class="price">R$ {{ "%.2f"|format(r.unit_price or 0) }}</td>
                 <td class="price">R$ {{ "%.2f"|format(r.total or 0) }}</td>
-                <td style="color:#555; font-size:.9rem;">{{ r.note or '—' }}</td>
+                <td><span class="pay-badge pay-{{ pt }}">{{ pt_labels.get(pt, pt) }}</span></td>
+                <td style="color:#555;font-size:.85rem;">{{ r.note or '—' }}</td>
               </tr>
             {% endfor %}
           </tbody>
@@ -164,29 +222,27 @@
         <div class="pager">
           <div class="pages">
             <a class="pagebtn {{ 'disabled' if page<=1 else '' }}" href="{{ url(page-1 if page>1 else 1) }}">‹ Anterior</a>
-
             {% set start = page-2 if page-2>1 else 1 %}
             {% set end = page+2 if page+2<total_pages else total_pages %}
             {% if start > 1 %}
               <a class="pagebtn" href="{{ url(1) }}">1</a>
-              {% if start > 2 %}<span style="padding:0 6px;">…</span>{% endif %}
+              {% if start > 2 %}<span style="padding:0 4px;">…</span>{% endif %}
             {% endif %}
-
             {% for p in range(start, end+1) %}
               <a class="pagebtn {{ 'active' if p==page else '' }}" href="{{ url(p) }}">{{ p }}</a>
             {% endfor %}
-
             {% if end < total_pages %}
-              {% if end < total_pages-1 %}<span style="padding:0 6px;">…</span>{% endif %}
+              {% if end < total_pages-1 %}<span style="padding:0 4px;">…</span>{% endif %}
               <a class="pagebtn" href="{{ url(total_pages) }}">{{ total_pages }}</a>
             {% endif %}
-
             <a class="pagebtn {{ 'disabled' if page>=total_pages else '' }}" href="{{ url(page+1 if page<total_pages else total_pages) }}">Próxima ›</a>
           </div>
           <div class="pill">Página {{ page }} / {{ total_pages }}</div>
         </div>
       {% endif %}
+
     </div>
-  </div>
+  </main>
+</div>
 </body>
 </html>

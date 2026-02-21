@@ -70,13 +70,7 @@
       background: bisque;
     }
 
-    .sidebar ul {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      width: 100%;
-    }
-
+    .sidebar ul { list-style: none; padding: 0; margin: 0; width: 100%; }
     .sidebar ul li { position: relative; }
 
     .sidebar ul li a {
@@ -89,11 +83,7 @@
       border-left: none;
       font-size: .9rem;
     }
-    .sidebar ul li a:hover {
-      text-decoration: underline;
-      font-weight: bold;
-      background: #ccc;
-    }
+    .sidebar ul li a:hover { text-decoration: underline; font-weight: bold; background: #ccc; }
 
     .sidebar .submenu {
       display: none;
@@ -112,14 +102,11 @@
       display: flex;
       flex-direction: column;
       gap: 24px;
+      overflow-x: auto;
     }
 
     /* ── QUICK LINKS ── */
-    .quick-links {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
+    .quick-links { display: flex; gap: 10px; flex-wrap: wrap; }
 
     .quick-links a {
       padding: 10px 18px;
@@ -133,11 +120,7 @@
       transition: background .2s;
     }
     .quick-links a:hover { background: #ccc; }
-    .quick-links a.primary {
-      background: #007bff;
-      color: #fff;
-      border-color: #007bff;
-    }
+    .quick-links a.primary { background: #007bff; color: #fff; border-color: #007bff; }
     .quick-links a.primary:hover { background: #0056b3; }
 
     /* ── SEARCH RESULTS ── */
@@ -162,79 +145,122 @@
     .result-item:last-child { border-bottom: none; }
     .result-price { font-weight: bold; color: #007bff; }
 
-    /* ── CALCULATOR ── */
-    .calc-section {
-      max-width: 340px;
-    }
-
+    /* ── CALCULATOR (tabela de gás) ── */
     .calc-section h3 {
       font-size: 1rem;
       margin-bottom: 14px;
       color: black;
     }
 
-    .calc-section label {
-      display: block;
-      font-size: .9rem;
-      margin-bottom: 4px;
-      color: black;
+    .gas-table-wrap { overflow-x: auto; }
+
+    table.gas-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 8px;
+      table-layout: fixed;
     }
 
-    .calc-section select,
-    .calc-section input[type="number"] {
+    .gas-table thead th {
+      background: #fff;
+      border: 3px solid #ccc;
+      border-radius: 12px;
+      padding: 12px 8px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+      vertical-align: top;
+    }
+    .gas-table thead th:hover { border-color: #007bff; }
+    .gas-table thead th.selected {
+      border-color: #007bff;
+      border-width: 4px;
+      background: #cfe2ff;
+      box-shadow: 0 0 0 4px rgba(0,123,255,.18);
+    }
+
+    .gas-name { font-size: 1.2rem; font-weight: bold; color: #E2144A; margin-bottom: 4px; }
+    .gas-price-label { font-size: .9rem; color: #333; }
+    .gas-unit { font-size: .75rem; color: #888; }
+
+    .gas-table tbody td {
+      background: #fff;
+      border: 2px solid #ddd;
+      border-radius: 10px;
+      padding: 12px 10px;
+      vertical-align: top;
+      transition: border-color .2s, background .2s;
+      font-size: .9rem;
+    }
+    .gas-table tbody td.selected {
+      border-color: #007bff;
+      border-width: 3px;
+      background: #e8f0ff;
+    }
+
+    .calc-label { display: block; font-size: .85rem; color: #333; margin-bottom: 4px; }
+
+    .gas-table input[type="number"] {
       width: 100%;
       padding: 8px;
-      margin-bottom: 10px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      font-size: .95rem;
-      background: #fff;
+      font-size: 1rem;
+      border: 2px solid #ccc;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      outline: none;
     }
-
-    .calc-toggle {
-      display: flex;
-      margin-bottom: 10px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      overflow: hidden;
-    }
-    .calc-toggle input[type="radio"] { display: none; }
-    .calc-toggle label {
-      flex: 1;
-      text-align: center;
-      padding: 8px;
-      cursor: pointer;
-      font-size: .85rem;
-      background: #fff;
-      color: black;
-      margin: 0;
-      border-right: 1px solid #ccc;
-    }
-    .calc-toggle label:last-of-type { border-right: none; }
-    .calc-toggle input:checked + label {
-      background: #007bff;
-      color: #fff;
-      font-weight: bold;
-    }
+    .gas-table input[type="number"]:focus { border-color: #007bff; }
 
     .calc-btn {
       width: 100%;
-      padding: 10px;
-      background-color: #28a745;
+      padding: 9px;
+      font-size: .9rem;
+      font-weight: bold;
+      background: #28a745;
       color: white;
       border: none;
-      border-radius: 4px;
+      border-radius: 6px;
       cursor: pointer;
+    }
+    .calc-btn:hover { background: #1e7e34; }
+
+    .resultado {
+      display: none;
+      margin-top: 8px;
+      padding: 10px;
+      background: #e8f5e9;
+      border: 2px solid #28a745;
+      border-radius: 6px;
       font-size: 1rem;
       font-weight: bold;
+      color: #1a6e2e;
+      text-align: center;
     }
-    .calc-btn:hover { background-color: #1e7e34; }
+    .resultado.show { display: block; }
+    .resultado small { display: block; font-size: .75rem; font-weight: normal; color: #555; margin-top: 3px; }
+    .resultado.error { background: #fff3cd; border-color: #ffc107; color: #856404; }
 
-    #resultado {
+    .cart-btn {
+      width: 100%;
+      padding: 9px;
+      font-size: .9rem;
       font-weight: bold;
-      margin-top: 12px;
-      color: blue;
-      font-size: 1.05rem;
+      background: #fff;
+      color: #E2144A;
+      border: 2px solid #E2144A;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 6px;
+      transition: background .2s, color .2s;
+    }
+    .cart-btn:hover { background: #E2144A; color: #fff; }
+
+    .row-label {
+      font-size: .9rem;
+      font-weight: bold;
+      color: #555;
+      text-align: center;
+      padding: 4px 0 0;
     }
 
     @media (max-width: 600px) {
@@ -276,6 +302,7 @@
           <li><a href="/sales/new">+ Nova venda</a></li>
         </ul>
       </li>
+      <li><a href="/calc">Calculadora</a></li>
     </ul>
   </nav>
 
@@ -299,96 +326,130 @@
     <!-- Calculator -->
     <div class="calc-section">
       <h3>Calculadora de gás (kg)</h3>
-
-      <label>Produto (gás em kg):</label>
-      <select id="calc-product">
-        <option value="" disabled selected>Selecione o produto...</option>
-      </select>
-
-      <label>Modo:</label>
-      <div class="calc-toggle">
-        <input type="radio" name="calc-mode" id="mode-g" value="g" checked>
-        <label for="mode-g">Gramas → R$</label>
-        <input type="radio" name="calc-mode" id="mode-r" value="r">
-        <label for="mode-r">R$ → Gramas</label>
+      <div class="gas-table-wrap">
+        <table class="gas-table" id="gas-table">
+          <thead><tr id="header-row"></tr></thead>
+          <tbody id="table-body"></tbody>
+        </table>
       </div>
-
-      <label id="calc-label">Quantidade em gramas:</label>
-      <input type="number" id="valorX" min="0" step="any" placeholder="Ex: 500">
-
-      <button class="calc-btn" onclick="calcular()">calcular</button>
-      <div id="resultado"></div>
     </div>
 
   </main>
 </div>
 
 <script>
-  // ── Modo label ──
-  document.querySelectorAll('input[name="calc-mode"]').forEach(r => {
-    r.addEventListener('change', () => {
-      const mode = document.querySelector('input[name="calc-mode"]:checked').value;
-      document.getElementById('calc-label').textContent =
-        mode === 'g' ? 'Quantidade em gramas:' : 'Valor em R$:';
-      document.getElementById('valorX').placeholder =
-        mode === 'g' ? 'Ex: 500' : 'Ex: 35,00';
-      document.getElementById('resultado').innerHTML = '';
-    });
-  });
+  // ── GAS CALCULATOR ──
+  let gases = [];
 
-  // ── Carregar produtos kg ──
-  async function loadProducts() {
+  async function loadGases() {
     try {
       const res = await fetch('/api/products?unit=kg');
-      const data = await res.json();
-      const sel = document.getElementById('calc-product');
-      data.forEach(p => {
-        const opt = document.createElement('option');
-        opt.value = p.sale_price;
-        opt.textContent = `${p.name} — R$ ${parseFloat(p.sale_price).toFixed(2)}/kg`;
-        sel.appendChild(opt);
-      });
-    } catch {}
-  }
-  loadProducts();
+      gases = await res.json();
+    } catch { gases = []; }
 
-  // ── Calculadora ──
-  function calcular() {
-    const pricePerKg = parseFloat(document.getElementById('calc-product').value);
-    const x = parseFloat(document.getElementById('valorX').value.replace(',', '.'));
-    const mode = document.querySelector('input[name="calc-mode"]:checked').value;
-    const res = document.getElementById('resultado');
-
-    if (!pricePerKg || isNaN(x) || x <= 0) {
-      res.innerHTML = 'Preencha todos os campos.';
-      res.style.color = 'red';
+    if (!gases.length) {
+      document.getElementById('gas-table').innerHTML =
+        '<tr><td style="color:#888;padding:12px">Nenhum produto em kg cadastrado.</td></tr>';
       return;
     }
-
-    res.style.color = 'blue';
-    const pricePerG = pricePerKg / 1000;
-
-    if (mode === 'g') {
-      res.innerHTML = `Resultado: R$ ${(x * pricePerG).toFixed(2)}`;
-    } else {
-      res.innerHTML = `Resultado: ${(x / pricePerG).toFixed(1)} g`;
-    }
+    renderTable();
   }
 
-  document.getElementById('valorX').addEventListener('keydown', e => {
-    if (e.key === 'Enter') calcular();
-  });
+  function renderTable() {
+    const headerRow = document.getElementById('header-row');
+    const tbody = document.getElementById('table-body');
 
-  // ── Busca ──
+    headerRow.innerHTML = gases.map((g, i) => `
+      <th onclick="selectGas(${i})" id="th-${i}">
+        <div class="gas-name">${g.name}</div>
+        <div class="gas-price-label">R$ ${parseFloat(g.sale_price).toFixed(2)}</div>
+        <div class="gas-unit">por kg</div>
+      </th>
+    `).join('');
+
+    const labelRow1 = document.createElement('tr');
+    labelRow1.innerHTML = `<td colspan="${gases.length}" class="row-label">📦 Gramas → R$</td>`;
+    tbody.appendChild(labelRow1);
+
+    const row1 = document.createElement('tr');
+    gases.forEach((g, i) => {
+      const td = document.createElement('td');
+      td.id = `td-g-${i}`;
+      td.innerHTML = `
+        <span class="calc-label">Gramas:</span>
+        <input type="number" id="input-g-${i}" min="0" step="any" placeholder="Ex: 500"
+               onkeydown="if(event.key==='Enter') calcG(${i})">
+        <button class="calc-btn" onclick="calcG(${i})">Calcular R$</button>
+        <div class="resultado" id="res-g-${i}"></div>
+        <button class="cart-btn" onclick="">🛒 Adicionar ao carrinho</button>
+      `;
+      row1.appendChild(td);
+    });
+    tbody.appendChild(row1);
+
+    const labelRow2 = document.createElement('tr');
+    labelRow2.innerHTML = `<td colspan="${gases.length}" class="row-label">💰 R$ → Gramas</td>`;
+    tbody.appendChild(labelRow2);
+
+    const row2 = document.createElement('tr');
+    gases.forEach((g, i) => {
+      const td = document.createElement('td');
+      td.id = `td-r-${i}`;
+      td.innerHTML = `
+        <span class="calc-label">Valor em R$:</span>
+        <input type="number" id="input-r-${i}" min="0" step="any" placeholder="Ex: 35,00"
+               onkeydown="if(event.key==='Enter') calcR(${i})">
+        <button class="calc-btn" onclick="calcR(${i})">Calcular gramas</button>
+        <div class="resultado" id="res-r-${i}"></div>
+        <button class="cart-btn" onclick="">🛒 Adicionar ao carrinho</button>
+      `;
+      row2.appendChild(td);
+    });
+    tbody.appendChild(row2);
+  }
+
+  function selectGas(idx) {
+    gases.forEach((_, i) => {
+      const sel = i === idx;
+      document.getElementById(`th-${i}`).classList.toggle('selected', sel);
+      document.getElementById(`td-g-${i}`).classList.toggle('selected', sel);
+      document.getElementById(`td-r-${i}`).classList.toggle('selected', sel);
+    });
+  }
+
+  function showResult(el, text, isError) {
+    el.className = 'resultado show' + (isError ? ' error' : '');
+    el.innerHTML = text;
+  }
+
+  function calcG(i) {
+    const g = parseFloat(document.getElementById(`input-g-${i}`).value);
+    const res = document.getElementById(`res-g-${i}`);
+    const price = parseFloat(gases[i].sale_price);
+    if (isNaN(g) || g <= 0) { showResult(res, 'Digite uma quantidade válida.', true); return; }
+    showResult(res, `R$ ${(g * price / 1000).toFixed(2)}<small>${g}g de ${gases[i].name}</small>`, false);
+    selectGas(i);
+  }
+
+  function calcR(i) {
+    const r = parseFloat(document.getElementById(`input-r-${i}`).value);
+    const res = document.getElementById(`res-r-${i}`);
+    const price = parseFloat(gases[i].sale_price);
+    if (isNaN(r) || r <= 0) { showResult(res, 'Digite um valor válido.', true); return; }
+    showResult(res, `${(r / price * 1000).toFixed(1)} g<small>R$ ${r.toFixed(2)} de ${gases[i].name}</small>`, false);
+    selectGas(i);
+  }
+
+  loadGases();
+
+  // ── SEARCH ──
   async function searchProducts() {
     const q = document.getElementById('search-input').value.trim();
     if (!q) return;
-
     const container = document.getElementById('search-results');
     const list = document.getElementById('results-list');
     list.innerHTML = '<div class="result-item" style="color:#888">Buscando...</div>';
     container.classList.add('show');
-
     try {
       const res = await fetch(`/api/products?search=${encodeURIComponent(q)}`);
       const data = await res.json();

@@ -30,3 +30,6 @@ async def init_db():
         """))
         await conn.execute(text("CREATE INDEX IF NOT EXISTS idx_sales_sold_at ON sales(sold_at)"))
         await conn.execute(text("CREATE INDEX IF NOT EXISTS idx_sales_product_id ON sales(product_id)"))
+        await conn.execute(text("""
+            ALTER TABLE sales ADD COLUMN IF NOT EXISTS payment_type TEXT NOT NULL DEFAULT 'dinheiro'
+        """))

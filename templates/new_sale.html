@@ -3,65 +3,99 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Nova Venda</title>
+  <title>Nova Venda — M.T.F</title>
   <style>
-    :root { font-size: 20px; }
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:#f6f7fb; margin:0; }
-    .wrap { max-width: 760px; margin: 0 auto; padding: 24px 16px; }
-    .card { background:#fff; border-radius:18px; box-shadow: 0 6px 18px rgba(0,0,0,.08); padding: 18px; }
-    h1 { margin: 0 0 8px; font-size: 1.6rem; }
-    .sub { margin: 0 0 16px; color:#555; line-height:1.4; }
-    label { display:block; font-weight: 900; margin: 14px 0 8px; }
-    input, select, textarea {
-      width: 100%;
-      padding: 14px 14px;
-      border-radius: 14px;
-      border: 1px solid #d6d9e0;
-      font-size: 1rem;
-      background: #fff;
-      box-sizing: border-box;
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, Helvetica, sans-serif; background: bisque; min-height: 100vh; }
+
+    .navbar {
+      background: bisque; padding: 10px 16px;
+      display: flex; align-items: center; border-bottom: 1px solid #ccc;
+      gap: 20px; flex-wrap: wrap;
     }
-    textarea { min-height: 90px; resize: vertical; }
-    .row { display:grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    .btns { display:flex; gap:12px; flex-wrap:wrap; margin-top: 18px; }
-    button, a.btn {
-      padding: 14px 16px;
-      border-radius: 14px;
-      border: 0;
-      font-weight: 900;
-      font-size: 1rem;
-      cursor: pointer;
-      text-decoration:none;
-      display:inline-block;
-      text-align:center;
+    .nav-brand { font-weight: 900; font-size: 1.1rem; color: #111; text-decoration: none; }
+    .navbar a { color: #E2144A; text-decoration: none; font-weight: 700; font-size: .95rem; }
+    .navbar a:hover { text-decoration: underline; }
+    .navbar a.active { color: #111; font-weight: 900; }
+
+    .layout { display: flex; min-height: calc(100vh - 50px); }
+
+    .sidebar { width: 160px; flex-shrink: 0; border-right: 1px solid #ccc; padding: 16px 0; background: bisque; }
+    .sidebar ul { list-style: none; }
+    .sidebar ul li { position: relative; }
+    .sidebar ul li a { display: block; text-decoration: none; color: #E2144A; background: #fff; padding: 7px 10px; border: 1px solid #ccc; border-left: none; font-size: .9rem; }
+    .sidebar ul li a:hover { background: #ccc; font-weight: bold; }
+    .sidebar .submenu { display: none; position: absolute; left: 149px; top: 0; width: 150px; z-index: 10; }
+    .sidebar ul li:hover .submenu { display: block; }
+
+    .content { flex: 1; padding: 24px; }
+    .card { background: #fff; border-radius: 14px; box-shadow: 0 4px 14px rgba(0,0,0,.08); padding: 24px; max-width: 680px; }
+    h1 { font-size: 1.5rem; margin-bottom: 16px; color: #111; }
+    label { display: block; font-weight: 900; margin: 14px 0 6px; color: #111; }
+    input, select, textarea { width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid #d6d9e0; font-size: 1rem; font-family: inherit; background: #fff; }
+    textarea { min-height: 80px; resize: vertical; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: #007bff; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .hint { color: #6b7280; font-size: .88rem; margin-top: 5px; }
+    .btns { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 20px; }
+    .btn-primary { padding: 12px 20px; border-radius: 10px; border: none; background: #111827; color: #fff; font-weight: 900; font-size: 1rem; cursor: pointer; }
+    .btn-primary:hover { background: #374151; }
+    .btn-secondary { padding: 12px 20px; border-radius: 10px; border: 1px solid #ccc; background: #fff; color: #E2144A; font-weight: 900; font-size: 1rem; text-decoration: none; display: inline-block; }
+    .btn-secondary:hover { background: #ccc; }
+    .msg { padding: 12px 14px; border-radius: 10px; margin-bottom: 14px; font-weight: 800; }
+    .err { background: #fef2f2; border: 1px solid #fecaca; color: #7f1d1d; }
+    .ok  { background: #ecfdf5; border: 1px solid #bbf7d0; color: #065f46; }
+
+    @media (max-width: 600px) {
+      .layout { flex-direction: column; }
+      .sidebar { width: 100%; border-right: none; border-bottom: 1px solid #ccc; }
+      .row { grid-template-columns: 1fr; }
     }
-    button.primary { background:#111827; color:#fff; }
-    a.btn.secondary { background:#374151; color:#fff; }
-    .msg { padding: 12px 14px; border-radius: 14px; margin: 10px 0 14px; font-weight: 800; }
-    .err { background:#fef2f2; border:1px solid #fecaca; color:#7f1d1d; }
-    .ok { background:#ecfdf5; border:1px solid #bbf7d0; color:#065f46; }
-    .hint { color:#6b7280; font-size: .95rem; margin-top: 6px; }
   </style>
 </head>
 <body>
-  <nav>
-    <span class="nav-brand">🛍 Loja</span>
-    <a href="/products/new">+ Produto</a>
-    <a href="/products">Produtos</a>
-    <a href="/sales/new">+ Venda</a>
-    <a href="/sales" class="active">Vendas</a>
+
+<header class="navbar">
+  <a href="/" class="nav-brand">🛍 M.T.F</a>
+  <a href="/">Início</a>
+  <a href="/products">Produtos</a>
+  <a href="/products/new">+ Produto</a>
+  <a href="/sales">Vendas</a>
+  <a href="/sales/new" class="active">+ Venda</a>
+  <a href="/calc">Calculadora</a>
+</header>
+
+<div class="layout">
+  <nav class="sidebar">
+    <ul>
+      <li><a href="/">Início</a></li>
+      <li>
+        <a href="#">Produtos ▸</a>
+        <ul class="submenu">
+          <li><a href="/products">Lista</a></li>
+          <li><a href="/products/new">+ Cadastrar</a></li>
+        </ul>
+      </li>
+      <li>
+        <a href="#">Vendas ▸</a>
+        <ul class="submenu">
+          <li><a href="/sales">Lista</a></li>
+          <li><a href="/sales/new">+ Nova</a></li>
+        </ul>
+      </li>
+      <li><a href="/calc">Calculadora</a></li>
+    </ul>
   </nav>
-  <div class="wrap">
+
+  <main class="content">
     <div class="card">
       <h1>Registrar Venda</h1>
-      {% if error %}
-        <div class="msg err">{{ error }}</div>
-      {% endif %}
-      {% if success %}
-        <div class="msg ok">{{ success }}</div>
-      {% endif %}
+
+      {% if error %}<div class="msg err">{{ error }}</div>{% endif %}
+      {% if success %}<div class="msg ok">{{ success }}</div>{% endif %}
 
       <form method="post" action="/sales/new" id="saleForm">
+
         <label for="sold_at">Data</label>
         <input id="sold_at" name="sold_at" type="date" value="{{ today }}" required>
 
@@ -72,7 +106,7 @@
             <option value="{{ p['id'] }}"
                     data-price="{{ p['sale_price'] or 0 }}"
                     data-unit="{{ p['unit'] or '' }}">
-              {{ p['name'] }} {% if p['unit'] %} ({{ p['unit'] }}){% endif %}
+              {{ p['name'] }}{% if p['unit'] %} ({{ p['unit'] }}){% endif %}
             </option>
           {% endfor %}
         </select>
@@ -93,88 +127,47 @@
         <input id="total" name="total" inputmode="decimal" placeholder="Auto (quantidade × preço)">
         <div class="hint">Você pode corrigir o total manualmente (desconto, etc.).</div>
 
+        <label for="payment_type">Forma de pagamento</label>
+        <select id="payment_type" name="payment_type" required>
+          <option value="dinheiro">💵 Dinheiro</option>
+          <option value="pix">📱 Pix</option>
+          <option value="cartao_credito">💳 Cartão de crédito</option>
+          <option value="cartao_debito">💳 Cartão de débito</option>
+        </select>
+
         <label for="note">Observação (opcional)</label>
         <textarea id="note" name="note" placeholder="Ex: desconto, cliente, motivo..."></textarea>
 
         <div class="btns">
-          <button class="primary" type="submit">Salvar venda</button>
-          <a class="btn secondary" href="/products">Ver produtos</a>
+          <button class="btn-primary" type="submit">Salvar venda</button>
+          <a class="btn-secondary" href="/sales">Ver vendas</a>
         </div>
       </form>
     </div>
-  </div>
+  </main>
+</div>
 
-  <script>
+<script>
   const productSel = document.getElementById("product_id");
-  const qtyEl = document.getElementById("qty");
-  const priceEl = document.getElementById("unit_price");
-  const totalEl = document.getElementById("total");
-  const unitHint = document.getElementById("unitHint");
-
+  const qtyEl      = document.getElementById("qty");
+  const priceEl    = document.getElementById("unit_price");
+  const totalEl    = document.getElementById("total");
+  const unitHint   = document.getElementById("unitHint");
   let priceWasManuallyEdited = false;
 
-  function parseNum(v) {
-    if (!v) return null;
-    v = (""+v).trim().replace(",", ".");
-    const n = Number(v);
-    return Number.isFinite(n) ? n : null;
-  }
+  function parseNum(v) { if (!v) return null; const n = Number((""+v).trim().replace(",",".")); return Number.isFinite(n)?n:null; }
+  function fmt2(n) { return (Math.round(n*100)/100).toFixed(2); }
+  function selectedOpt() { return productSel.selectedOptions?.[0]||null; }
+  function getSelectedPrice() { const o=selectedOpt(); return o?parseNum(o.dataset.price):null; }
+  function updateUnitHint() { const o=selectedOpt(); unitHint.textContent=o?.dataset.unit?"Unidade: "+o.dataset.unit:""; }
+  function setPriceFromProduct(force=false) { const p=getSelectedPrice(); if(p===null)return; if(force||!priceWasManuallyEdited){priceEl.value=fmt2(p);priceWasManuallyEdited=false;} }
+  function recalcTotal() { const q=parseNum(qtyEl.value); const p=parseNum(priceEl.value)??getSelectedPrice(); if(q!==null&&p!==null)totalEl.value=fmt2(q*p); }
 
-  function fmt2(n) {
-    return (Math.round(n * 100) / 100).toFixed(2);
-  }
-
-  function selectedOpt() {
-    return productSel.selectedOptions && productSel.selectedOptions[0] ? productSel.selectedOptions[0] : null;
-  }
-
-  function getSelectedPrice() {
-    const opt = selectedOpt();
-    if (!opt) return null;
-    return parseNum(opt.dataset.price);
-  }
-
-  function updateUnitHint() {
-    const opt = selectedOpt();
-    if (!opt) { unitHint.textContent = ""; return; }
-    const unit = opt.dataset.unit || "";
-    unitHint.textContent = unit ? ("Unidade: " + unit) : "";
-  }
-
-  function setPriceFromProduct(force=false) {
-    const p = getSelectedPrice();
-    if (p === null) return;
-    if (force || !priceWasManuallyEdited) {
-      priceEl.value = fmt2(p);
-      priceWasManuallyEdited = false; // цена теперь “из товара”
-    }
-  }
-
-  function recalcTotal() {
-    const q = parseNum(qtyEl.value);
-    const p = parseNum(priceEl.value) ?? getSelectedPrice();
-    if (q === null || p === null) return;
-    totalEl.value = fmt2(q * p);
-  }
-
-  // если пользователь тронул цену вручную, больше не перезаписываем при смене товара
-  priceEl.addEventListener("input", () => {
-    priceWasManuallyEdited = priceEl.value.trim() !== "";
-    recalcTotal();
-  });
-
-  qtyEl.addEventListener("input", () => recalcTotal());
-
-  productSel.addEventListener("change", () => {
-    updateUnitHint();
-    setPriceFromProduct(false); // поменяет цену, если её не правили вручную
-    recalcTotal();
-  });
-
-  // начальная инициализация
+  priceEl.addEventListener("input",()=>{priceWasManuallyEdited=priceEl.value.trim()!=="";recalcTotal();});
+  qtyEl.addEventListener("input",recalcTotal);
+  productSel.addEventListener("change",()=>{updateUnitHint();setPriceFromProduct(false);recalcTotal();});
   updateUnitHint();
-  // если цена пустая при загрузке, подставим
-  if (priceEl.value.trim() === "") setPriceFromProduct(true);
+  if(priceEl.value.trim()==="")setPriceFromProduct(true);
 </script>
 </body>
 </html>
