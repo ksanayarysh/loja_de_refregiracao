@@ -33,3 +33,15 @@ async def init_db():
         await conn.execute(text("""
             ALTER TABLE sales ADD COLUMN IF NOT EXISTS payment_type TEXT NOT NULL DEFAULT 'dinheiro'
         """))
+        await conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS categories (
+                id SERIAL PRIMARY KEY,
+                name TEXT NOT NULL UNIQUE
+            )
+        """))
+        await conn.execute(text("""
+            INSERT INTO categories (name) VALUES ('Outro') ON CONFLICT DO NOTHING
+        """))
+        await conn.execute(text("""
+            ALTER TABLE products ADD COLUMN IF NOT EXISTS category_id INTEGER REFERENCES categories(id)
+        """))

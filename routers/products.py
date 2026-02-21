@@ -86,8 +86,9 @@ async def products_list(
 
         rows_res = await conn.execute(
             text(f"""
-                SELECT p.id, p.name, p.sale_price, p.unit
+                SELECT p.id, p.name, p.sale_price, p.unit, c.name as category_name
                 FROM products p
+                LEFT JOIN categories c ON c.id = p.category_id
                 WHERE p.active = TRUE
                 ORDER BY {sort_col} {direction_sql}, p.id ASC
                 LIMIT :limit OFFSET :offset

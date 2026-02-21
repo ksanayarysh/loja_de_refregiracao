@@ -43,3 +43,13 @@ async def api_products(search: str = "", unit: str = "", _=Depends(basic_auth)):
 @app.get("/calc", response_class=HTMLResponse)
 async def calc_page(request: Request, _=Depends(basic_auth)):
     return templates.TemplateResponse("calc.html", {"request": request})
+
+@app.post("/api/categories")
+async def create_category(data: dict, _=Depends(basic_auth)):
+    async with engine.begin() as conn:
+        res = await conn.execute(
+            text("INSERT INTO categories (name) VALUES (:name) ON CONFLICT (name) DO UPDATE SET name=EXCLUDED.name RETURNING id, name"),
+            {"name": data["name"].strip()}
+        )
+        row = res.mappings().first()
+        return dict(row)
