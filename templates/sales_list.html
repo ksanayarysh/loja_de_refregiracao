@@ -151,10 +151,6 @@
           <div class="sum-label">Nº de vendas</div>
           <div class="sum-value">{{ total_count }}</div>
         </div>
-        <div class="sum-card">
-          <div class="sum-label">Ticket médio</div>
-          <div class="sum-value">R$ {{ "%.2f"|format(total_revenue / total_count if total_count else 0) }}</div>
-        </div>
       </div>
 
       <!-- FILTERS -->
