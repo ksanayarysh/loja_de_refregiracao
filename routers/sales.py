@@ -3,7 +3,7 @@ from datetime import date
 from decimal import Decimal, ROUND_HALF_UP
 
 from fastapi import APIRouter, Depends, Form, Query, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy import text
 
 from dependencies import engine, templates, basic_auth
@@ -23,6 +23,14 @@ def money2(x) -> Decimal:
     return Decimal(str(x)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
 
+def _parse_date(s: str):
+    """Converte string ISO para objeto date — evita erro do asyncpg com strings."""
+    try:
+        return date.fromisoformat(s)
+    except Exception:
+        return None
+
+
 def _sort_url(request: Request, field: str, current_sort: str, current_dir: str) -> str:
     params = dict(request.query_params)
     params["sort"] = field
@@ -31,15 +39,17 @@ def _sort_url(request: Request, field: str, current_sort: str, current_dir: str)
     return "?" + "&".join(f"{k}={v}" for k, v in params.items())
 
 
+async def _get_products(conn):
+    res = await conn.execute(text("SELECT id, name, sale_price, unit FROM products WHERE active = TRUE ORDER BY name"))
+    return res.mappings().all()
+
+
+# ── NEW SALE ──
+
 @router.get("/sales/new", response_class=HTMLResponse)
 async def sales_new(request: Request, _=Depends(basic_auth)):
     async with engine.connect() as conn:
-        res = await conn.execute(text("""
-            SELECT id, name, sale_price, unit
-            FROM products WHERE active = TRUE ORDER BY name
-        """))
-        products = res.mappings().all()
-
+        products = await _get_products(conn)
     return templates.TemplateResponse("new_sale.html", {
         "request": request,
         "today": date.today().isoformat(),
@@ -73,11 +83,7 @@ async def sales_create(
         qty_d = None
 
     async with engine.begin() as conn:
-        res = await conn.execute(text("""
-            SELECT id, name, sale_price, unit
-            FROM products WHERE active = TRUE ORDER BY name
-        """))
-        products = res.mappings().all()
+        products = await _get_products(conn)
 
         p = await conn.execute(
             text("SELECT sale_price FROM products WHERE id = :pid AND active = TRUE"),
@@ -111,7 +117,7 @@ async def sales_create(
 
                 if not error:
                     total_d = money2(total_d)
-                    sold_at_date = date.fromisoformat(sold_at)
+                    sold_at_date = _parse_date(sold_at)
                     await conn.exec_driver_sql(
                         "INSERT INTO sales (sold_at, product_id, qty, unit_price, total, note, payment_type) VALUES ($1,$2,$3,$4,$5,$6,$7)",
                         (sold_at_date, product_id, qty_d, price_d, total_d, note.strip() or None, payment_type)
@@ -126,6 +132,65 @@ async def sales_create(
         "success": success,
     })
 
+
+# ── EDIT SALE ──
+
+@router.get("/sales/{sale_id}/edit", response_class=HTMLResponse)
+async def sale_edit_form(sale_id: int, request: Request, _=Depends(basic_auth)):
+    async with engine.connect() as conn:
+        res = await conn.execute(
+            text("SELECT id, sold_at, product_id, qty, unit_price, total, note, payment_type FROM sales WHERE id = :id"),
+            {"id": sale_id},
+        )
+        sale = res.mappings().first()
+        if not sale:
+            return HTMLResponse("Venda não encontrada", status_code=404)
+        products = await _get_products(conn)
+
+    return templates.TemplateResponse("edit_sale.html", {
+        "request": request,
+        "sale": sale,
+        "products": products,
+    })
+
+
+@router.post("/sales/{sale_id}/edit")
+async def sale_edit_save(
+    sale_id: int,
+    sold_at: str = Form(...),
+    product_id: int = Form(...),
+    qty: str = Form(...),
+    unit_price: str = Form(""),
+    total: str = Form(""),
+    note: str = Form(""),
+    payment_type: str = Form("dinheiro"),
+    _=Depends(basic_auth),
+):
+    qty_d = Decimal(qty.replace(",", "."))
+    price_d = money2(Decimal(unit_price.replace(",", ".")) if unit_price.strip() else 0)
+    total_d = money2(Decimal(total.replace(",", ".")) if total.strip() else qty_d * price_d)
+    sold_at_date = _parse_date(sold_at)
+
+    async with engine.begin() as conn:
+        await conn.execute(
+            text("""UPDATE sales SET sold_at=:sold_at, product_id=:product_id, qty=:qty,
+                        unit_price=:unit_price, total=:total, note=:note, payment_type=:payment_type
+                    WHERE id=:id"""),
+            {"id": sale_id, "sold_at": sold_at_date, "product_id": product_id,
+             "qty": qty_d, "unit_price": price_d, "total": total_d,
+             "note": note.strip() or None, "payment_type": payment_type},
+        )
+    return RedirectResponse(url=f"/sales/{sale_id}/edit?ok=1", status_code=303)
+
+
+@router.post("/sales/{sale_id}/delete")
+async def sale_delete(sale_id: int, _=Depends(basic_auth)):
+    async with engine.begin() as conn:
+        await conn.execute(text("DELETE FROM sales WHERE id = :id"), {"id": sale_id})
+    return RedirectResponse(url="/sales?deleted=1", status_code=303)
+
+
+# ── SALES LIST ──
 
 @router.get("/sales", response_class=HTMLResponse)
 async def sales_list(
@@ -144,14 +209,19 @@ async def sales_list(
     offset = (page - 1) * per_page
 
     where_parts = ["1=1"]
+    # FIX: передаём объекты date, а не строки
     params: dict = {"limit": per_page, "offset": offset}
 
     if date_from:
-        where_parts.append("s.sold_at >= :date_from")
-        params["date_from"] = date_from
+        d = _parse_date(date_from)
+        if d:
+            where_parts.append("s.sold_at >= :date_from")
+            params["date_from"] = d
     if date_to:
-        where_parts.append("s.sold_at <= :date_to")
-        params["date_to"] = date_to
+        d = _parse_date(date_to)
+        if d:
+            where_parts.append("s.sold_at <= :date_to")
+            params["date_to"] = d
     if product_id.strip():
         where_parts.append("s.product_id = :product_id")
         params["product_id"] = int(product_id)
@@ -169,13 +239,11 @@ async def sales_list(
         agg = agg_res.mappings().first()
         total_count = int(agg["cnt"])
         total_revenue = float(agg["revenue"])
-        avg_ticket = total_revenue / total_count if total_count else 0.0
 
         rows_res = await conn.execute(
             text(f"""
                 SELECT s.id, s.sold_at, s.qty, s.unit_price, s.total, s.note,
-                        s.payment_type,
-                        p.name AS product_name, p.unit
+                       s.payment_type, p.name AS product_name, p.unit
                 FROM sales s
                 JOIN products p ON p.id = s.product_id
                 WHERE {where_sql}
@@ -198,11 +266,10 @@ async def sales_list(
         "total_pages": total_pages,
         "total_count": total_count,
         "total_revenue": total_revenue,
-        "avg_ticket": avg_ticket,
         "sort": sort if sort in SORT_FIELDS else "sold_at",
         "direction": "desc" if direction.lower() == "desc" else "asc",
         "date_from": date_from,
         "date_to": date_to,
         "product_id_filter": product_id,
-        "sort_url": lambda field: _sort_url(request, field, sort, direction),
+        "deleted": request.query_params.get("deleted") == "1",
     })
