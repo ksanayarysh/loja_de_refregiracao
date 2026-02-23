@@ -170,9 +170,12 @@
         <div class="sum-value">R$ {{ "%.2f"|format(summary.max_sale or 0) }}</div>
         <div class="sum-sub">no período</div>
       </div>
-      {% set total_cost = top_products | sum(attribute='total_cost') %}
-      {% set total_profit = (summary.total_revenue or 0) | float - total_cost | float %}
-      {% set margin_pct = (total_profit / (summary.total_revenue or 1) * 100) %}
+          {# нормализуем типы: всё в float #}
+          {% set total_rev = (summary.total_revenue or 0) | float %}
+          {% set total_cost = (top_products | sum(attribute='total_cost')) | float %}
+          {% set total_profit = total_rev - total_cost %}
+          {% set denom = total_rev if total_rev > 0 else 1.0 %}
+          {% set margin_pct = (total_profit / denom) * 100 %}
       <div class="sum-card" style="border-left: 4px solid {{ '#22c55e' if total_profit >= 0 else '#ef4444' }};">
         <div class="sum-label">Lucro estimado</div>
         <div class="sum-value" style="color:{{ '#16a34a' if total_profit >= 0 else '#dc2626' }}">R$ {{ "%.2f"|format(total_profit) }}</div>
@@ -227,7 +230,7 @@
         <h2>💳 Por forma de pagamento</h2>
         {% set pt_labels = {'dinheiro':'💵 Dinheiro','pix':'📱 Pix','cartao_credito':'💳 Crédito','cartao_debito':'💳 Débito'} %}
         {% if by_payment %}
-          {% set total_rev = total_revenue %}
+          {% set total_rev = (total_revenue or summary.total_revenue or 0) | float %}
           {% for p in by_payment %}
             {% set pct = (p.revenue | float / total_rev * 100) if total_rev > 0 else 0 %}
             <div class="pay-row">
