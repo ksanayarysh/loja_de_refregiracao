@@ -439,9 +439,22 @@ function calcR(i) {
   const actions = document.getElementById(`actions-r-${i}`);
   const price = parseFloat(gases[i].sale_price);
   if (isNaN(r) || r <= 0) { showResult(res, 'Digite um valor válido.', true); actions.style.display='none'; return; }
-  const grams = (r / price * 1000).toFixed(1);
-  showResult(res, `${grams} g<small>R$ ${r.toFixed(2)} de ${gases[i].name}</small>`, false);
-  lastCalc[`r-${i}`] = {qty: parseFloat(grams) / 1000, unitPrice: price, total: r};
+
+  // IMPORTANT: keep full precision so the next screen can total exactly the value typed.
+  // qty (kg) must be r / (R$/kg). Any rounding here turns into "19,97" instead of "20,00".
+  const qtyExact = r / price;          // kg
+  const gramsExact = qtyExact * 1000;  // g
+
+  // Show a friendly number, but store and pass the exact qty.
+  showResult(res, `${gramsExact.toFixed(3)} g<small>R$ ${r.toFixed(2)} de ${gases[i].name}</small>`, false);
+
+  lastCalc[`r-${i}`] = {
+    qty: qtyExact,
+    grams: gramsExact,
+    unitPrice: price,
+    total: r
+  };
+
   actions.style.display = 'flex';
   selectGas(i);
 }
@@ -459,7 +472,16 @@ function buyFromCalc(i, mode) {
   const key = `${mode}-${i}`;
   const c = lastCalc[key];
   if (!c) return;
-  window.location.href = `/sales/new?product_id=${g.id}&qty=${c.qty.toFixed(4)}&unit_price=${g.sale_price}`;
+
+  // Pass quantity with high precision (do NOT round).
+  // Use a fixed number of decimals then trim, so URLs stay readable.
+  const qtyStr = (c.qty).toFixed(10).replace(/0+$/,'').replace(/\.$/,'');
+  const unitPriceStr = parseFloat(g.sale_price).toFixed(4);
+
+  // Also pass grams for UIs that prefer displaying grams.
+  const gramsStr = (c.grams).toFixed(3).replace(/0+$/,'').replace(/\.$/,'');
+
+  window.location.href = `/sales/new?product_id=${g.id}&qty=${encodeURIComponent(qtyStr)}&grams=${encodeURIComponent(gramsStr)}&unit_price=${encodeURIComponent(unitPriceStr)}&total=${encodeURIComponent(c.total.toFixed(2))}`;
 }
 
 loadGases();
