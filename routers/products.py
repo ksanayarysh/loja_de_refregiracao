@@ -20,22 +20,7 @@ SORT_FIELDS = {
 }
 
 
-@router.get("/products/new", response_class=HTMLResponse)
-async def new_product_form(request: Request, _=Depends(basic_auth)):
-    return templates.TemplateResponse("new_product.html", {"request": request})
-
-
-@router.post("/products/new")
-async def create_product(
-    request: Request,
-    name: str = Form(...),
-    category: str = Form(""),
-    unit: str = Form("un"),
-    sale_price: str = Form("0"),
-    min_stock: int = Form(0),
-    active: str = Form("true"),
-    _=Depends(basic_auth),
-):
+def _parse_price(sale_price: str) -> Decimal:
     cleaned = (
         sale_price.strip()
         .replace("R$", "")
@@ -44,27 +29,94 @@ async def create_product(
         .replace(",", ".")
     )
     try:
-        price = Decimal(cleaned)
+        return Decimal(cleaned)
     except Exception:
-        price = Decimal("0")
+        return Decimal("0")
 
-    is_active = active.lower() in ("true", "1", "on", "sim", "yes")
 
+async def _get_categories(conn):
+    cats = await conn.execute(text("SELECT id, name FROM categories ORDER BY name"))
+    return cats.mappings().all()
+
+
+@router.get("/products/new", response_class=HTMLResponse)
+async def new_product_form(request: Request, _=Depends(basic_auth)):
+    async with engine.connect() as conn:
+        categories = await _get_categories(conn)
+    return templates.TemplateResponse("new_product.html", {"request": request, "categories": categories})
+
+
+@router.post("/products/new")
+async def create_product(
+    request: Request,
+    name: str = Form(...),
+    category_id: int = Form(None),
+    unit: str = Form("un"),
+    sale_price: str = Form("0"),
+    min_stock: int = Form(0),
+    _=Depends(basic_auth),
+):
+    price = _parse_price(sale_price)
     async with engine.begin() as conn:
         await conn.execute(
-            text("""INSERT INTO products (name, category, unit, sale_price, min_stock, active)
-                    VALUES (:name, :category, :unit, :sale_price, :min_stock, :active)"""),
-            {
-                "name": name.strip(),
-                "category": category.strip(),
-                "unit": unit,
-                "sale_price": price,
-                "min_stock": min_stock,
-                "active": is_active,
-            },
+            text("""INSERT INTO products (name, category_id, unit, sale_price, min_stock, active)
+                    VALUES (:name, :category_id, :unit, :sale_price, :min_stock, TRUE)"""),
+            {"name": name.strip(), "category_id": category_id, "unit": unit, "sale_price": price, "min_stock": min_stock},
         )
-
     return RedirectResponse(url="/products/new?ok=1", status_code=303)
+
+
+@router.get("/products/{product_id}/edit", response_class=HTMLResponse)
+async def edit_product_form(product_id: int, request: Request, _=Depends(basic_auth)):
+    async with engine.connect() as conn:
+        res = await conn.execute(
+            text("SELECT id, name, category_id, unit, sale_price, min_stock FROM products WHERE id = :id AND active = TRUE"),
+            {"id": product_id},
+        )
+        product = res.mappings().first()
+        if not product:
+            return HTMLResponse("Produto não encontrado", status_code=404)
+        categories = await _get_categories(conn)
+
+    return templates.TemplateResponse("edit_product.html", {
+        "request": request,
+        "product": product,
+        "categories": categories,
+    })
+
+
+@router.post("/products/{product_id}/edit")
+async def update_product(
+    product_id: int,
+    request: Request,
+    name: str = Form(...),
+    category_id: int = Form(None),
+    unit: str = Form("un"),
+    sale_price: str = Form("0"),
+    min_stock: int = Form(0),
+    _=Depends(basic_auth),
+):
+    price = _parse_price(sale_price)
+    async with engine.begin() as conn:
+        await conn.execute(
+            text("""UPDATE products
+                    SET name=:name, category_id=:category_id, unit=:unit,
+                        sale_price=:sale_price, min_stock=:min_stock
+                    WHERE id=:id"""),
+            {"id": product_id, "name": name.strip(), "category_id": category_id,
+             "unit": unit, "sale_price": price, "min_stock": min_stock},
+        )
+    return RedirectResponse(url=f"/products/{product_id}/edit?ok=1", status_code=303)
+
+
+@router.post("/products/{product_id}/delete")
+async def delete_product(product_id: int, _=Depends(basic_auth)):
+    async with engine.begin() as conn:
+        await conn.execute(
+            text("UPDATE products SET active = FALSE WHERE id = :id"),
+            {"id": product_id},
+        )
+    return RedirectResponse(url="/products?deleted=1", status_code=303)
 
 
 @router.get("/products", response_class=HTMLResponse)
@@ -90,7 +142,7 @@ async def products_list(
                 FROM products p
                 LEFT JOIN categories c ON c.id = p.category_id
                 WHERE p.active = TRUE
-                ORDER BY {sort_col} {direction_sql}, p.id ASC
+                ORDER BY COALESCE(c.name, 'Outro') ASC, {sort_col} {direction_sql}
                 LIMIT :limit OFFSET :offset
             """),
             {"limit": per_page, "offset": offset},
@@ -111,5 +163,6 @@ async def products_list(
             "total_count": total_count,
             "sort": sort if sort in SORT_FIELDS else "name",
             "direction": "desc" if direction.lower() == "desc" else "asc",
+            "deleted": request.query_params.get("deleted") == "1",
         },
     )

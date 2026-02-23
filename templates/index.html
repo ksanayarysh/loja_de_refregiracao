@@ -6,262 +6,127 @@
   <title>M.T.F Refrigeração</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, Helvetica, sans-serif; background-color: bisque; min-height: 100vh; }
 
-    body {
-      font-family: Arial, Helvetica, sans-serif;
-      background-color: bisque;
-      min-height: 100vh;
-    }
+    h1 { color: black; text-align: center; padding: 18px 0 10px; font-size: 1.8rem; }
 
-    h1 {
-      color: black;
-      text-align: center;
-      padding: 18px 0 10px;
-      font-size: 1.8rem;
-    }
-
-    /* ── NAVBAR ── */
+    /* NAVBAR */
     .navbar {
-      background-color: bisque;
-      padding: 10px 16px;
-      display: flex;
-      justify-content: flex-start;
-      align-items: center;
-      border-bottom: 1px solid #ccc;
-      gap: 16px;
-      flex-wrap: wrap;
+      background-color: bisque; padding: 10px 16px;
+      display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid #ccc; gap: 16px; flex-wrap: wrap;
     }
-
+    .navbar-left { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
     .search-container { display: flex; align-items: center; }
-
-    .search-input {
-      padding: 8px;
-      border: 1px solid #ccc;
-      border-radius: 4px 0 0 4px;
-      outline: none;
-      font-size: .95rem;
-      width: 220px;
-    }
-
-    .search-button {
-      padding: 8px 12px;
-      border: none;
-      background-color: #007bff;
-      color: white;
-      border-radius: 0 4px 4px 0;
-      cursor: pointer;
-      font-size: .95rem;
-    }
+    .search-input { padding: 8px; border: 1px solid #ccc; border-radius: 4px 0 0 4px; outline: none; font-size: .95rem; width: 220px; }
+    .search-button { padding: 8px 12px; border: none; background-color: #007bff; color: white; border-radius: 0 4px 4px 0; cursor: pointer; font-size: .95rem; }
     .search-button:hover { background-color: #0056b3; }
 
-    /* ── LAYOUT ── */
-    .layout {
-      display: flex;
-      gap: 0;
-      min-height: calc(100vh - 120px);
+    /* CART ICON */
+    .cart-icon-btn {
+      position: relative; padding: 8px 14px; background: #111827; color: #fff;
+      border: none; border-radius: 8px; cursor: pointer; font-size: .95rem;
+      font-weight: 700; font-family: inherit; display: flex; align-items: center; gap: 6px;
     }
-
-    /* ── SIDEBAR ── */
-    .sidebar {
-      width: 160px;
-      flex-shrink: 0;
-      border-right: 1px solid #ccc;
-      padding: 16px 0;
-      background: bisque;
+    .cart-icon-btn:hover { background: #374151; }
+    .cart-badge {
+      position: absolute; top: -6px; right: -6px;
+      background: #E2144A; color: #fff; border-radius: 50%;
+      width: 18px; height: 18px; font-size: .7rem; font-weight: 900;
+      display: flex; align-items: center; justify-content: center;
     }
+    .cart-badge.hidden { display: none; }
 
+    /* LAYOUT */
+    .layout { display: flex; gap: 0; min-height: calc(100vh - 120px); }
+
+    /* SIDEBAR */
+    .sidebar { width: 160px; flex-shrink: 0; border-right: 1px solid #ccc; padding: 16px 0; background: bisque; }
     .sidebar ul { list-style: none; padding: 0; margin: 0; width: 100%; }
     .sidebar ul li { position: relative; }
-
-    .sidebar ul li a {
-      display: block;
-      text-decoration: none;
-      color: #E2144A;
-      background: #fff;
-      padding: 7px 10px;
-      border: 1px solid #ccc;
-      border-left: none;
-      font-size: .9rem;
-    }
+    .sidebar ul li a { display: block; text-decoration: none; color: #E2144A; background: #fff; padding: 7px 10px; border: 1px solid #ccc; border-left: none; font-size: .9rem; }
     .sidebar ul li a:hover { text-decoration: underline; font-weight: bold; background: #ccc; }
-
-    .sidebar .submenu {
-      display: none;
-      position: absolute;
-      left: 149px;
-      top: 0;
-      width: 150px;
-      z-index: 10;
-    }
+    .sidebar .submenu { display: none; position: absolute; left: 149px; top: 0; width: 150px; z-index: 10; }
     .sidebar ul li:hover .submenu { display: block; }
 
-    /* ── CONTENT ── */
-    .content {
-      flex: 1;
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 24px;
-      overflow-x: auto;
-    }
+    /* CONTENT */
+    .content { flex: 1; padding: 24px; display: flex; flex-direction: column; gap: 24px; overflow-x: auto; }
 
-    /* ── QUICK LINKS ── */
+    /* QUICK LINKS */
     .quick-links { display: flex; gap: 10px; flex-wrap: wrap; }
-
-    .quick-links a {
-      padding: 10px 18px;
-      background: #fff;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      text-decoration: none;
-      color: #E2144A;
-      font-weight: bold;
-      font-size: .9rem;
-      transition: background .2s;
-    }
+    .quick-links a { padding: 10px 18px; background: #fff; border: 1px solid #ccc; border-radius: 4px; text-decoration: none; color: #E2144A; font-weight: bold; font-size: .9rem; transition: background .2s; }
     .quick-links a:hover { background: #ccc; }
     .quick-links a.primary { background: #007bff; color: #fff; border-color: #007bff; }
     .quick-links a.primary:hover { background: #0056b3; }
 
-    /* ── SEARCH RESULTS ── */
-    #search-results {
-      display: none;
-      background: #fff;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      padding: 12px;
-      max-width: 500px;
-    }
+    /* SEARCH RESULTS */
+    #search-results { display: none; background: #fff; border: 1px solid #ccc; border-radius: 4px; padding: 12px; max-width: 600px; }
     #search-results.show { display: block; }
     #search-results h3 { font-size: .9rem; color: #555; margin-bottom: 10px; }
-
-    .result-item {
-      display: flex;
-      justify-content: space-between;
-      padding: 8px 0;
-      border-bottom: 1px solid #eee;
-      font-size: .9rem;
-    }
+    .result-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #eee; font-size: .9rem; gap: 8px; flex-wrap: wrap; }
     .result-item:last-child { border-bottom: none; }
-    .result-price { font-weight: bold; color: #007bff; }
+    .result-info { flex: 1; }
+    .result-price { font-weight: bold; color: #007bff; white-space: nowrap; }
+    .result-actions { display: flex; gap: 6px; }
+    .btn-cart { padding: 5px 10px; border-radius: 6px; background: #fff; border: 1px solid #E2144A; color: #E2144A; font-size: .8rem; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; }
+    .btn-cart:hover { background: #E2144A; color: #fff; }
+    .btn-buy { padding: 5px 10px; border-radius: 6px; background: #28a745; border: none; color: #fff; font-size: .8rem; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; text-decoration: none; display: inline-block; }
+    .btn-buy:hover { background: #1e7e34; }
 
-    /* ── CALCULATOR (tabela de gás) ── */
-    .calc-section h3 {
-      font-size: 1rem;
-      margin-bottom: 14px;
-      color: black;
-    }
-
+    /* CALCULATOR */
+    .calc-section h3 { font-size: 1rem; margin-bottom: 14px; color: black; }
     .gas-table-wrap { overflow-x: auto; }
-
-    table.gas-table {
-      width: 100%;
-      border-collapse: separate;
-      border-spacing: 8px;
-      table-layout: fixed;
-    }
-
-    .gas-table thead th {
-      background: #fff;
-      border: 3px solid #ccc;
-      border-radius: 12px;
-      padding: 12px 8px;
-      text-align: center;
-      cursor: pointer;
-      transition: border-color .2s, background .2s;
-      vertical-align: top;
-    }
+    table.gas-table { width: 100%; border-collapse: separate; border-spacing: 8px; table-layout: fixed; }
+    .gas-table thead th { background: #fff; border: 3px solid #ccc; border-radius: 12px; padding: 12px 8px; text-align: center; cursor: pointer; transition: border-color .2s, background .2s; vertical-align: top; }
     .gas-table thead th:hover { border-color: #007bff; }
-    .gas-table thead th.selected {
-      border-color: #007bff;
-      border-width: 4px;
-      background: #cfe2ff;
-      box-shadow: 0 0 0 4px rgba(0,123,255,.18);
-    }
-
+    .gas-table thead th.selected { border-color: #007bff; border-width: 4px; background: #cfe2ff; box-shadow: 0 0 0 4px rgba(0,123,255,.18); }
     .gas-name { font-size: 1.2rem; font-weight: bold; color: #E2144A; margin-bottom: 4px; }
     .gas-price-label { font-size: .9rem; color: #333; }
     .gas-unit { font-size: .75rem; color: #888; }
-
-    .gas-table tbody td {
-      background: #fff;
-      border: 2px solid #ddd;
-      border-radius: 10px;
-      padding: 12px 10px;
-      vertical-align: top;
-      transition: border-color .2s, background .2s;
-      font-size: .9rem;
-    }
-    .gas-table tbody td.selected {
-      border-color: #007bff;
-      border-width: 3px;
-      background: #e8f0ff;
-    }
-
+    .gas-table tbody td { background: #fff; border: 2px solid #ddd; border-radius: 10px; padding: 12px 10px; vertical-align: top; transition: border-color .2s, background .2s; font-size: .9rem; }
+    .gas-table tbody td.selected { border-color: #007bff; border-width: 3px; background: #e8f0ff; }
     .calc-label { display: block; font-size: .85rem; color: #333; margin-bottom: 4px; }
-
-    .gas-table input[type="number"] {
-      width: 100%;
-      padding: 8px;
-      font-size: 1rem;
-      border: 2px solid #ccc;
-      border-radius: 6px;
-      margin-bottom: 8px;
-      outline: none;
-    }
+    .gas-table input[type="number"] { width: 100%; padding: 8px; font-size: 1rem; border: 2px solid #ccc; border-radius: 6px; margin-bottom: 8px; outline: none; }
     .gas-table input[type="number"]:focus { border-color: #007bff; }
-
-    .calc-btn {
-      width: 100%;
-      padding: 9px;
-      font-size: .9rem;
-      font-weight: bold;
-      background: #28a745;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
+    .calc-btn { width: 100%; padding: 9px; font-size: .9rem; font-weight: bold; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; }
     .calc-btn:hover { background: #1e7e34; }
-
-    .resultado {
-      display: none;
-      margin-top: 8px;
-      padding: 10px;
-      background: #e8f5e9;
-      border: 2px solid #28a745;
-      border-radius: 6px;
-      font-size: 1rem;
-      font-weight: bold;
-      color: #1a6e2e;
-      text-align: center;
-    }
+    .resultado { display: none; margin-top: 8px; padding: 10px; background: #e8f5e9; border: 2px solid #28a745; border-radius: 6px; font-size: 1rem; font-weight: bold; color: #1a6e2e; text-align: center; }
     .resultado.show { display: block; }
     .resultado small { display: block; font-size: .75rem; font-weight: normal; color: #555; margin-top: 3px; }
     .resultado.error { background: #fff3cd; border-color: #ffc107; color: #856404; }
+    .calc-action-btns { display: flex; gap: 6px; margin-top: 6px; }
+    .calc-action-btns button, .calc-action-btns a { flex: 1; padding: 8px; border-radius: 6px; font-size: .82rem; font-weight: 700; cursor: pointer; text-align: center; text-decoration: none; font-family: inherit; }
+    .row-label { font-size: .9rem; font-weight: bold; color: #555; text-align: center; padding: 4px 0 0; }
 
-    .cart-btn {
-      width: 100%;
-      padding: 9px;
-      font-size: .9rem;
-      font-weight: bold;
-      background: #fff;
-      color: #E2144A;
-      border: 2px solid #E2144A;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-top: 6px;
-      transition: background .2s, color .2s;
+    /* CART DRAWER */
+    .cart-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.3); z-index: 100; }
+    .cart-overlay.open { display: block; }
+    .cart-drawer {
+      position: fixed; top: 0; right: -400px; width: 380px; max-width: 95vw;
+      height: 100vh; background: #fff; box-shadow: -4px 0 20px rgba(0,0,0,.15);
+      z-index: 101; transition: right .3s ease; display: flex; flex-direction: column;
     }
-    .cart-btn:hover { background: #E2144A; color: #fff; }
+    .cart-drawer.open { right: 0; }
+    .cart-header { padding: 16px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background: bisque; }
+    .cart-header h2 { font-size: 1.1rem; color: #111; }
+    .cart-close { background: none; border: none; font-size: 1.4rem; cursor: pointer; color: #555; }
+    .cart-body { flex: 1; overflow-y: auto; padding: 16px; }
+    .cart-empty { color: #888; text-align: center; padding: 40px 0; font-size: .95rem; }
+    .cart-item { display: flex; justify-content: space-between; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid #eee; gap: 8px; }
+    .cart-item-info { flex: 1; }
+    .cart-item-name { font-weight: 700; font-size: .95rem; }
+    .cart-item-detail { font-size: .8rem; color: #888; margin-top: 2px; }
+    .cart-item-price { font-weight: 900; color: #111; white-space: nowrap; }
+    .cart-item-remove { background: none; border: none; color: #E2144A; cursor: pointer; font-size: 1rem; padding: 0 4px; }
+    .cart-footer { padding: 16px; border-top: 1px solid #eee; background: #fafafa; }
+    .cart-total { display: flex; justify-content: space-between; font-weight: 900; font-size: 1.1rem; margin-bottom: 12px; }
+    .cart-checkout { width: 100%; padding: 13px; border-radius: 8px; border: none; background: #111827; color: #fff; font-weight: 900; font-size: 1rem; cursor: pointer; font-family: inherit; }
+    .cart-checkout:hover { background: #374151; }
+    .cart-clear { width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #ccc; background: #fff; color: #E2144A; font-weight: 700; font-size: .88rem; cursor: pointer; margin-top: 8px; font-family: inherit; }
+    .cart-clear:hover { background: #ccc; }
 
-    .row-label {
-      font-size: .9rem;
-      font-weight: bold;
-      color: #555;
-      text-align: center;
-      padding: 4px 0 0;
-    }
+    /* QTY input in cart */
+    .cart-qty { width: 52px; padding: 4px 6px; border: 1px solid #ccc; border-radius: 4px; font-size: .88rem; text-align: center; }
 
     @media (max-width: 600px) {
       .layout { flex-direction: column; }
@@ -276,14 +141,19 @@
 
 <!-- NAVBAR -->
 <header class="navbar">
-  <div class="search-container">
-    <input type="text" id="search-input" placeholder="pesquisar produto..." class="search-input">
-    <button class="search-button" onclick="searchProducts()">pesquisar</button>
+  <div class="navbar-left">
+    <div class="search-container">
+      <input type="text" id="search-input" placeholder="pesquisar produto..." class="search-input">
+      <button class="search-button" onclick="searchProducts()">pesquisar</button>
+    </div>
   </div>
+  <button class="cart-icon-btn" onclick="openCart()">
+    🛒 Carrinho
+    <span class="cart-badge hidden" id="cart-badge">0</span>
+  </button>
 </header>
 
 <div class="layout">
-
   <!-- SIDEBAR -->
   <nav class="sidebar">
     <ul>
@@ -308,8 +178,6 @@
 
   <!-- CONTENT -->
   <main class="content">
-
-    <!-- Quick links -->
     <div class="quick-links">
       <a href="/products/new" class="primary">+ Cadastrar produto</a>
       <a href="/sales/new" class="primary">+ Nova venda</a>
@@ -333,145 +201,309 @@
         </table>
       </div>
     </div>
-
   </main>
 </div>
 
+<!-- CART OVERLAY -->
+<div class="cart-overlay" id="cart-overlay" onclick="closeCart()"></div>
+
+<!-- CART DRAWER -->
+<div class="cart-drawer" id="cart-drawer">
+  <div class="cart-header">
+    <h2>🛒 Carrinho</h2>
+    <button class="cart-close" onclick="closeCart()">✕</button>
+  </div>
+  <div class="cart-body" id="cart-body"></div>
+  <div class="cart-footer" id="cart-footer" style="display:none">
+    <div class="cart-total">
+      <span>Total:</span>
+      <span id="cart-total-value">R$ 0,00</span>
+    </div>
+    <button class="cart-checkout" onclick="checkoutCart()">✅ Finalizar vendas</button>
+    <button class="cart-clear" onclick="clearCart()">🗑 Limpar carrinho</button>
+  </div>
+</div>
+
 <script>
-  // ── GAS CALCULATOR ──
-  let gases = [];
+// ── CART ──
+let cart = JSON.parse(localStorage.getItem('mtf_cart') || '[]');
 
-  async function loadGases() {
-    try {
-      const res = await fetch('/api/products?unit=kg');
-      gases = await res.json();
-    } catch { gases = []; }
+function saveCart() { localStorage.setItem('mtf_cart', JSON.stringify(cart)); }
 
-    if (!gases.length) {
-      document.getElementById('gas-table').innerHTML =
-        '<tr><td style="color:#888;padding:12px">Nenhum produto em kg cadastrado.</td></tr>';
+function updateBadge() {
+  const badge = document.getElementById('cart-badge');
+  const total = cart.reduce((s, i) => s + i.qty, 0);
+  badge.textContent = total;
+  badge.classList.toggle('hidden', total === 0);
+}
+
+function addToCart(id, name, price, unit, qty = 1) {
+  const existing = cart.find(i => i.id === id);
+  if (existing) {
+    existing.qty += qty;
+  } else {
+    cart.push({id, name, price, unit, qty});
+  }
+  saveCart();
+  updateBadge();
+  renderCart();
+  // flash feedback
+  openCart();
+}
+
+function removeFromCart(id) {
+  cart = cart.filter(i => i.id !== id);
+  saveCart();
+  updateBadge();
+  renderCart();
+}
+
+function updateQty(id, qty) {
+  const item = cart.find(i => i.id === id);
+  if (item) { item.qty = Math.max(0.001, parseFloat(qty) || 1); }
+  saveCart();
+  updateBadge();
+  renderCartTotal();
+}
+
+function renderCartTotal() {
+  const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  document.getElementById('cart-total-value').textContent = 'R$ ' + total.toFixed(2).replace('.', ',');
+}
+
+function renderCart() {
+  const body = document.getElementById('cart-body');
+  const footer = document.getElementById('cart-footer');
+  if (!cart.length) {
+    body.innerHTML = '<div class="cart-empty">O carrinho está vazio.</div>';
+    footer.style.display = 'none';
+    return;
+  }
+  footer.style.display = 'block';
+  body.innerHTML = cart.map(item => `
+    <div class="cart-item">
+      <div class="cart-item-info">
+        <div class="cart-item-name">${item.name}</div>
+        <div class="cart-item-detail">
+          R$ ${item.price.toFixed(2)} / ${item.unit} &nbsp;·&nbsp;
+          Qtd: <input class="cart-qty" type="number" value="${item.qty}" min="0.001" step="any"
+            onchange="updateQty(${item.id}, this.value)">
+        </div>
+      </div>
+      <div style="text-align:right">
+        <div class="cart-item-price">R$ ${(item.price * item.qty).toFixed(2)}</div>
+        <button class="cart-item-remove" onclick="removeFromCart(${item.id})">🗑</button>
+      </div>
+    </div>
+  `).join('');
+  renderCartTotal();
+}
+
+function openCart() {
+  renderCart();
+  document.getElementById('cart-drawer').classList.add('open');
+  document.getElementById('cart-overlay').classList.add('open');
+}
+function closeCart() {
+  document.getElementById('cart-drawer').classList.remove('open');
+  document.getElementById('cart-overlay').classList.remove('open');
+}
+
+function clearCart() {
+  if (!confirm('Limpar o carrinho?')) return;
+  cart = [];
+  saveCart();
+  updateBadge();
+  renderCart();
+}
+
+function checkoutCart() {
+  if (!cart.length) return;
+  // Abre vendas para cada item do carrinho sequencialmente
+  // Por enquanto abre a primeira venda e guarda o restante
+  const item = cart[0];
+  const url = `/sales/new?product_id=${item.id}&qty=${item.qty}&unit_price=${item.price}`;
+  window.location.href = url;
+}
+
+function buyNow(id, name, price, unit, qty = 1) {
+  window.location.href = `/sales/new?product_id=${id}&qty=${qty}&unit_price=${price}`;
+}
+
+updateBadge();
+
+// ── GAS CALCULATOR ──
+let gases = [];
+// stores last calc result per column
+const lastCalc = {};
+
+async function loadGases() {
+  try {
+    const res = await fetch('/api/products?unit=kg');
+    gases = await res.json();
+  } catch { gases = []; }
+
+  if (!gases.length) {
+    document.getElementById('gas-table').innerHTML =
+      '<tr><td style="color:#888;padding:12px">Nenhum produto em kg cadastrado.</td></tr>';
+    return;
+  }
+  renderTable();
+}
+
+function renderTable() {
+  const headerRow = document.getElementById('header-row');
+  const tbody = document.getElementById('table-body');
+
+  headerRow.innerHTML = gases.map((g, i) => `
+    <th onclick="selectGas(${i})" id="th-${i}">
+      <div class="gas-name">${g.name}</div>
+      <div class="gas-price-label">R$ ${parseFloat(g.sale_price).toFixed(2)}</div>
+      <div class="gas-unit">por kg</div>
+    </th>
+  `).join('');
+
+  const labelRow1 = document.createElement('tr');
+  labelRow1.innerHTML = `<td colspan="${gases.length}" class="row-label">📦 Gramas → R$</td>`;
+  tbody.appendChild(labelRow1);
+
+  const row1 = document.createElement('tr');
+  gases.forEach((g, i) => {
+    const td = document.createElement('td');
+    td.id = `td-g-${i}`;
+    td.innerHTML = `
+      <span class="calc-label">Gramas:</span>
+      <input type="number" id="input-g-${i}" min="0" step="any" placeholder="Ex: 500"
+             onkeydown="if(event.key==='Enter') calcG(${i})">
+      <button class="calc-btn" onclick="calcG(${i})">Calcular R$</button>
+      <div class="resultado" id="res-g-${i}"></div>
+      <div class="calc-action-btns" id="actions-g-${i}" style="display:none">
+        <button style="background:#fff;border:1px solid #E2144A;color:#E2144A;" onclick="cartFromCalc(${i},'g')">🛒 Carrinho</button>
+        <button style="background:#28a745;border:none;color:#fff;" onclick="buyFromCalc(${i},'g')">⚡ Comprar agora</button>
+      </div>
+    `;
+    row1.appendChild(td);
+  });
+  tbody.appendChild(row1);
+
+  const labelRow2 = document.createElement('tr');
+  labelRow2.innerHTML = `<td colspan="${gases.length}" class="row-label">💰 R$ → Gramas</td>`;
+  tbody.appendChild(labelRow2);
+
+  const row2 = document.createElement('tr');
+  gases.forEach((g, i) => {
+    const td = document.createElement('td');
+    td.id = `td-r-${i}`;
+    td.innerHTML = `
+      <span class="calc-label">Valor em R$:</span>
+      <input type="number" id="input-r-${i}" min="0" step="any" placeholder="Ex: 35,00"
+             onkeydown="if(event.key==='Enter') calcR(${i})">
+      <button class="calc-btn" onclick="calcR(${i})">Calcular gramas</button>
+      <div class="resultado" id="res-r-${i}"></div>
+      <div class="calc-action-btns" id="actions-r-${i}" style="display:none">
+        <button style="background:#fff;border:1px solid #E2144A;color:#E2144A;" onclick="cartFromCalc(${i},'r')">🛒 Carrinho</button>
+        <button style="background:#28a745;border:none;color:#fff;" onclick="buyFromCalc(${i},'r')">⚡ Comprar agora</button>
+      </div>
+    `;
+    row2.appendChild(td);
+  });
+  tbody.appendChild(row2);
+}
+
+function selectGas(idx) {
+  gases.forEach((_, i) => {
+    const sel = i === idx;
+    document.getElementById(`th-${i}`).classList.toggle('selected', sel);
+    document.getElementById(`td-g-${i}`).classList.toggle('selected', sel);
+    document.getElementById(`td-r-${i}`).classList.toggle('selected', sel);
+  });
+}
+
+function showResult(el, text, isError) {
+  el.className = 'resultado show' + (isError ? ' error' : '');
+  el.innerHTML = text;
+}
+
+function calcG(i) {
+  const g = parseFloat(document.getElementById(`input-g-${i}`).value);
+  const res = document.getElementById(`res-g-${i}`);
+  const actions = document.getElementById(`actions-g-${i}`);
+  const price = parseFloat(gases[i].sale_price);
+  if (isNaN(g) || g <= 0) { showResult(res, 'Digite uma quantidade válida.', true); actions.style.display='none'; return; }
+  const total = (g * price / 1000).toFixed(2);
+  showResult(res, `R$ ${total}<small>${g}g de ${gases[i].name}</small>`, false);
+  lastCalc[`g-${i}`] = {qty: g / 1000, price: parseFloat(total) / (g / 1000)};
+  actions.style.display = 'flex';
+  selectGas(i);
+}
+
+function calcR(i) {
+  const r = parseFloat(document.getElementById(`input-r-${i}`).value);
+  const res = document.getElementById(`res-r-${i}`);
+  const actions = document.getElementById(`actions-r-${i}`);
+  const price = parseFloat(gases[i].sale_price);
+  if (isNaN(r) || r <= 0) { showResult(res, 'Digite um valor válido.', true); actions.style.display='none'; return; }
+  const grams = (r / price * 1000).toFixed(1);
+  showResult(res, `${grams} g<small>R$ ${r.toFixed(2)} de ${gases[i].name}</small>`, false);
+  lastCalc[`r-${i}`] = {qty: parseFloat(grams) / 1000, unitPrice: price, total: r};
+  actions.style.display = 'flex';
+  selectGas(i);
+}
+
+function cartFromCalc(i, mode) {
+  const g = gases[i];
+  const key = `${mode}-${i}`;
+  const c = lastCalc[key];
+  if (!c) return;
+  addToCart(g.id, g.name, parseFloat(g.sale_price), g.unit, c.qty);
+}
+
+function buyFromCalc(i, mode) {
+  const g = gases[i];
+  const key = `${mode}-${i}`;
+  const c = lastCalc[key];
+  if (!c) return;
+  window.location.href = `/sales/new?product_id=${g.id}&qty=${c.qty.toFixed(4)}&unit_price=${g.sale_price}`;
+}
+
+loadGases();
+
+// ── SEARCH ──
+async function searchProducts() {
+  const q = document.getElementById('search-input').value.trim();
+  if (!q) return;
+  const container = document.getElementById('search-results');
+  const list = document.getElementById('results-list');
+  list.innerHTML = '<div class="result-item" style="color:#888">Buscando...</div>';
+  container.classList.add('show');
+  try {
+    const res = await fetch(`/api/products?search=${encodeURIComponent(q)}`);
+    const data = await res.json();
+    if (!data.length) {
+      list.innerHTML = '<div class="result-item" style="color:#888">Nenhum produto encontrado.</div>';
       return;
     }
-    renderTable();
-  }
-
-  function renderTable() {
-    const headerRow = document.getElementById('header-row');
-    const tbody = document.getElementById('table-body');
-
-    headerRow.innerHTML = gases.map((g, i) => `
-      <th onclick="selectGas(${i})" id="th-${i}">
-        <div class="gas-name">${g.name}</div>
-        <div class="gas-price-label">R$ ${parseFloat(g.sale_price).toFixed(2)}</div>
-        <div class="gas-unit">por kg</div>
-      </th>
-    `).join('');
-
-    const labelRow1 = document.createElement('tr');
-    labelRow1.innerHTML = `<td colspan="${gases.length}" class="row-label">📦 Gramas → R$</td>`;
-    tbody.appendChild(labelRow1);
-
-    const row1 = document.createElement('tr');
-    gases.forEach((g, i) => {
-      const td = document.createElement('td');
-      td.id = `td-g-${i}`;
-      td.innerHTML = `
-        <span class="calc-label">Gramas:</span>
-        <input type="number" id="input-g-${i}" min="0" step="any" placeholder="Ex: 500"
-               onkeydown="if(event.key==='Enter') calcG(${i})">
-        <button class="calc-btn" onclick="calcG(${i})">Calcular R$</button>
-        <div class="resultado" id="res-g-${i}"></div>
-        <button class="cart-btn" onclick="">🛒 Adicionar ao carrinho</button>
-      `;
-      row1.appendChild(td);
-    });
-    tbody.appendChild(row1);
-
-    const labelRow2 = document.createElement('tr');
-    labelRow2.innerHTML = `<td colspan="${gases.length}" class="row-label">💰 R$ → Gramas</td>`;
-    tbody.appendChild(labelRow2);
-
-    const row2 = document.createElement('tr');
-    gases.forEach((g, i) => {
-      const td = document.createElement('td');
-      td.id = `td-r-${i}`;
-      td.innerHTML = `
-        <span class="calc-label">Valor em R$:</span>
-        <input type="number" id="input-r-${i}" min="0" step="any" placeholder="Ex: 35,00"
-               onkeydown="if(event.key==='Enter') calcR(${i})">
-        <button class="calc-btn" onclick="calcR(${i})">Calcular gramas</button>
-        <div class="resultado" id="res-r-${i}"></div>
-        <button class="cart-btn" onclick="">🛒 Adicionar ao carrinho</button>
-      `;
-      row2.appendChild(td);
-    });
-    tbody.appendChild(row2);
-  }
-
-  function selectGas(idx) {
-    gases.forEach((_, i) => {
-      const sel = i === idx;
-      document.getElementById(`th-${i}`).classList.toggle('selected', sel);
-      document.getElementById(`td-g-${i}`).classList.toggle('selected', sel);
-      document.getElementById(`td-r-${i}`).classList.toggle('selected', sel);
-    });
-  }
-
-  function showResult(el, text, isError) {
-    el.className = 'resultado show' + (isError ? ' error' : '');
-    el.innerHTML = text;
-  }
-
-  function calcG(i) {
-    const g = parseFloat(document.getElementById(`input-g-${i}`).value);
-    const res = document.getElementById(`res-g-${i}`);
-    const price = parseFloat(gases[i].sale_price);
-    if (isNaN(g) || g <= 0) { showResult(res, 'Digite uma quantidade válida.', true); return; }
-    showResult(res, `R$ ${(g * price / 1000).toFixed(2)}<small>${g}g de ${gases[i].name}</small>`, false);
-    selectGas(i);
-  }
-
-  function calcR(i) {
-    const r = parseFloat(document.getElementById(`input-r-${i}`).value);
-    const res = document.getElementById(`res-r-${i}`);
-    const price = parseFloat(gases[i].sale_price);
-    if (isNaN(r) || r <= 0) { showResult(res, 'Digite um valor válido.', true); return; }
-    showResult(res, `${(r / price * 1000).toFixed(1)} g<small>R$ ${r.toFixed(2)} de ${gases[i].name}</small>`, false);
-    selectGas(i);
-  }
-
-  loadGases();
-
-  // ── SEARCH ──
-  async function searchProducts() {
-    const q = document.getElementById('search-input').value.trim();
-    if (!q) return;
-    const container = document.getElementById('search-results');
-    const list = document.getElementById('results-list');
-    list.innerHTML = '<div class="result-item" style="color:#888">Buscando...</div>';
-    container.classList.add('show');
-    try {
-      const res = await fetch(`/api/products?search=${encodeURIComponent(q)}`);
-      const data = await res.json();
-      if (!data.length) {
-        list.innerHTML = '<div class="result-item" style="color:#888">Nenhum produto encontrado.</div>';
-        return;
-      }
-      list.innerHTML = data.map(p => `
-        <div class="result-item">
-          <span>${p.name} <span style="color:#aaa;font-size:.8rem">(${p.unit})</span></span>
-          <span class="result-price">R$ ${parseFloat(p.sale_price).toFixed(2)}</span>
+    list.innerHTML = data.map(p => `
+      <div class="result-item">
+        <div class="result-info">
+          <span>${p.name}</span>
+          <span style="color:#aaa;font-size:.8rem"> (${p.unit})</span>
         </div>
-      `).join('');
-    } catch {
-      list.innerHTML = '<div class="result-item" style="color:red">Erro ao buscar.</div>';
-    }
+        <span class="result-price">R$ ${parseFloat(p.sale_price).toFixed(2)}</span>
+        <div class="result-actions">
+          <button class="btn-cart" onclick="addToCart(${p.id}, '${p.name.replace(/'/g,"\\'")}', ${p.sale_price}, '${p.unit}', 1)">🛒 Carrinho</button>
+          <button class="btn-buy" onclick="buyNow(${p.id}, '${p.name}', ${p.sale_price}, '${p.unit}')">⚡ Comprar agora</button>
+        </div>
+      </div>
+    `).join('');
+  } catch {
+    list.innerHTML = '<div class="result-item" style="color:red">Erro ao buscar.</div>';
   }
+}
 
-  document.getElementById('search-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter') searchProducts();
-  });
+document.getElementById('search-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') searchProducts();
+});
 </script>
-
 </body>
 </html>

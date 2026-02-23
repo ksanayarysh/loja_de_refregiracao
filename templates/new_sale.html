@@ -168,6 +168,43 @@
   productSel.addEventListener("change",()=>{updateUnitHint();setPriceFromProduct(false);recalcTotal();});
   updateUnitHint();
   if(priceEl.value.trim()==="")setPriceFromProduct(true);
+
+  // ── Предзаполнение из query params (Comprar agora / корзина) ──
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  const productId = params.get('product_id');
+  const qty       = params.get('qty');
+  const unitPrice = params.get('unit_price');
+
+  if (productId) {
+    const sel = document.getElementById('product_id');
+    // ждём пока options загрузятся (они уже в HTML из Jinja)
+    for (const opt of sel.options) {
+      if (opt.value === productId) {
+        opt.selected = true;
+        sel.dispatchEvent(new Event('change')); // запускает автозаполнение цены и unit hint
+        break;
+      }
+    }
+  }
+
+  if (qty) {
+    document.getElementById('qty').value = parseFloat(qty).toFixed(3);
+  }
+
+  if (unitPrice) {
+    const priceEl = document.getElementById('unit_price');
+    priceEl.value = parseFloat(unitPrice).toFixed(2);
+    priceEl.dispatchEvent(new Event('input')); // пересчитывает total
+  }
+
+  // пересчитать total после всего
+  if (qty || unitPrice) {
+    setTimeout(() => {
+      document.getElementById('qty').dispatchEvent(new Event('input'));
+    }, 50);
+  }
+})();
 </script>
 </body>
 </html>

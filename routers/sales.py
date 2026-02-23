@@ -174,7 +174,8 @@ async def sales_list(
         rows_res = await conn.execute(
             text(f"""
                 SELECT s.id, s.sold_at, s.qty, s.unit_price, s.total, s.note,
-                       p.name AS product_name, p.unit
+                        s.payment_type,
+                        p.name AS product_name, p.unit
                 FROM sales s
                 JOIN products p ON p.id = s.product_id
                 WHERE {where_sql}
