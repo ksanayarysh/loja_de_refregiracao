@@ -59,3 +59,5 @@ async def init_db():
             )
         """))
 
+        await conn.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS cost_price NUMERIC(12,2) DEFAULT 0"))
+        await conn.execute(text("ALTER TABLE stock_movements ADD COLUMN IF NOT EXISTS unit_cost NUMERIC(12,2)"))
