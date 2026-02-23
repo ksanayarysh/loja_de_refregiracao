@@ -6,6 +6,7 @@ from fastapi.responses import HTMLResponse
 from fastapi import FastAPI, Depends, Request
 from dependencies import engine, basic_auth, templates
 from routers.stock import router as stock_router
+from routers.reports import router as reports_router
 
 app = FastAPI()
 
@@ -17,6 +18,7 @@ async def _startup():
 
 app.include_router(products.router)
 app.include_router(sales.router)
+app.include_router(reports_router)
 app.include_router(stock_router)
 
 @app.get("/", response_class=HTMLResponse)
