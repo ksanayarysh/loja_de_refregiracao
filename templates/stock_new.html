@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Entrada de Estoque — M.T.F</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, Helvetica, sans-serif; background: bisque; min-height: 100vh; }
+    .navbar { background: bisque; padding: 10px 16px; display: flex; align-items: center; border-bottom: 1px solid #ccc; gap: 20px; flex-wrap: wrap; }
+    .nav-brand { font-weight: 900; font-size: 1.1rem; color: #111; text-decoration: none; }
+    .navbar a { color: #E2144A; text-decoration: none; font-weight: 700; font-size: .95rem; }
+    .navbar a:hover { text-decoration: underline; }
+    .navbar a.active { color: #111; font-weight: 900; }
+    .layout { display: flex; min-height: calc(100vh - 50px); }
+    .sidebar { width: 160px; flex-shrink: 0; border-right: 1px solid #ccc; padding: 16px 0; background: bisque; }
+    .sidebar ul { list-style: none; }
+    .sidebar ul li { position: relative; }
+    .sidebar ul li a { display: block; text-decoration: none; color: #E2144A; background: #fff; padding: 7px 10px; border: 1px solid #ccc; border-left: none; font-size: .9rem; }
+    .sidebar ul li a:hover { background: #ccc; font-weight: bold; }
+    .sidebar .submenu { display: none; position: absolute; left: 149px; top: 0; width: 150px; z-index: 10; }
+    .sidebar ul li:hover .submenu { display: block; }
+    .content { flex: 1; padding: 24px; }
+    .card { background: #fff; border-radius: 14px; box-shadow: 0 4px 14px rgba(0,0,0,.08); padding: 24px; max-width: 600px; }
+    h1 { font-size: 1.5rem; margin-bottom: 16px; color: #111; }
+    label { display: block; font-weight: 900; margin: 14px 0 6px; color: #111; }
+    input, select, textarea { width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid #d6d9e0; font-size: 1rem; font-family: inherit; background: #fff; }
+    input:focus, select:focus { outline: none; border-color: #007bff; }
+    .hint { color: #6b7280; font-size: .88rem; margin-top: 5px; }
+    .btns { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 20px; }
+    .btn-primary { padding: 12px 20px; border-radius: 10px; border: none; background: #111827; color: #fff; font-weight: 900; font-size: 1rem; cursor: pointer; }
+    .btn-primary:hover { background: #374151; }
+    .btn-secondary { padding: 12px 20px; border-radius: 10px; border: 1px solid #ccc; background: #fff; color: #E2144A; font-weight: 900; font-size: 1rem; text-decoration: none; display: inline-block; }
+    .btn-secondary:hover { background: #ccc; }
+    .msg { padding: 12px 14px; border-radius: 10px; margin-bottom: 14px; font-weight: 800; }
+    .err { background: #fef2f2; border: 1px solid #fecaca; color: #7f1d1d; }
+    .ok  { background: #ecfdf5; border: 1px solid #bbf7d0; color: #065f46; }
+
+    /* Type toggle */
+    .type-toggle { display: flex; gap: 8px; margin-top: 6px; }
+    .type-btn { flex: 1; padding: 10px; border-radius: 8px; border: 2px solid #ccc; background: #fff; font-weight: 800; font-size: .95rem; cursor: pointer; font-family: inherit; transition: all .15s; }
+    .type-btn.active-entrada { border-color: #28a745; background: #ecfdf5; color: #166534; }
+    .type-btn.active-saida   { border-color: #dc2626; background: #fef2f2; color: #7f1d1d; }
+    @media (max-width: 600px) { .layout { flex-direction: column; } .sidebar { width: 100%; border-right: none; border-bottom: 1px solid #ccc; } }
+  </style>
+</head>
+<body>
+<header class="navbar">
+  <a href="/" class="nav-brand">🛍 M.T.F</a>
+  <a href="/">Início</a>
+  <a href="/products">Produtos</a>
+  <a href="/sales">Vendas</a>
+  <a href="/stock" class="active">Estoque</a>
+  <a href="/stock/new">+ Movimento</a>
+</header>
+<div class="layout">
+  <nav class="sidebar">
+    <ul>
+      <li><a href="/">Início</a></li>
+      <li><a href="#">Produtos ▸</a><ul class="submenu"><li><a href="/products">Lista</a></li><li><a href="/products/new">+ Cadastrar</a></li></ul></li>
+      <li><a href="#">Vendas ▸</a><ul class="submenu"><li><a href="/sales">Lista</a></li><li><a href="/sales/new">+ Nova</a></li></ul></li>
+      <li><a href="#">Estoque ▸</a><ul class="submenu"><li><a href="/stock">Saldo / Histórico</a></li><li><a href="/stock/new">+ Entrada</a></li></ul></li>
+      <li><a href="/calc">Calculadora</a></li>
+    </ul>
+  </nav>
+  <main class="content">
+    <div class="card">
+      <h1>Movimentação de Estoque</h1>
+      {% if error %}<div class="msg err">{{ error }}</div>{% endif %}
+      {% if success %}<div class="msg ok">✅ {{ success }}</div>{% endif %}
+
+      <form method="post" action="/stock/new">
+        <input type="hidden" name="movement_type" id="movement_type_hidden" value="entrada">
+
+        <label>Tipo de movimento</label>
+        <div class="type-toggle">
+          <button type="button" id="btn-entrada" class="type-btn active-entrada" onclick="setType('entrada')">📦 Entrada</button>
+          <button type="button" id="btn-saida"   class="type-btn" onclick="setType('saida')">📤 Saída manual</button>
+        </div>
+
+        <label for="product_id">Produto</label>
+        <select id="product_id" name="product_id" required>
+          <option value="" disabled selected>Selecione...</option>
+          {% for p in products %}
+            <option value="{{ p.id }}">{{ p.name }} ({{ p.unit }})</option>
+          {% endfor %}
+        </select>
+
+        <label for="qty">Quantidade</label>
+        <input id="qty" name="qty" inputmode="decimal" placeholder="Ex: 10 ou 1,5" required>
+        <div class="hint" id="qty-hint">Quantidade que está entrando no estoque.</div>
+
+        <label for="moved_at">Data</label>
+        <input type="date" id="moved_at" name="moved_at" value="{{ today }}">
+
+        <label for="note">Observação (opcional)</label>
+        <input id="note" name="note" placeholder="Ex: Nota fiscal 1234, fornecedor...">
+
+        <div class="btns">
+          <button class="btn-primary" type="submit">Registrar</button>
+          <a class="btn-secondary" href="/stock">Ver estoque</a>
+        </div>
+      </form>
+    </div>
+  </main>
+</div>
+<script>
+function setType(type) {
+  document.getElementById('movement_type_hidden').value = type;
+  const btnE = document.getElementById('btn-entrada');
+  const btnS = document.getElementById('btn-saida');
+  const hint = document.getElementById('qty-hint');
+  if (type === 'entrada') {
+    btnE.className = 'type-btn active-entrada';
+    btnS.className = 'type-btn';
+    hint.textContent = 'Quantidade que está entrando no estoque.';
+  } else {
+    btnE.className = 'type-btn';
+    btnS.className = 'type-btn active-saida';
+    hint.textContent = 'Quantidade que está saindo do estoque (ajuste manual).';
+  }
+}
+</script>
+</body>
+</html>

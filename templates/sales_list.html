@@ -134,6 +134,10 @@
       {% if deleted %}
       <div class="ok-banner">🗑 Venda excluída com sucesso.</div>
       {% endif %}
+      {% if request.query_params.get('checkout') == '1' %}
+      <div class="ok-banner">✅ Pedido finalizado! Todas as vendas foram registradas.</div>
+      <script>localStorage.removeItem('mtf_cart');</script>
+      {% endif %}
 
       {% set base = "/sales" %}
       {% set dir_toggle = "desc" if direction == "asc" else "asc" %}
@@ -150,6 +154,10 @@
         <div class="sum-card">
           <div class="sum-label">Nº de vendas</div>
           <div class="sum-value">{{ total_count }}</div>
+        </div>
+        <div class="sum-card">
+          <div class="sum-label">Ticket médio</div>
+          <div class="sum-value">R$ {{ "%.2f"|format(total_revenue / total_count if total_count else 0) }}</div>
         </div>
       </div>
 

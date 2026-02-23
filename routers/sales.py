@@ -122,6 +122,15 @@ async def sales_create(
                         "INSERT INTO sales (sold_at, product_id, qty, unit_price, total, note, payment_type) VALUES ($1,$2,$3,$4,$5,$6,$7)",
                         (sold_at_date, product_id, qty_d, price_d, total_d, note.strip() or None, payment_type)
                     )
+                    # Автосписание стока
+                    sale_res = await conn.execute(text("SELECT lastval()"))
+                    sale_id = sale_res.scalar()
+                    await conn.execute(
+                        text("""INSERT INTO stock_movements (product_id, qty, movement_type, note, sale_id, moved_at)
+                                VALUES (:pid, :qty, 'venda', :note, :sid, :dt)"""),
+                        {"pid": product_id, "qty": -qty_d, "note": "Venda automática",
+                         "sid": sale_id, "dt": sold_at_date}
+                    )
                     success = "Venda registrada."
 
     return templates.TemplateResponse("new_sale.html", {
@@ -131,6 +140,50 @@ async def sales_create(
         "error": error,
         "success": success,
     })
+
+
+# ── CHECKOUT (корзина → несколько продаж) ──
+
+import json as _json
+
+@router.get("/checkout", response_class=HTMLResponse)
+async def checkout_page(request: Request, _=Depends(basic_auth)):
+    return templates.TemplateResponse("checkout.html", {"request": request})
+
+
+@router.post("/sales/checkout")
+async def sales_checkout(
+    request: Request,
+    sold_at: str = Form(...),
+    payment_type: str = Form("dinheiro"),
+    items_json: str = Form(...),
+    _=Depends(basic_auth),
+):
+    sold_at_date = _parse_date(sold_at)
+    try:
+        items = _json.loads(items_json)
+    except Exception:
+        return HTMLResponse("Dados inválidos", status_code=400)
+
+    async with engine.begin() as conn:
+        for item in items:
+            qty_d   = money2(Decimal(str(item["qty"])))
+            price_d = money2(Decimal(str(item["unit_price"])))
+            total_d = money2(Decimal(str(item["total"])))
+            await conn.exec_driver_sql(
+                "INSERT INTO sales (sold_at, product_id, qty, unit_price, total, payment_type) VALUES ($1,$2,$3,$4,$5,$6)",
+                (sold_at_date, int(item["product_id"]), qty_d, price_d, total_d, payment_type)
+            )
+            # Автосписание стока
+            sale_res = await conn.execute(text("SELECT lastval()"))
+            sale_id = sale_res.scalar()
+            await conn.execute(
+                text("""INSERT INTO stock_movements (product_id, qty, movement_type, note, sale_id, moved_at)
+                        VALUES (:pid, :qty, 'venda', 'Venda automática', :sid, :dt)"""),
+                {"pid": int(item["product_id"]), "qty": -qty_d, "sid": sale_id, "dt": sold_at_date}
+            )
+
+    return RedirectResponse(url="/sales?checkout=1", status_code=303)
 
 
 # ── EDIT SALE ──
@@ -186,6 +239,20 @@ async def sale_edit_save(
 @router.post("/sales/{sale_id}/delete")
 async def sale_delete(sale_id: int, _=Depends(basic_auth)):
     async with engine.begin() as conn:
+        # Восстанавливаем сток перед удалением
+        sale_res = await conn.execute(
+            text("SELECT product_id, qty FROM sales WHERE id = :id"), {"id": sale_id}
+        )
+        sale = sale_res.mappings().first()
+        if sale:
+            await conn.execute(
+                text("""INSERT INTO stock_movements (product_id, qty, movement_type, note, moved_at)
+                        VALUES (:pid, :qty, 'estorno', 'Estorno por exclusão de venda', CURRENT_DATE)"""),
+                {"pid": sale["product_id"], "qty": sale["qty"]}
+            )
+        await conn.execute(
+            text("DELETE FROM stock_movements WHERE sale_id = :id"), {"id": sale_id}
+        )
         await conn.execute(text("DELETE FROM sales WHERE id = :id"), {"id": sale_id})
     return RedirectResponse(url="/sales?deleted=1", status_code=303)
 

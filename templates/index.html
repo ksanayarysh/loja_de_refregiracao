@@ -319,11 +319,7 @@ function clearCart() {
 
 function checkoutCart() {
   if (!cart.length) return;
-  // Abre vendas para cada item do carrinho sequencialmente
-  // Por enquanto abre a primeira venda e guarda o restante
-  const item = cart[0];
-  const url = `/sales/new?product_id=${item.id}&qty=${item.qty}&unit_price=${item.price}`;
-  window.location.href = url;
+  window.location.href = '/checkout';
 }
 
 function buyNow(id, name, price, unit, qty = 1) {

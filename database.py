@@ -45,3 +45,17 @@ async def init_db():
         await conn.execute(text("""
             ALTER TABLE products ADD COLUMN IF NOT EXISTS category_id INTEGER REFERENCES categories(id)
         """))
+
+        await conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS stock_movements (
+                id           SERIAL PRIMARY KEY,
+                product_id   INTEGER NOT NULL REFERENCES products(id),
+                qty          NUMERIC(12,3) NOT NULL,
+                movement_type TEXT NOT NULL DEFAULT 'entrada',
+                note         TEXT,
+                sale_id      INTEGER REFERENCES sales(id),
+                moved_at     DATE NOT NULL DEFAULT CURRENT_DATE,
+                created_at   TIMESTAMPTZ DEFAULT NOW()
+            )
+        """))
+
