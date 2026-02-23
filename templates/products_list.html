@@ -162,7 +162,9 @@
             <td>
               <div class="action-cell">
                 <a class="edit-btn" href="/products/{{ r['id'] }}/edit">✏️ Editar</a>
-                <form method="post" action="/products/{{ r['id'] }}/delete" onsubmit="return confirm('Excluir {{ r[\'name\'] }}?')">
+                <form method="post"
+                      action="/products/{{ r['id'] }}/delete"
+                      onsubmit="return confirm({{ ('Excluir ' ~ (r['name'] or '') ~ '?') | tojson }});">
                   <button class="del-btn" type="submit">🗑</button>
                 </form>
               </div>
