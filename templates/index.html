@@ -434,16 +434,45 @@ function calcG(i) {
 }
 
 function calcR(i) {
+
   const r = parseFloat(document.getElementById(`input-r-${i}`).value);
   const res = document.getElementById(`res-r-${i}`);
   const actions = document.getElementById(`actions-r-${i}`);
   const price = parseFloat(gases[i].sale_price);
   if (isNaN(r) || r <= 0) { showResult(res, 'Digite um valor válido.', true); actions.style.display='none'; return; }
-  const grams = (r / price * 1000).toFixed(1);
-  showResult(res, `${grams} g<small>R$ ${r.toFixed(2)} de ${gases[i].name}</small>`, false);
-  lastCalc[`r-${i}`] = {qty: parseFloat(grams) / 1000, unitPrice: price, total: r};
+
+  // Use precise grams for math, but many checkout UIs round grams to an integer.
+  // If the next page rounds grams, the total becomes "wrong" (e.g. 19,97 instead of 20,00).
+  // So we compute a rounded-grams quantity and adjust the unit_price to keep the total exact.
+  const gramsRaw = (r / price * 1000);           // precise grams
+  const gramsDisplay = gramsRaw.toFixed(1);      // what we show here
+  const gramsRounded = Math.max(1, Math.round(gramsRaw)); // what many forms end up using
+  const qtyRounded = gramsRounded / 1000;        // kg after rounding
+  const unitPriceAdj = r / qtyRounded;           // adjusted R$/kg so qtyRounded * unitPriceAdj = r
+
+  showResult(
+    res,
+    `${gramsDisplay} g<small>R$ ${r.toFixed(2)} de ${gases[i].name}<br>Na venda: ${gramsRounded} g → R$ ${r.toFixed(2)}</small>`,
+    false
+  );
+
+  lastCalc[`r-${i}`] = {
+    // original reference price
+    unitPrice: price,
+    // requested total
+    total: r,
+    // precise qty (kg) from raw grams
+    qty: parseFloat(gramsDisplay) / 1000,
+    // qty that matches rounded grams on the sales page
+    qtyRounded: qtyRounded,
+    gramsRounded: gramsRounded,
+    // adjusted unit price to preserve the requested total after rounding grams
+    unitPriceAdj: unitPriceAdj
+  };
+
   actions.style.display = 'flex';
   selectGas(i);
+}
 }
 
 function cartFromCalc(i, mode) {
@@ -455,11 +484,24 @@ function cartFromCalc(i, mode) {
 }
 
 function buyFromCalc(i, mode) {
+
   const g = gases[i];
   const key = `${mode}-${i}`;
   const c = lastCalc[key];
   if (!c) return;
-  window.location.href = `/sales/new?product_id=${g.id}&qty=${c.qty.toFixed(4)}&unit_price=${g.sale_price}`;
+
+  // Default: use the product sale_price and calculated qty.
+  // Special case (mode 'r'): preserve the exact R$ value even if the next page rounds grams.
+  let qty = c.qty;
+  let unitPrice = g.sale_price;
+
+  if (mode === 'r' && c.qtyRounded && c.unitPriceAdj) {
+    qty = c.qtyRounded;
+    unitPrice = c.unitPriceAdj;
+  }
+
+  window.location.href = `/sales/new?product_id=${g.id}&qty=${qty.toFixed(4)}&unit_price=${parseFloat(unitPrice).toFixed(4)}`;
+}
 }
 
 loadGases();
