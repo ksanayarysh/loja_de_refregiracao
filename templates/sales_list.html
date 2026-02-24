@@ -86,6 +86,19 @@
     .pagebtn.active { background: #111827; color: #fff; border-color: #111827; }
     .pagebtn.disabled { opacity: .4; pointer-events: none; }
 
+    /* DAY GROUP */
+    .day-group { margin-bottom: 20px; }
+    .day-header { display: flex; justify-content: space-between; align-items: center;
+      background: #111827; color: #fff; padding: 10px 14px; border-radius: 8px 8px 0 0;
+      font-weight: 900; font-size: 1rem; }
+    .day-header .day-date { font-size: 1rem; }
+    .day-header .day-total { font-size: 1rem; }
+    .day-header .day-count { font-size: .82rem; opacity: .7; margin-left: 8px; }
+    .day-table { width: 100%; border-collapse: collapse; border: 1px solid #e7e9ee; border-top: none; border-radius: 0 0 8px 8px; overflow: hidden; }
+    .day-table th, .day-table td { padding: 10px 10px; border-bottom: 1px solid #e7e9ee; text-align: left; font-size: .9rem; }
+    .day-table tr:last-child td { border-bottom: none; }
+    .day-table th { background: bisque; font-weight: 900; font-size: .82rem; text-transform: uppercase; letter-spacing: .03em; }
+
     @media (max-width: 600px) {
       .layout { flex-direction: column; }
       .sidebar { width: 100%; border-right: none; border-bottom: 1px solid #ccc; }
@@ -102,6 +115,9 @@
   <a href="/products/new">+ Produto</a>
   <a href="/sales" class="active">Vendas</a>
   <a href="/sales/new">+ Venda</a>
+  <a href="/stock">Estoque</a>
+  <a href="/stock/new">+ Movimento</a>
+  <a href="/reports">Relatórios</a>
   <a href="/calc">Calculadora</a>
 </header>
 
@@ -123,6 +139,14 @@
           <li><a href="/sales/new">+ Nova</a></li>
         </ul>
       </li>
+      <li>
+        <a href="#">Estoque ▸</a>
+        <ul class="submenu">
+          <li><a href="/stock">Saldo</a></li>
+          <li><a href="/stock/new">+ Entrada</a></li>
+        </ul>
+      </li>
+      <li><a href="/reports">Relatórios</a></li>
       <li><a href="/calc">Calculadora</a></li>
     </ul>
   </nav>
@@ -201,43 +225,101 @@
       {% if not rows or rows|length == 0 %}
         <div class="empty">Nenhuma venda encontrada para o período selecionado.</div>
       {% else %}
-        <table>
-          <thead>
-            <tr>
-              <th><a href="{{ url(1, 'sold_at', (dir_toggle if sort=='sold_at' else 'desc')) }}">Data {% if sort=='sold_at' %}{{ '↑' if direction=='asc' else '↓' }}{% endif %}</a></th>
-              <th>Produto</th>
-              <th><a href="{{ url(1, 'qty', (dir_toggle if sort=='qty' else 'asc')) }}">Qtd {% if sort=='qty' %}{{ '↑' if direction=='asc' else '↓' }}{% endif %}</a></th>
-              <th><a href="{{ url(1, 'unit_price', (dir_toggle if sort=='unit_price' else 'asc')) }}">Preço unit. {% if sort=='unit_price' %}{{ '↑' if direction=='asc' else '↓' }}{% endif %}</a></th>
-              <th><a href="{{ url(1, 'total', (dir_toggle if sort=='total' else 'asc')) }}">Total {% if sort=='total' %}{{ '↑' if direction=='asc' else '↓' }}{% endif %}</a></th>
-              <th>Pagamento</th>
-              <th>Obs.</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for r in rows %}
-              {% set pt = r.payment_type or 'dinheiro' %}
-              {% set pt_labels = {'dinheiro':'💵 Dinheiro','pix':'📱 Pix','cartao_credito':'💳 Crédito','cartao_debito':'💳 Débito'} %}
-              <tr>
-                <td>{{ r.sold_at.strftime('%d/%m/%Y') }}</td>
-                <td>{{ r.product_name }}<br><small style="color:#888;font-size:.78rem;">{{ r.unit }}</small></td>
-                <td>{{ r.qty }}</td>
-                <td class="price">R$ {{ "%.2f"|format(r.unit_price or 0) }}</td>
-                <td class="price">R$ {{ "%.2f"|format(r.total or 0) }}</td>
-                <td><span class="pay-badge pay-{{ pt }}">{{ pt_labels.get(pt, pt) }}</span></td>
-                <td style="color:#555;font-size:.85rem;">{{ r.note or '—' }}</td>
-                <td>
-                  <div class="action-cell">
-                    <a class="edit-btn" href="/sales/{{ r.id }}/edit">✏️</a>
-                    <form method="post" action="/sales/{{ r.id }}/delete" onsubmit="return confirm('Excluir esta venda?')">
-                      <button class="del-btn" type="submit">🗑</button>
-                    </form>
-                  </div>
-                </td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+        {% set pt_labels = {'dinheiro':'💵 Dinheiro','pix':'📱 Pix','cartao_credito':'💳 Crédito','cartao_debito':'💳 Débito'} %}
+        {% set ns = namespace(current_day=None, day_total=0, day_count=0, day_rows=[]) %}
+
+        {% for r in rows %}
+          {% set day = r.sold_at.strftime('%d/%m/%Y') %}
+
+          {% if day != ns.current_day and ns.current_day is not none %}
+            {# Закрываем предыдущий день #}
+            <div class="day-group">
+              <div class="day-header">
+                <span class="day-date">📅 {{ ns.current_day }}</span>
+                <span>
+                  <span class="day-count">{{ ns.day_count }} venda{{ 's' if ns.day_count != 1 else '' }}</span>
+                  <span class="day-total">R$ {{ "%.2f"|format(ns.day_total) }}</span>
+                </span>
+              </div>
+              <table class="day-table">
+                <thead><tr>
+                  <th>Produto</th><th>Qtd</th><th>Preço unit.</th><th>Total</th><th>Pagamento</th><th>Obs.</th><th></th>
+                </tr></thead>
+                <tbody>
+                {% for dr in ns.day_rows %}
+                  {% set pt = dr.payment_type or 'dinheiro' %}
+                  <tr>
+                    <td>{{ dr.product_name }}<br><small style="color:#888;font-size:.75rem;">{{ dr.unit }}</small></td>
+                    <td>{{ dr.qty }}</td>
+                    <td class="price">R$ {{ "%.2f"|format(dr.unit_price or 0) }}</td>
+                    <td class="price">R$ {{ "%.2f"|format(dr.total or 0) }}</td>
+                    <td><span class="pay-badge pay-{{ pt }}">{{ pt_labels.get(pt, pt) }}</span></td>
+                    <td style="color:#555;font-size:.85rem;">{{ dr.note or '—' }}</td>
+                    <td>
+                      <div class="action-cell">
+                        <a class="edit-btn" href="/sales/{{ dr.id }}/edit">✏️</a>
+                        <form method="post" action="/sales/{{ dr.id }}/delete" onsubmit="return confirm('Excluir esta venda?')">
+                          <button class="del-btn" type="submit">🗑</button>
+                        </form>
+                      </div>
+                    </td>
+                  </tr>
+                {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% endif %}
+
+          {% if day != ns.current_day %}
+            {% set ns.current_day = day %}
+            {% set ns.day_total = 0 %}
+            {% set ns.day_count = 0 %}
+            {% set ns.day_rows = [] %}
+          {% endif %}
+
+          {% set ns.day_total = ns.day_total + (r.total or 0) | float %}
+          {% set ns.day_count = ns.day_count + 1 %}
+          {% set _ = ns.day_rows.append(r) %}
+        {% endfor %}
+
+        {# Последний день #}
+        {% if ns.current_day is not none %}
+          <div class="day-group">
+            <div class="day-header">
+              <span class="day-date">📅 {{ ns.current_day }}</span>
+              <span>
+                <span class="day-count">{{ ns.day_count }} venda{{ 's' if ns.day_count != 1 else '' }}</span>
+                <span class="day-total">R$ {{ "%.2f"|format(ns.day_total) }}</span>
+              </span>
+            </div>
+            <table class="day-table">
+              <thead><tr>
+                <th>Produto</th><th>Qtd</th><th>Preço unit.</th><th>Total</th><th>Pagamento</th><th>Obs.</th><th></th>
+              </tr></thead>
+              <tbody>
+              {% for dr in ns.day_rows %}
+                {% set pt = dr.payment_type or 'dinheiro' %}
+                <tr>
+                  <td>{{ dr.product_name }}<br><small style="color:#888;font-size:.75rem;">{{ dr.unit }}</small></td>
+                  <td>{{ dr.qty }}</td>
+                  <td class="price">R$ {{ "%.2f"|format(dr.unit_price or 0) }}</td>
+                  <td class="price">R$ {{ "%.2f"|format(dr.total or 0) }}</td>
+                  <td><span class="pay-badge pay-{{ pt }}">{{ pt_labels.get(pt, pt) }}</span></td>
+                  <td style="color:#555;font-size:.85rem;">{{ dr.note or '—' }}</td>
+                  <td>
+                    <div class="action-cell">
+                      <a class="edit-btn" href="/sales/{{ dr.id }}/edit">✏️</a>
+                      <form method="post" action="/sales/{{ dr.id }}/delete" onsubmit="return confirm('Excluir esta venda?')">
+                        <button class="del-btn" type="submit">🗑</button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% endif %}
 
         <div class="pager">
           <div class="pages">
