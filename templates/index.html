@@ -240,9 +240,16 @@ function saveCart() { localStorage.setItem('mtf_cart', JSON.stringify(cart)); }
 
 function updateBadge() {
   const badge = document.getElementById('cart-badge');
-  const total = cart.reduce((s, i) => s + i.qty, 0);
+  const total = cart.length;
   badge.textContent = total;
   badge.classList.toggle('hidden', total === 0);
+  // Показываем сумму на кнопке
+  const btn = document.querySelector('.cart-icon-btn');
+  const totalValue = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const btnText = total > 0
+    ? `🛒 Carrinho · R$ ${totalValue.toFixed(2)}`
+    : '🛒 Carrinho';
+  btn.childNodes[0].textContent = btnText;
 }
 
 function addToCart(id, name, price, unit, qty = 1) {
