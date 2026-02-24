@@ -46,7 +46,11 @@
     .err { background: #fef2f2; border: 1px solid #fecaca; color: #7f1d1d; }
     .ok  { background: #ecfdf5; border: 1px solid #bbf7d0; color: #065f46; }
 
-    .btn-cart { padding: 12px 20px; border-radius: 10px; border: 1px solid #ccc; background: #fff; color: #111; font-weight: 900; font-size: 1rem; cursor: pointer; font-family: inherit; }
+    .stock-hint { margin-top: 6px; padding: 8px 12px; border-radius: 8px; font-size: .9rem; font-weight: 700; display: none; }
+    .stock-ok   { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
+    .stock-low  { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
+    .stock-empty{ background: #fef2f2; border: 1px solid #fecaca; color: #7f1d1d; }
+    .qty-warn   { margin-top: 6px; padding: 8px 12px; border-radius: 8px; font-size: .88rem; font-weight: 700; background: #fef2f2; border: 1px solid #fecaca; color: #7f1d1d; display: none; } border-radius: 10px; border: 1px solid #ccc; background: #fff; color: #111; font-weight: 900; font-size: 1rem; cursor: pointer; font-family: inherit; }
     .btn-cart:hover { background: bisque; }
     .cart-added { display:none; background: #ecfdf5; border: 1px solid #bbf7d0; color: #065f46; padding: 10px 14px; border-radius: 10px; font-weight: 800; margin-top: 12px; }
 
@@ -127,11 +131,13 @@
           {% endfor %}
         </select>
         <div class="hint" id="unitHint"></div>
+        <div class="stock-hint" id="stockHint"></div>
 
         <div class="row">
           <div>
             <label for="qty">Quantidade</label>
             <input id="qty" name="qty" inputmode="decimal" placeholder="Ex: 1" required>
+            <div class="qty-warn" id="qtyWarn"></div>
           </div>
           <div>
             <label for="unit_price">Preço (unit.)</label>
@@ -182,10 +188,55 @@
   function recalcTotal() { const q=parseNum(qtyEl.value); const p=parseNum(priceEl.value)??getSelectedPrice(); if(q!==null&&p!==null)totalEl.value=fmt2(q*p); }
 
   priceEl.addEventListener("input",()=>{priceWasManuallyEdited=priceEl.value.trim()!=="";recalcTotal();});
-  qtyEl.addEventListener("input",recalcTotal);
-  productSel.addEventListener("change",()=>{updateUnitHint();setPriceFromProduct(false);recalcTotal();});
+  qtyEl.addEventListener("input",()=>{ recalcTotal(); checkQtyWarn(); });
+  productSel.addEventListener("change",()=>{updateUnitHint();setPriceFromProduct(false);recalcTotal();updateStockHint();});
   updateUnitHint();
   if(priceEl.value.trim()==="")setPriceFromProduct(true);
+
+  // ── ESTOQUE ──
+  let stockLevels = {};
+  fetch('/api/stock/levels').then(r => r.json()).then(data => {
+    data.forEach(p => { stockLevels[p.id] = p; });
+    updateStockHint();
+  }).catch(() => {});
+
+  function updateStockHint() {
+    const opt = selectedOpt();
+    const hint = document.getElementById('stockHint');
+    if (!opt || !opt.value) { hint.style.display = 'none'; return; }
+    const s = stockLevels[parseInt(opt.value)];
+    if (!s) { hint.style.display = 'none'; return; }
+    const stock = parseFloat(s.current_stock) || 0;
+    const min   = parseFloat(s.min_stock) || 0;
+    hint.style.display = 'block';
+    if (stock <= 0) {
+      hint.className = 'stock-hint stock-empty';
+      hint.textContent = `⚠️ Sem estoque! (0 ${s.unit})`;
+    } else if (min > 0 && stock <= min) {
+      hint.className = 'stock-hint stock-low';
+      hint.textContent = `⚠️ Estoque baixo: ${stock.toFixed(3)} ${s.unit} (mín: ${min})`;
+    } else {
+      hint.className = 'stock-hint stock-ok';
+      hint.textContent = `✅ Em estoque: ${stock.toFixed(3)} ${s.unit}`;
+    }
+    checkQtyWarn();
+  }
+
+  function checkQtyWarn() {
+    const opt = selectedOpt();
+    const warn = document.getElementById('qtyWarn');
+    if (!opt || !opt.value) { warn.style.display = 'none'; return; }
+    const s = stockLevels[parseInt(opt.value)];
+    if (!s) { warn.style.display = 'none'; return; }
+    const stock = parseFloat(s.current_stock) || 0;
+    const qty   = parseNum(qtyEl.value);
+    if (qty !== null && stock > 0 && qty > stock) {
+      warn.style.display = 'block';
+      warn.textContent = `⚠️ Atenção: quantidade (${qty}) maior que o estoque disponível (${stock.toFixed(3)} ${s.unit})`;
+    } else {
+      warn.style.display = 'none';
+    }
+  }
 
   // ── CARRINHO NAV ──
   function updateNavCart() {
