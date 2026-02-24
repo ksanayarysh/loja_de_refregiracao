@@ -280,13 +280,17 @@ function renderCart() {
     return;
   }
   footer.style.display = 'block';
-  body.innerHTML = cart.map(item => `
+  body.innerHTML = cart.map(item => {
+    const qtyDisplay = item.unit === 'kg'
+      ? parseFloat(item.qty).toFixed(3)
+      : Math.round(item.qty);
+    return `
     <div class="cart-item">
       <div class="cart-item-info">
         <div class="cart-item-name">${item.name}</div>
         <div class="cart-item-detail">
           R$ ${item.price.toFixed(2)} / ${item.unit} &nbsp;·&nbsp;
-          Qtd: <input class="cart-qty" type="number" value="${item.qty}" min="0.001" step="any"
+          Qtd: <input class="cart-qty" type="number" value="${qtyDisplay}" min="0.001" step="any"
             onchange="updateQty(${item.id}, this.value)">
         </div>
       </div>
@@ -295,7 +299,7 @@ function renderCart() {
         <button class="cart-item-remove" onclick="removeFromCart(${item.id})">🗑</button>
       </div>
     </div>
-  `).join('');
+  `}).join('');
   renderCartTotal();
 }
 

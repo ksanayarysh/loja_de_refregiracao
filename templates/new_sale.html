@@ -46,7 +46,9 @@
     .err { background: #fef2f2; border: 1px solid #fecaca; color: #7f1d1d; }
     .ok  { background: #ecfdf5; border: 1px solid #bbf7d0; color: #065f46; }
 
-    @media (max-width: 600px) {
+    .btn-cart { padding: 12px 20px; border-radius: 10px; border: 1px solid #ccc; background: #fff; color: #111; font-weight: 900; font-size: 1rem; cursor: pointer; font-family: inherit; }
+    .btn-cart:hover { background: bisque; }
+    .cart-added { display:none; background: #ecfdf5; border: 1px solid #bbf7d0; color: #065f46; padding: 10px 14px; border-radius: 10px; font-weight: 800; margin-top: 12px; }
       .layout { flex-direction: column; }
       .sidebar { width: 100%; border-right: none; border-bottom: 1px solid #ccc; }
       .row { grid-template-columns: 1fr; }
@@ -62,6 +64,9 @@
   <a href="/products/new">+ Produto</a>
   <a href="/sales">Vendas</a>
   <a href="/sales/new" class="active">+ Venda</a>
+  <a href="/stock">Estoque</a>
+  <a href="/stock/new">+ Movimento</a>
+  <a href="/reports">Relatórios</a>
   <a href="/calc">Calculadora</a>
 </header>
 
@@ -83,6 +88,14 @@
           <li><a href="/sales/new">+ Nova</a></li>
         </ul>
       </li>
+      <li>
+        <a href="#">Estoque ▸</a>
+        <ul class="submenu">
+          <li><a href="/stock">Saldo</a></li>
+          <li><a href="/stock/new">+ Entrada</a></li>
+        </ul>
+      </li>
+      <li><a href="/reports">Relatórios</a></li>
       <li><a href="/calc">Calculadora</a></li>
     </ul>
   </nav>
@@ -140,8 +153,10 @@
 
         <div class="btns">
           <button class="btn-primary" type="submit">Salvar venda</button>
+          <button class="btn-cart" type="button" onclick="addToCartFromForm()">🛒 Adicionar ao carrinho</button>
           <a class="btn-secondary" href="/sales">Ver vendas</a>
         </div>
+        <div class="cart-added" id="cart-added">✅ Adicionado ao carrinho!</div>
       </form>
     </div>
   </main>
@@ -169,7 +184,31 @@
   updateUnitHint();
   if(priceEl.value.trim()==="")setPriceFromProduct(true);
 
-  // ── Предзаполнение из query params (Comprar agora / корзина) ──
+  // ── CARRINHO ──
+  function addToCartFromForm() {
+    const opt = selectedOpt();
+    if (!opt || !opt.value) { alert('Selecione um produto primeiro!'); return; }
+    const qty = parseNum(qtyEl.value);
+    if (!qty || qty <= 0) { alert('Informe a quantidade!'); return; }
+    const price = parseNum(priceEl.value) ?? getSelectedPrice() ?? 0;
+    const id    = parseInt(opt.value);
+    const name  = opt.text.replace(/\s*\(.*\)$/, '').trim();
+    const unit  = opt.dataset.unit || 'un';
+
+    let cart = JSON.parse(localStorage.getItem('mtf_cart') || '[]');
+    const existing = cart.find(i => i.id === id);
+    if (existing) {
+      existing.qty += qty;
+    } else {
+      cart.push({ id, name, price, unit, qty });
+    }
+    localStorage.setItem('mtf_cart', JSON.stringify(cart));
+
+    const msg = document.getElementById('cart-added');
+    msg.style.display = 'block';
+    msg.innerHTML = `✅ <strong>${name}</strong> (${qty} ${unit}) adicionado ao carrinho! <a href="/checkout" style="color:#065f46;font-weight:900;">Ver carrinho →</a>`;
+    setTimeout(() => { msg.style.display = 'none'; }, 4000);
+  }
 (function() {
   const params = new URLSearchParams(window.location.search);
   const productId = params.get('product_id');
