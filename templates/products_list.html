@@ -30,6 +30,9 @@
     h1 { font-size: 1.4rem; margin-bottom: 14px; color: #111; }
 
     .topbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+    .topbar-left { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .topbar-right { margin-left:auto; display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+
     .btn { display: inline-block; padding: 8px 14px; border-radius: 8px; background: #111827; color: #fff; text-decoration: none; font-weight: 800; border: none; cursor: pointer; font-size: .9rem; font-family: inherit; }
     .btn:hover { background: #374151; }
     .pill { padding: 7px 12px; border-radius: 8px; background: bisque; border: 1px solid #ccc; color: #111; font-weight: 700; font-size: .88rem; }
@@ -40,18 +43,21 @@
     .cat-group { margin-bottom: 24px; }
     .cat-title { font-size: 1rem; font-weight: 900; color: #E2144A; padding: 8px 0 6px; border-bottom: 2px solid #E2144A; margin-bottom: 0; }
 
-    table { width: 100%; border-collapse: collapse; }
-    th, td { padding: 10px 10px; border-bottom: 1px solid #e7e9ee; text-align: left; font-size: .9rem; }
+    /* TABLE: fixed layout + consistent column widths */
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    th, td { padding: 10px 10px; border-bottom: 1px solid #e7e9ee; text-align: left; font-size: .9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     th { background: bisque; font-weight: 900; }
     th a { color: #111; text-decoration: none; }
     th a:hover { text-decoration: underline; }
+
     .price { white-space: nowrap; font-weight: 900; }
     .unit-cell { color: #555; }
     .edit-btn { display: inline-block; padding: 5px 12px; border-radius: 6px; background: #fff; border: 1px solid #ccc; color: #111; text-decoration: none; font-size: .82rem; font-weight: 700; white-space: nowrap; }
     .edit-btn:hover { background: bisque; border-color: #999; }
     .del-btn { padding: 5px 10px; border-radius: 6px; background: #fff; border: 1px solid #fca5a5; color: #dc2626; font-size: .82rem; font-weight: 700; cursor: pointer; white-space: nowrap; font-family: inherit; }
     .del-btn:hover { background: #dc2626; color: #fff; border-color: #dc2626; }
-    .action-cell { display: flex; gap: 6px; align-items: center; }
+    .action-cell { display: flex; gap: 6px; align-items: center; justify-content: flex-end; }
+    td:last-child, th:last-child { text-align: right; }
 
     .empty { padding: 14px; background: #fff7ed; border: 1px solid #fed7aa; border-radius: 10px; color: #7c2d12; }
 
@@ -61,9 +67,26 @@
     .pagebtn.active { background: #111827; color: #fff; border-color: #111827; }
     .pagebtn.disabled { opacity: .4; pointer-events: none; }
 
+    /* SEARCH (same logic as index) */
+    .searchbar { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    .search-input { padding: 8px; border: 1px solid #ccc; border-radius: 8px; outline: none; font-size: .95rem; width: 260px; background:#fff; }
+    .search-button { padding: 8px 12px; border: none; background: #111827; color: #fff; border-radius: 8px; cursor: pointer; font-size: .9rem; font-weight: 800; }
+    .search-button:hover { background:#374151; }
+
+    #search-results { display:none; background:#fff; border:1px solid #ccc; border-radius:10px; padding:12px; margin: 10px 0 14px; }
+    #search-results.show { display:block; }
+    #search-results h3 { font-size:.9rem; color:#555; margin-bottom:10px; }
+    .result-item { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #eee; font-size:.9rem; gap:8px; flex-wrap:wrap; }
+    .result-item:last-child { border-bottom:none; }
+    .result-info { flex:1; min-width: 180px; }
+    .result-price { font-weight:900; white-space:nowrap; }
+    .result-actions { display:flex; gap:6px; }
+
     @media (max-width: 600px) {
       .layout { flex-direction: column; }
       .sidebar { width: 100%; border-right: none; border-bottom: 1px solid #ccc; }
+      .topbar-right { margin-left: 0; }
+      .search-input { width: 100%; }
     }
   </style>
 </head>
@@ -116,19 +139,35 @@
       {%- endmacro %}
 
       <div class="topbar">
-        <a class="btn" href="/products/new">+ Cadastrar produto</a>
-        <span class="pill">{{ total_count }} itens</span>
-        <form method="get" action="/products" style="margin-left:auto;display:flex;gap:8px;align-items:center;">
-          <input type="hidden" name="page" value="1">
-          <input type="hidden" name="sort" value="{{ sort }}">
-          <input type="hidden" name="direction" value="{{ direction }}">
-          <label style="font-weight:800;font-size:.88rem;">Por página</label>
-          <select name="per_page" onchange="this.form.submit()">
-            {% for n in [10,25,50,100,200] %}
-              <option value="{{ n }}" {% if per_page == n %}selected{% endif %}>{{ n }}</option>
-            {% endfor %}
-          </select>
-        </form>
+        <div class="topbar-left">
+          <a class="btn" href="/products/new">+ Cadastrar produto</a>
+          <span class="pill">{{ total_count }} itens</span>
+        </div>
+
+        <div class="topbar-right">
+          <div class="searchbar">
+            <input type="text" id="search-input" placeholder="pesquisar produto..." class="search-input">
+            <button class="search-button" type="button" onclick="searchProducts()">pesquisar</button>
+          </div>
+
+          <form method="get" action="/products" style="display:flex;gap:8px;align-items:center;">
+            <input type="hidden" name="page" value="1">
+            <input type="hidden" name="sort" value="{{ sort }}">
+            <input type="hidden" name="direction" value="{{ direction }}">
+            <label style="font-weight:800;font-size:.88rem;">Por página</label>
+            <select name="per_page" onchange="this.form.submit()">
+              {% for n in [10,25,50,100,200] %}
+                <option value="{{ n }}" {% if per_page == n %}selected{% endif %}>{{ n }}</option>
+              {% endfor %}
+            </select>
+          </form>
+        </div>
+      </div>
+
+      <!-- Search results (API /api/products?search=...) -->
+      <div id="search-results">
+        <h3>Resultados:</h3>
+        <div id="results-list"></div>
       </div>
 
       {% if not rows or rows|length == 0 %}
@@ -145,6 +184,12 @@
             <div class="cat-group">
             <div class="cat-title">📂 {{ cat }}</div>
             <table>
+              <colgroup>
+                <col style="width:55%">
+                <col style="width:15%">
+                <col style="width:15%">
+                <col style="width:15%">
+              </colgroup>
               <thead>
                 <tr>
                   <th><a href="{{ url(1, 'name', (dir_toggle if sort=='name' else 'asc')) }}">Produto {% if sort=='name' %}{{ '↑' if direction=='asc' else '↓' }}{% endif %}</a></th>
@@ -156,9 +201,9 @@
               <tbody>
           {% endif %}
           <tr>
-            <td>{{ r["name"] }}</td>
+            <td title="{{ r['name'] }}">{{ r["name"] }}</td>
             <td class="price">R$ {{ "%.2f"|format(r["sale_price"] or 0) }}</td>
-            <td class="unit-cell">{{ r["unit"] or "" }}</td>
+            <td class="unit-cell" title="{{ r['unit'] or '' }}">{{ r["unit"] or "" }}</td>
             <td>
               <div class="action-cell">
                 <a class="edit-btn" href="/products/{{ r['id'] }}/edit">✏️ Editar</a>
@@ -199,5 +244,55 @@
     </div>
   </main>
 </div>
+
+<script>
+async function searchProducts() {
+  const q = document.getElementById('search-input').value.trim();
+  const container = document.getElementById('search-results');
+  const list = document.getElementById('results-list');
+
+  if (!q) { container.classList.remove('show'); return; }
+
+  list.innerHTML = '<div class="result-item" style="color:#888">Buscando...</div>';
+  container.classList.add('show');
+
+  try {
+    const res = await fetch(`/api/products?search=${encodeURIComponent(q)}`);
+    const data = await res.json();
+
+    if (!data.length) {
+      list.innerHTML = '<div class="result-item" style="color:#888">Nenhum produto encontrado.</div>';
+      return;
+    }
+
+    list.innerHTML = data.map(p => `
+      <div class="result-item">
+        <div class="result-info">
+          <span>${escapeHtml(p.name)}</span>
+          <span style="color:#aaa;font-size:.8rem"> (${escapeHtml(p.unit || '')})</span>
+        </div>
+        <span class="result-price">R$ ${parseFloat(p.sale_price || 0).toFixed(2)}</span>
+        <div class="result-actions">
+          <a class="edit-btn" href="/products/${p.id}/edit">✏️ Editar</a>
+          <a class="edit-btn" href="/sales/new?product_id=${p.id}&qty=1&unit_price=${encodeURIComponent(p.sale_price || 0)}">⚡ Vender</a>
+        </div>
+      </div>
+    `).join('');
+  } catch (e) {
+    list.innerHTML = '<div class="result-item" style="color:#dc2626">Erro ao buscar.</div>';
+  }
+}
+
+function escapeHtml(s) {
+  return String(s ?? '').replace(/[&<>"']/g, (c) => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
+
+document.getElementById('search-input')?.addEventListener('keydown', e => {
+  if (e.key === 'Enter') searchProducts();
+});
+</script>
+
 </body>
 </html>
