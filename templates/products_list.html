@@ -6,7 +6,7 @@
   <title>Produtos — M.T.F</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: Arial, Helvetica, sans-serif; background: bisque; min-height: 100vh; font-size: 15px; }
+    body { font-family: Arial, Helvetica, sans-serif; background: bisque; min-height: 100vh; font-size: 16px; }
 
     .navbar { background: bisque; padding: 10px 16px; display: flex; align-items: center; border-bottom: 1px solid #ccc; gap: 20px; flex-wrap: wrap; }
     .nav-brand { font-weight: 900; font-size: 1.1rem; color: #111; text-decoration: none; }
@@ -45,18 +45,22 @@
 
     /* TABLE: fixed layout + consistent column widths */
     table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-    th, td { padding: 10px 10px; border-bottom: 1px solid #e7e9ee; text-align: left; font-size: .9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    th { background: bisque; font-weight: 900; }
+    th, td { padding: 12px 10px; border-bottom: 1px solid #e7e9ee; text-align: left; font-size: 1rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    th { background: bisque; font-weight: 900; font-size: .9rem; }
     th a { color: #111; text-decoration: none; }
     th a:hover { text-decoration: underline; }
 
     .price { white-space: nowrap; font-weight: 900; }
     .unit-cell { color: #555; }
-    .edit-btn { display: inline-block; padding: 5px 12px; border-radius: 6px; background: #fff; border: 1px solid #ccc; color: #111; text-decoration: none; font-size: .82rem; font-weight: 700; white-space: nowrap; }
+    .edit-btn { display: inline-block; padding: 7px 12px; border-radius: 6px; background: #fff; border: 1px solid #ccc; color: #111; text-decoration: none; font-size: .88rem; font-weight: 700; white-space: nowrap; }
     .edit-btn:hover { background: bisque; border-color: #999; }
-    .del-btn { padding: 5px 10px; border-radius: 6px; background: #fff; border: 1px solid #fca5a5; color: #dc2626; font-size: .82rem; font-weight: 700; cursor: pointer; white-space: nowrap; font-family: inherit; }
+    .del-btn { padding: 7px 10px; border-radius: 6px; background: #fff; border: 1px solid #fca5a5; color: #dc2626; font-size: .88rem; font-weight: 700; cursor: pointer; white-space: nowrap; font-family: inherit; }
     .del-btn:hover { background: #dc2626; color: #fff; border-color: #dc2626; }
-    .action-cell { display: flex; gap: 6px; align-items: center; justify-content: flex-end; }
+    .cart-btn { padding: 7px 12px; border-radius: 6px; background: #fff; border: 1px solid #ccc; color: #111; font-size: .88rem; font-weight: 700; cursor: pointer; white-space: nowrap; font-family: inherit; }
+    .cart-btn:hover { background: bisque; }
+    .buy-btn { padding: 7px 12px; border-radius: 6px; background: #111827; border: none; color: #fff; font-size: .88rem; font-weight: 700; cursor: pointer; white-space: nowrap; font-family: inherit; }
+    .buy-btn:hover { background: #374151; }
+    .action-cell { display: flex; gap: 6px; align-items: center; justify-content: flex-end; flex-wrap: wrap; }
     td:last-child, th:last-child { text-align: right; }
 
     .empty { padding: 14px; background: #fff7ed; border: 1px solid #fed7aa; border-radius: 10px; color: #7c2d12; }
@@ -73,14 +77,20 @@
     .search-button { padding: 8px 12px; border: none; background: #111827; color: #fff; border-radius: 8px; cursor: pointer; font-size: .9rem; font-weight: 800; }
     .search-button:hover { background:#374151; }
 
-    #search-results { display:none; background:#fff; border:1px solid #ccc; border-radius:10px; padding:12px; margin: 10px 0 14px; }
+    #search-results { display:none; background:#fff; border:1px solid #ccc; border-radius:10px; padding:16px; margin: 10px 0 14px; }
     #search-results.show { display:block; }
-    #search-results h3 { font-size:.9rem; color:#555; margin-bottom:10px; }
-    .result-item { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #eee; font-size:.9rem; gap:8px; flex-wrap:wrap; }
+    #search-results h3 { font-size:1rem; font-weight:900; color:#111; margin-bottom:12px; }
+    .result-item { display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid #eee; gap:12px; flex-wrap:wrap; }
     .result-item:last-child { border-bottom:none; }
-    .result-info { flex:1; min-width: 180px; }
-    .result-price { font-weight:900; white-space:nowrap; }
-    .result-actions { display:flex; gap:6px; }
+    .result-info { flex:1; min-width: 200px; }
+    .result-name { font-size:1rem; font-weight:900; color:#111; }
+    .result-unit { color:#888; font-size:.82rem; margin-top:2px; }
+    .result-price { font-weight:900; font-size:1.1rem; white-space:nowrap; color:#E2144A; }
+    .result-actions { display:flex; gap:8px; flex-wrap:wrap; }
+    .btn-cart { padding: 9px 14px; border-radius: 8px; border: 1px solid #ccc; background: #fff; color: #111; font-weight: 800; font-size: .88rem; cursor: pointer; font-family: inherit; white-space: nowrap; }
+    .btn-cart:hover { background: bisque; }
+    .btn-buy  { padding: 9px 14px; border-radius: 8px; border: none; background: #111827; color: #fff; font-weight: 800; font-size: .88rem; cursor: pointer; font-family: inherit; white-space: nowrap; }
+    .btn-buy:hover { background: #374151; }
 
     @media (max-width: 600px) {
       .layout { flex-direction: column; }
@@ -99,6 +109,9 @@
   <a href="/products/new">+ Produto</a>
   <a href="/sales">Vendas</a>
   <a href="/sales/new">+ Venda</a>
+  <a href="/stock">Estoque</a>
+  <a href="/stock/new">+ Movimento</a>
+  <a href="/reports">Relatórios</a>
   <a href="/calc">Calculadora</a>
 </header>
 
@@ -120,6 +133,14 @@
           <li><a href="/sales/new">+ Nova</a></li>
         </ul>
       </li>
+      <li>
+        <a href="#">Estoque ▸</a>
+        <ul class="submenu">
+          <li><a href="/stock">Saldo</a></li>
+          <li><a href="/stock/new">+ Entrada</a></li>
+        </ul>
+      </li>
+      <li><a href="/reports">Relatórios</a></li>
       <li><a href="/calc">Calculadora</a></li>
     </ul>
   </nav>
@@ -140,16 +161,15 @@
 
       <div class="topbar">
         <div class="topbar-left">
-          <a class="btn" href="/products/new">+ Cadastrar produto</a>
-          <span class="pill">{{ total_count }} itens</span>
-        </div>
-
-        <div class="topbar-right">
           <div class="searchbar">
             <input type="text" id="search-input" placeholder="pesquisar produto..." class="search-input">
             <button class="search-button" type="button" onclick="searchProducts()">pesquisar</button>
           </div>
+        </div>
 
+        <div class="topbar-right">
+          <a class="btn" href="/products/new">+ Cadastrar produto</a>
+          <span class="pill">{{ total_count }} itens</span>
           <form method="get" action="/products" style="display:flex;gap:8px;align-items:center;">
             <input type="hidden" name="page" value="1">
             <input type="hidden" name="sort" value="{{ sort }}">
@@ -185,10 +205,10 @@
             <div class="cat-title">📂 {{ cat }}</div>
             <table>
               <colgroup>
-                <col style="width:55%">
-                <col style="width:15%">
-                <col style="width:15%">
-                <col style="width:15%">
+                <col style="width:35%">
+                <col style="width:13%">
+                <col style="width:10%">
+                <col style="width:42%">
               </colgroup>
               <thead>
                 <tr>
@@ -203,10 +223,12 @@
           <tr>
             <td title="{{ r['name'] }}">{{ r["name"] }}</td>
             <td class="price">R$ {{ "%.2f"|format(r["sale_price"] or 0) }}</td>
-            <td class="unit-cell" title="{{ r['unit'] or '' }}">{{ r["unit"] or "" }}</td>
+            <td class="unit-cell">{{ r["unit"] or "" }}</td>
             <td>
               <div class="action-cell">
-                <a class="edit-btn" href="/products/{{ r['id'] }}/edit">✏️ Editar</a>
+                <button class="cart-btn" onclick="addToCart({{ r['id'] }}, '{{ r['name']|replace("'", "\\'") }}', {{ r['sale_price'] or 0 }}, '{{ r['unit'] or 'un' }}', 1)">🛒</button>
+                <button class="buy-btn"  onclick="buyNow({{ r['id'] }}, {{ r['sale_price'] or 0 }})">⚡ Comprar</button>
+                <a class="edit-btn" href="/products/{{ r['id'] }}/edit">✏️</a>
                 <form method="post"
                       action="/products/{{ r['id'] }}/delete"
                       onsubmit="return confirm({{ ('Excluir ' ~ (r['name'] or '') ~ '?') | tojson }});">
@@ -246,6 +268,26 @@
 </div>
 
 <script>
+// ── CARRINHO (localStorage) ──
+let cart = JSON.parse(localStorage.getItem('mtf_cart') || '[]');
+function saveCart() { localStorage.setItem('mtf_cart', JSON.stringify(cart)); }
+
+function addToCart(id, name, price, unit, qty) {
+  const existing = cart.find(i => i.id === id);
+  if (existing) {
+    existing.qty += qty;
+  } else {
+    cart.push({id, name, price, unit, qty});
+  }
+  saveCart();
+  alert(`🛒 ${name} adicionado ao carrinho!`);
+}
+
+function buyNow(id, price, unit, qty) {
+  window.location.href = `/sales/new?product_id=${id}&qty=${qty || 1}&unit_price=${price}`;
+}
+
+// ── SEARCH ──
 async function searchProducts() {
   const q = document.getElementById('search-input').value.trim();
   const container = document.getElementById('search-results');
@@ -265,19 +307,25 @@ async function searchProducts() {
       return;
     }
 
-    list.innerHTML = data.map(p => `
-      <div class="result-item">
-        <div class="result-info">
-          <span>${escapeHtml(p.name)}</span>
-          <span style="color:#aaa;font-size:.8rem"> (${escapeHtml(p.unit || '')})</span>
+    list.innerHTML = data.map(p => {
+      const price = parseFloat(p.sale_price || 0);
+      const name  = escapeHtml(p.name);
+      const unit  = escapeHtml(p.unit || 'un');
+      return `
+        <div class="result-item">
+          <div class="result-info">
+            <div class="result-name">${name}</div>
+            <div class="result-unit">${unit}</div>
+          </div>
+          <span class="result-price">R$ ${price.toFixed(2)}</span>
+          <div class="result-actions">
+            <button class="btn-cart" onclick="addToCart(${p.id}, '${name}', ${price}, '${unit}', 1)">🛒 Carrinho</button>
+            <button class="btn-buy"  onclick="buyNow(${p.id}, '${name}', ${price}, '${unit}', 1)">⚡ Comprar agora</button>
+            <a class="edit-btn" href="/products/${p.id}/edit">✏️</a>
+          </div>
         </div>
-        <span class="result-price">R$ ${parseFloat(p.sale_price || 0).toFixed(2)}</span>
-        <div class="result-actions">
-          <a class="edit-btn" href="/products/${p.id}/edit">✏️ Editar</a>
-          <a class="edit-btn" href="/sales/new?product_id=${p.id}&qty=1&unit_price=${encodeURIComponent(p.sale_price || 0)}">⚡ Vender</a>
-        </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
   } catch (e) {
     list.innerHTML = '<div class="result-item" style="color:#dc2626">Erro ao buscar.</div>';
   }
