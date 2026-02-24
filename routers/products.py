@@ -20,16 +20,17 @@ SORT_FIELDS = {
 }
 
 
-def _parse_price(sale_price: str) -> Decimal:
-    cleaned = (
-        sale_price.strip()
-        .replace("R$", "")
-        .replace(" ", "")
-        .replace(".", "")
-        .replace(",", ".")
-    )
+def _parse_price(value: str) -> Decimal:
+    s = value.strip().replace("R$", "").replace(" ", "")
+    # Если есть и точка и запятая — значит точка тысячный разделитель: "1.234,56"
+    if "," in s and "." in s:
+        s = s.replace(".", "").replace(",", ".")
+    # Если только запятая — десятичный разделитель: "33,00"
+    elif "," in s:
+        s = s.replace(",", ".")
+    # Если только точка — уже правильно: "33.00"
     try:
-        return Decimal(cleaned)
+        return Decimal(s)
     except Exception:
         return Decimal("0")
 
@@ -53,15 +54,18 @@ async def create_product(
     category_id: int = Form(None),
     unit: str = Form("un"),
     sale_price: str = Form("0"),
+    cost_price: str = Form("0"),
     min_stock: int = Form(0),
     _=Depends(basic_auth),
 ):
     price = _parse_price(sale_price)
+    cost  = _parse_price(cost_price)
     async with engine.begin() as conn:
         await conn.execute(
-            text("""INSERT INTO products (name, category_id, unit, sale_price, min_stock, active)
-                    VALUES (:name, :category_id, :unit, :sale_price, :min_stock, TRUE)"""),
-            {"name": name.strip(), "category_id": category_id, "unit": unit, "sale_price": price, "min_stock": min_stock},
+            text("""INSERT INTO products (name, category_id, unit, sale_price, cost_price, min_stock, active)
+                    VALUES (:name, :category_id, :unit, :sale_price, :cost_price, :min_stock, TRUE)"""),
+            {"name": name.strip(), "category_id": category_id, "unit": unit,
+             "sale_price": price, "cost_price": cost, "min_stock": min_stock},
         )
     return RedirectResponse(url="/products/new?ok=1", status_code=303)
 
@@ -70,7 +74,7 @@ async def create_product(
 async def edit_product_form(product_id: int, request: Request, _=Depends(basic_auth)):
     async with engine.connect() as conn:
         res = await conn.execute(
-            text("SELECT id, name, category_id, unit, sale_price, min_stock FROM products WHERE id = :id AND active = TRUE"),
+            text("SELECT id, name, category_id, unit, sale_price, cost_price, min_stock FROM products WHERE id = :id AND active = TRUE"),
             {"id": product_id},
         )
         product = res.mappings().first()
@@ -93,18 +97,20 @@ async def update_product(
     category_id: int = Form(None),
     unit: str = Form("un"),
     sale_price: str = Form("0"),
+    cost_price: str = Form("0"),
     min_stock: int = Form(0),
     _=Depends(basic_auth),
 ):
     price = _parse_price(sale_price)
+    cost  = _parse_price(cost_price)
     async with engine.begin() as conn:
         await conn.execute(
             text("""UPDATE products
                     SET name=:name, category_id=:category_id, unit=:unit,
-                        sale_price=:sale_price, min_stock=:min_stock
+                        sale_price=:sale_price, cost_price=:cost_price, min_stock=:min_stock
                     WHERE id=:id"""),
             {"id": product_id, "name": name.strip(), "category_id": category_id,
-             "unit": unit, "sale_price": price, "min_stock": min_stock},
+             "unit": unit, "sale_price": price, "cost_price": cost, "min_stock": min_stock},
         )
     return RedirectResponse(url=f"/products/{product_id}/edit?ok=1", status_code=303)
 
@@ -138,10 +144,14 @@ async def products_list(
 
         rows_res = await conn.execute(
             text(f"""
-                SELECT p.id, p.name, p.sale_price, p.unit, c.name as category_name
+                SELECT p.id, p.name, p.sale_price, p.cost_price, p.unit, p.min_stock,
+                       c.name as category_name,
+                       COALESCE(SUM(sm.qty), 0) as current_stock
                 FROM products p
                 LEFT JOIN categories c ON c.id = p.category_id
+                LEFT JOIN stock_movements sm ON sm.product_id = p.id
                 WHERE p.active = TRUE
+                GROUP BY p.id, p.name, p.sale_price, p.cost_price, p.unit, p.min_stock, c.name
                 ORDER BY COALESCE(c.name, 'Outro') ASC, {sort_col} {direction_sql}
                 LIMIT :limit OFFSET :offset
             """),

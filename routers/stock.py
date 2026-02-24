@@ -3,7 +3,7 @@ from datetime import date
 from decimal import Decimal, ROUND_HALF_UP
 
 from fastapi import APIRouter, Depends, Form, Query, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from sqlalchemy import text
 
 from dependencies import engine, templates, basic_auth
@@ -37,7 +37,7 @@ async def _add_movement(conn, product_id: int, qty, movement_type: str, note: st
 @router.get("/stock/new", response_class=HTMLResponse)
 async def stock_new(request: Request, _=Depends(basic_auth)):
     async with engine.connect() as conn:
-        res = await conn.execute(text("SELECT id, name, unit FROM products WHERE active=TRUE ORDER BY name"))
+        res = await conn.execute(text("SELECT id, name, unit, cost_price FROM products WHERE active=TRUE ORDER BY name"))
         products = res.mappings().all()
     return templates.TemplateResponse("stock_new.html", {
         "request": request,
@@ -53,6 +53,7 @@ async def stock_create(
     request: Request,
     product_id: int = Form(...),
     qty: str = Form(...),
+    unit_cost: str = Form(""),
     movement_type: str = Form("entrada"),
     note: str = Form(""),
     moved_at: str = Form(""),
@@ -64,13 +65,20 @@ async def stock_create(
             raise ValueError
     except Exception:
         async with engine.connect() as conn:
-            res = await conn.execute(text("SELECT id, name, unit FROM products WHERE active=TRUE ORDER BY name"))
+            res = await conn.execute(text("SELECT id, name, unit, cost_price FROM products WHERE active=TRUE ORDER BY name"))
             products = res.mappings().all()
         return templates.TemplateResponse("stock_new.html", {
             "request": request, "products": products,
             "today": moved_at or date.today().isoformat(),
             "error": "Quantidade inválida.", "success": None,
         })
+
+    cost_d = None
+    if unit_cost.strip():
+        try:
+            cost_d = Decimal(unit_cost.replace(",", "."))
+        except Exception:
+            cost_d = None
 
     # Para saída manual, gravar como negativo
     if movement_type == "saida":
@@ -80,13 +88,19 @@ async def stock_create(
 
     async with engine.begin() as conn:
         await conn.execute(
-            text("""INSERT INTO stock_movements (product_id, qty, movement_type, note, moved_at)
-                    VALUES (:product_id, :qty, :movement_type, :note, :moved_at)"""),
-            {"product_id": product_id, "qty": qty_d,
+            text("""INSERT INTO stock_movements (product_id, qty, unit_cost, movement_type, note, moved_at)
+                    VALUES (:product_id, :qty, :unit_cost, :movement_type, :note, :moved_at)"""),
+            {"product_id": product_id, "qty": qty_d, "unit_cost": cost_d,
              "movement_type": movement_type, "note": note.strip() or None,
              "moved_at": moved_at_date},
         )
-        products_res = await conn.execute(text("SELECT id, name, unit FROM products WHERE active=TRUE ORDER BY name"))
+        # Atualiza cost_price no produto se informado na entrada
+        if cost_d is not None and movement_type in ("entrada", "saldo_inicial"):
+            await conn.execute(
+                text("UPDATE products SET cost_price = :cost WHERE id = :id"),
+                {"cost": cost_d, "id": product_id}
+            )
+        products_res = await conn.execute(text("SELECT id, name, unit, cost_price FROM products WHERE active=TRUE ORDER BY name"))
         products = products_res.mappings().all()
 
     return templates.TemplateResponse("stock_new.html", {
@@ -155,7 +169,7 @@ async def stock_list(
 
         rows_res = await conn.execute(
             text(f"""
-                SELECT sm.id, sm.moved_at, sm.qty, sm.movement_type, sm.note,
+                SELECT sm.id, sm.moved_at, sm.qty, sm.unit_cost, sm.movement_type, sm.note,
                        p.name AS product_name, p.unit
                 FROM stock_movements sm
                 JOIN products p ON p.id = sm.product_id
@@ -183,3 +197,40 @@ async def stock_list(
         "date_from": date_from,
         "date_to": date_to,
     })
+
+
+# ── API ENDPOINTS ──
+
+@router.get("/api/stock/alerts")
+async def stock_alerts(_=Depends(basic_auth)):
+    """Товары с нулевым или низким стоком."""
+    async with engine.connect() as conn:
+        res = await conn.execute(text("""
+            SELECT p.id, p.name, p.unit, p.min_stock,
+                   COALESCE(SUM(sm.qty), 0) as current_stock
+            FROM products p
+            LEFT JOIN stock_movements sm ON sm.product_id = p.id
+            WHERE p.active = TRUE
+            GROUP BY p.id, p.name, p.unit, p.min_stock
+            HAVING COALESCE(SUM(sm.qty), 0) <= GREATEST(COALESCE(p.min_stock, 0), 0)
+            ORDER BY COALESCE(SUM(sm.qty), 0) ASC
+        """))
+        rows = res.mappings().all()
+    return [dict(r) for r in rows]
+
+
+@router.get("/api/stock/levels")
+async def stock_levels(_=Depends(basic_auth)):
+    """Текущий остаток по всем товарам."""
+    async with engine.connect() as conn:
+        res = await conn.execute(text("""
+            SELECT p.id, p.name, p.unit, p.min_stock,
+                   COALESCE(SUM(sm.qty), 0) as current_stock
+            FROM products p
+            LEFT JOIN stock_movements sm ON sm.product_id = p.id
+            WHERE p.active = TRUE
+            GROUP BY p.id, p.name, p.unit, p.min_stock
+            ORDER BY p.name
+        """))
+        rows = res.mappings().all()
+    return [dict(r) for r in rows]
