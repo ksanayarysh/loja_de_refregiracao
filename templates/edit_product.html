@@ -131,6 +131,10 @@
         <label for="sale_price">Preço de venda (R$)</label>
         <input id="sale_price" name="sale_price" inputmode="decimal" value="{{ '%.2f'|format(product.sale_price or 0) }}">
 
+        <label for="cost_price">Preço de custo (R$)</label>
+        <input id="cost_price" name="cost_price" inputmode="decimal" value="{{ '%.2f'|format(product.cost_price or 0) }}" placeholder="Ex.: 20,00">
+        <div class="hint" id="margin-hint"></div>
+
         <div class="btns">
           <button class="btn-primary" type="submit">Salvar alterações</button>
           <a class="btn-secondary" href="/products">Voltar</a>
@@ -178,6 +182,20 @@ async function addCategory() {
 document.getElementById('new_category_name').addEventListener('keydown', e => {
   if (e.key === 'Enter') { e.preventDefault(); addCategory(); }
 });
+
+function updateMargin() {
+  const sale = parseFloat(document.getElementById('sale_price').value.replace(',','.')) || 0;
+  const cost = parseFloat(document.getElementById('cost_price').value.replace(',','.')) || 0;
+  const hint = document.getElementById('margin-hint');
+  if (!sale || !cost) { hint.innerHTML = ''; return; }
+  const profit = (sale - cost).toFixed(2);
+  const margin = ((sale - cost) / sale * 100).toFixed(1);
+  const color = parseFloat(margin) >= 20 ? '#16a34a' : parseFloat(margin) >= 0 ? '#d97706' : '#dc2626';
+  hint.innerHTML = `<span style="color:${color};font-weight:800;">Margem: ${margin}% — lucro R$ ${profit} por unidade</span>`;
+}
+document.getElementById('sale_price').addEventListener('input', updateMargin);
+document.getElementById('cost_price').addEventListener('input', updateMargin);
+updateMargin();
 </script>
 </body>
 </html>
