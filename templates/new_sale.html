@@ -70,6 +70,7 @@
   <a href="/stock/new">+ Movimento</a>
   <a href="/reports">Relatórios</a>
   <a href="/calc">Calculadora</a>
+  <a href="/checkout" id="nav-cart-btn" style="margin-left:auto; background:#111827; color:#fff; padding:8px 16px; border-radius:8px; font-weight:900; white-space:nowrap;">🛒 Carrinho <span id="nav-cart-count" style="display:none; background:#E2144A; color:#fff; border-radius:50%; padding:1px 6px; font-size:.8rem; margin-left:4px;">0</span></a>
 </header>
 
 <div class="layout">
@@ -186,7 +187,23 @@
   updateUnitHint();
   if(priceEl.value.trim()==="")setPriceFromProduct(true);
 
-  // ── CARRINHO ──
+  // ── CARRINHO NAV ──
+  function updateNavCart() {
+    const cart = JSON.parse(localStorage.getItem('mtf_cart') || '[]');
+    const count = document.getElementById('nav-cart-count');
+    const btn   = document.getElementById('nav-cart-btn');
+    if (cart.length > 0) {
+      const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+      count.textContent = cart.length;
+      count.style.display = 'inline';
+      btn.title = `${cart.length} item(s) — R$ ${total.toFixed(2)}`;
+    } else {
+      count.style.display = 'none';
+    }
+  }
+  updateNavCart();
+
+  // ── CARRINHO FORM ──
   function addToCartFromForm() {
     const opt = selectedOpt();
     if (!opt || !opt.value) { alert('Selecione um produto primeiro!'); return; }
@@ -205,6 +222,7 @@
       cart.push({ id, name, price, unit, qty });
     }
     localStorage.setItem('mtf_cart', JSON.stringify(cart));
+    updateNavCart();
 
     const msg = document.getElementById('cart-added');
     msg.style.display = 'block';
