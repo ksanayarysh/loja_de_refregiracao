@@ -169,6 +169,13 @@
         <span class="pill">{{ total_count }} registros</span>
       </div>
 
+      {% if request.query_params.get('deleted') == '1' %}
+        <div style="background:#ecfdf5;border:1px solid #bbf7d0;color:#065f46;padding:10px 14px;border-radius:8px;font-weight:800;margin-bottom:12px;">🗑 Movimento excluído.</div>
+      {% endif %}
+      {% if request.query_params.get('edited') == '1' %}
+        <div style="background:#ecfdf5;border:1px solid #bbf7d0;color:#065f46;padding:10px 14px;border-radius:8px;font-weight:800;margin-bottom:12px;">✅ Movimento atualizado.</div>
+      {% endif %}
+
       {% if not rows or rows|length == 0 %}
         <div class="empty">Nenhum movimento encontrado.</div>
       {% else %}
@@ -182,6 +189,7 @@
               <th>Quantidade</th>
               <th>Custo unit.</th>
               <th>Obs.</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -198,6 +206,14 @@
                   {% if r.unit_cost %}R$ {{ "%.2f"|format(r.unit_cost|float) }}{% else %}—{% endif %}
                 </td>
                 <td style="color:#555;font-size:.85rem;">{{ r.note or '—' }}</td>
+                <td>
+                  <div style="display:flex;gap:5px;align-items:center;">
+                    <a href="/stock/{{ r.id }}/edit" style="display:inline-block;padding:4px 10px;border-radius:6px;background:#fff;border:1px solid #ccc;color:#111;text-decoration:none;font-size:.78rem;font-weight:700;white-space:nowrap;">✏️</a>
+                    <form method="post" action="/stock/{{ r.id }}/delete" onsubmit="return confirm('Excluir este movimento?')">
+                      <button type="submit" style="padding:4px 8px;border-radius:6px;background:#fff;border:1px solid #fca5a5;color:#dc2626;font-size:.78rem;font-weight:700;cursor:pointer;font-family:inherit;">🗑</button>
+                    </form>
+                  </div>
+                </td>
               </tr>
             {% endfor %}
           </tbody>

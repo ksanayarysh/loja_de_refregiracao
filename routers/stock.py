@@ -199,6 +199,101 @@ async def stock_list(
     })
 
 
+# ── DELETE MOVEMENT ──
+
+@router.post("/stock/{movement_id}/delete")
+async def stock_delete(movement_id: int, request: Request, _=Depends(basic_auth)):
+    async with engine.begin() as conn:
+        await conn.execute(
+            text("DELETE FROM stock_movements WHERE id = :id"),
+            {"id": movement_id}
+        )
+    return RedirectResponse("/stock?deleted=1", status_code=303)
+
+
+# ── EDIT MOVEMENT ──
+
+@router.get("/stock/{movement_id}/edit", response_class=HTMLResponse)
+async def stock_edit_form(movement_id: int, request: Request, _=Depends(basic_auth)):
+    async with engine.connect() as conn:
+        row = await conn.execute(
+            text("SELECT * FROM stock_movements WHERE id = :id"), {"id": movement_id}
+        )
+        movement = row.mappings().first()
+        if not movement:
+            return RedirectResponse("/stock", status_code=303)
+        products_res = await conn.execute(
+            text("SELECT id, name, unit, cost_price FROM products WHERE active=TRUE ORDER BY name")
+        )
+        products = products_res.mappings().all()
+    return templates.TemplateResponse("stock_edit.html", {
+        "request": request,
+        "m": movement,
+        "products": products,
+        "error": None,
+        "success": None,
+    })
+
+
+@router.post("/stock/{movement_id}/edit", response_class=HTMLResponse)
+async def stock_edit_save(
+    movement_id: int,
+    request: Request,
+    product_id: int = Form(...),
+    qty: str = Form(...),
+    unit_cost: str = Form(""),
+    movement_type: str = Form("entrada"),
+    note: str = Form(""),
+    moved_at: str = Form(""),
+    _=Depends(basic_auth),
+):
+    try:
+        qty_d = Decimal(qty.replace(",", "."))
+        if qty_d <= 0:
+            raise ValueError
+    except Exception:
+        async with engine.connect() as conn:
+            row = await conn.execute(text("SELECT * FROM stock_movements WHERE id = :id"), {"id": movement_id})
+            movement = row.mappings().first()
+            products_res = await conn.execute(text("SELECT id, name, unit, cost_price FROM products WHERE active=TRUE ORDER BY name"))
+            products = products_res.mappings().all()
+        return templates.TemplateResponse("stock_edit.html", {
+            "request": request, "m": movement, "products": products,
+            "error": "Quantidade inválida.", "success": None,
+        })
+
+    cost_d = None
+    if unit_cost.strip():
+        try:
+            cost_d = Decimal(unit_cost.replace(",", "."))
+        except Exception:
+            cost_d = None
+
+    if movement_type == "saida":
+        qty_d = -abs(qty_d)
+    else:
+        qty_d = abs(qty_d)
+
+    moved_at_date = _parse_date(moved_at) if moved_at else date.today()
+
+    async with engine.begin() as conn:
+        await conn.execute(
+            text("""UPDATE stock_movements
+                    SET product_id=:product_id, qty=:qty, unit_cost=:unit_cost,
+                        movement_type=:movement_type, note=:note, moved_at=:moved_at
+                    WHERE id=:id"""),
+            {"product_id": product_id, "qty": qty_d, "unit_cost": cost_d,
+             "movement_type": movement_type, "note": note.strip() or None,
+             "moved_at": moved_at_date, "id": movement_id}
+        )
+        if cost_d is not None and movement_type in ("entrada", "saldo_inicial"):
+            await conn.execute(
+                text("UPDATE products SET cost_price = :cost WHERE id = :id"),
+                {"cost": cost_d, "id": product_id}
+            )
+    return RedirectResponse("/stock?edited=1", status_code=303)
+
+
 # ── API ENDPOINTS ──
 
 @router.get("/api/stock/alerts")
