@@ -125,10 +125,35 @@ async def stock_create(
     })
 
 
-# ── STOCK LIST / REPORT ──
+# ── STOCK BALANCE (saldo atual) ──
 
 @router.get("/stock", response_class=HTMLResponse)
-async def stock_list(
+async def stock_balance(request: Request, _=Depends(basic_auth)):
+    async with engine.connect() as conn:
+        summary_res = await conn.execute(text("""
+            SELECT p.id, p.name, p.unit, p.min_stock,
+                   GREATEST(0, COALESCE(SUM(sm.qty), 0)) as current_stock
+            FROM products p
+            LEFT JOIN stock_movements sm ON sm.product_id = p.id
+            WHERE p.active = TRUE
+            GROUP BY p.id, p.name, p.unit, p.min_stock
+            ORDER BY p.name
+        """))
+        stock_summary = summary_res.mappings().all()
+
+    return templates.TemplateResponse("stock_balance.html", {
+        "request": request,
+        "stock_summary": stock_summary,
+        "added": request.query_params.get("added") == "1",
+        "deleted": request.query_params.get("deleted") == "1",
+        "edited": request.query_params.get("edited") == "1",
+    })
+
+
+# ── STOCK HISTORY (histórico de movimentos) ──
+
+@router.get("/stock/history", response_class=HTMLResponse)
+async def stock_history(
     request: Request,
     page: int = Query(1, ge=1),
     per_page: int = Query(25, ge=5, le=200),
@@ -163,19 +188,6 @@ async def stock_list(
         all_prod_res = await conn.execute(text("SELECT id, name FROM products WHERE active=TRUE ORDER BY name"))
         all_products = all_prod_res.mappings().all()
 
-        # Resumo por produto (saldo atual)
-        summary_res = await conn.execute(text("""
-            SELECT p.id, p.name, p.unit, p.min_stock,
-                   COALESCE(SUM(sm.qty), 0) as current_stock
-            FROM products p
-            LEFT JOIN stock_movements sm ON sm.product_id = p.id
-            WHERE p.active = TRUE
-            GROUP BY p.id, p.name, p.unit, p.min_stock
-            ORDER BY p.name
-        """))
-        stock_summary = summary_res.mappings().all()
-
-        # Movimentos
         total_res = await conn.execute(
             text(f"SELECT COUNT(*) FROM stock_movements sm WHERE {where_sql}"), params
         )
@@ -185,10 +197,10 @@ async def stock_list(
             text(f"""
                 SELECT sm.id, sm.moved_at, sm.qty, sm.unit_cost, sm.movement_type, sm.note,
                        p.name AS product_name, p.unit,
-                       SUM(sm.qty) OVER (
+                       GREATEST(0, SUM(sm.qty) OVER (
                            PARTITION BY sm.product_id
                            ORDER BY sm.moved_at ASC, sm.id ASC
-                       ) AS balance_after
+                       )) AS balance_after
                 FROM stock_movements sm
                 JOIN products p ON p.id = sm.product_id
                 WHERE {where_sql}
@@ -201,10 +213,9 @@ async def stock_list(
 
     total_pages = max(1, ceil(total_count / per_page))
 
-    return templates.TemplateResponse("stock_list.html", {
+    return templates.TemplateResponse("stock_history.html", {
         "request": request,
         "rows": rows,
-        "stock_summary": stock_summary,
         "all_products": all_products,
         "page": page,
         "per_page": per_page,
@@ -214,6 +225,8 @@ async def stock_list(
         "movement_type_filter": movement_type,
         "date_from": date_from,
         "date_to": date_to,
+        "deleted": request.query_params.get("deleted") == "1",
+        "edited": request.query_params.get("edited") == "1",
     })
 
 
@@ -226,7 +239,7 @@ async def stock_delete(movement_id: int, request: Request, _=Depends(basic_auth)
             text("DELETE FROM stock_movements WHERE id = :id"),
             {"id": movement_id}
         )
-    return RedirectResponse("/stock?deleted=1", status_code=303)
+    return RedirectResponse("/stock/history?deleted=1", status_code=303)
 
 
 # ── EDIT MOVEMENT ──
@@ -321,7 +334,7 @@ async def stock_edit_save(
                     text("UPDATE products SET cost_price = :cost WHERE id = :id"),
                     {"cost": last, "id": product_id}
                 )
-    return RedirectResponse("/stock?edited=1", status_code=303)
+    return RedirectResponse("/stock/history?edited=1", status_code=303)
 
 
 # ── API ENDPOINTS ──
@@ -332,12 +345,12 @@ async def stock_alerts(_=Depends(basic_auth)):
     async with engine.connect() as conn:
         res = await conn.execute(text("""
             SELECT p.id, p.name, p.unit, p.min_stock,
-                   COALESCE(SUM(sm.qty), 0) as current_stock
+                   GREATEST(0, COALESCE(SUM(sm.qty), 0)) as current_stock
             FROM products p
             LEFT JOIN stock_movements sm ON sm.product_id = p.id
             WHERE p.active = TRUE
             GROUP BY p.id, p.name, p.unit, p.min_stock
-            HAVING COALESCE(SUM(sm.qty), 0) <= GREATEST(COALESCE(p.min_stock, 0), 0)
+            HAVING GREATEST(0, COALESCE(SUM(sm.qty), 0)) <= GREATEST(COALESCE(p.min_stock, 0), 0)
             ORDER BY COALESCE(SUM(sm.qty), 0) ASC
         """))
         rows = res.mappings().all()

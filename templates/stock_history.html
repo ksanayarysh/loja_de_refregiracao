@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Histórico de Estoque — M.T.F</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, Helvetica, sans-serif; background: bisque; min-height: 100vh; font-size: 15px; }
+    .navbar { background: bisque; padding: 10px 16px; display: flex; align-items: center; border-bottom: 1px solid #ccc; gap: 20px; flex-wrap: wrap; }
+    .nav-brand { font-weight: 900; font-size: 1.1rem; color: #111; text-decoration: none; }
+    .navbar a { color: #E2144A; text-decoration: none; font-weight: 700; font-size: .95rem; }
+    .navbar a:hover { text-decoration: underline; }
+    .navbar a.active { color: #111; font-weight: 900; }
+    .layout { display: flex; min-height: calc(100vh - 50px); }
+    .sidebar { width: 160px; flex-shrink: 0; border-right: 1px solid #ccc; padding: 16px 0; background: bisque; }
+    .sidebar ul { list-style: none; }
+    .sidebar ul li { position: relative; }
+    .sidebar ul li a { display: block; text-decoration: none; color: #E2144A; background: #fff; padding: 7px 10px; border: 1px solid #ccc; border-left: none; font-size: .9rem; }
+    .sidebar ul li a:hover { background: #ccc; font-weight: bold; }
+    .sidebar .submenu { display: none; position: absolute; left: 149px; top: 0; width: 150px; z-index: 10; }
+    .sidebar ul li:hover .submenu { display: block; }
+    .content { flex: 1; padding: 24px; overflow-x: auto; display: flex; flex-direction: column; gap: 20px; }
+
+    .card { background: #fff; border-radius: 14px; box-shadow: 0 4px 14px rgba(0,0,0,.08); padding: 20px; }
+    .topbar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 0; }
+    .topbar h1 { font-size: 1.3rem; color: #111; flex: 1; }
+    .btn { display: inline-block; padding: 8px 14px; border-radius: 8px; background: #111827; color: #fff; text-decoration: none; font-weight: 800; border: none; cursor: pointer; font-size: .9rem; font-family: inherit; white-space: nowrap; }
+    .btn:hover { background: #374151; }
+    .btn.secondary { background: #fff; color: #E2144A; border: 1px solid #ccc; }
+    .btn.secondary:hover { background: #f3f4f6; }
+    .pill { padding: 6px 12px; border-radius: 8px; background: bisque; border: 1px solid #ccc; color: #111; font-weight: 700; font-size: .85rem; }
+
+    .filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .filters label { font-weight: 800; color: #111; font-size: .88rem; }
+    select, input[type="date"] { padding: 7px 10px; border-radius: 8px; border: 1px solid #ccc; font-size: .88rem; font-family: inherit; background: #fff; }
+
+    .msg { padding: 10px 14px; border-radius: 8px; font-weight: 800; font-size: .9rem; }
+    .msg.ok  { background: #ecfdf5; border: 1px solid #bbf7d0; color: #065f46; }
+    .msg.del { background: #fef2f2; border: 1px solid #fecaca; color: #7f1d1d; }
+
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 9px 10px; border-bottom: 1px solid #e7e9ee; text-align: left; font-size: .88rem; }
+    th { background: bisque; font-weight: 900; font-size: .82rem; white-space: nowrap; }
+    .empty { padding: 14px; background: #fff7ed; border: 1px solid #fed7aa; border-radius: 10px; color: #7c2d12; }
+
+    .move-badge { display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: .76rem; font-weight: 800; white-space: nowrap; }
+    .move-entrada       { background: #dcfce7; color: #166534; }
+    .move-venda         { background: #fef3c7; color: #92400e; }
+    .move-saida         { background: #fef2f2; color: #7f1d1d; }
+    .move-estorno       { background: #dbeafe; color: #1e40af; }
+    .move-correcao      { background: #f3e8ff; color: #6b21a8; }
+    .move-saldo_inicial { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+
+    .qty-pos { color: #166534; font-weight: 900; }
+    .qty-neg { color: #dc2626; font-weight: 900; }
+    .bal-pos  { color: #16a34a; font-weight: 900; }
+    .bal-zero { color: #dc2626; font-weight: 900; }
+    .bal-low  { color: #d97706; font-weight: 900; }
+
+    .pager { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: space-between; margin-top: 14px; }
+    .pages { display: flex; gap: 6px; flex-wrap: wrap; }
+    .pagebtn { padding: 6px 10px; border-radius: 8px; background: bisque; border: 1px solid #ccc; text-decoration: none; color: #111; font-weight: 800; font-size: .82rem; }
+    .pagebtn.active { background: #111827; color: #fff; border-color: #111827; }
+    .pagebtn.disabled { opacity: .4; pointer-events: none; }
+
+    @media (max-width: 600px) { .layout { flex-direction: column; } .sidebar { width: 100%; border-right: none; border-bottom: 1px solid #ccc; } }
+  </style>
+</head>
+<body>
+<header class="navbar">
+  <a href="/" class="nav-brand">🛍 M.T.F</a>
+  <a href="/">Início</a>
+  <a href="/products">Produtos</a>
+  <a href="/sales">Vendas</a>
+  <a href="/stock">Estoque</a>
+  <a href="/stock/history" class="active">Histórico</a>
+  <a href="/stock/new">+ Movimento</a>
+  <a href="/reports">Relatórios</a>
+  <a href="/calc">Calculadora</a>
+</header>
+<div class="layout">
+  <nav class="sidebar">
+    <ul>
+      <li><a href="/">Início</a></li>
+      <li><a href="#">Produtos ▸</a><ul class="submenu"><li><a href="/products">Lista</a></li><li><a href="/products/new">+ Cadastrar</a></li></ul></li>
+      <li><a href="#">Vendas ▸</a><ul class="submenu"><li><a href="/sales">Lista</a></li><li><a href="/sales/new">+ Nova</a></li></ul></li>
+      <li>
+        <a href="#">Estoque ▸</a>
+        <ul class="submenu">
+          <li><a href="/stock">Saldo</a></li>
+          <li><a href="/stock/history">Histórico</a></li>
+          <li><a href="/stock/new">+ Entrada</a></li>
+        </ul>
+      </li>
+      <li><a href="/reports">Relatórios</a></li>
+      <li><a href="/calc">Calculadora</a></li>
+    </ul>
+  </nav>
+
+  <main class="content">
+
+    <div class="topbar">
+      <h1>📋 Histórico de Movimentos</h1>
+      <a class="btn secondary" href="/stock">📦 Saldo atual</a>
+      <a class="btn" href="/stock/new">+ Entrada</a>
+    </div>
+
+    {% if deleted %}<div class="msg del">🗑 Movimento excluído.</div>{% endif %}
+    {% if edited %}<div class="msg ok">✅ Movimento atualizado.</div>{% endif %}
+
+    <div class="card">
+      <!-- FILTERS -->
+      <form method="get" action="/stock/history">
+        <div class="filters">
+          <label>Produto</label>
+          <select name="product_id">
+            <option value="">Todos</option>
+            {% for p in all_products %}
+              <option value="{{ p.id }}" {% if p.id|string == product_id_filter %}selected{% endif %}>{{ p.name }}</option>
+            {% endfor %}
+          </select>
+          <label>Tipo</label>
+          <select name="movement_type">
+            <option value="">Todos</option>
+            <option value="entrada"       {% if movement_type_filter == 'entrada'       %}selected{% endif %}>📦 Entrada</option>
+            <option value="venda"         {% if movement_type_filter == 'venda'         %}selected{% endif %}>🛍 Venda</option>
+            <option value="saida"         {% if movement_type_filter == 'saida'         %}selected{% endif %}>📤 Saída manual</option>
+            <option value="estorno"       {% if movement_type_filter == 'estorno'       %}selected{% endif %}>↩️ Estorno</option>
+            <option value="saldo_inicial" {% if movement_type_filter == 'saldo_inicial' %}selected{% endif %}>🏁 Saldo inicial</option>
+          </select>
+          <label>De</label>
+          <input type="date" name="date_from" value="{{ date_from or '' }}">
+          <label>Até</label>
+          <input type="date" name="date_to" value="{{ date_to or '' }}">
+          <input type="hidden" name="page" value="1">
+          <button type="submit" class="btn">Filtrar</button>
+          <a class="btn secondary" href="/stock/history">Limpar</a>
+        </div>
+      </form>
+
+      <div style="display:flex;gap:10px;align-items:center;margin:14px 0;">
+        <span class="pill">{{ total_count }} registros</span>
+      </div>
+
+      {% if not rows or rows|length == 0 %}
+        <div class="empty">Nenhum movimento encontrado.</div>
+      {% else %}
+        {% set mt_labels = {'entrada':'📦 Entrada','venda':'🛍 Venda','saida':'📤 Saída','estorno':'↩️ Estorno','correcao':'✏️ Correção','saldo_inicial':'🏁 Saldo inicial'} %}
+        <table>
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Produto</th>
+              <th>Tipo</th>
+              <th>Movimento</th>
+              <th>Saldo após</th>
+              <th>Custo unit.</th>
+              <th>Obs.</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in rows %}
+              {% set q = r.qty | float %}
+              {% set bal = r.balance_after | float %}
+              <tr>
+                <td style="white-space:nowrap;color:#555;">{{ r.moved_at.strftime('%d/%m/%Y') }}</td>
+                <td>
+                  <strong style="font-size:.88rem;">{{ r.product_name }}</strong>
+                  <br><small style="color:#aaa;font-size:.75rem;">{{ r.unit }}</small>
+                </td>
+                <td><span class="move-badge move-{{ r.movement_type }}">{{ mt_labels.get(r.movement_type, r.movement_type) }}</span></td>
+                <td class="{{ 'qty-pos' if q >= 0 else 'qty-neg' }}">
+                  {{ '+' if q >= 0 else '' }}{% if r.unit == 'kg' %}{{ "%.3f"|format(q) }}{% else %}{{ "%.0f"|format(q) }}{% endif %}
+                </td>
+                <td>
+                  {% if r.unit == 'kg' %}{% set bfmt = "%.3f"|format(bal) %}{% else %}{% set bfmt = "%.0f"|format(bal) %}{% endif %}
+                  {% if bal <= 0 %}<span class="bal-zero">{{ bfmt }} {{ r.unit }}</span>
+                  {% else %}<span class="bal-pos">{{ bfmt }} {{ r.unit }}</span>{% endif %}
+                </td>
+                <td style="color:#555;font-size:.82rem;">
+                  {% if r.unit_cost %}R$ {{ "%.2f"|format(r.unit_cost|float) }}{% else %}<span style="color:#ddd">—</span>{% endif %}
+                </td>
+                <td style="color:#777;font-size:.82rem;max-width:150px;">{{ r.note or '—' }}</td>
+                <td>
+                  <div style="display:flex;gap:4px;">
+                    <a href="/stock/{{ r.id }}/edit" style="padding:4px 8px;border-radius:6px;background:#fff;border:1px solid #ccc;color:#111;text-decoration:none;font-size:.75rem;font-weight:700;">✏️</a>
+                    <form method="post" action="/stock/{{ r.id }}/delete" onsubmit="return confirm('Excluir este movimento?')">
+                      <button type="submit" style="padding:4px 7px;border-radius:6px;background:#fff;border:1px solid #fca5a5;color:#dc2626;font-size:.75rem;font-weight:700;cursor:pointer;font-family:inherit;">🗑</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <div class="pager">
+          <div class="pages">
+            {% set base_url = "/stock/history?product_id=" + (product_id_filter or '') + "&movement_type=" + (movement_type_filter or '') + "&date_from=" + (date_from or '') + "&date_to=" + (date_to or '') + "&per_page=" + per_page|string %}
+            <a class="pagebtn {{ 'disabled' if page<=1 else '' }}" href="{{ base_url }}&page={{ page-1 if page>1 else 1 }}">‹ Anterior</a>
+            {% for p in range([1, page-2]|max, [total_pages, page+2]|min + 1) %}
+              <a class="pagebtn {{ 'active' if p==page else '' }}" href="{{ base_url }}&page={{ p }}">{{ p }}</a>
+            {% endfor %}
+            <a class="pagebtn {{ 'disabled' if page>=total_pages else '' }}" href="{{ base_url }}&page={{ page+1 if page<total_pages else total_pages }}">Próxima ›</a>
+          </div>
+          <div class="pill">Página {{ page }} / {{ total_pages }}</div>
+        </div>
+      {% endif %}
+    </div>
+
+  </main>
+</div>
+</body>
+</html>
