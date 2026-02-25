@@ -120,7 +120,7 @@
           {% endif %}
           <div class="stock-card {{ cls }}">
             <div class="sc-name">{{ s.name }}</div>
-            <div class="sc-stock {{ cls }}">{{ "%.2f"|format(st) }}</div>
+            <div class="sc-stock {{ cls }}">{% if s.unit == 'kg' %}{{ "%.3f"|format(st) }}{% else %}{{ "%.0f"|format(st) }}{% endif %}</div>
             <div class="sc-unit">{{ s.unit }}</div>
             {% if cls == 'empty' %}
               <div class="sc-warn empty">⚠️ Sem estoque!</div>
@@ -192,7 +192,7 @@
                 <td>{{ r.product_name }}<br><small style="color:#888;font-size:.78rem;">{{ r.unit }}</small></td>
                 <td><span class="move-badge move-{{ r.movement_type }}">{{ mt_labels.get(r.movement_type, r.movement_type) }}</span></td>
                 <td class="{{ 'qty-pos' if q >= 0 else 'qty-neg' }}">
-                  {{ '+' if q >= 0 else '' }}{{ "%.3f"|format(q) }}
+                  {{ '+' if q >= 0 else '' }}{% if r.unit == 'kg' %}{{ "%.3f"|format(q) }}{% else %}{{ "%.0f"|format(q) }}{% endif %}
                 </td>
                 <td style="color:#555;font-size:.85rem;">
                   {% if r.unit_cost %}R$ {{ "%.2f"|format(r.unit_cost|float) }}{% else %}—{% endif %}
