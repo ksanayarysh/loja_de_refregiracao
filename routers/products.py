@@ -61,6 +61,19 @@ async def create_product(
     price = _parse_price(sale_price)
     cost  = _parse_price(cost_price)
     async with engine.begin() as conn:
+        # Verificar duplicata
+        dup = await conn.execute(
+            text("SELECT id FROM products WHERE LOWER(TRIM(name)) = LOWER(TRIM(:name)) AND active = TRUE"),
+            {"name": name.strip()}
+        )
+        if dup.first():
+            categories = await _get_categories(conn)
+            return templates.TemplateResponse("new_product.html", {
+                "request": request,
+                "categories": categories,
+                "error": f"Produto \"{name.strip()}\" já existe! Verifique a lista de produtos.",
+            }, status_code=400)
+
         await conn.execute(
             text("""INSERT INTO products (name, category_id, unit, sale_price, cost_price, min_stock, active)
                     VALUES (:name, :category_id, :unit, :sale_price, :cost_price, :min_stock, TRUE)"""),
@@ -104,6 +117,27 @@ async def update_product(
     price = _parse_price(sale_price)
     cost  = _parse_price(cost_price)
     async with engine.begin() as conn:
+        # Verificar duplicata (excluindo o próprio produto)
+        dup = await conn.execute(
+            text("""SELECT id FROM products
+                    WHERE LOWER(TRIM(name)) = LOWER(TRIM(:name))
+                    AND active = TRUE AND id != :id"""),
+            {"name": name.strip(), "id": product_id}
+        )
+        if dup.first():
+            res = await conn.execute(
+                text("SELECT id, name, category_id, unit, sale_price, cost_price, min_stock FROM products WHERE id = :id"),
+                {"id": product_id}
+            )
+            product = res.mappings().first()
+            categories = await _get_categories(conn)
+            return templates.TemplateResponse("edit_product.html", {
+                "request": request,
+                "product": product,
+                "categories": categories,
+                "error": f"Produto \"{name.strip()}\" já existe! Escolha outro nome.",
+            }, status_code=400)
+
         await conn.execute(
             text("""UPDATE products
                     SET name=:name, category_id=:category_id, unit=:unit,

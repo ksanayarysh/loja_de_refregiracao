@@ -112,6 +112,10 @@
       <div class="ok">✅ Produto salvo com sucesso!</div>
       {% endif %}
 
+      {% if error %}
+      <div style="background:#fef2f2;border:1px solid #fecaca;color:#7f1d1d;padding:12px 14px;border-radius:10px;margin-bottom:16px;font-weight:800;">⚠️ {{ error }}</div>
+      {% endif %}
+
       <form method="post" action="/products/new">
 
         <label for="name">Nome do produto</label>
