@@ -25,21 +25,11 @@
     .card { background: #fff; border-radius: 14px; box-shadow: 0 4px 14px rgba(0,0,0,.08); padding: 20px; }
     h2 { font-size: 1.2rem; margin-bottom: 14px; color: #111; }
 
-    /* STOCK SUMMARY GRID */
-    .stock-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
-    .stock-card { border-radius: 10px; padding: 14px; border: 2px solid #e5e7eb; }
-    .stock-card.ok    { border-color: #bbf7d0; background: #f0fdf4; }
-    .stock-card.low   { border-color: #fde68a; background: #fffbeb; }
-    .stock-card.empty { border-color: #fca5a5; background: #fef2f2; }
-    .sc-name  { font-weight: 900; font-size: .95rem; color: #111; margin-bottom: 4px; }
-    .sc-stock { font-size: 1.3rem; font-weight: 900; }
-    .sc-stock.ok    { color: #166534; }
-    .sc-stock.low   { color: #92400e; }
-    .sc-stock.empty { color: #7f1d1d; }
-    .sc-unit  { font-size: .78rem; color: #888; }
-    .sc-warn  { font-size: .75rem; font-weight: 700; margin-top: 4px; }
-    .sc-warn.low   { color: #92400e; }
-    .sc-warn.empty { color: #7f1d1d; }
+    /* balance badge */
+    .bal { font-weight: 900; font-size: .88rem; }
+    .bal-pos { color: #16a34a; }
+    .bal-low { color: #d97706; }
+    .bal-zero { color: #dc2626; }
 
     /* FILTERS */
     .filters { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
@@ -104,34 +94,6 @@
 
   <main class="content">
 
-    <!-- STOCK SUMMARY -->
-    <div class="card">
-      <h2>📦 Saldo atual por produto</h2>
-      <div class="stock-grid">
-        {% for s in stock_summary %}
-          {% set st = s.current_stock | float %}
-          {% set mn = s.min_stock | float %}
-          {% if st <= 0 %}
-            {% set cls = 'empty' %}
-          {% elif mn > 0 and st <= mn %}
-            {% set cls = 'low' %}
-          {% else %}
-            {% set cls = 'ok' %}
-          {% endif %}
-          <div class="stock-card {{ cls }}">
-            <div class="sc-name">{{ s.name }}</div>
-            <div class="sc-stock {{ cls }}">{% if s.unit == 'kg' %}{{ "%.3f"|format(st) }}{% else %}{{ "%.0f"|format(st) }}{% endif %}</div>
-            <div class="sc-unit">{{ s.unit }}</div>
-            {% if cls == 'empty' %}
-              <div class="sc-warn empty">⚠️ Sem estoque!</div>
-            {% elif cls == 'low' %}
-              <div class="sc-warn low">⚠️ Estoque baixo (mín: {{ "%.0f"|format(mn) }})</div>
-            {% endif %}
-          </div>
-        {% endfor %}
-      </div>
-    </div>
-
     <!-- MOVEMENT HISTORY -->
     <div class="card">
       <h2>📋 Histórico de movimentos</h2>
@@ -186,7 +148,8 @@
               <th>Data</th>
               <th>Produto</th>
               <th>Tipo</th>
-              <th>Quantidade</th>
+              <th>Movimento</th>
+              <th>Saldo após</th>
               <th>Custo unit.</th>
               <th>Obs.</th>
               <th></th>
@@ -201,6 +164,14 @@
                 <td><span class="move-badge move-{{ r.movement_type }}">{{ mt_labels.get(r.movement_type, r.movement_type) }}</span></td>
                 <td class="{{ 'qty-pos' if q >= 0 else 'qty-neg' }}">
                   {{ '+' if q >= 0 else '' }}{% if r.unit == 'kg' %}{{ "%.3f"|format(q) }}{% else %}{{ "%.0f"|format(q) }}{% endif %}
+                </td>
+                <td>
+                  {% set bal = r.balance_after | float %}
+                  {% if r.unit == 'kg' %}{% set bal_fmt = "%.3f"|format(bal) %}{% else %}{% set bal_fmt = "%.0f"|format(bal) %}{% endif %}
+                  {% if bal <= 0 %}{% set bal_cls = 'bal bal-zero' %}
+                  {% elif bal <= (r.min_stock | default(0) | float) %}{% set bal_cls = 'bal bal-low' %}
+                  {% else %}{% set bal_cls = 'bal bal-pos' %}{% endif %}
+                  <span class="{{ bal_cls }}">{{ bal_fmt }} {{ r.unit }}</span>
                 </td>
                 <td style="color:#555;font-size:.85rem;">
                   {% if r.unit_cost %}R$ {{ "%.2f"|format(r.unit_cost|float) }}{% else %}—{% endif %}

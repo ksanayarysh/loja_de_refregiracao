@@ -100,6 +100,20 @@ async def stock_create(
                 text("UPDATE products SET cost_price = :cost WHERE id = :id"),
                 {"cost": cost_d, "id": product_id}
             )
+        # Se não informou custo agora, tenta pegar o último custo conhecido dos movimentos
+        elif cost_d is None and movement_type in ("entrada", "saldo_inicial"):
+            last_cost = await conn.execute(
+                text("""SELECT unit_cost FROM stock_movements
+                        WHERE product_id = :pid AND unit_cost IS NOT NULL AND unit_cost > 0
+                        ORDER BY moved_at DESC, id DESC LIMIT 1"""),
+                {"pid": product_id}
+            )
+            last = last_cost.scalar()
+            if last:
+                await conn.execute(
+                    text("UPDATE products SET cost_price = :cost WHERE id = :id"),
+                    {"cost": last, "id": product_id}
+                )
         products_res = await conn.execute(text("SELECT id, name, unit, cost_price FROM products WHERE active=TRUE ORDER BY name"))
         products = products_res.mappings().all()
 
@@ -170,7 +184,11 @@ async def stock_list(
         rows_res = await conn.execute(
             text(f"""
                 SELECT sm.id, sm.moved_at, sm.qty, sm.unit_cost, sm.movement_type, sm.note,
-                       p.name AS product_name, p.unit
+                       p.name AS product_name, p.unit,
+                       SUM(sm.qty) OVER (
+                           PARTITION BY sm.product_id
+                           ORDER BY sm.moved_at ASC, sm.id ASC
+                       ) AS balance_after
                 FROM stock_movements sm
                 JOIN products p ON p.id = sm.product_id
                 WHERE {where_sql}
@@ -231,7 +249,6 @@ async def stock_edit_form(movement_id: int, request: Request, _=Depends(basic_au
         "m": movement,
         "products": products,
         "error": None,
-        "success": None,
     })
 
 
@@ -259,7 +276,7 @@ async def stock_edit_save(
             products = products_res.mappings().all()
         return templates.TemplateResponse("stock_edit.html", {
             "request": request, "m": movement, "products": products,
-            "error": "Quantidade inválida.", "success": None,
+            "error": "Quantidade inválida.",
         })
 
     cost_d = None
@@ -291,6 +308,19 @@ async def stock_edit_save(
                 text("UPDATE products SET cost_price = :cost WHERE id = :id"),
                 {"cost": cost_d, "id": product_id}
             )
+        elif cost_d is None and movement_type in ("entrada", "saldo_inicial"):
+            last_cost = await conn.execute(
+                text("""SELECT unit_cost FROM stock_movements
+                        WHERE product_id = :pid AND unit_cost IS NOT NULL AND unit_cost > 0
+                        ORDER BY moved_at DESC, id DESC LIMIT 1"""),
+                {"pid": product_id}
+            )
+            last = last_cost.scalar()
+            if last:
+                await conn.execute(
+                    text("UPDATE products SET cost_price = :cost WHERE id = :id"),
+                    {"cost": last, "id": product_id}
+                )
     return RedirectResponse("/stock?edited=1", status_code=303)
 
 
