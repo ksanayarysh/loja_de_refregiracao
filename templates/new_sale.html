@@ -51,6 +51,12 @@
     .stock-low  { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
     .stock-empty{ background: #fef2f2; border: 1px solid #fecaca; color: #7f1d1d; }
 
+    .stock-hint-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+    .stock-hint-row .stock-hint { margin-top: 0; flex: 1; }
+    .btn-add-stock { padding: 7px 12px; border-radius: 8px; border: 1px solid #16a34a; background: #fff; color: #16a34a; font-weight: 900; font-size: .85rem; cursor: pointer; font-family: inherit; white-space: nowrap; display: none; }
+    .btn-add-stock:hover { background: #16a34a; color: #fff; }
+    .stock-added-ok { margin-top: 4px; font-size: .82rem; font-weight: 800; color: #16a34a; display: none; }
+
     .qty-warn   {
       margin-top: 6px;
       padding: 8px 12px;
@@ -154,7 +160,11 @@
           {% endfor %}
         </select>
         <div class="hint" id="unitHint"></div>
-        <div class="stock-hint" id="stockHint"></div>
+        <div class="stock-hint-row">
+          <div class="stock-hint" id="stockHint"></div>
+          <button class="btn-add-stock" id="btnAddStock" type="button" onclick="quickAddStock()">+ Adicionar ao estoque</button>
+        </div>
+        <div class="stock-added-ok" id="stockAddedOk"></div>
 
         <div class="row">
           <div>
@@ -278,16 +288,18 @@
   function updateStockHint() {
     const opt = selectedOpt();
     const hint = document.getElementById('stockHint');
-    if (!opt || !opt.value) { hint.style.display = 'none'; return; }
+    const btn  = document.getElementById('btnAddStock');
+    if (!opt || !opt.value) { hint.style.display = 'none'; btn.style.display = 'none'; return; }
 
     const s = stockLevels[parseInt(opt.value)];
-    if (!s) { hint.style.display = 'none'; return; }
+    if (!s) { hint.style.display = 'none'; btn.style.display = 'none'; return; }
 
     const unit  = s.unit || '';
     const stock = parseFloat(s.current_stock) || 0;
     const min   = parseFloat(s.min_stock) || 0;
 
     hint.style.display = 'block';
+    btn.style.display  = 'block';
 
     if (stock <= 0) {
       hint.className = 'stock-hint stock-empty';
@@ -302,6 +314,45 @@
 
     normalizeQtyInputForUnit();
     checkQtyWarn();
+  }
+
+  async function quickAddStock() {
+    const opt = selectedOpt();
+    if (!opt || !opt.value) return;
+    const s = stockLevels[parseInt(opt.value)];
+    const unit = s ? s.unit : 'un';
+    const defaultQty = unit === 'kg' ? '1.000' : '1';
+    const qty = prompt(`Quantidade a adicionar (${unit}):`, defaultQty);
+    if (!qty || isNaN(parseFloat(qty)) || parseFloat(qty) <= 0) return;
+
+    const btn = document.getElementById('btnAddStock');
+    const msg = document.getElementById('stockAddedOk');
+    btn.disabled = true;
+    btn.textContent = '...';
+
+    try {
+      const formData = new FormData();
+      formData.append('product_id', opt.value);
+      formData.append('qty', qty);
+      formData.append('movement_type', 'entrada');
+      formData.append('note', 'Adicionado rápido via venda');
+      formData.append('moved_at', document.getElementById('sold_at').value);
+      await fetch('/stock/new', { method: 'POST', body: formData });
+
+      // Обновляем уровни
+      const levRes = await fetch('/api/stock/levels');
+      const data = await levRes.json();
+      data.forEach(p => { stockLevels[p.id] = p; });
+      updateStockHint();
+
+      msg.style.display = 'block';
+      msg.textContent = `✅ +${qty} ${unit} adicionado ao estoque!`;
+      setTimeout(() => { msg.style.display = 'none'; }, 3000);
+    } catch(e) {
+      alert('Erro ao adicionar estoque');
+    }
+    btn.disabled = false;
+    btn.textContent = '+ Adicionar ao estoque';
   }
 
   function checkQtyWarn() {
