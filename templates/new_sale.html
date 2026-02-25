@@ -50,7 +50,30 @@
     .stock-ok   { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
     .stock-low  { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
     .stock-empty{ background: #fef2f2; border: 1px solid #fecaca; color: #7f1d1d; }
-    .qty-warn   { margin-top: 6px; padding: 8px 12px; border-radius: 8px; font-size: .88rem; font-weight: 700; background: #fef2f2; border: 1px solid #fecaca; color: #7f1d1d; display: none; } border-radius: 10px; border: 1px solid #ccc; background: #fff; color: #111; font-weight: 900; font-size: 1rem; cursor: pointer; font-family: inherit; }
+
+    .qty-warn   {
+      margin-top: 6px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: .88rem;
+      font-weight: 700;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #7f1d1d;
+      display: none;
+    }
+
+    .btn-cart {
+      padding: 12px 20px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      background: #fff;
+      color: #111;
+      font-weight: 900;
+      font-size: 1rem;
+      cursor: pointer;
+      font-family: inherit;
+    }
     .btn-cart:hover { background: bisque; }
     .cart-added { display:none; background: #ecfdf5; border: 1px solid #bbf7d0; color: #065f46; padding: 10px 14px; border-radius: 10px; font-weight: 800; margin-top: 12px; }
 
@@ -179,19 +202,71 @@
   const unitHint   = document.getElementById("unitHint");
   let priceWasManuallyEdited = false;
 
-  function parseNum(v) { if (!v) return null; const n = Number((""+v).trim().replace(",",".")); return Number.isFinite(n)?n:null; }
+  function parseNum(v) {
+    if (!v) return null;
+    const n = Number((""+v).trim().replace(",","."));
+    return Number.isFinite(n) ? n : null;
+  }
   function fmt2(n) { return (Math.round(n*100)/100).toFixed(2); }
   function selectedOpt() { return productSel.selectedOptions?.[0]||null; }
   function getSelectedPrice() { const o=selectedOpt(); return o?parseNum(o.dataset.price):null; }
   function updateUnitHint() { const o=selectedOpt(); unitHint.textContent=o?.dataset.unit?"Unidade: "+o.dataset.unit:""; }
-  function setPriceFromProduct(force=false) { const p=getSelectedPrice(); if(p===null)return; if(force||!priceWasManuallyEdited){priceEl.value=fmt2(p);priceWasManuallyEdited=false;} }
-  function recalcTotal() { const q=parseNum(qtyEl.value); const p=parseNum(priceEl.value)??getSelectedPrice(); if(q!==null&&p!==null)totalEl.value=fmt2(q*p); }
 
-  priceEl.addEventListener("input",()=>{priceWasManuallyEdited=priceEl.value.trim()!=="";recalcTotal();});
-  qtyEl.addEventListener("input",()=>{ recalcTotal(); checkQtyWarn(); });
-  productSel.addEventListener("change",()=>{updateUnitHint();setPriceFromProduct(false);recalcTotal();updateStockHint();});
+  function isUnitUn(unit) {
+    return String(unit || "").trim().toLowerCase() === "un";
+  }
+  function fmtQty(n, unit) {
+    if (!Number.isFinite(n)) return "";
+    if (isUnitUn(unit)) return String(Math.trunc(n));
+    return (Math.round(n*1000)/1000).toFixed(3);
+  }
+  function normalizeQtyInputForUnit() {
+    const o = selectedOpt();
+    const unit = o?.dataset.unit || "";
+    const q = parseNum(qtyEl.value);
+    if (q === null) return;
+    if (isUnitUn(unit)) qtyEl.value = String(Math.trunc(q));
+  }
+
+  function setPriceFromProduct(force=false) {
+    const p=getSelectedPrice();
+    if(p===null) return;
+    if(force || !priceWasManuallyEdited){
+      priceEl.value=fmt2(p);
+      priceWasManuallyEdited=false;
+    }
+  }
+  function recalcTotal() {
+    const q=parseNum(qtyEl.value);
+    const p=parseNum(priceEl.value) ?? getSelectedPrice();
+    if(q!==null && p!==null) totalEl.value=fmt2(q*p);
+  }
+
+  priceEl.addEventListener("input",()=>{
+    priceWasManuallyEdited = priceEl.value.trim() !== "";
+    recalcTotal();
+  });
+
+  qtyEl.addEventListener("input",()=>{
+    recalcTotal();
+    checkQtyWarn();
+  });
+
+  qtyEl.addEventListener("blur",()=>{
+    normalizeQtyInputForUnit();
+    recalcTotal();
+    checkQtyWarn();
+  });
+
+  productSel.addEventListener("change",()=>{
+    updateUnitHint();
+    setPriceFromProduct(false);
+    recalcTotal();
+    updateStockHint();
+  });
+
   updateUnitHint();
-  if(priceEl.value.trim()==="")setPriceFromProduct(true);
+  if(priceEl.value.trim()==="") setPriceFromProduct(true);
 
   // ── ESTOQUE ──
   let stockLevels = {};
@@ -204,21 +279,28 @@
     const opt = selectedOpt();
     const hint = document.getElementById('stockHint');
     if (!opt || !opt.value) { hint.style.display = 'none'; return; }
+
     const s = stockLevels[parseInt(opt.value)];
     if (!s) { hint.style.display = 'none'; return; }
+
+    const unit  = s.unit || '';
     const stock = parseFloat(s.current_stock) || 0;
     const min   = parseFloat(s.min_stock) || 0;
+
     hint.style.display = 'block';
+
     if (stock <= 0) {
       hint.className = 'stock-hint stock-empty';
-      hint.textContent = `⚠️ Sem estoque! (0 ${s.unit})`;
+      hint.textContent = `⚠️ Sem estoque! (0 ${unit})`;
     } else if (min > 0 && stock <= min) {
       hint.className = 'stock-hint stock-low';
-      hint.textContent = `⚠️ Estoque baixo: ${stock.toFixed(3)} ${s.unit} (mín: ${min})`;
+      hint.textContent = `⚠️ Estoque baixo: ${fmtQty(stock, unit)} ${unit} (mín: ${fmtQty(min, unit)})`;
     } else {
       hint.className = 'stock-hint stock-ok';
-      hint.textContent = `✅ Em estoque: ${stock.toFixed(3)} ${s.unit}`;
+      hint.textContent = `✅ Em estoque: ${fmtQty(stock, unit)} ${unit}`;
     }
+
+    normalizeQtyInputForUnit();
     checkQtyWarn();
   }
 
@@ -226,13 +308,17 @@
     const opt = selectedOpt();
     const warn = document.getElementById('qtyWarn');
     if (!opt || !opt.value) { warn.style.display = 'none'; return; }
+
     const s = stockLevels[parseInt(opt.value)];
     if (!s) { warn.style.display = 'none'; return; }
+
+    const unit  = s.unit || '';
     const stock = parseFloat(s.current_stock) || 0;
     const qty   = parseNum(qtyEl.value);
+
     if (qty !== null && stock > 0 && qty > stock) {
       warn.style.display = 'block';
-      warn.textContent = `⚠️ Atenção: quantidade (${qty}) maior que o estoque disponível (${stock.toFixed(3)} ${s.unit})`;
+      warn.textContent = `⚠️ Atenção: quantidade (${fmtQty(qty, unit)}) maior que o estoque disponível (${fmtQty(stock, unit)} ${unit})`;
     } else {
       warn.style.display = 'none';
     }
@@ -258,8 +344,12 @@
   function addToCartFromForm() {
     const opt = selectedOpt();
     if (!opt || !opt.value) { alert('Selecione um produto primeiro!'); return; }
+
+    normalizeQtyInputForUnit();
+
     const qty = parseNum(qtyEl.value);
     if (!qty || qty <= 0) { alert('Informe a quantidade!'); return; }
+
     const price = parseNum(priceEl.value) ?? getSelectedPrice() ?? 0;
     const id    = parseInt(opt.value);
     const name  = opt.text.replace(/\s*\(.*\)$/, '').trim();
@@ -269,52 +359,54 @@
     const existing = cart.find(i => i.id === id);
     if (existing) {
       existing.qty += qty;
+      if (isUnitUn(unit)) existing.qty = Math.trunc(existing.qty);
     } else {
-      cart.push({ id, name, price, unit, qty });
+      cart.push({ id, name, price, unit, qty: (isUnitUn(unit) ? Math.trunc(qty) : qty) });
     }
+
     localStorage.setItem('mtf_cart', JSON.stringify(cart));
     updateNavCart();
 
     const msg = document.getElementById('cart-added');
     msg.style.display = 'block';
-    msg.innerHTML = `✅ <strong>${name}</strong> (${qty} ${unit}) adicionado ao carrinho! <a href="/checkout" style="color:#065f46;font-weight:900;">Ver carrinho →</a>`;
+    msg.innerHTML = `✅ <strong>${name}</strong> (${fmtQty(isUnitUn(unit)?Math.trunc(qty):qty, unit)} ${unit}) adicionado ao carrinho! <a href="/checkout" style="color:#065f46;font-weight:900;">Ver carrinho →</a>`;
     setTimeout(() => { msg.style.display = 'none'; }, 4000);
   }
-(function() {
-  const params = new URLSearchParams(window.location.search);
-  const productId = params.get('product_id');
-  const qty       = params.get('qty');
-  const unitPrice = params.get('unit_price');
 
-  if (productId) {
-    const sel = document.getElementById('product_id');
-    // ждём пока options загрузятся (они уже в HTML из Jinja)
-    for (const opt of sel.options) {
-      if (opt.value === productId) {
-        opt.selected = true;
-        sel.dispatchEvent(new Event('change')); // запускает автозаполнение цены и unit hint
-        break;
+  (function() {
+    const params = new URLSearchParams(window.location.search);
+    const productId = params.get('product_id');
+    const qty       = params.get('qty');
+    const unitPrice = params.get('unit_price');
+
+    if (productId) {
+      const sel = document.getElementById('product_id');
+      for (const opt of sel.options) {
+        if (opt.value === productId) {
+          opt.selected = true;
+          sel.dispatchEvent(new Event('change'));
+          break;
+        }
       }
     }
-  }
 
-  if (qty) {
-    document.getElementById('qty').value = parseFloat(qty).toFixed(4);
-  }
+    if (qty) {
+      document.getElementById('qty').value = String(parseFloat(qty));
+    }
 
-  if (unitPrice) {
-    const priceEl = document.getElementById('unit_price');
-    priceEl.value = parseFloat(unitPrice).toFixed(2);
-    priceEl.dispatchEvent(new Event('input')); // пересчитывает total
-  }
+    if (unitPrice) {
+      const priceEl = document.getElementById('unit_price');
+      priceEl.value = parseFloat(unitPrice).toFixed(2);
+      priceEl.dispatchEvent(new Event('input'));
+    }
 
-  // пересчитать total после всего
-  if (qty || unitPrice) {
-    setTimeout(() => {
-      document.getElementById('qty').dispatchEvent(new Event('input'));
-    }, 50);
-  }
-})();
+    if (qty || unitPrice) {
+      setTimeout(() => {
+        normalizeQtyInputForUnit();
+        document.getElementById('qty').dispatchEvent(new Event('input'));
+      }, 50);
+    }
+  })();
 </script>
 </body>
 </html>
