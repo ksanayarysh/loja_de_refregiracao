@@ -3,12 +3,16 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Movimentação de Estoque — M.T.F</title>
+  <title>Novo Produto — M.T.F</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: Arial, Helvetica, sans-serif; background: bisque; min-height: 100vh; font-size: 15px; }
+    body { font-family: Arial, Helvetica, sans-serif; background: bisque; min-height: 100vh; }
 
-    .navbar { background: bisque; padding: 10px 16px; display: flex; align-items: center; border-bottom: 1px solid #ccc; gap: 20px; flex-wrap: wrap; }
+    .navbar {
+      background: bisque; padding: 10px 16px;
+      display: flex; align-items: center; border-bottom: 1px solid #ccc;
+      gap: 20px; flex-wrap: wrap;
+    }
     .nav-brand { font-weight: 900; font-size: 1.1rem; color: #111; text-decoration: none; }
     .navbar a { color: #E2144A; text-decoration: none; font-weight: 700; font-size: .95rem; }
     .navbar a:hover { text-decoration: underline; }
@@ -24,49 +28,34 @@
     .sidebar .submenu { display: none; position: absolute; left: 149px; top: 0; width: 150px; z-index: 10; }
     .sidebar ul li:hover .submenu { display: block; }
 
-    .content { flex: 1; padding: 24px; overflow-x: auto; }
-    .card { background: #fff; border-radius: 18px; box-shadow: 0 4px 14px rgba(0,0,0,.10); padding: 26px; max-width: 720px; }
+    .content { flex: 1; padding: 24px; }
+    .card { background: #fff; border-radius: 14px; box-shadow: 0 4px 14px rgba(0,0,0,.08); padding: 24px; max-width: 600px; }
 
-    h1 { font-size: 1.6rem; margin-bottom: 14px; color: #111; }
+    h1 { font-size: 1.5rem; margin-bottom: 16px; color: #111; }
 
-    label { display:block; font-weight: 900; margin: 14px 0 6px; color: #111; }
+    label { display: block; font-weight: 900; margin: 14px 0 6px; color: #111; }
     input, select { width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid #d6d9e0; font-size: 1rem; font-family: inherit; background: #fff; }
     input:focus, select:focus { outline: none; border-color: #007bff; }
 
-    .row { display:grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    .hint { color: #6b7280; font-size: .88rem; margin-top: 6px; }
+    .hint { color: #6b7280; font-size: .88rem; margin-top: 5px; }
 
-    .type-row { display:flex; gap:12px; flex-wrap:wrap; margin-bottom: 14px; }
-    .type-btn { display:inline-flex; align-items:center; gap:8px; padding: 12px 16px; border-radius: 10px; border: 2px solid #ccc; background:#fff; font-weight: 900; cursor: pointer; user-select:none; }
-    .type-btn:hover { background:#f3f4f6; }
-    .active-entrada { border-color: #16a34a; background:#f0fdf4; }
-    .active-saida { border-color: #111827; background:#f3f4f6; }
-    .active-init { border-color: #9ca3af; background:#f9fafb; }
+    .new-cat-row { display: flex; gap: 8px; margin-top: 8px; }
+    .new-cat-row input { flex: 1; }
+    .new-cat-row button {
+      padding: 10px 14px; border-radius: 10px; border: 1px solid #ccc;
+      background: #fff; color: #E2144A; font-weight: 900; font-size: .9rem;
+      cursor: pointer; white-space: nowrap;
+    }
+    .new-cat-row button:hover { background: #ccc; }
 
-    .btns { display:flex; gap: 12px; flex-wrap:wrap; margin-top: 18px; }
-    .btn-primary { padding: 12px 18px; border-radius: 10px; border: none; background:#111827; color:#fff; font-weight: 900; cursor:pointer; }
-    .btn-primary:hover { background:#374151; }
-    .btn-secondary { padding: 12px 18px; border-radius: 10px; border: 1px solid #ccc; background:#fff; color:#E2144A; font-weight: 900; text-decoration:none; display:inline-block; }
-    .btn-secondary:hover { background:#ccc; }
+    .btn-primary { display: block; width: 100%; margin-top: 20px; padding: 13px; border-radius: 10px; border: none; background: #111827; color: #fff; font-weight: 900; font-size: 1rem; cursor: pointer; }
+    .btn-primary:hover { background: #374151; }
 
-    .msg { padding: 12px 14px; border-radius: 10px; margin-bottom: 14px; font-weight: 900; }
-    .err { background:#fef2f2; border: 1px solid #fecaca; color:#7f1d1d; }
-    .ok  { background:#ecfdf5; border: 1px solid #bbf7d0; color:#065f46; }
-
-    /* cost box */
-    #cost-wrap { margin-top: 8px; }
-    .cost-mode { display:flex; gap: 10px; flex-wrap:wrap; align-items:center; margin-top: 8px; }
-    .radio-pill { display:inline-flex; gap:8px; align-items:center; padding: 8px 10px; border-radius: 10px; border: 1px solid #ccc; background:#fff; font-weight: 800; font-size: .9rem; cursor:pointer; user-select:none; }
-    .radio-pill input { width:auto; }
-    .calc-line { margin-top: 8px; font-size: .9rem; color:#111; font-weight: 800; }
-    .calc-line .muted { color:#6b7280; font-weight: 700; }
-    .calc-line .bad { color:#dc2626; }
-    .calc-line .good { color:#16a34a; }
+    .ok { display: flex; align-items: center; gap: 10px; background: #ecfdf5; border: 1px solid #bbf7d0; color: #065f46; padding: 12px 14px; border-radius: 10px; margin-bottom: 16px; font-weight: 800; }
 
     @media (max-width: 600px) {
       .layout { flex-direction: column; }
       .sidebar { width: 100%; border-right: none; border-bottom: 1px solid #ccc; }
-      .row { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -75,9 +64,11 @@
 <header class="navbar">
   <a href="/" class="nav-brand">🛍 M.T.F</a>
   <a href="/">Início</a>
-  <a href="/products">Produtos</a>
+  <a href="/products" class="active">Produtos</a>
+  <a href="/products/new">+ Produto</a>
   <a href="/sales">Vendas</a>
-  <a href="/stock" class="active">Estoque</a>
+  <a href="/sales/new">+ Venda</a>
+  <a href="/stock">Estoque</a>
   <a href="/stock/new">+ Movimento</a>
   <a href="/reports">Relatórios</a>
   <a href="/calc">Calculadora</a>
@@ -115,192 +106,95 @@
 
   <main class="content">
     <div class="card">
-      <h1>Movimentação de Estoque</h1>
+      <h1>Cadastro de Produto</h1>
 
-      {% if error %}<div class="msg err">{{ error }}</div>{% endif %}
-      {% if success %}<div class="msg ok">{{ success }}</div>{% endif %}
+      {% if request.query_params.get('ok') %}
+      <div class="ok">✅ Produto salvo com sucesso!</div>
+      {% endif %}
 
-      <div class="type-row" role="group" aria-label="Tipo de movimento">
-        <button type="button" id="btn-initial" class="type-btn" onclick="setType('saldo_inicial')">🏁 Saldo inicial</button>
-        <button type="button" id="btn-entrada" class="type-btn active-entrada" onclick="setType('entrada')">📦 Entrada</button>
-        <button type="button" id="btn-saida" class="type-btn" onclick="setType('saida')">🧺 Saída manual</button>
-      </div>
+      <form method="post" action="/products/new">
 
-      <form method="post" action="/stock/new" id="stockForm">
-        <input type="hidden" id="movement_type_hidden" name="movement_type" value="entrada">
+        <label for="name">Nome do produto</label>
+        <input id="name" name="name" required placeholder="Ex.: Filtro 1/4" autocomplete="off">
 
-        <label for="product_id">Produto</label>
-        <select id="product_id" name="product_id" required>
-          <option value="" disabled selected>Selecione...</option>
-          {% for p in products %}
-            <option value="{{ p['id'] }}" data-unit="{{ p['unit'] or '' }}">
-              {{ p['name'] }}{% if p['unit'] %} ({{ p['unit'] }}){% endif %}
-            </option>
+        <label for="category_id">Categoria</label>
+        <select id="category_id" name="category_id">
+          {% for c in categories %}
+            <option value="{{ c.id }}">{{ c.name }}</option>
           {% endfor %}
         </select>
-
-        <div class="row">
-          <div>
-            <label for="qty">Quantidade</label>
-            <input id="qty" name="qty" inputmode="decimal" placeholder="Ex: 10 ou 1,5" required>
-            <div class="hint" id="qty-hint">Quantidade que está entrando no estoque.</div>
-          </div>
-          <div id="cost-wrap">
-            <label for="cost_input" id="cost_label">Preço de custo (R$)</label>
-            <input id="cost_input" inputmode="decimal" placeholder="Ex: 45,00">
-            <input type="hidden" id="cost_price" name="cost_price" value="">
-            <div class="hint" id="cost_hint">Opcional. Pode ser por unidade do produto (kg/un/...) ou total da partida.</div>
-
-            <div class="cost-mode">
-              <label class="radio-pill">
-                <input type="radio" name="cost_mode" value="per_unit" checked>
-                Por <span id="unit_span">unidade</span>
-              </label>
-              <label class="radio-pill">
-                <input type="radio" name="cost_mode" value="total">
-                Total da partida
-              </label>
-            </div>
-
-            <div class="calc-line" id="cost_calc" style="display:none;"></div>
-          </div>
+        <div class="hint">Não encontrou? Adicione uma nova categoria abaixo.</div>
+        <div class="new-cat-row">
+          <input type="text" id="new_category_name" placeholder="Nova categoria...">
+          <button type="button" onclick="addCategory()">+ Adicionar</button>
         </div>
 
-        <label for="moved_at">Data</label>
-        <input id="moved_at" name="moved_at" type="date" value="{{ today }}">
+        <label for="unit">Unidade</label>
+        <select id="unit" name="unit">
+          <option value="un">un (unidade)</option>
+          <option value="kg">kg</option>
+          <option value="m">m (metro)</option>
+          <option value="l">l (litro)</option>
+        </select>
 
-        <label for="note">Observação (opcional)</label>
-        <input id="note" name="note" placeholder="Ex: Nota fiscal 1234, fornecedor...">
+        <label for="sale_price">Preço de venda (R$)</label>
+        <input id="sale_price" name="sale_price" inputmode="decimal" placeholder="Ex.: 35,00">
 
-        <div class="btns">
-          <button class="btn-primary" type="submit">Registrar</button>
-          <a class="btn-secondary" href="/stock">Ver estoque</a>
-        </div>
+        <label for="cost_price">Preço de custo (R$)</label>
+        <input id="cost_price" name="cost_price" inputmode="decimal" placeholder="Ex.: 20,00">
+        <div class="hint" id="margin-hint"></div>
+
+        <button class="btn-primary" type="submit">Salvar produto</button>
       </form>
     </div>
   </main>
 </div>
 
 <script>
-  const form = document.getElementById('stockForm');
-  const productSel = document.getElementById('product_id');
-  const qtyEl = document.getElementById('qty');
-  const costInputEl = document.getElementById('cost_input');
-  const costHiddenEl = document.getElementById('cost_price');
-  const costCalcEl = document.getElementById('cost_calc');
-  const unitSpan = document.getElementById('unit_span');
+async function addCategory() {
+  const input = document.getElementById('new_category_name');
+  const name = input.value.trim();
+  if (!name) return;
 
-  function selectedOpt(){ return productSel.selectedOptions?.[0] || null; }
-  function unitOfSelected(){ return (selectedOpt()?.dataset.unit || '').trim() || 'un'; }
-  function parseNum(v){
-    if(!v) return null;
-    const n = Number(String(v).trim().replace(',','.'));
-    return Number.isFinite(n) ? n : null;
-  }
-  function fmt2(n){ return (Math.round(n*100)/100).toFixed(2); }
-
-  function getCostMode(){
-    const el = document.querySelector('input[name="cost_mode"]:checked');
-    return el ? el.value : 'per_unit';
-  }
-
-  function refreshUnitLabel(){
-    const u = unitOfSelected();
-    unitSpan.textContent = u;
-  }
-
-  function computeAndSyncCost(){
-    const type = document.getElementById('movement_type_hidden').value;
-    if (type !== 'entrada' && type !== 'saldo_inicial'){
-      costHiddenEl.value = '';
-      costCalcEl.style.display = 'none';
-      return;
+  try {
+    const res = await fetch('/api/categories', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({name})
+    });
+    const data = await res.json();
+    if (data.id) {
+      const sel = document.getElementById('category_id');
+      const opt = document.createElement('option');
+      opt.value = data.id;
+      opt.textContent = data.name;
+      opt.selected = true;
+      sel.appendChild(opt);
+      input.value = '';
+    } else {
+      alert(data.detail || 'Erro ao adicionar categoria');
     }
-
-    const qty = parseNum(qtyEl.value);
-    const raw = parseNum(costInputEl.value);
-    const mode = getCostMode();
-    const unit = unitOfSelected();
-
-    // se нет цены, просто очищаем hidden
-    if (raw === null || raw === 0){
-      costHiddenEl.value = '';
-      costCalcEl.style.display = 'none';
-      return;
-    }
-
-    // per_unit: прямое значение
-    if (mode === 'per_unit'){
-      costHiddenEl.value = fmt2(raw);
-      costCalcEl.style.display = 'block';
-      costCalcEl.innerHTML = `<span class="muted">Salvando:</span> <span class="good">R$ ${fmt2(raw)}</span> <span class="muted">por ${unit}</span>`;
-      return;
-    }
-
-    // total: делим на qty
-    if (qty === null || qty <= 0){
-      costHiddenEl.value = '';
-      costCalcEl.style.display = 'block';
-      costCalcEl.innerHTML = `<span class="bad">Informe a quantidade</span> <span class="muted">para calcular custo por ${unit}.</span>`;
-      return;
-    }
-
-    const perUnit = raw / qty;
-    costHiddenEl.value = fmt2(perUnit);
-    costCalcEl.style.display = 'block';
-    costCalcEl.innerHTML =
-      `<span class="muted">Total R$ ${fmt2(raw)}</span> ÷ <span class="muted">${qty}</span> = ` +
-      `<span class="good">R$ ${fmt2(perUnit)}</span> <span class="muted">por ${unit}</span>`;
+  } catch {
+    alert('Erro ao adicionar categoria');
   }
+}
 
-  function setType(type){
-    document.getElementById('movement_type_hidden').value = type;
+document.getElementById('new_category_name').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); addCategory(); }
+});
 
-    const btnE = document.getElementById('btn-entrada');
-    const btnS = document.getElementById('btn-saida');
-    const btnI = document.getElementById('btn-initial');
-    const hint = document.getElementById('qty-hint');
-
-    // reset classes
-    btnE.className = 'type-btn';
-    btnS.className = 'type-btn';
-    btnI.className = 'type-btn';
-
-    if (type === 'entrada'){
-      btnE.className = 'type-btn active-entrada';
-      hint.textContent = 'Quantidade que está entrando no estoque.';
-      document.getElementById('cost-wrap').style.display = 'block';
-    } else if (type === 'saida'){
-      btnS.className = 'type-btn active-saida';
-      hint.textContent = 'Quantidade que está saindo do estoque (ajuste manual).';
-      document.getElementById('cost-wrap').style.display = 'none';
-      costInputEl.value = '';
-      costHiddenEl.value = '';
-      costCalcEl.style.display = 'none';
-    } else { // saldo_inicial
-      btnI.className = 'type-btn active-init';
-      hint.textContent = 'Define o saldo inicial (pode ser usado no primeiro cadastro).';
-      document.getElementById('cost-wrap').style.display = 'block';
-    }
-
-    computeAndSyncCost();
-  }
-
-  // listeners
-  productSel.addEventListener('change', ()=>{ refreshUnitLabel(); computeAndSyncCost(); });
-  qtyEl.addEventListener('input', ()=>{ computeAndSyncCost(); });
-  costInputEl.addEventListener('input', ()=>{ computeAndSyncCost(); });
-  document.querySelectorAll('input[name="cost_mode"]').forEach(r => r.addEventListener('change', computeAndSyncCost));
-
-  // init
-  refreshUnitLabel();
-  setType(document.getElementById('movement_type_hidden').value || 'entrada');
-
-  // before submit: guarantee hidden is synced
-  form.addEventListener('submit', (e)=>{
-    computeAndSyncCost();
-    // ничего не блокируем: cost_price опционален
-  });
+function updateMargin() {
+  const sale = parseFloat(document.getElementById('sale_price').value.replace(',','.')) || 0;
+  const cost = parseFloat(document.getElementById('cost_price').value.replace(',','.')) || 0;
+  const hint = document.getElementById('margin-hint');
+  if (!sale || !cost) { hint.innerHTML = ''; return; }
+  const profit = (sale - cost).toFixed(2);
+  const margin = ((sale - cost) / sale * 100).toFixed(1);
+  const color = parseFloat(margin) >= 20 ? '#16a34a' : parseFloat(margin) >= 0 ? '#d97706' : '#dc2626';
+  hint.innerHTML = `<span style="color:${color};font-weight:800;">Margem: ${margin}% — lucro R$ ${profit} por unidade</span>`;
+}
+document.getElementById('sale_price').addEventListener('input', updateMargin);
+document.getElementById('cost_price').addEventListener('input', updateMargin);
 </script>
 </body>
 </html>

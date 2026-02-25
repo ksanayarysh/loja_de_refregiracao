@@ -41,6 +41,17 @@
     .type-btn { flex: 1; padding: 10px; border-radius: 8px; border: 2px solid #ccc; background: #fff; font-weight: 800; font-size: .95rem; cursor: pointer; font-family: inherit; transition: all .15s; }
     .type-btn.active-entrada { border-color: #28a745; background: #ecfdf5; color: #166534; }
     .type-btn.active-saida   { border-color: #dc2626; background: #fef2f2; color: #7f1d1d; }
+
+    /* COST mode (minimal add) */
+    .cost-mode { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+    .radio-pill { display:inline-flex; gap:8px; align-items:center; padding: 8px 10px; border-radius: 10px; border: 1px solid #ccc; background:#fff; font-weight: 800; font-size: .9rem; cursor:pointer; user-select:none; }
+    .radio-pill input { width:auto; }
+
+    #cost_calc { display:none; margin-top: 8px; font-size: .9rem; font-weight: 800; }
+    #cost_calc .muted { color: #6b7280; font-weight: 700; }
+    #cost_calc .good { color: #166534; }
+    #cost_calc .bad { color: #dc2626; }
+
     @media (max-width: 600px) { .layout { flex-direction: column; } .sidebar { width: 100%; border-right: none; border-bottom: 1px solid #ccc; } }
   </style>
 </head>
@@ -72,7 +83,7 @@
       {% if error %}<div class="msg err">{{ error }}</div>{% endif %}
       {% if success %}<div class="msg ok">✅ {{ success }}</div>{% endif %}
 
-      <form method="post" action="/stock/new">
+      <form method="post" action="/stock/new" id="stockForm">
         <input type="hidden" name="movement_type" id="movement_type_hidden" value="entrada">
 
         <label>Tipo de movimento</label>
@@ -86,7 +97,7 @@
         <select id="product_id" name="product_id" required onchange="onProductChange()">
           <option value="" disabled selected>Selecione...</option>
           {% for p in products %}
-            <option value="{{ p.id }}" data-cost="{{ p.cost_price or '' }}">{{ p.name }} ({{ p.unit }})</option>
+            <option value="{{ p.id }}" data-cost="{{ p.cost_price or '' }}" data-unit="{{ p.unit or '' }}">{{ p.name }} ({{ p.unit }})</option>
           {% endfor %}
         </select>
         <div class="hint" id="cost-hint"></div>
@@ -96,9 +107,26 @@
         <div class="hint" id="qty-hint">Quantidade que está entrando no estoque.</div>
 
         <div id="cost-field">
-          <label for="unit_cost">Preço de custo desta partida (R$/unidade)</label>
-          <input id="unit_cost" name="unit_cost" inputmode="decimal" placeholder="Ex: 45,00">
-          <div class="hint">Opcional. Atualiza o custo do produto e fica registrado no histórico.</div>
+          <label for="cost_input" id="cost_label">Preço de custo (R$)</label>
+          <!-- input visível: пользователь вводит либо цену за unit, либо total -->
+          <input id="cost_input" inputmode="decimal" placeholder="Ex: 45,00">
+          <!-- input скрытый: в бекенд всегда уходит цена за 1 unit товара -->
+          <input type="hidden" id="cost_price" name="cost_price" value="">
+
+          <div class="hint">Opcional. Pode ser por unidade do produto ou o total da partida (o sistema calcula por unidade).</div>
+
+          <div class="cost-mode">
+            <label class="radio-pill">
+              <input type="radio" name="cost_mode" value="per_unit" checked>
+              Por <span id="unit_span">un</span>
+            </label>
+            <label class="radio-pill">
+              <input type="radio" name="cost_mode" value="total">
+              Total da partida
+            </label>
+          </div>
+
+          <div id="cost_calc"></div>
         </div>
 
         <label for="moved_at">Data</label>
@@ -116,6 +144,27 @@
   </main>
 </div>
 <script>
+function parseNum(v) {
+  if (!v) return null;
+  const n = Number(String(v).trim().replace(',', '.'));
+  return Number.isFinite(n) ? n : null;
+}
+function fmt2(n) {
+  return (Math.round(n * 100) / 100).toFixed(2);
+}
+function selectedOpt() {
+  const sel = document.getElementById('product_id');
+  return sel.options[sel.selectedIndex] || null;
+}
+function selectedUnit() {
+  const opt = selectedOpt();
+  return (opt && opt.dataset.unit ? opt.dataset.unit : 'un') || 'un';
+}
+function getCostMode() {
+  const el = document.querySelector('input[name="cost_mode"]:checked');
+  return el ? el.value : 'per_unit';
+}
+
 function setType(type) {
   document.getElementById('movement_type_hidden').value = type;
   const btnS0 = document.getElementById('btn-saldo');
@@ -123,9 +172,11 @@ function setType(type) {
   const btnS  = document.getElementById('btn-saida');
   const hint  = document.getElementById('qty-hint');
   const costField = document.getElementById('cost-field');
+
   btnS0.className = 'type-btn';
   btnE.className  = 'type-btn';
   btnS.className  = 'type-btn';
+
   if (type === 'saldo_inicial') {
     btnS0.className = 'type-btn active-entrada';
     hint.textContent = 'Quantidade que já existe em estoque (registro inicial).';
@@ -138,7 +189,54 @@ function setType(type) {
     btnS.className = 'type-btn active-saida';
     hint.textContent = 'Quantidade que está saindo do estoque (ajuste manual).';
     costField.style.display = 'none';
+
+    // чистим цену, чтобы не улетала в бекенд
+    document.getElementById('cost_input').value = '';
+    document.getElementById('cost_price').value = '';
+    document.getElementById('cost_calc').style.display = 'none';
   }
+}
+
+function computeAndSyncCost() {
+  const type = document.getElementById('movement_type_hidden').value;
+  const calc = document.getElementById('cost_calc');
+
+  if (type === 'saida') {
+    document.getElementById('cost_price').value = '';
+    calc.style.display = 'none';
+    return;
+  }
+
+  const qty = parseNum(document.getElementById('qty').value);
+  const raw = parseNum(document.getElementById('cost_input').value);
+  const mode = getCostMode();
+  const unit = selectedUnit();
+
+  if (raw === null || raw === 0) {
+    document.getElementById('cost_price').value = '';
+    calc.style.display = 'none';
+    return;
+  }
+
+  if (mode === 'per_unit') {
+    document.getElementById('cost_price').value = fmt2(raw);
+    calc.style.display = 'block';
+    calc.innerHTML = `<span class="muted">Salvando:</span> <span class="good">R$ ${fmt2(raw)}</span> <span class="muted">por ${unit}</span>`;
+    return;
+  }
+
+  // total
+  if (qty === null || qty <= 0) {
+    document.getElementById('cost_price').value = '';
+    calc.style.display = 'block';
+    calc.innerHTML = `<span class="bad">Informe a quantidade</span> <span class="muted">para calcular custo por ${unit}.</span>`;
+    return;
+  }
+
+  const perUnit = raw / qty;
+  document.getElementById('cost_price').value = fmt2(perUnit);
+  calc.style.display = 'block';
+  calc.innerHTML = `<span class="muted">Total R$ ${fmt2(raw)}</span> ÷ <span class="muted">${qty}</span> = <span class="good">R$ ${fmt2(perUnit)}</span> <span class="muted">por ${unit}</span>`;
 }
 
 function onProductChange() {
@@ -146,15 +244,28 @@ function onProductChange() {
   const opt = sel.options[sel.selectedIndex];
   const cost = opt.dataset.cost;
   const hint = document.getElementById('cost-hint');
-  const costInput = document.getElementById('unit_cost');
+
+  // unit label
+  document.getElementById('unit_span').textContent = selectedUnit();
+
   if (cost) {
     hint.innerHTML = `Custo atual cadastrado: <strong>R$ ${parseFloat(cost).toFixed(2)}</strong>`;
-    costInput.placeholder = parseFloat(cost).toFixed(2);
+    document.getElementById('cost_input').placeholder = parseFloat(cost).toFixed(2);
   } else {
     hint.textContent = 'Sem custo cadastrado para este produto.';
-    costInput.placeholder = 'Ex: 45,00';
+    document.getElementById('cost_input').placeholder = 'Ex: 45,00';
   }
+
+  computeAndSyncCost();
 }
+
+// listeners (минимально)
+document.getElementById('qty').addEventListener('input', computeAndSyncCost);
+document.getElementById('cost_input').addEventListener('input', computeAndSyncCost);
+document.querySelectorAll('input[name="cost_mode"]').forEach(r => r.addEventListener('change', computeAndSyncCost));
+
+// init unit label
+document.getElementById('unit_span').textContent = selectedUnit();
 </script>
 </body>
 </html>
