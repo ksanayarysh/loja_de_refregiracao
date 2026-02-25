@@ -89,7 +89,15 @@
     th { font-weight: 900; color: #555; font-size: .75rem; text-transform: uppercase; }
     .num { text-align: right; font-weight: 900; }
 
-    .empty { color: #888; text-align: center; padding: 24px; font-size: .9rem; }
+    /* MARGIN TABLE */
+    .margin-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #f3f4f6; }
+    .margin-row:last-child { border-bottom: none; }
+    .margin-name { width: 160px; flex-shrink: 0; font-weight: 700; font-size: .88rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .margin-bar-wrap { flex: 1; background: #f3f4f6; border-radius: 4px; height: 18px; position: relative; }
+    .margin-bar-fill { height: 100%; border-radius: 4px; }
+    .margin-pct { width: 48px; text-align: right; font-weight: 900; font-size: .85rem; flex-shrink: 0; }
+    .margin-profit { width: 90px; text-align: right; font-size: .8rem; color: #555; flex-shrink: 0; }
+    .margin-no-cost { color: #ccc; font-size: .82rem; font-style: italic; }
     .period-label { color: #888; font-size: .85rem; }
 
     @media (max-width: 800px) {
@@ -289,6 +297,56 @@
         {% endif %}
       </div>
 
+    </div>
+
+    <!-- MARGEM POR PRODUTO -->
+    <div class="card">
+      <h2>📊 Margem por produto</h2>
+      {% if top_products %}
+        {% set products_with_cost = top_products | selectattr('cost_price') | list %}
+        {% set products_no_cost   = top_products | rejectattr('cost_price') | list %}
+        {% if products_with_cost %}
+          {# Сортируем по марже вручную через ns #}
+          {% set ns = namespace(sorted=[]) %}
+          {% for p in products_with_cost %}
+            {% set rev = p.total_revenue | float %}
+            {% set cost = p.total_cost | float %}
+            {% set profit = rev - cost %}
+            {% set mg = (profit / rev * 100) if rev > 0 else 0 %}
+            {% set _ = ns.sorted.append({'name': p.name, 'unit': p.unit, 'revenue': rev, 'cost': cost, 'profit': profit, 'margin': mg}) %}
+          {% endfor %}
+          {# Находим max и min маржу для нормализации бара #}
+          {% set max_mg = ns.sorted | map(attribute='margin') | max %}
+          {% set min_mg = ns.sorted | map(attribute='margin') | min %}
+
+          {% for p in ns.sorted | sort(attribute='margin', reverse=True) %}
+            {% set mg = p.margin %}
+            {% if mg >= 30 %}{% set bar_color = '#22c55e' %}
+            {% elif mg >= 15 %}{% set bar_color = '#f59e0b' %}
+            {% elif mg >= 0 %}{% set bar_color = '#f97316' %}
+            {% else %}{% set bar_color = '#ef4444' %}{% endif %}
+            {% set bar_pct = [[(mg / max_mg * 100) if max_mg > 0 else 0, 2] | max, 100] | min %}
+            <div class="margin-row">
+              <div class="margin-name" title="{{ p.name }}">{{ p.name }} <small style="color:#aaa">({{ p.unit }})</small></div>
+              <div class="margin-bar-wrap">
+                <div class="margin-bar-fill" style="width:{{ bar_pct }}%; background:{{ bar_color }};"></div>
+              </div>
+              <div class="margin-pct" style="color:{{ bar_color }};">{{ "%.1f"|format(mg) }}%</div>
+              <div class="margin-profit">lucro R$ {{ "%.2f"|format(p.profit) }}</div>
+            </div>
+          {% endfor %}
+
+          {% if products_no_cost %}
+            <div style="margin-top:12px; padding-top:10px; border-top:1px solid #f3f4f6; color:#aaa; font-size:.82rem;">
+              Sem custo cadastrado: {% for p in products_no_cost %}{{ p.name }}{% if not loop.last %}, {% endif %}{% endfor %}
+            </div>
+          {% endif %}
+        {% else %}
+          <div class="empty">Nenhum produto com preço de custo cadastrado</div>
+        {% endif %}
+      {% else %}
+        <div class="empty">Sem vendas no período</div>
+      {% endif %}
     </div>
 
     <!-- TOP DETALHADO -->
