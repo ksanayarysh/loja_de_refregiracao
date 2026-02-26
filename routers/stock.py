@@ -150,6 +150,33 @@ async def stock_balance(request: Request, _=Depends(basic_auth)):
     })
 
 
+# ── STOCK BALANCE V2 (tabela) ──
+
+@router.get("/stockv2", response_class=HTMLResponse)
+async def stock_balance_v2(request: Request, _=Depends(basic_auth)):
+    async with engine.connect() as conn:
+        summary_res = await conn.execute(text("""
+            SELECT p.id, p.name, p.unit, p.min_stock,
+                   COALESCE(c.name, '—') as category_name,
+                   GREATEST(0, COALESCE(SUM(sm.qty), 0)) as current_stock
+            FROM products p
+            LEFT JOIN categories c ON c.id = p.category_id
+            LEFT JOIN stock_movements sm ON sm.product_id = p.id
+            WHERE p.active = TRUE
+            GROUP BY p.id, p.name, p.unit, p.min_stock, c.name
+            ORDER BY p.name
+        """))
+        stock_summary = summary_res.mappings().all()
+
+    return templates.TemplateResponse("stock_balance_v2.html", {
+        "request": request,
+        "stock_summary": stock_summary,
+        "added":   request.query_params.get("added")   == "1",
+        "deleted": request.query_params.get("deleted") == "1",
+        "edited":  request.query_params.get("edited")  == "1",
+    })
+
+
 # ── STOCK HISTORY (histórico de movimentos) ──
 
 @router.get("/stock/history", response_class=HTMLResponse)

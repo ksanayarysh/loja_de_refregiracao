@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Estoque v2 — M.T.F</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, Helvetica, sans-serif; background: bisque; min-height: 100vh; font-size: 15px; }
+    .navbar { background: bisque; padding: 10px 16px; display: flex; align-items: center; border-bottom: 1px solid #ccc; gap: 20px; flex-wrap: wrap; }
+    .nav-brand { font-weight: 900; font-size: 1.1rem; color: #111; text-decoration: none; }
+    .navbar a { color: #E2144A; text-decoration: none; font-weight: 700; font-size: .95rem; }
+    .navbar a:hover { text-decoration: underline; }
+    .navbar a.active { color: #111; font-weight: 900; }
+    .layout { display: flex; min-height: calc(100vh - 50px); }
+    .sidebar { width: 160px; flex-shrink: 0; border-right: 1px solid #ccc; padding: 16px 0; background: bisque; }
+    .sidebar ul { list-style: none; }
+    .sidebar ul li { position: relative; }
+    .sidebar ul li a { display: block; text-decoration: none; color: #E2144A; background: #fff; padding: 7px 10px; border: 1px solid #ccc; border-left: none; font-size: .9rem; }
+    .sidebar ul li a:hover { background: #ccc; font-weight: bold; }
+    .sidebar .submenu { display: none; position: absolute; left: 149px; top: 0; width: 150px; z-index: 10; }
+    .sidebar ul li:hover .submenu { display: block; }
+    .content { flex: 1; padding: 24px; display: flex; flex-direction: column; gap: 16px; overflow-x: auto; }
+
+    .topbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .topbar h1 { font-size: 1.3rem; color: #111; flex: 1; }
+
+    .btn { display: inline-block; padding: 8px 14px; border-radius: 8px; background: #111827; color: #fff;
+           text-decoration: none; font-weight: 800; border: none; cursor: pointer; font-size: .88rem;
+           font-family: inherit; white-space: nowrap; }
+    .btn:hover { background: #374151; }
+    .btn.outline { background: #fff; color: #111; border: 1px solid #ccc; }
+    .btn.outline:hover { background: bisque; }
+
+    .msg { padding: 10px 14px; border-radius: 8px; font-weight: 800; font-size: .9rem; }
+    .msg.ok  { background: #ecfdf5; border: 1px solid #bbf7d0; color: #065f46; }
+    .msg.del { background: #fef2f2; border: 1px solid #fecaca; color: #7f1d1d; }
+
+    /* TOOLBAR */
+    .toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .toolbar input[type="text"] { padding: 8px 14px; border-radius: 8px; border: 1px solid #ccc;
+                                   font-size: .88rem; font-family: inherit; width: 240px; }
+    .toolbar input:focus { outline: none; border-color: #007bff; }
+    .filter-btns { display: flex; gap: 6px; }
+    .filter-btn { padding: 6px 14px; border-radius: 20px; border: 1px solid #ccc; background: #fff;
+                  font-size: .8rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+    .filter-btn:hover { background: bisque; }
+    .filter-btn.active      { background: #111827; color: #fff; border-color: #111827; }
+    .filter-btn.f-low.active  { background: #d97706; border-color: #d97706; color: #fff; }
+    .filter-btn.f-empty.active{ background: #dc2626; border-color: #dc2626; color: #fff; }
+
+    /* SUMMARY */
+    .summary-bar { display: flex; gap: 20px; flex-wrap: wrap; font-size: .85rem; }
+    .summary-bar b { font-weight: 900; }
+    .ok-c  { color: #166534; }
+    .low-c { color: #d97706; }
+    .emp-c { color: #dc2626; }
+
+    /* CARD */
+    .card { background: #fff; border-radius: 14px; box-shadow: 0 4px 14px rgba(0,0,0,.08); overflow: hidden; }
+
+    /* TABLE */
+    table { width: 100%; border-collapse: collapse; }
+    thead th { background: bisque; padding: 10px 12px; font-weight: 900; font-size: .82rem;
+               text-transform: uppercase; letter-spacing: .03em; color: #555;
+               border-bottom: 2px solid #e5e7eb; white-space: nowrap; cursor: pointer; user-select: none; }
+    thead th:hover { background: #f5deb3; }
+    thead th .sort-arrow { margin-left: 4px; opacity: .4; font-size: .75rem; }
+    thead th.sorted .sort-arrow { opacity: 1; }
+
+    tbody tr { border-bottom: 1px solid #f0f0f0; transition: background .1s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #fafafa; }
+    tbody tr.row-empty { background: #fff8f8; }
+    tbody tr.row-low   { background: #fffdf0; }
+
+    td { padding: 9px 12px; font-size: .9rem; vertical-align: middle; }
+
+    .td-name { font-weight: 800; color: #111; }
+    .td-cat  { font-size: .8rem; color: #888; }
+
+    .stock-val { font-weight: 900; font-size: 1rem; }
+    .stock-val.ok    { color: #166534; }
+    .stock-val.low   { color: #92400e; }
+    .stock-val.empty { color: #dc2626; }
+
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: .72rem; font-weight: 800; }
+    .badge.ok    { background: #dcfce7; color: #166534; }
+    .badge.low   { background: #fef3c7; color: #92400e; }
+    .badge.empty { background: #fef2f2; color: #dc2626; }
+
+    .td-actions { display: flex; gap: 5px; }
+    .act-btn { padding: 4px 10px; border-radius: 6px; border: 1px solid #ccc; background: #fff;
+               font-size: .78rem; font-weight: 700; cursor: pointer; text-decoration: none;
+               color: #111; font-family: inherit; white-space: nowrap; }
+    .act-btn:hover { background: bisque; }
+
+    .pill { display: inline-block; padding: 5px 12px; border-radius: 8px; background: bisque;
+            border: 1px solid #ccc; color: #111; font-weight: 700; font-size: .82rem; }
+
+    @media (max-width: 600px) {
+      .layout { flex-direction: column; }
+      .sidebar { width: 100%; border-right: none; border-bottom: 1px solid #ccc; }
+    }
+  </style>
+</head>
+<body>
+<header class="navbar">
+  <a href="/" class="nav-brand">🛍 M.T.F</a>
+  <a href="/">Início</a>
+  <a href="/products">Produtos</a>
+  <a href="/sales">Vendas</a>
+  <a href="/stock">Estoque</a>
+  <a href="/stockv2" class="active">Estoque v2</a>
+  <a href="/stock/history">Histórico</a>
+  <a href="/stock/new">+ Movimento</a>
+  <a href="/reports">Relatórios</a>
+  <a href="/calc">Calculadora</a>
+</header>
+<div class="layout">
+  <nav class="sidebar">
+    <ul>
+      <li><a href="/">Início</a></li>
+      <li><a href="#">Produtos ▸</a><ul class="submenu"><li><a href="/products">Lista</a></li><li><a href="/products/new">+ Cadastrar</a></li></ul></li>
+      <li><a href="#">Vendas ▸</a><ul class="submenu"><li><a href="/sales">Lista</a></li><li><a href="/sales/new">+ Nova</a></li></ul></li>
+      <li>
+        <a href="#">Estoque ▸</a>
+        <ul class="submenu">
+          <li><a href="/stock">Saldo (cards)</a></li>
+          <li><a href="/stockv2">Saldo (tabela)</a></li>
+          <li><a href="/stock/history">Histórico</a></li>
+          <li><a href="/stock/new">+ Entrada</a></li>
+        </ul>
+      </li>
+      <li><a href="/reports">Relatórios</a></li>
+      <li><a href="/calc">Calculadora</a></li>
+    </ul>
+  </nav>
+
+  <main class="content">
+    <div class="topbar">
+      <h1>📦 Saldo de Estoque</h1>
+      <a class="btn outline" href="/stock">🃏 Ver cards</a>
+      <a class="btn outline" href="/stock/history">📋 Histórico</a>
+      <a class="btn" href="/stock/new">+ Entrada</a>
+    </div>
+
+    {% if added %}<div class="msg ok">✅ Movimento registrado!</div>{% endif %}
+    {% if deleted %}<div class="msg del">🗑 Movimento excluído.</div>{% endif %}
+    {% if edited %}<div class="msg ok">✅ Movimento atualizado.</div>{% endif %}
+
+    <!-- TOOLBAR -->
+    <div class="toolbar">
+      <input type="text" id="searchInput" placeholder="🔍 Buscar produto ou categoria..." oninput="filterTable()">
+      <div class="filter-btns">
+        <button class="filter-btn active"  id="f-all"   onclick="setFilter('all')">Todos</button>
+        <button class="filter-btn f-low"   id="f-low"   onclick="setFilter('low')">⚠️ Baixo</button>
+        <button class="filter-btn f-empty" id="f-empty" onclick="setFilter('empty')">❌ Sem estoque</button>
+      </div>
+    </div>
+
+    <!-- SUMMARY -->
+    {% set total = stock_summary | length %}
+    {% set empty_count = stock_summary | selectattr('current_stock', 'le', 0) | list | length %}
+    {% set ns = namespace(low_count=0, ok_count=0) %}
+    {% for s in stock_summary %}
+      {% set st = s.current_stock | float %}
+      {% set mn = s.min_stock | float %}
+      {% if st > 0 and mn > 0 and st <= mn %}{% set ns.low_count = ns.low_count + 1 %}
+      {% elif st > 0 %}{% set ns.ok_count = ns.ok_count + 1 %}{% endif %}
+    {% endfor %}
+    <div class="summary-bar">
+      <span>Total <b>{{ total }}</b> produtos</span>
+      <span class="ok-c">✅ Em estoque: <b>{{ ns.ok_count }}</b></span>
+      <span class="low-c">⚠️ Baixo: <b>{{ ns.low_count }}</b></span>
+      <span class="emp-c">❌ Sem estoque: <b>{{ empty_count }}</b></span>
+    </div>
+
+    <!-- TABLE -->
+    <div class="card">
+      <table id="stockTable">
+        <thead>
+          <tr>
+            <th onclick="sortTable(0)" data-col="0">Produto <span class="sort-arrow">↕</span></th>
+            <th onclick="sortTable(1)" data-col="1">Categoria <span class="sort-arrow">↕</span></th>
+            <th onclick="sortTable(2)" data-col="2">Unidade <span class="sort-arrow">↕</span></th>
+            <th onclick="sortTable(3)" data-col="3" style="text-align:right;">Saldo <span class="sort-arrow">↕</span></th>
+            <th onclick="sortTable(4)" data-col="4" style="text-align:right;">Mínimo <span class="sort-arrow">↕</span></th>
+            <th onclick="sortTable(5)" data-col="5">Status <span class="sort-arrow">↕</span></th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in stock_summary %}
+            {% set st = s.current_stock | float %}
+            {% set mn = s.min_stock | float %}
+            {% if st <= 0 %}{% set cls = 'empty' %}
+            {% elif mn > 0 and st <= mn %}{% set cls = 'low' %}
+            {% else %}{% set cls = 'ok' %}{% endif %}
+            {% if s.unit == 'kg' %}{% set stfmt = "%.3f"|format(st) %}{% else %}{% set stfmt = "%.0f"|format(st) %}{% endif %}
+            {% if s.unit == 'kg' %}{% set mnfmt = "%.3f"|format(mn) %}{% else %}{% set mnfmt = "%.0f"|format(mn) %}{% endif %}
+
+            <tr class="row-{{ cls }}" data-name="{{ s.name | lower }}" data-cat="{{ s.category_name | default('') | lower }}" data-status="{{ cls }}">
+              <td class="td-name">{{ s.name }}</td>
+              <td class="td-cat">{{ s.category_name or '—' }}</td>
+              <td style="color:#888;font-size:.85rem;">{{ s.unit }}</td>
+              <td style="text-align:right;">
+                <span class="stock-val {{ cls }}">{{ stfmt }}</span>
+              </td>
+              <td style="text-align:right;color:#aaa;font-size:.85rem;">{{ mnfmt if mn > 0 else '—' }}</td>
+              <td><span class="badge {{ cls }}">{% if cls == 'ok' %}✅ Ok{% elif cls == 'low' %}⚠️ Baixo{% else %}❌ Sem estoque{% endif %}</span></td>
+              <td>
+                <div class="td-actions">
+                  <a class="act-btn" href="/stock/new?product_id={{ s.id }}">+ Entrada</a>
+                  <a class="act-btn" href="/stock/history?product_id={{ s.id }}">📋</a>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+  </main>
+</div>
+
+<script>
+let currentFilter = 'all';
+let sortCol = -1;
+let sortAsc = true;
+
+function setFilter(f) {
+  currentFilter = f;
+  ['all','low','empty'].forEach(id => {
+    const btn = document.getElementById('f-' + id);
+    btn.classList.remove('active');
+  });
+  document.getElementById('f-' + f).classList.add('active');
+  filterTable();
+}
+
+function filterTable() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  document.querySelectorAll('#stockTable tbody tr').forEach(row => {
+    const name   = row.dataset.name || '';
+    const cat    = row.dataset.cat  || '';
+    const status = row.dataset.status;
+    const matchSearch = !q || name.includes(q) || cat.includes(q);
+    const matchFilter = currentFilter === 'all'
+      || (currentFilter === 'low'   && status === 'low')
+      || (currentFilter === 'empty' && status === 'empty');
+    row.style.display = (matchSearch && matchFilter) ? '' : 'none';
+  });
+}
+
+function sortTable(col) {
+  const tbody = document.querySelector('#stockTable tbody');
+  const rows = Array.from(tbody.querySelectorAll('tr'));
+
+  if (sortCol === col) { sortAsc = !sortAsc; }
+  else { sortCol = col; sortAsc = true; }
+
+  // Update arrows
+  document.querySelectorAll('thead th').forEach((th, i) => {
+    th.classList.toggle('sorted', i === col);
+    const arrow = th.querySelector('.sort-arrow');
+    if (arrow) arrow.textContent = i === col ? (sortAsc ? '↑' : '↓') : '↕';
+  });
+
+  rows.sort((a, b) => {
+    const aCell = a.cells[col]?.textContent.trim() || '';
+    const bCell = b.cells[col]?.textContent.trim() || '';
+    const aNum = parseFloat(aCell.replace(/[^\d.-]/g, ''));
+    const bNum = parseFloat(bCell.replace(/[^\d.-]/g, ''));
+    let cmp;
+    if (!isNaN(aNum) && !isNaN(bNum)) { cmp = aNum - bNum; }
+    else { cmp = aCell.localeCompare(bCell, 'pt-BR'); }
+    return sortAsc ? cmp : -cmp;
+  });
+
+  rows.forEach(r => tbody.appendChild(r));
+}
+</script>
+</body>
+</html>
