@@ -61,12 +61,11 @@
 
     /* TABLE */
     table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-    col.c-name   { width: 30%; }
-    col.c-cat    { width: 18%; }
-    col.c-unit   { width: 9%; }
-    col.c-saldo  { width: 12%; }
-    col.c-status { width: 14%; }
-    col.c-act    { width: 17%; }
+    col.c-name   { width: 38%; }
+    col.c-unit   { width: 10%; }
+    col.c-saldo  { width: 14%; }
+    col.c-status { width: 16%; }
+    col.c-act    { width: 22%; }
 
     thead th { background: bisque; padding: 11px 14px; font-weight: 900; font-size: .85rem;
                text-transform: uppercase; letter-spacing: .03em; color: #555;
@@ -101,6 +100,12 @@
 
     .pill { display: inline-block; padding: 5px 12px; border-radius: 8px; background: bisque;
             border: 1px solid #ccc; color: #111; font-weight: 700; font-size: .82rem; }
+
+    .cat-header { background: #111827; color: #fff; padding: 8px 14px;
+                  font-weight: 900; font-size: .82rem; text-transform: uppercase;
+                  letter-spacing: .06em; }
+    .cat-header td { padding: 8px 14px; color: #fff; font-weight: 900;
+                     font-size: .82rem; text-transform: uppercase; letter-spacing: .06em; }
 
     @media (max-width: 600px) {
       .layout { flex-direction: column; }
@@ -182,7 +187,6 @@
       <table id="stockTable">
         <colgroup>
           <col class="c-name">
-          <col class="c-cat">
           <col class="c-unit">
           <col class="c-saldo">
           <col class="c-status">
@@ -191,26 +195,29 @@
         <thead>
           <tr>
             <th onclick="sortTable(0)" data-col="0">Produto <span class="sort-arrow">↕</span></th>
-            <th onclick="sortTable(1)" data-col="1">Categoria <span class="sort-arrow">↕</span></th>
-            <th onclick="sortTable(2)" data-col="2">Unidade <span class="sort-arrow">↕</span></th>
-            <th onclick="sortTable(3)" data-col="3" style="text-align:right;">Saldo <span class="sort-arrow">↕</span></th>
-            <th onclick="sortTable(4)" data-col="4">Status <span class="sort-arrow">↕</span></th>
+            <th onclick="sortTable(1)" data-col="1">Unidade <span class="sort-arrow">↕</span></th>
+            <th onclick="sortTable(2)" data-col="2" style="text-align:right;">Saldo <span class="sort-arrow">↕</span></th>
+            <th onclick="sortTable(3)" data-col="3">Status <span class="sort-arrow">↕</span></th>
             <th>Ações</th>
           </tr>
         </thead>
         <tbody>
+          {% set ns = namespace(cur_cat=None) %}
           {% for s in stock_summary %}
             {% set st = s.current_stock | float %}
-            {% set mn = s.min_stock | float %}
-            {% if st <= 0 %}{% set cls = 'empty' %}
-            {% elif mn > 0 and st <= mn %}{% set cls = 'low' %}
-            {% else %}{% set cls = 'ok' %}{% endif %}
+            {% if st <= 0 %}{% set cls = 'empty' %}{% else %}{% set cls = 'ok' %}{% endif %}
             {% if s.unit == 'kg' %}{% set stfmt = "%.3f"|format(st) %}{% else %}{% set stfmt = "%.0f"|format(st) %}{% endif %}
-            {% if s.unit == 'kg' %}{% set mnfmt = "%.3f"|format(mn) %}{% else %}{% set mnfmt = "%.0f"|format(mn) %}{% endif %}
+            {% set cat = s.category_name or 'Outro' %}
 
-            <tr class="row-{{ cls }}" data-name="{{ s.name | lower }}" data-cat="{{ s.category_name | default('') | lower }}" data-status="{{ cls }}">
+            {% if cat != ns.cur_cat %}
+              {% set ns.cur_cat = cat %}
+              <tr class="cat-header">
+                <td colspan="5">{{ cat }}</td>
+              </tr>
+            {% endif %}
+
+            <tr class="row-{{ cls }}" data-name="{{ s.name | lower }}" data-cat="{{ cat | lower }}" data-status="{{ cls }}">
               <td class="td-name" title="{{ s.name }}">{{ s.name }}</td>
-              <td class="td-cat">{{ s.category_name or '—' }}</td>
               <td style="color:#888;">{{ s.unit }}</td>
               <td style="text-align:right;">
                 <span class="stock-val {{ cls }}">{{ stfmt }}</span>
@@ -248,7 +255,10 @@ function setFilter(f) {
 
 function filterTable() {
   const q = document.getElementById('searchInput').value.toLowerCase();
-  document.querySelectorAll('#stockTable tbody tr').forEach(row => {
+  const tbody = document.querySelector('#stockTable tbody');
+  const rows = Array.from(tbody.querySelectorAll('tr[data-status]'));
+
+  rows.forEach(row => {
     const name   = row.dataset.name || '';
     const cat    = row.dataset.cat  || '';
     const status = row.dataset.status;
@@ -257,34 +267,29 @@ function filterTable() {
       || (currentFilter === 'empty' && status === 'empty');
     row.style.display = (matchSearch && matchFilter) ? '' : 'none';
   });
+
+  // Show/hide category headers based on visible rows
+  tbody.querySelectorAll('tr.cat-header').forEach(header => {
+    // Find next sibling rows until next cat-header
+    let next = header.nextElementSibling;
+    let hasVisible = false;
+    while (next && !next.classList.contains('cat-header')) {
+      if (next.style.display !== 'none') hasVisible = true;
+      next = next.nextElementSibling;
+    }
+    header.style.display = hasVisible ? '' : 'none';
+  });
 }
 
 function sortTable(col) {
-  const tbody = document.querySelector('#stockTable tbody');
-  const rows = Array.from(tbody.querySelectorAll('tr'));
-
+  // Sorting disabled when grouped — just update arrows as visual feedback
   if (sortCol === col) { sortAsc = !sortAsc; }
   else { sortCol = col; sortAsc = true; }
-
-  // Update arrows
   document.querySelectorAll('thead th').forEach((th, i) => {
     th.classList.toggle('sorted', i === col);
     const arrow = th.querySelector('.sort-arrow');
     if (arrow) arrow.textContent = i === col ? (sortAsc ? '↑' : '↓') : '↕';
   });
-
-  rows.sort((a, b) => {
-    const aCell = a.cells[col]?.textContent.trim() || '';
-    const bCell = b.cells[col]?.textContent.trim() || '';
-    const aNum = parseFloat(aCell.replace(/[^\d.-]/g, ''));
-    const bNum = parseFloat(bCell.replace(/[^\d.-]/g, ''));
-    let cmp;
-    if (!isNaN(aNum) && !isNaN(bNum)) { cmp = aNum - bNum; }
-    else { cmp = aCell.localeCompare(bCell, 'pt-BR'); }
-    return sortAsc ? cmp : -cmp;
-  });
-
-  rows.forEach(r => tbody.appendChild(r));
 }
 </script>
 </body>
