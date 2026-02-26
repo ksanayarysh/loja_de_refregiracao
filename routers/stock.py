@@ -127,7 +127,7 @@ async def stock_create(
 
 # ── STOCK BALANCE (saldo atual) ──
 
-@router.get("/stock", response_class=HTMLResponse)
+@router.get("/stock/cards", response_class=HTMLResponse)
 async def stock_balance(request: Request, _=Depends(basic_auth)):
     async with engine.connect() as conn:
         summary_res = await conn.execute(text("""
@@ -152,7 +152,7 @@ async def stock_balance(request: Request, _=Depends(basic_auth)):
 
 # ── STOCK BALANCE V2 (tabela) ──
 
-@router.get("/stockv2", response_class=HTMLResponse)
+@router.get("/stock", response_class=HTMLResponse)
 async def stock_balance_v2(request: Request, _=Depends(basic_auth)):
     async with engine.connect() as conn:
         summary_res = await conn.execute(text("""

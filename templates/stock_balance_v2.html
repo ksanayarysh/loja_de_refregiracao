@@ -6,7 +6,7 @@
   <title>Estoque v2 — M.T.F</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: Arial, Helvetica, sans-serif; background: bisque; min-height: 100vh; font-size: 15px; }
+    body { font-family: Arial, Helvetica, sans-serif; background: bisque; min-height: 100vh; font-size: 16px; }
     .navbar { background: bisque; padding: 10px 16px; display: flex; align-items: center; border-bottom: 1px solid #ccc; gap: 20px; flex-wrap: wrap; }
     .nav-brand { font-weight: 900; font-size: 1.1rem; color: #111; text-decoration: none; }
     .navbar a { color: #E2144A; text-decoration: none; font-weight: 700; font-size: .95rem; }
@@ -60,8 +60,15 @@
     .card { background: #fff; border-radius: 14px; box-shadow: 0 4px 14px rgba(0,0,0,.08); overflow: hidden; }
 
     /* TABLE */
-    table { width: 100%; border-collapse: collapse; }
-    thead th { background: bisque; padding: 10px 12px; font-weight: 900; font-size: .82rem;
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    col.c-name   { width: 30%; }
+    col.c-cat    { width: 18%; }
+    col.c-unit   { width: 9%; }
+    col.c-saldo  { width: 12%; }
+    col.c-status { width: 14%; }
+    col.c-act    { width: 17%; }
+
+    thead th { background: bisque; padding: 11px 14px; font-weight: 900; font-size: .85rem;
                text-transform: uppercase; letter-spacing: .03em; color: #555;
                border-bottom: 2px solid #e5e7eb; white-space: nowrap; cursor: pointer; user-select: none; }
     thead th:hover { background: #f5deb3; }
@@ -72,26 +79,23 @@
     tbody tr:last-child { border-bottom: none; }
     tbody tr:hover { background: #fafafa; }
     tbody tr.row-empty { background: #fff8f8; }
-    tbody tr.row-low   { background: #fffdf0; }
 
-    td { padding: 9px 12px; font-size: .9rem; vertical-align: middle; }
+    td { padding: 11px 14px; font-size: .93rem; vertical-align: middle; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-    .td-name { font-weight: 800; color: #111; }
-    .td-cat  { font-size: .8rem; color: #888; }
+    .td-name { font-weight: 800; color: #111; font-size: 1rem; }
+    .td-cat  { color: #888; }
 
-    .stock-val { font-weight: 900; font-size: 1rem; }
+    .stock-val { font-weight: 900; font-size: 1.05rem; }
     .stock-val.ok    { color: #166534; }
-    .stock-val.low   { color: #92400e; }
     .stock-val.empty { color: #dc2626; }
 
-    .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: .72rem; font-weight: 800; }
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 10px; font-size: .8rem; font-weight: 800; }
     .badge.ok    { background: #dcfce7; color: #166534; }
-    .badge.low   { background: #fef3c7; color: #92400e; }
     .badge.empty { background: #fef2f2; color: #dc2626; }
 
-    .td-actions { display: flex; gap: 5px; }
-    .act-btn { padding: 4px 10px; border-radius: 6px; border: 1px solid #ccc; background: #fff;
-               font-size: .78rem; font-weight: 700; cursor: pointer; text-decoration: none;
+    .td-actions { display: flex; gap: 6px; }
+    .act-btn { padding: 5px 12px; border-radius: 6px; border: 1px solid #ccc; background: #fff;
+               font-size: .82rem; font-weight: 700; cursor: pointer; text-decoration: none;
                color: #111; font-family: inherit; white-space: nowrap; }
     .act-btn:hover { background: bisque; }
 
@@ -110,8 +114,7 @@
   <a href="/">Início</a>
   <a href="/products">Produtos</a>
   <a href="/sales">Vendas</a>
-  <a href="/stock">Estoque</a>
-  <a href="/stockv2" class="active">Estoque v2</a>
+  <a href="/stock" class="active">Estoque</a>
   <a href="/stock/history">Histórico</a>
   <a href="/stock/new">+ Movimento</a>
   <a href="/reports">Relatórios</a>
@@ -126,8 +129,8 @@
       <li>
         <a href="#">Estoque ▸</a>
         <ul class="submenu">
-          <li><a href="/stock">Saldo (cards)</a></li>
-          <li><a href="/stockv2">Saldo (tabela)</a></li>
+          <li><a href="/stock">Saldo</a></li>
+          <li><a href="/stock/cards">Ver cards</a></li>
           <li><a href="/stock/history">Histórico</a></li>
           <li><a href="/stock/new">+ Entrada</a></li>
         </ul>
@@ -140,7 +143,7 @@
   <main class="content">
     <div class="topbar">
       <h1>📦 Saldo de Estoque</h1>
-      <a class="btn outline" href="/stock">🃏 Ver cards</a>
+      <a class="btn outline" href="/stock/cards">🃏 Ver cards</a>
       <a class="btn outline" href="/stock/history">📋 Histórico</a>
       <a class="btn" href="/stock/new">+ Entrada</a>
     </div>
@@ -154,7 +157,6 @@
       <input type="text" id="searchInput" placeholder="🔍 Buscar produto ou categoria..." oninput="filterTable()">
       <div class="filter-btns">
         <button class="filter-btn active"  id="f-all"   onclick="setFilter('all')">Todos</button>
-        <button class="filter-btn f-low"   id="f-low"   onclick="setFilter('low')">⚠️ Baixo</button>
         <button class="filter-btn f-empty" id="f-empty" onclick="setFilter('empty')">❌ Sem estoque</button>
       </div>
     </div>
@@ -172,21 +174,27 @@
     <div class="summary-bar">
       <span>Total <b>{{ total }}</b> produtos</span>
       <span class="ok-c">✅ Em estoque: <b>{{ ns.ok_count }}</b></span>
-      <span class="low-c">⚠️ Baixo: <b>{{ ns.low_count }}</b></span>
       <span class="emp-c">❌ Sem estoque: <b>{{ empty_count }}</b></span>
     </div>
 
     <!-- TABLE -->
     <div class="card">
       <table id="stockTable">
+        <colgroup>
+          <col class="c-name">
+          <col class="c-cat">
+          <col class="c-unit">
+          <col class="c-saldo">
+          <col class="c-status">
+          <col class="c-act">
+        </colgroup>
         <thead>
           <tr>
             <th onclick="sortTable(0)" data-col="0">Produto <span class="sort-arrow">↕</span></th>
             <th onclick="sortTable(1)" data-col="1">Categoria <span class="sort-arrow">↕</span></th>
             <th onclick="sortTable(2)" data-col="2">Unidade <span class="sort-arrow">↕</span></th>
             <th onclick="sortTable(3)" data-col="3" style="text-align:right;">Saldo <span class="sort-arrow">↕</span></th>
-            <th onclick="sortTable(4)" data-col="4" style="text-align:right;">Mínimo <span class="sort-arrow">↕</span></th>
-            <th onclick="sortTable(5)" data-col="5">Status <span class="sort-arrow">↕</span></th>
+            <th onclick="sortTable(4)" data-col="4">Status <span class="sort-arrow">↕</span></th>
             <th>Ações</th>
           </tr>
         </thead>
@@ -201,18 +209,17 @@
             {% if s.unit == 'kg' %}{% set mnfmt = "%.3f"|format(mn) %}{% else %}{% set mnfmt = "%.0f"|format(mn) %}{% endif %}
 
             <tr class="row-{{ cls }}" data-name="{{ s.name | lower }}" data-cat="{{ s.category_name | default('') | lower }}" data-status="{{ cls }}">
-              <td class="td-name">{{ s.name }}</td>
+              <td class="td-name" title="{{ s.name }}">{{ s.name }}</td>
               <td class="td-cat">{{ s.category_name or '—' }}</td>
-              <td style="color:#888;font-size:.85rem;">{{ s.unit }}</td>
+              <td style="color:#888;">{{ s.unit }}</td>
               <td style="text-align:right;">
                 <span class="stock-val {{ cls }}">{{ stfmt }}</span>
               </td>
-              <td style="text-align:right;color:#aaa;font-size:.85rem;">{{ mnfmt if mn > 0 else '—' }}</td>
-              <td><span class="badge {{ cls }}">{% if cls == 'ok' %}✅ Ok{% elif cls == 'low' %}⚠️ Baixo{% else %}❌ Sem estoque{% endif %}</span></td>
+              <td><span class="badge {{ cls }}">{% if cls == 'ok' %}✅ Ok{% else %}❌ Sem estoque{% endif %}</span></td>
               <td>
                 <div class="td-actions">
                   <a class="act-btn" href="/stock/new?product_id={{ s.id }}">+ Entrada</a>
-                  <a class="act-btn" href="/stock/history?product_id={{ s.id }}">📋</a>
+                  <a class="act-btn" href="/stock/history?product_id={{ s.id }}">Histórico</a>
                 </div>
               </td>
             </tr>
@@ -231,7 +238,7 @@ let sortAsc = true;
 
 function setFilter(f) {
   currentFilter = f;
-  ['all','low','empty'].forEach(id => {
+  ['all','empty'].forEach(id => {
     const btn = document.getElementById('f-' + id);
     btn.classList.remove('active');
   });
@@ -247,7 +254,6 @@ function filterTable() {
     const status = row.dataset.status;
     const matchSearch = !q || name.includes(q) || cat.includes(q);
     const matchFilter = currentFilter === 'all'
-      || (currentFilter === 'low'   && status === 'low')
       || (currentFilter === 'empty' && status === 'empty');
     row.style.display = (matchSearch && matchFilter) ? '' : 'none';
   });
