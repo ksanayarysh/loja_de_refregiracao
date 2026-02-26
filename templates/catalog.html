@@ -279,7 +279,6 @@
   </div>
   <div class="filter-row" id="filterRow">
     <button class="filter-chip active" data-filter="all">Todos</button>
-    <button class="filter-chip" data-filter="in_stock">Em estoque</button>
     <!-- category chips inserted by JS -->
   </div>
 </div>
@@ -312,7 +311,7 @@
 <script>
   // ── CONFIG ──────────────────────────────────────────────
   const API_URL = "/api/catalog";
-  const WA_NUMBER  = '+5521995568722'; // ex: 5521999998888
+  const WA_NUMBER  = '55XXXXXXXXXXX'; // ex: 5521999998888
   const WA_MSG     = 'Olá! Gostaria de mais informações sobre os produtos.';
   // ────────────────────────────────────────────────────────
 
@@ -341,7 +340,6 @@
         || p.name.toLowerCase().includes(searchQuery)
         || p.category.toLowerCase().includes(searchQuery);
       const matchFilter = activeFilter === 'all'
-        || (activeFilter === 'in_stock' && p.in_stock)
         || activeFilter === p.category;
       return matchSearch && matchFilter;
     });
@@ -352,9 +350,7 @@
     const inStock = filtered.filter(p => p.in_stock).length;
     const out     = total - inStock;
     document.getElementById('statsBar').innerHTML =
-      `<b>${total}</b> produtos · `
-      + `<span class="dot-green">✓ ${inStock} em estoque</span> · `
-      + `<span class="dot-red">✗ ${out} indisponível</span>`;
+      `<b>${total}</b> produtos disponíveis`;
   }
 
   function renderCatalog() {
@@ -383,13 +379,11 @@
         const priceHtml = p.sale_price != null
           ? `<div class="prod-price">R$ ${p.sale_price.toFixed(2)}</div>`
           : `<div class="prod-price no-price">Consulte</div>`;
-        const stockPill = p.in_stock
-          ? `<span class="stock-pill in">Em estoque</span>`
-          : `<span class="stock-pill out">Indisponível</span>`;
+        const stockPill = `<span class="stock-pill in">Disponível</span>`;
         const waHref = waLink(waMsgForProduct(p.name, p.sale_price));
         html += `
         <div class="product-row">
-          <div class="prod-name ${p.in_stock ? '' : 'out'}">${p.name}</div>
+          <div class="prod-name">${p.name}</div>
           ${stockPill}
           ${priceHtml}
           <a class="wa-row-btn" href="${waHref}" target="_blank" rel="noopener" title="Consultar no WhatsApp">

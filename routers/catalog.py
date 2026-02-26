@@ -18,13 +18,10 @@ async def catalog_api():
     async with engine.connect() as conn:
         res = await conn.execute(text("""
             SELECT p.id, p.name, p.sale_price, p.unit,
-                   COALESCE(c.name, 'Outro') AS category_name,
-                   GREATEST(0, COALESCE(SUM(sm.qty), 0)) AS current_stock
+                   COALESCE(c.name, 'Outro') AS category_name
             FROM products p
             LEFT JOIN categories c ON c.id = p.category_id
-            LEFT JOIN stock_movements sm ON sm.product_id = p.id
             WHERE p.active = TRUE
-            GROUP BY p.id, p.name, p.sale_price, p.unit, c.name
             ORDER BY c.name NULLS LAST, p.name
         """))
         rows = res.mappings().all()
@@ -36,7 +33,7 @@ async def catalog_api():
             "sale_price": float(r["sale_price"]) if r["sale_price"] else None,
             "unit":       r["unit"],
             "category":   r["category_name"],
-            "in_stock":   float(r["current_stock"]) > 0,
+            "in_stock":   True,  # todos disponíveis até inventário
         }
         for r in rows
     ]
