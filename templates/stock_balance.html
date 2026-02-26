@@ -46,27 +46,34 @@
     .filter-btn.f-empty.active { background: #dc2626; border-color: #dc2626; }
 
     /* GRID */
-    .stock-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
-    .stock-card { border-radius: 10px; padding: 14px 12px; border: 2px solid #e5e7eb; background: #fff; cursor: default; transition: box-shadow .15s; }
+    .stock-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: 10px; }
+    .stock-card { border-radius: 10px; padding: 12px; border: 2px solid #e5e7eb; background: #fff;
+                  display: flex; flex-direction: column; transition: box-shadow .15s; }
     .stock-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,.1); }
     .stock-card.ok    { border-color: #bbf7d0; background: #f0fdf4; }
     .stock-card.low   { border-color: #fde68a; background: #fffbeb; }
     .stock-card.empty { border-color: #fca5a5; background: #fef2f2; }
-    .sc-name  { font-weight: 900; font-size: .88rem; color: #111; margin-bottom: 6px; line-height: 1.3; }
-    .sc-stock { font-size: 1.6rem; font-weight: 900; line-height: 1; }
+    /* фиксированная зона названия — всегда 2 строки */
+    .sc-name  { font-weight: 900; font-size: .85rem; color: #111; line-height: 1.3;
+                height: 2.6em; overflow: hidden; display: -webkit-box;
+                -webkit-line-clamp: 2; -webkit-box-orient: vertical; margin-bottom: 8px; }
+    /* зона числа — по центру, всегда одна высота */
+    .sc-body  { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 2px 0 6px; }
+    .sc-stock { font-size: 1.7rem; font-weight: 900; line-height: 1; }
     .sc-stock.ok    { color: #166534; }
     .sc-stock.low   { color: #92400e; }
     .sc-stock.empty { color: #dc2626; }
-    .sc-unit  { font-size: .75rem; color: #888; margin-top: 2px; }
-    .sc-min   { font-size: .73rem; color: #aaa; margin-top: 3px; }
-    .sc-warn  { font-size: .72rem; font-weight: 800; margin-top: 5px; }
+    .sc-unit  { font-size: .75rem; color: #888; margin-top: 3px; }
+    /* фиксированная зона предупреждения — всегда одна строка высота */
+    .sc-warn  { font-size: .72rem; font-weight: 800; height: 1.4em; margin-top: 4px; }
     .sc-warn.low   { color: #92400e; }
     .sc-warn.empty { color: #dc2626; }
-    .sc-actions { display: flex; gap: 5px; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(0,0,0,.06); }
-    .sc-btn { flex: 1; padding: 5px 4px; border-radius: 6px; border: 1px solid #ccc; background: #fff; font-size: .75rem; font-weight: 700; cursor: pointer; text-align: center; text-decoration: none; color: #111; font-family: inherit; }
+    /* кнопки всегда внизу */
+    .sc-actions { display: flex; gap: 5px; padding-top: 8px; border-top: 1px solid rgba(0,0,0,.07); margin-top: auto; }
+    .sc-btn { flex: 1; padding: 5px 4px; border-radius: 6px; border: 1px solid #ccc; background: #fff;
+              font-size: .75rem; font-weight: 700; cursor: pointer; text-align: center;
+              text-decoration: none; color: #111; font-family: inherit; white-space: nowrap; }
     .sc-btn:hover { background: bisque; }
-    .sc-btn.red { border-color: #fca5a5; color: #dc2626; }
-    .sc-btn.red:hover { background: #fef2f2; }
 
     .summary-bar { display: flex; gap: 16px; flex-wrap: wrap; font-size: .85rem; color: #555; }
     .summary-bar span { font-weight: 700; }
@@ -124,17 +131,28 @@
       <input type="text" id="searchInput" placeholder="🔍 Buscar produto..." oninput="filterCards()">
       <div class="filter-btns">
         <button class="filter-btn active" id="f-all"   onclick="setFilter('all')">Todos</button>
+        <button class="filter-btn f-low"  id="f-low"   onclick="setFilter('low')">⚠️ Baixo</button>
         <button class="filter-btn f-empty" id="f-empty" onclick="setFilter('empty')">❌ Sem estoque</button>
       </div>
     </div>
 
     <!-- SUMMARY -->
     {% set total = stock_summary | length %}
-    {% set ok_count = stock_summary | selectattr('current_stock', 'gt', 0) | list | length %}
     {% set empty_count = stock_summary | selectattr('current_stock', 'le', 0) | list | length %}
+    {% set ns = namespace(low_count=0, ok_count=0) %}
+    {% for s in stock_summary %}
+      {% set st = s.current_stock | float %}
+      {% set mn = s.min_stock | float %}
+      {% if st > 0 and mn > 0 and st <= mn %}
+        {% set ns.low_count = ns.low_count + 1 %}
+      {% elif st > 0 %}
+        {% set ns.ok_count = ns.ok_count + 1 %}
+      {% endif %}
+    {% endfor %}
     <div class="summary-bar">
       <span>Total: <b>{{ total }}</b> produtos</span>
-      <span class="ok-c">✅ Em estoque: <b>{{ ok_count }}</b></span>
+      <span class="ok-c">✅ Em estoque: <b>{{ ns.ok_count }}</b></span>
+      <span class="low-c">⚠️ Baixo: <b>{{ ns.low_count }}</b></span>
       <span class="emp-c">❌ Sem estoque: <b>{{ empty_count }}</b></span>
     </div>
 
@@ -148,12 +166,14 @@
         {% else %}{% set cls = 'ok' %}{% endif %}
 
         <div class="stock-card {{ cls }}" data-name="{{ s.name | lower }}" data-status="{{ cls }}">
-          <div class="sc-name">{{ s.name }}</div>
-          <div class="sc-stock {{ cls }}">{% if s.unit == 'kg' %}{{ "%.3f"|format(st) }}{% else %}{{ "%.0f"|format(st) }}{% endif %}</div>
-          <div class="sc-unit">{{ s.unit }}</div>
-          {% if mn > 0 %}<div class="sc-min">mín: {% if s.unit == 'kg' %}{{ "%.3f"|format(mn) }}{% else %}{{ "%.0f"|format(mn) }}{% endif %}</div>{% endif %}
-          {% if cls == 'empty' %}<div class="sc-warn empty">⚠️ Sem estoque!</div>
-          {% elif cls == 'low' %}<div class="sc-warn low">⚠️ Estoque baixo</div>{% endif %}
+          <div class="sc-name" title="{{ s.name }}">{{ s.name }}</div>
+          <div class="sc-body">
+            <div class="sc-stock {{ cls }}">{% if s.unit == 'kg' %}{{ "%.3f"|format(st) }}{% else %}{{ "%.0f"|format(st) }}{% endif %}</div>
+            <div class="sc-unit">{{ s.unit }}{% if mn > 0 %} · mín: {% if s.unit == 'kg' %}{{ "%.3f"|format(mn) }}{% else %}{{ "%.0f"|format(mn) }}{% endif %}{% endif %}</div>
+            {% if cls == 'empty' %}<div class="sc-warn empty">⚠️ Sem estoque!</div>
+            {% elif cls == 'low' %}<div class="sc-warn low">⚠️ Estoque baixo</div>
+            {% else %}<div class="sc-warn"></div>{% endif %}
+          </div>
           <div class="sc-actions">
             <a class="sc-btn" href="/stock/new?product_id={{ s.id }}">+ Entrada</a>
             <a class="sc-btn" href="/stock/history?product_id={{ s.id }}">📋</a>
