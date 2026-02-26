@@ -7,6 +7,7 @@ from fastapi import FastAPI, Depends, Request
 from dependencies import engine, basic_auth, templates
 from routers.stock import router as stock_router
 from routers.reports import router as reports_router
+from routers.catalog import router as catalog_router
 
 app = FastAPI()
 
@@ -20,6 +21,7 @@ app.include_router(products.router)
 app.include_router(sales.router)
 app.include_router(reports_router)
 app.include_router(stock_router)
+app.include_router(catalog_router)
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request, _=Depends(basic_auth)):
