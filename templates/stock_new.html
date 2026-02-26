@@ -266,6 +266,20 @@ document.querySelectorAll('input[name="cost_mode"]').forEach(r => r.addEventList
 
 // init unit label
 document.getElementById('unit_span').textContent = selectedUnit();
+
+// ── авто-выбор продукта из URL ?product_id=XX ──
+(function() {
+  const pid = new URLSearchParams(window.location.search).get('product_id');
+  if (!pid) return;
+  const sel = document.getElementById('product_id');
+  for (const opt of sel.options) {
+    if (opt.value === pid) {
+      opt.selected = true;
+      onProductChange();
+      break;
+    }
+  }
+})();
 </script>
 </body>
 </html>
