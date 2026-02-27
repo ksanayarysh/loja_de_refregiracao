@@ -7,7 +7,7 @@ from dependencies import engine, templates
 router = APIRouter()
 
 
-@router.get("/catalog", response_class=HTMLResponse)
+@router.get("/", response_class=HTMLResponse)
 async def catalog_page(request: Request):
     return templates.TemplateResponse("catalog.html", {"request": request})
 

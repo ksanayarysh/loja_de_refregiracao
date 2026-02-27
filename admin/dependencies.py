@@ -4,6 +4,9 @@ from fastapi import Request, HTTPException
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
+from dotenv import load_dotenv
+
+load_dotenv()
 
 DATABASE_URL = os.environ["DATABASE_URL"]
 DATABASE_URL = DATABASE_URL.replace("postgresql+psycopg2://", "postgresql+asyncpg://")
@@ -18,7 +21,7 @@ AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=F
 
 templates = Jinja2Templates(directory="templates")
 
-ADMIN_USER = os.environ.get("ADMIN_USER", "admin")
+ADMIN_USER = os.environ.get("ADMIN_USER", "")
 ADMIN_PASS = os.environ.get("ADMIN_PASS", "change-me")
 
 
