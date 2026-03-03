@@ -170,3 +170,21 @@ async def sitemap():
 @router.get("/robots.txt", response_class=PlainTextResponse)
 async def robots():
     return f"User-agent: *\nAllow: /\nSitemap: {SITE_URL}/sitemap.xml\n"
+
+
+from pathlib import Path
+from fastapi.responses import Response, PlainTextResponse
+
+BASE_DIR = Path(__file__).resolve().parent  # если router.py лежит рядом с main.py
+SITEMAP_PATH = BASE_DIR / "catalog" / "sitemap.xml"
+ROBOTS_PATH  = BASE_DIR / "catalog" / "robots.txt"
+
+@router.get("/sitemap.xml")
+def sitemap():
+    xml = SITEMAP_PATH.read_text(encoding="utf-8")
+    return Response(content=xml, media_type="application/xml")
+
+@router.get("/robots.txt")
+def robots():
+    txt = ROBOTS_PATH.read_text(encoding="utf-8")
+    return PlainTextResponse(content=txt)
