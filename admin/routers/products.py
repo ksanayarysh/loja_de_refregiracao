@@ -47,13 +47,13 @@ async def _process_image(file: UploadFile) -> Optional[str]:
         data = await file.read()
         if len(data) > MAX_FILE_MB * 1024 * 1024:
             return None
-        img  = Image.open(io.BytesIO(data)).convert("RGB")
-        w, h = img.size
-        side = min(w, h)
-        left = (w - side) // 2
-        top  = (h - side) // 2
-        img  = img.crop((left, top, left + side, top + side))
-        img  = img.resize((IMAGE_SIZE, IMAGE_SIZE), Image.LANCZOS)
+        img = Image.open(io.BytesIO(data)).convert("RGB")
+        # Вписываем в квадрат с белым фоном (без обрезки)
+        img.thumbnail((IMAGE_SIZE, IMAGE_SIZE), Image.LANCZOS)
+        canvas = Image.new("RGB", (IMAGE_SIZE, IMAGE_SIZE), (255, 255, 255))
+        offset = ((IMAGE_SIZE - img.width) // 2, (IMAGE_SIZE - img.height) // 2)
+        canvas.paste(img, offset)
+        img = canvas
         buf  = io.BytesIO()
         img.save(buf, format="JPEG", quality=82, optimize=True)
         b64  = base64.b64encode(buf.getvalue()).decode()

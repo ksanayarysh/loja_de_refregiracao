@@ -94,10 +94,18 @@
     .day-header .day-date { font-size: 1rem; }
     .day-header .day-total { font-size: 1rem; }
     .day-header .day-count { font-size: .82rem; opacity: .7; margin-left: 8px; }
-    .day-table { width: 100%; border-collapse: collapse; border: 1px solid #e7e9ee; border-top: none; border-radius: 0 0 8px 8px; overflow: hidden; }
-    .day-table th, .day-table td { padding: 10px 10px; border-bottom: 1px solid #e7e9ee; text-align: left; font-size: .9rem; }
+    .day-table { width: 100%; border-collapse: collapse; table-layout: fixed; border: 1px solid #e7e9ee; border-top: none; }
+    .day-table th, .day-table td { padding: 10px 12px; border-bottom: 1px solid #e7e9ee; text-align: left; font-size: .9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .day-table tr:last-child td { border-bottom: none; }
     .day-table th { background: bisque; font-weight: 900; font-size: .82rem; text-transform: uppercase; letter-spacing: .03em; }
+    .day-table td.td-name { white-space: normal; word-break: break-word; }
+    .col-name  { width: 24%; }
+    .col-qty   { width: 9%; }
+    .col-price { width: 14%; }
+    .col-total { width: 14%; }
+    .col-pay   { width: 16%; }
+    .col-obs   { width: 15%; }
+    .col-act   { width: 8%; }
 
     @media (max-width: 600px) {
       .layout { flex-direction: column; }
@@ -242,6 +250,10 @@
                 </span>
               </div>
               <table class="day-table">
+                <colgroup>
+                  <col class="col-name"><col class="col-qty"><col class="col-price">
+                  <col class="col-total"><col class="col-pay"><col class="col-obs"><col class="col-act">
+                </colgroup>
                 <thead><tr>
                   <th>Produto</th><th>Qtd</th><th>Preço unit.</th><th>Total</th><th>Pagamento</th><th>Obs.</th><th></th>
                 </tr></thead>
@@ -249,7 +261,7 @@
                 {% for dr in ns.day_rows %}
                   {% set pt = dr.payment_type or 'dinheiro' %}
                   <tr>
-                    <td>{{ dr.product_name }}<br><small style="color:#888;font-size:.75rem;">{{ dr.unit }}</small></td>
+                    <td class="td-name">{{ dr.product_name }}<br><small style="color:#888;font-size:.75rem;">{{ dr.unit }}</small></td>
                     <td>{{ dr.qty }}</td>
                     <td class="price">R$ {{ "%.2f"|format(dr.unit_price or 0) }}</td>
                     <td class="price">R$ {{ "%.2f"|format(dr.total or 0) }}</td>
@@ -293,6 +305,10 @@
               </span>
             </div>
             <table class="day-table">
+              <colgroup>
+                <col class="col-name"><col class="col-qty"><col class="col-price">
+                <col class="col-total"><col class="col-pay"><col class="col-obs"><col class="col-act">
+              </colgroup>
               <thead><tr>
                 <th>Produto</th><th>Qtd</th><th>Preço unit.</th><th>Total</th><th>Pagamento</th><th>Obs.</th><th></th>
               </tr></thead>
@@ -300,7 +316,7 @@
               {% for dr in ns.day_rows %}
                 {% set pt = dr.payment_type or 'dinheiro' %}
                 <tr>
-                  <td>{{ dr.product_name }}<br><small style="color:#888;font-size:.75rem;">{{ dr.unit }}</small></td>
+                  <td class="td-name">{{ dr.product_name }}<br><small style="color:#888;font-size:.75rem;">{{ dr.unit }}</small></td>
                   <td>{{ dr.qty }}</td>
                   <td class="price">R$ {{ "%.2f"|format(dr.unit_price or 0) }}</td>
                   <td class="price">R$ {{ "%.2f"|format(dr.total or 0) }}</td>
