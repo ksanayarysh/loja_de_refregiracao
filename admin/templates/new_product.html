@@ -53,6 +53,16 @@
 
     .ok { display: flex; align-items: center; gap: 10px; background: #ecfdf5; border: 1px solid #bbf7d0; color: #065f46; padding: 12px 14px; border-radius: 10px; margin-bottom: 16px; font-weight: 800; }
 
+
+    /* Image upload */
+    .img-upload-area { margin-top: 6px; }
+    .img-preview-wrap { position: relative; display: inline-block; }
+    .img-preview { width: 120px; height: 120px; object-fit: cover; border-radius: 10px; border: 2px solid #e5e7eb; display: block; }
+    .img-placeholder { width: 120px; height: 120px; border-radius: 10px; border: 2px dashed #d1d5db; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; background: #f9fafb; color: #9ca3af; font-size: .8rem; gap: 6px; transition: border-color .15s; }
+    .img-placeholder:hover { border-color: #E2144A; color: #E2144A; }
+    .img-placeholder .icon { font-size: 1.8rem; }
+    .img-file-input { display: none; }
+    .img-change-btn { margin-top: 6px; padding: 5px 12px; border-radius: 8px; border: 1px solid #ccc; background: #fff; color: #E2144A; font-weight: 700; font-size: .82rem; cursor: pointer; }
     @media (max-width: 600px) {
       .layout { flex-direction: column; }
       .sidebar { width: 100%; border-right: none; border-bottom: 1px solid #ccc; }
@@ -116,7 +126,7 @@
       <div style="background:#fef2f2;border:1px solid #fecaca;color:#7f1d1d;padding:12px 14px;border-radius:10px;margin-bottom:16px;font-weight:800;">⚠️ {{ error }}</div>
       {% endif %}
 
-      <form method="post" action="/products/new">
+      <form method="post" action="/products/new" enctype="multipart/form-data">
 
         <label for="name">Nome do produto</label>
         <input id="name" name="name" required placeholder="Ex.: Filtro 1/4" autocomplete="off">
@@ -147,6 +157,22 @@
         <label for="cost_price">Preço de custo (R$)</label>
         <input id="cost_price" name="cost_price" inputmode="decimal" placeholder="Ex.: 20,00">
         <div class="hint" id="margin-hint"></div>
+
+
+        <label>Foto do produto (opcional)</label>
+        <div class="img-upload-area">
+          <div class="img-preview-wrap" id="previewWrap">
+            <div class="img-placeholder" id="imgPlaceholder" onclick="document.getElementById('imgInput').click()">
+              <span class="icon">📷</span>
+              <span>Adicionar foto</span>
+            </div>
+            <img id="imgPreview" class="img-preview" style="display:none;" src="" alt="preview">
+          </div>
+          <div id="imgChangeRow" style="display:none;">
+            <button type="button" class="img-change-btn" onclick="document.getElementById('imgInput').click()">🔄 Trocar foto</button>
+          </div>
+          <input type="file" id="imgInput" name="image" class="img-file-input" accept="image/*" onchange="previewImage(this)">
+        </div>
 
         <button class="btn-primary" type="submit">Salvar produto</button>
       </form>
@@ -199,6 +225,18 @@ function updateMargin() {
 }
 document.getElementById('sale_price').addEventListener('input', updateMargin);
 document.getElementById('cost_price').addEventListener('input', updateMargin);
+
+function previewImage(input) {
+  if (!input.files || !input.files[0]) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('imgPlaceholder').style.display = 'none';
+    document.getElementById('imgPreview').src = e.target.result;
+    document.getElementById('imgPreview').style.display = 'block';
+    document.getElementById('imgChangeRow').style.display = 'block';
+  };
+  reader.readAsDataURL(input.files[0]);
+}
 </script>
 </body>
 </html>

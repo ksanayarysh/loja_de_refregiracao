@@ -7,14 +7,9 @@
   <meta name="google-site-verification" content="q0OP5YCx9GAWqB9nDIhSCE1BZAehWQZflei36R5hO4U" />
 
   <!-- SEO -->
-  <title>Gás Refrigerante, Refil e Peças no RJ | M.T.F Refrigeração</title>
+  <title>Peças e Gás Refrigerante no RJ | M.T.F Refrigeração — Catálogo</title>
 
-  <meta name="description" content="Venda de gás refrigerante no RJ (Rio de Janeiro): R134, R410, R22, R32, R600, R290. Refil e recarga de cilindros, botijões e gás para ar condicionado e geladeira. Peças para refrigeração: capacitores, termostatos, válvulas, relés, filtros e acessórios. Avenida Brasil 6818.">
-
-  <meta name="keywords" content="gás refrigerante RJ, refil gás refrigerante, recarga cilindro, botijão gás ar condicionado, gás R134, gás R410, gás R22, gás R32, gás R600, gás R290, peças refrigeração RJ, capacitores, termostato, válvula, relé, filtro, refrigeração Rio de Janeiro">
-
-  <meta name="robots" content="index, follow">
-  <link rel="canonical" href="{{ site_url }}/">
+  <meta name="description" content="Catálogo de peças para refrigeração e ar condicionado no RJ (Rio de Janeiro): capacitores, termostatos, tubos, válvulas, relés, filtros, suportes e materiais de instalação. Gás refrigerante: R134, R410, R22, R32 e R600. Atendimento: Bonsucesso, Maré, Ramos e Olaria. Consulte disponibilidade e preços.">
 
   <!-- (Opcional) Google почти игнорирует, но не мешает -->
   <meta name="keywords" content="peças refrigeração RJ, peças ar condicionado RJ, gás refrigerante RJ, Bonsucesso, Maré, Ramos, Olaria, gás R134, gás R410, gás R22, gás R32, gás R600, capacitor, termostato, tubo, válvula, relé, filtro, suporte ar, fita, solda, refrigeração, ar condicionado, Rio de Janeiro">
@@ -25,14 +20,15 @@
   <!-- Open Graph (WhatsApp/Facebook) -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="{{ site_url }}/">
-  <meta property="og:title" content="Gás Refrigerante, Refil e Peças no RJ | M.T.F Refrigeração">
-  <meta property="og:description" content="Gás refrigerante R134, R410, R22, R32, R600 e R290 no RJ. Refil e recarga de cilindros. Peças e componentes para refrigeração. Avenida Brasil 6818.">
+  <meta property="og:title" content="Peças e Gás Refrigerante no RJ | M.T.F Refrigeração — Catálogo">
+  <meta property="og:description" content="Peças para refrigeração e ar condicionado no RJ: capacitores, termostatos, tubos, válvulas, relés, filtros e materiais de instalação. Gás: R134, R410, R22, R32, R600. Atendimento: Bonsucesso, Maré, Ramos e Olaria. Consulte preços e disponibilidade.">
   <meta property="og:locale" content="pt_BR">
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="Gás Refrigerante e Peças no RJ | M.T.F Refrigeração">
-  <meta name="twitter:description" content="Venda de gás refrigerante, refil e peças para refrigeração no Rio de Janeiro.">
+  <meta name="twitter:title" content="Peças e Gás Refrigerante no RJ | M.T.F Refrigeração — Catálogo">
+  <meta name="twitter:description" content="Peças para refrigeração e ar condicionado no RJ + gás R134, R410, R22, R32 e R600. Atendimento: Bonsucesso, Maré, Ramos e Olaria. Consulte disponibilidade e preços.">
+
   <!-- Structured data (ajuda o Google a entender o negócio) -->
   <script type="application/ld+json">
   {
@@ -48,15 +44,15 @@
   </script>
 
   <!-- Google Analytics -->
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-P4E7JQNFK1"></script>
+  {% if ga_id %}
+  <script async src="https://www.googletagmanager.com/gtag/js?id={{ ga_id }}"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-
-    gtag('config', 'G-P4E7JQNFK1');
+    gtag('config', '{{ ga_id }}');
   </script>
+  {% endif %}
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -149,6 +145,9 @@
 
     footer { border-top: 1px solid var(--border); padding: 24px 20px; text-align: center; font-size: .8rem; color: var(--muted); }
 
+
+    .prod-img { width: 48px; height: 48px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); flex-shrink: 0; }
+    .prod-img-placeholder { width: 48px; height: 48px; border-radius: 8px; background: var(--border); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; }
     @media (max-width: 480px) {
       .address-bar { font-size: .72rem; gap: 10px; }
       .hero { padding: 24px 16px 16px; }
@@ -191,9 +190,9 @@
 
   <!-- SEO copy: RJ + bairros + gases + peças (sem categorias, sem invenções) -->
   <div class="seo-copy">
-    <p><b>Rio de Janeiro (RJ) – Avenida Brasil 6818:</b> venda de peças para refrigeração e ar condicionado, como capacitores, termostatos, tubos, válvulas, relés, filtros e acessórios.</p>
-    <p><b>Gás refrigerante:</b> R134, R410, R22, R32, R600 e R290.</p>
-    <p><b>Refil e recarga de cilindros e botijões.</b></p>
+    <p><b>RJ (Rio de Janeiro):</b> peças para refrigeração e ar condicionado, como capacitores, termostatos, tubos, válvulas, relés, filtros, suportes e materiais de instalação.</p>
+    <p><b>Gás refrigerante:</b> R134, R410, R22, R32 e R600.</p>
+    <p>Rio de Janeiro, Avenida Brasil, 6818</p>
   </div>
 </div>
 
@@ -222,6 +221,11 @@
     {% for p in products %}
     {% set wa_msg = "Olá! Tenho interesse no produto: *" + p.name + " (" + p.unit + ")*" + (". Preço: R$ " + "%.2f"|format(p.sale_price) if p.sale_price else "") + ". Está disponível?" %}
     <div class="product-row" data-name="{{ p.name | lower }}" data-cat="{{ cat }}">
+      {% if p.image %}
+      <img class="prod-img" src="{{ p.image }}" alt="{{ p.name }}" loading="lazy">
+      {% else %}
+      <div class="prod-img-placeholder">📦</div>
+      {% endif %}
       <div class="prod-name">
         {{ p.name }} <span class="prod-unit">({{ p.unit }})</span>
       </div>

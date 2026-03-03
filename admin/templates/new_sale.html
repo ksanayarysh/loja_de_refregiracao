@@ -88,6 +88,8 @@
       .sidebar { width: 100%; border-right: none; border-bottom: 1px solid #ccc; }
       .row { grid-template-columns: 1fr; }
     }
+
+    .prod-selected-img { display: none; width: 64px; height: 64px; object-fit: cover; border-radius: 10px; border: 2px solid #e5e7eb; margin-top: 8px; }
   </style>
 </head>
 <body>
@@ -154,12 +156,16 @@
           {% for p in products %}
             <option value="{{ p['id'] }}"
                     data-price="{{ p['sale_price'] or 0 }}"
-                    data-unit="{{ p['unit'] or '' }}">
+                    data-unit="{{ p['unit'] or '' }}"
+                    data-image="{{ p['image'] or '' }}">
               {{ p['name'] }}{% if p['unit'] %} ({{ p['unit'] }}){% endif %}
             </option>
           {% endfor %}
         </select>
-        <div class="hint" id="unitHint"></div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <img id="prodSelectedImg" class="prod-selected-img" src="" alt="">
+          <div class="hint" id="unitHint"></div>
+        </div>
         <div class="stock-hint-row">
           <div class="stock-hint" id="stockHint"></div>
           <button class="btn-add-stock" id="btnAddStock" type="button" onclick="quickAddStock()">+ Adicionar ao estoque</button>
