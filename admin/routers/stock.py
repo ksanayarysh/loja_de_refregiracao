@@ -3,7 +3,7 @@ from datetime import date
 from decimal import Decimal, ROUND_HALF_UP
 
 from fastapi import APIRouter, Depends, Form, Query, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from sqlalchemy import text
 
 from dependencies import engine, templates, basic_auth
@@ -157,14 +157,14 @@ async def stock_balance_v2(request: Request, _=Depends(basic_auth)):
     async with engine.connect() as conn:
         summary_res = await conn.execute(text("""
             SELECT p.id, p.name, p.unit, p.min_stock,
-                   COALESCE(c.name, '—') as category_name,
+                   COALESCE(c.name, 'Outro') as category_name,
                    GREATEST(0, COALESCE(SUM(sm.qty), 0)) as current_stock
             FROM products p
             LEFT JOIN categories c ON c.id = p.category_id
             LEFT JOIN stock_movements sm ON sm.product_id = p.id
             WHERE p.active = TRUE
             GROUP BY p.id, p.name, p.unit, p.min_stock, c.name
-            ORDER BY p.name
+            ORDER BY COALESCE(c.name, 'Outro'), p.name
         """))
         stock_summary = summary_res.mappings().all()
 
@@ -399,3 +399,34 @@ async def stock_levels(_=Depends(basic_auth)):
         """))
         rows = res.mappings().all()
     return [dict(r) for r in rows]
+
+
+# ── PUBLIC CATALOG API (sem autenticação) ──
+
+@router.get("/api/catalog")
+async def catalog_public():
+    """Catálogo público de produtos com preço e disponibilidade."""
+    async with engine.connect() as conn:
+        res = await conn.execute(text("""
+            SELECT p.id, p.name, p.sale_price, p.unit,
+                   COALESCE(c.name, 'Outro') as category_name,
+                   GREATEST(0, COALESCE(SUM(sm.qty), 0)) as current_stock
+            FROM products p
+            LEFT JOIN categories c ON c.id = p.category_id
+            LEFT JOIN stock_movements sm ON sm.product_id = p.id
+            WHERE p.active = TRUE
+            GROUP BY p.id, p.name, p.sale_price, p.unit, c.name
+            ORDER BY c.name NULLS LAST, p.name
+        """))
+        rows = res.mappings().all()
+    return [
+        {
+            "id": r["id"],
+            "name": r["name"],
+            "sale_price": float(r["sale_price"]) if r["sale_price"] else None,
+            "unit": r["unit"],
+            "category": r["category_name"],
+            "in_stock": float(r["current_stock"]) > 0,
+        }
+        for r in rows
+    ]
