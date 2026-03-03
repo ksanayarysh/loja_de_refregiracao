@@ -21,7 +21,7 @@ STORE_PHONE      = os.environ.get("STORE_PHONE", "")
 
 async def _get_products(conn):
     res = await conn.execute(text("""
-        SELECT p.id, p.name, p.sale_price, p.unit,
+        SELECT p.id, p.name, p.sale_price, p.unit, p.image,
                COALESCE(c.name, 'Outro') AS category_name
         FROM products p
         LEFT JOIN categories c ON c.id = p.category_id
@@ -75,6 +75,7 @@ async def catalog_api():
             "sale_price": float(r["sale_price"]) if r["sale_price"] else None,
             "unit":       r["unit"],
             "category":   r["category_name"],
+            "image":      r["image"],
             "in_stock":   True,
         }
         for r in rows
