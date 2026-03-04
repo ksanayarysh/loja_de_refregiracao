@@ -82,6 +82,7 @@ async def product_page(request: Request, slug: str):
                 "site_url": SITE_URL,
                 "wa_number": WA_OWNER_NUMBER,
                 "store_address": STORE_ADDRESS,
+                "store_phone": STORE_PHONE,
             })
 
     return HTMLResponse("Produto não encontrado", status_code=404)
