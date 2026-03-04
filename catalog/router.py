@@ -12,7 +12,7 @@ router = APIRouter()
 # ── CONFIG ──────────────────────────────────────────────
 WA_NOTIFY_NUMBER = os.environ.get("WA_NOTIFY_NUMBER", "")   # номер для уведомлений (55219XXXXXXXX)
 WA_OWNER_NUMBER  = os.environ.get("WA_OWNER_NUMBER", "")    # твой номер магазина
-SITE_URL         = os.environ.get("SITE_URL", "https://seu-catalogo.railway.app")
+SITE_URL         = os.environ.get("SITE_URL", "https://mtf-catalog.up.railway.ap")
 GA_ID            = os.environ.get("GA_ID", "")              # G-XXXXXXXXXX
 STORE_ADDRESS    = os.environ.get("STORE_ADDRESS", "Rua Exemplo, 123 — Cidade, UF")
 STORE_PHONE      = os.environ.get("STORE_PHONE", "")
@@ -81,6 +81,7 @@ async def product_page(request: Request, slug: str):
                 "ga_id": GA_ID,
                 "site_url": SITE_URL,
                 "wa_number": WA_OWNER_NUMBER,
+                "store_address": STORE_ADDRESS,
             })
 
     return HTMLResponse("Produto não encontrado", status_code=404)
