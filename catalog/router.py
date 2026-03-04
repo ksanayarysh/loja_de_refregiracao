@@ -47,7 +47,12 @@ async def catalog_page(request: Request):
     async with engine.connect() as conn:
         rows = await _get_products(conn)
 
+    rows = [dict(r) for r in rows]  # <- превращаем в обычные dict
     groups = _group_by_category(rows)
+
+    for cat, items in groups.items():
+        for item in items:
+            item["slug"] = slugify(item["name"])
     total  = len(rows)
 
     return templates.TemplateResponse("catalog.html", {
@@ -62,6 +67,23 @@ async def catalog_page(request: Request):
         "wa_number":     WA_OWNER_NUMBER,
     })
 
+
+@router.get("/produto/{slug}", response_class=HTMLResponse)
+async def product_page(request: Request, slug: str):
+    async with engine.connect() as conn:
+        rows = await _get_products(conn)
+
+    for r in rows:
+        if slugify(r["name"]) == slug:
+            return templates.TemplateResponse("product.html", {
+                "request": request,
+                "product": r,
+                "ga_id": GA_ID,
+                "site_url": SITE_URL,
+                "wa_number": WA_OWNER_NUMBER,
+            })
+
+    return HTMLResponse("Produto não encontrado", status_code=404)
 
 # ── API (still available for JS filtering) ──────────────
 @router.get("/api/catalog")
@@ -153,16 +175,37 @@ async def catalog_stats():
 
 
 # ── SITEMAP ──────────────────────────────────────────────
-@router.get("/sitemap.xml", response_class=PlainTextResponse)
-async def sitemap():
+@router.get("/sitemap.xml")
+async def sitemap(request: Request):
+    base = str(request.base_url).rstrip("/")
+
+    async with engine.connect() as conn:
+        rows = await _get_products(conn)
+
+    items = []
+
+    items.append(f"""
+    <url>
+        <loc>{base}/</loc>
+        <priority>1.0</priority>
+    </url>
+    """)
+
+    for r in rows:
+        slug = slugify(r["name"])
+        items.append(f"""
+        <url>
+            <loc>{base}/produto/{slug}</loc>
+            <priority>0.8</priority>
+        </url>
+        """)
+
     xml = f"""<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>{SITE_URL}/</loc>
-    <changefreq>daily</changefreq>
-    <priority>1.0</priority>
-  </url>
-</urlset>"""
+        <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+        {''.join(items)}
+        </urlset>
+        """
+
     return PlainTextResponse(xml, media_type="application/xml")
 
 
@@ -172,19 +215,15 @@ async def robots():
     return f"User-agent: *\nAllow: /\nSitemap: {SITE_URL}/sitemap.xml\n"
 
 
-from pathlib import Path
-from fastapi.responses import Response, PlainTextResponse
+import re
+import unicodedata
 
-BASE_DIR = Path(__file__).resolve().parent  # если router.py лежит рядом с main.py
-SITEMAP_PATH = BASE_DIR / "catalog" / "sitemap.xml"
-ROBOTS_PATH  = BASE_DIR / "catalog" / "robots.txt"
-
-@router.get("/sitemap.xml")
-def sitemap():
-    xml = SITEMAP_PATH.read_text(encoding="utf-8")
-    return Response(content=xml, media_type="application/xml")
-
-@router.get("/robots.txt")
-def robots():
-    txt = ROBOTS_PATH.read_text(encoding="utf-8")
-    return PlainTextResponse(content=txt)
+def slugify(text: str) -> str:
+    text = (text or "").strip().lower()
+    text = unicodedata.normalize("NFKD", text)
+    text = "".join(ch for ch in text if not unicodedata.combining(ch))
+    text = text.replace("+", " plus ")
+    text = re.sub(r"[^\w\s-]", " ", text)
+    text = re.sub(r"[\s_]+", "-", text)
+    text = re.sub(r"-+", "-", text).strip("-")
+    return text

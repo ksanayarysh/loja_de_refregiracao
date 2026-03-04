@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://mtf-catalog.up.railway.app/sitemap.xml

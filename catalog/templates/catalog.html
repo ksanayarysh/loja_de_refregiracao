@@ -227,7 +227,9 @@
       <div class="prod-img-placeholder">📦</div>
       {% endif %}
       <div class="prod-name">
-        {{ p.name }} <span class="prod-unit">({{ p.unit }})</span>
+        <a href="/produto/{{ p.slug }}" style="text-decoration:none; color:inherit;">
+          {{ p.name }} <span class="prod-unit">({{ p.unit }})</span>
+        </a>
       </div>
       <span class="stock-pill">Disponível</span>
       {% if p.sale_price %}
