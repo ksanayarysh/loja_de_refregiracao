@@ -63,6 +63,15 @@
     .empty-msg { text-align: center; padding: 40px 0; color: #888; }
     .empty-msg a { color: #E2144A; font-weight: 700; }
 
+
+    /* TROCO */
+    .troco-block { margin-top: 16px; padding: 16px; background: #f9f9f9; border-radius: 10px; border: 1px solid #e5e7eb; display: none; }
+    .troco-block label { margin-top: 0; margin-bottom: 6px; }
+    .troco-input { width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid #d6d9e0; font-size: 1rem; font-family: inherit; background: #fff; }
+    .troco-input:focus { outline: none; border-color: #007bff; }
+    .troco-result { margin-top: 10px; font-size: 1.1rem; font-weight: 900; display: none; }
+    .troco-result.ok  { color: #166534; }
+    .troco-result.err { color: #dc2626; }
     @media (max-width: 600px) {
       .layout { flex-direction: column; }
       .sidebar { width: 100%; border-right: none; border-bottom: 1px solid #ccc; }
@@ -145,6 +154,15 @@
             <option value="cartao_debito">💳 Cartão de débito</option>
           </select>
 
+
+          <!-- Troco (só dinheiro) -->
+          <div class="troco-block" id="troco-block">
+            <label for="valor-pago">💵 Valor recebido (R$)</label>
+            <input class="troco-input" type="number" id="valor-pago" min="0" step="0.01"
+                   placeholder="Ex.: 50,00" oninput="calcTroco()">
+            <div class="troco-result" id="troco-result"></div>
+          </div>
+
           <div class="btns">
             <button class="btn-primary" type="button" onclick="submitCheckout()">✅ Confirmar vendas</button>
             <a class="btn-secondary" href="/" onclick="void(0)">← Voltar</a>
@@ -206,12 +224,44 @@
   function removeItem(idx) {
     cart.splice(idx, 1);
     saveCart();
-    renderCart();
+  
+  // Show troco block only for dinheiro
+  document.getElementById('payment_type').addEventListener('change', function() {
+    const block = document.getElementById('troco-block');
+    block.style.display = this.value === 'dinheiro' ? 'block' : 'none';
+    if (this.value === 'dinheiro') autoFillTroco();
+  });
+
+  function autoFillTroco() {
+    const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+    // round up to nearest 5
+    const rounded = Math.ceil(total / 5) * 5;
+    document.getElementById('valor-pago').value = rounded.toFixed(2);
+    calcTroco();
+  }
+
+  function calcTroco() {
+    const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+    const pago  = parseFloat(document.getElementById('valor-pago').value) || 0;
+    const el    = document.getElementById('troco-result');
+    if (!pago) { el.style.display = 'none'; return; }
+    const troco = pago - total;
+    el.style.display = 'block';
+    if (troco < 0) {
+      el.className = 'troco-result err';
+      el.textContent = '⚠️ Falta R$ ' + Math.abs(troco).toFixed(2).replace('.', ',');
+    } else {
+      el.className = 'troco-result ok';
+      el.textContent = '✅ Troco: R$ ' + troco.toFixed(2).replace('.', ',');
+    }
+  }
+  renderCart();
   }
 
   function updateTotal() {
     const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
     document.getElementById('total-display').textContent = fmt(total);
+    if (document.getElementById('payment_type').value === 'dinheiro') { autoFillTroco(); }
   }
 
   function submitCheckout() {
@@ -236,6 +286,37 @@
     document.getElementById('checkout-form').submit();
   }
 
+
+  // Show troco block only for dinheiro
+  document.getElementById('payment_type').addEventListener('change', function() {
+    const block = document.getElementById('troco-block');
+    block.style.display = this.value === 'dinheiro' ? 'block' : 'none';
+    if (this.value === 'dinheiro') autoFillTroco();
+  });
+
+  function autoFillTroco() {
+    const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+    // round up to nearest 5
+    const rounded = Math.ceil(total / 5) * 5;
+    document.getElementById('valor-pago').value = rounded.toFixed(2);
+    calcTroco();
+  }
+
+  function calcTroco() {
+    const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+    const pago  = parseFloat(document.getElementById('valor-pago').value) || 0;
+    const el    = document.getElementById('troco-result');
+    if (!pago) { el.style.display = 'none'; return; }
+    const troco = pago - total;
+    el.style.display = 'block';
+    if (troco < 0) {
+      el.className = 'troco-result err';
+      el.textContent = '⚠️ Falta R$ ' + Math.abs(troco).toFixed(2).replace('.', ',');
+    } else {
+      el.className = 'troco-result ok';
+      el.textContent = '✅ Troco: R$ ' + troco.toFixed(2).replace('.', ',');
+    }
+  }
   renderCart();
 </script>
 </body>

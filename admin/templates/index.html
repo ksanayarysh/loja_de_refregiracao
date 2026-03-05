@@ -479,6 +479,7 @@ function calcG(i) {
   if (isNaN(g) || g <= 0) { showResult(res, 'Digite uma quantidade válida.', true); actions.style.display='none'; return; }
   const total = (g * price / 1000).toFixed(2);
   showResult(res, `R$ ${total}<small>${g}g de ${gases[i].name}</small>`, false);
+  document.getElementById('troco-total').value = total; calcTroco();
   lastCalc[`g-${i}`] = {qty: g / 1000, price: parseFloat(total) / (g / 1000)};
   actions.style.display = 'flex';
   selectGas(i);
@@ -498,6 +499,7 @@ function calcR(i) {
 
   // Show a friendly number, but store and pass the exact qty.
   showResult(res, `${gramsExact.toFixed(3)} g<small>R$ ${r.toFixed(2)} de ${gases[i].name}</small>`, false);
+  document.getElementById('troco-total').value = r.toFixed(2); calcTroco();
 
   lastCalc[`r-${i}`] = {
     qty: qtyExact,
