@@ -229,7 +229,7 @@
   document.getElementById('payment_type').addEventListener('change', function() {
     const block = document.getElementById('troco-block');
     block.style.display = this.value === 'dinheiro' ? 'block' : 'none';
-    if (this.value === 'dinheiro') autoFillTroco();
+
   });
 
   function autoFillTroco() {
@@ -256,12 +256,13 @@
     }
   }
   renderCart();
+  // Show troco block on load since dinheiro is default
+  document.getElementById('troco-block').style.display = 'block';
   }
 
   function updateTotal() {
     const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
     document.getElementById('total-display').textContent = fmt(total);
-    if (document.getElementById('payment_type').value === 'dinheiro') { autoFillTroco(); }
   }
 
   function submitCheckout() {
@@ -291,7 +292,7 @@
   document.getElementById('payment_type').addEventListener('change', function() {
     const block = document.getElementById('troco-block');
     block.style.display = this.value === 'dinheiro' ? 'block' : 'none';
-    if (this.value === 'dinheiro') autoFillTroco();
+
   });
 
   function autoFillTroco() {

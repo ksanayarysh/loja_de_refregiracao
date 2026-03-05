@@ -36,6 +36,12 @@
     textarea { min-height: 80px; resize: vertical; }
     input:focus, select:focus, textarea:focus { outline: none; border-color: #007bff; }
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+    .troco-block { margin-top: 4px; padding: 14px; background: #f9f9f9; border-radius: 10px; border: 1px solid #e5e7eb; }
+    .troco-block label { margin-top: 0; }
+    .troco-result { margin-top: 8px; font-size: 1.05rem; font-weight: 900; display: none; }
+    .troco-result.ok  { color: #166534; }
+    .troco-result.err { color: #dc2626; }
     .hint { color: #6b7280; font-size: .88rem; margin-top: 5px; }
     .btns { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 20px; }
     .btn-primary { padding: 12px 20px; border-radius: 10px; border: none; background: #111827; color: #fff; font-weight: 900; font-size: 1rem; cursor: pointer; }
@@ -195,6 +201,13 @@
           <option value="cartao_credito">💳 Cartão de crédito</option>
           <option value="cartao_debito">💳 Cartão de débito</option>
         </select>
+
+
+        <div class="troco-block" id="troco-block">
+          <label for="valor-pago">💵 Valor recebido (R$)</label>
+          <input type="number" id="valor-pago" min="0" step="0.01" placeholder="Ex.: 50,00" oninput="calcTroco()">
+          <div class="troco-result" id="troco-result"></div>
+        </div>
 
         <label for="note">Observação (opcional)</label>
         <textarea id="note" name="note" placeholder="Ex: desconto, cliente, motivo..."></textarea>
@@ -464,6 +477,32 @@
       }, 50);
     }
   })();
+
+  document.getElementById('payment_type').addEventListener('change', function() {
+    document.getElementById('troco-block').style.display = this.value === 'dinheiro' ? 'block' : 'none';
+    document.getElementById('troco-result').style.display = 'none';
+    document.getElementById('valor-pago').value = '';
+  });
+
+  function calcTroco() {
+    const totalRaw = document.getElementById('total').value.replace(',', '.');
+    const total = parseFloat(totalRaw) || 0;
+    const pago  = parseFloat(document.getElementById('valor-pago').value) || 0;
+    const el    = document.getElementById('troco-result');
+    if (!pago || !total) { el.style.display = 'none'; return; }
+    const troco = pago - total;
+    el.style.display = 'block';
+    if (troco < 0) {
+      el.className = 'troco-result err';
+      el.textContent = '⚠️ Falta R$ ' + Math.abs(troco).toFixed(2).replace('.', ',');
+    } else {
+      el.className = 'troco-result ok';
+      el.textContent = '✅ Troco: R$ ' + troco.toFixed(2).replace('.', ',');
+    }
+  }
+
+  // Also recalc troco when total changes
+  document.getElementById('total').addEventListener('input', calcTroco);
 </script>
 </body>
 </html>
