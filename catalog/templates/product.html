@@ -38,6 +38,32 @@
   }
 }
 </script>
+  <script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@type": "BreadcrumbList",
+ "itemListElement": [
+   {
+     "@type": "ListItem",
+     "position": 1,
+     "name": "Catálogo",
+     "item": "{{ site_url }}/"
+   },
+   {
+     "@type": "ListItem",
+     "position": 2,
+     "name": "Produto",
+     "item": "{{ site_url }}/produto"
+   },
+   {
+     "@type": "ListItem",
+     "position": 3,
+     "name": "{{ product.name }}",
+     "item": "{{ site_url }}/produto/{{ product.slug }}"
+   }
+ ]
+}
+</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
