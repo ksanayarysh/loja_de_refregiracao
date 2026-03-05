@@ -55,3 +55,7 @@ async def create_category(data: dict, _=Depends(basic_auth)):
         )
         row = res.mappings().first()
         return dict(row)
+
+
+from fastapi.staticfiles import StaticFiles
+app.mount("/static", StaticFiles(directory="static"), name="static")
