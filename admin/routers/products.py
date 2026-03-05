@@ -84,7 +84,6 @@ async def create_product(
     cost_price: str = Form("0"),
     min_stock: int = Form(0),
     description: str = Form(""),
-    description: str = Form(""),
     image: UploadFile = File(None),
     _=Depends(basic_auth),
 ):
