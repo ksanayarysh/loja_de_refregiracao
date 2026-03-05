@@ -1,5 +1,6 @@
-import base64
 import io
+import os
+import uuid
 from math import ceil
 from decimal import Decimal
 from typing import Optional
@@ -24,6 +25,8 @@ SORT_FIELDS = {
 
 IMAGE_SIZE = 400
 MAX_FILE_MB = 5
+STATIC_DIR = os.environ.get("STATIC_DIR", os.path.join(os.path.dirname(__file__), "static", "images"))
+os.makedirs(STATIC_DIR, exist_ok=True)
 
 
 def _parse_price(value: str) -> Decimal:
@@ -39,7 +42,7 @@ def _parse_price(value: str) -> Decimal:
 
 
 async def _process_image(file: UploadFile) -> Optional[str]:
-    """Сжимает до квадрата 400x400, возвращает base64 data URL."""
+    """Сжимает до 400x400, сохраняет в static/images/, возвращает URL."""
     if not file or not file.filename:
         return None
     try:
@@ -48,18 +51,24 @@ async def _process_image(file: UploadFile) -> Optional[str]:
         if len(data) > MAX_FILE_MB * 1024 * 1024:
             return None
         img = Image.open(io.BytesIO(data)).convert("RGB")
-        # Вписываем в квадрат с белым фоном (без обрезки)
         img.thumbnail((IMAGE_SIZE, IMAGE_SIZE), Image.LANCZOS)
         canvas = Image.new("RGB", (IMAGE_SIZE, IMAGE_SIZE), (255, 255, 255))
         offset = ((IMAGE_SIZE - img.width) // 2, (IMAGE_SIZE - img.height) // 2)
         canvas.paste(img, offset)
-        img = canvas
-        buf  = io.BytesIO()
-        img.save(buf, format="JPEG", quality=82, optimize=True)
-        b64  = base64.b64encode(buf.getvalue()).decode()
-        return f"data:image/jpeg;base64,{b64}"
+        fname = f"{uuid.uuid4().hex}.jpg"
+        canvas.save(os.path.join(STATIC_DIR, fname), format="JPEG", quality=82, optimize=True)
+        return f"/static/images/{fname}"
     except Exception:
         return None
+
+
+def _delete_image(url: Optional[str]):
+    """Удаляет файл если это /static/images/... (не base64)."""
+    if url and url.startswith("/static/images/"):
+        try:
+            os.remove(os.path.join(os.path.dirname(__file__), url.lstrip("/")))
+        except Exception:
+            pass
 
 
 async def _get_categories(conn):
@@ -164,10 +173,15 @@ async def update_product(
                 "error": f'Produto "{name.strip()}" já existe! Escolha outro nome.',
             }, status_code=400)
 
+        cur = await conn.execute(text("SELECT image FROM products WHERE id=:id"), {"id": product_id})
+        cur_image = (cur.mappings().first() or {}).get("image")
+
         if image_b64:
+            _delete_image(cur_image)
             extra_sql = ", image=:image"
             extra_val = {"image": image_b64}
         elif remove_image == "1":
+            _delete_image(cur_image)
             extra_sql = ", image=NULL"
             extra_val = {}
         else:
