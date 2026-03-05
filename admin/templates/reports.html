@@ -39,6 +39,11 @@
 
     /* SUMMARY CARDS */
     .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .avg-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+    .avg-card { background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,.06); border-left: 4px solid #6366f1; }
+    .avg-card .sum-label { font-size: .75rem; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px; }
+    .avg-card .sum-value { font-size: 1.4rem; font-weight: 900; color: #6366f1; }
+    .avg-card .sum-sub { font-size: .78rem; color: #9ca3af; margin-top: 4px; }
     .sum-card { background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
     .sum-label { font-size: .72rem; font-weight: 800; color: #888; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px; }
     .sum-value { font-size: 1.4rem; font-weight: 900; color: #111; }
@@ -101,6 +106,7 @@
     .period-label { color: #888; font-size: .85rem; }
 
     @media (max-width: 800px) {
+      .avg-grid { grid-template-columns: 1fr 1fr; }
       .summary-grid { grid-template-columns: 1fr 1fr; }
       .two-col { grid-template-columns: 1fr; }
     }
@@ -156,7 +162,36 @@
       </form>
     </div>
 
-    <!-- SUMMARY -->
+    <!-- MÉDIA DE RECEITA -->
+    <div class="avg-grid">
+      <div class="avg-card">
+        <div class="sum-label">📅 Hoje</div>
+        <div class="sum-value">R$ {{ "%.2f"|format((avg_data.today_revenue or 0)|float) }}</div>
+        <div class="sum-sub">receita do dia atual</div>
+      </div>
+      <div class="avg-card">
+        <div class="sum-label">📊 Média diária (7 dias)</div>
+        <div class="sum-value">R$ {{ "%.2f"|format((avg_data.avg_day_week or 0)|float) }}</div>
+        <div class="sum-sub">últimos 7 dias ÷ 7</div>
+      </div>
+      <div class="avg-card">
+        <div class="sum-label">📆 Média diária (mês)</div>
+        <div class="sum-value">R$ {{ "%.2f"|format((avg_data.avg_day_month or 0)|float) }}</div>
+        <div class="sum-sub">mês atual ÷ dias corridos</div>
+      </div>
+      <div class="avg-card" style="border-left-color:#10b981;">
+        <div class="sum-label">🗓 Semana atual</div>
+        <div class="sum-value" style="color:#10b981;">R$ {{ "%.2f"|format((avg_data.this_week or 0)|float) }}</div>
+        <div class="sum-sub">seg – hoje</div>
+      </div>
+      <div class="avg-card" style="border-left-color:#f59e0b;">
+        <div class="sum-label">🗓 Mês atual</div>
+        <div class="sum-value" style="color:#f59e0b;">R$ {{ "%.2f"|format((avg_data.this_month or 0)|float) }}</div>
+        <div class="sum-sub">{{ avg_data.this_month and "acumulado" or "sem vendas" }}</div>
+      </div>
+    </div>
+
+        <!-- SUMMARY -->
     <div class="summary-grid">
       <div class="sum-card">
         <div class="sum-label">Receita total</div>

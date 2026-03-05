@@ -55,6 +55,19 @@ async def reports(
         """), params)
         summary = summary_res.mappings().first()
 
+        # 1b. MÉDIA POR DIA / SEMANA / MÊS (fixos, independente do período)
+        avg_res = await conn.execute(text("""
+            SELECT
+                COALESCE(SUM(CASE WHEN sold_at = CURRENT_DATE THEN total END), 0)               AS today_revenue,
+                COALESCE(SUM(CASE WHEN sold_at >= CURRENT_DATE - 6 THEN total END), 0) / 7.0    AS avg_day_week,
+                COALESCE(SUM(CASE WHEN sold_at >= date_trunc('month', CURRENT_DATE) THEN total END), 0)
+                    / GREATEST(EXTRACT(DAY FROM CURRENT_DATE), 1)                               AS avg_day_month,
+                COALESCE(SUM(CASE WHEN date_trunc('week', sold_at) = date_trunc('week', CURRENT_DATE) THEN total END), 0) AS this_week,
+                COALESCE(SUM(CASE WHEN date_trunc('month', sold_at) = date_trunc('month', CURRENT_DATE) THEN total END), 0) AS this_month
+            FROM sales
+        """))
+        avg_data = avg_res.mappings().first()
+
         # 2. VENDAS POR DIA (últimos 30 pontos)
         daily_res = await conn.execute(text("""
             SELECT sold_at, COUNT(*) AS cnt, COALESCE(SUM(total), 0) AS revenue
@@ -132,4 +145,5 @@ async def reports(
         "by_category": by_category,
         "stock_moves": stock_moves,
         "total_revenue": float(summary["total_revenue"]),
+        "avg_data": avg_data,
     })
