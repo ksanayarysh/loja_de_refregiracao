@@ -32,8 +32,10 @@
   },
   "offers": {
     "@type": "Offer",
-  "priceCurrency": "BRL"{% if product.sale_price %},
-  "price": "{{ product.sale_price }}"{% endif %}
+    "priceCurrency": "BRL",
+    {% if product.sale_price %}
+    "price": "{{ product.sale_price }}",
+    {% endif %}
     "availability": "https://schema.org/InStock",
     "url": "{{ site_url }}/produto/{{ product.slug }}"
   }
