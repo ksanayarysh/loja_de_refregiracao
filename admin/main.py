@@ -69,3 +69,13 @@ async def debug_static():
         return {"path": path, "count": len(files), "files": files[:10]}
     except Exception as e:
         return {"error": str(e)}
+
+@app.get("/debug/static/images")
+async def debug_static():
+    import os
+    path = "/app/static/images"
+    try:
+        files = os.listdir(path)
+        return {"path": path, "count": len(files), "files": files[:10]}
+    except Exception as e:
+        return {"error": str(e)}
