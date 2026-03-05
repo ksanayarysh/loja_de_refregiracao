@@ -12,7 +12,7 @@ router = APIRouter()
 # ── CONFIG ──────────────────────────────────────────────
 WA_NOTIFY_NUMBER = os.environ.get("WA_NOTIFY_NUMBER", "")   # номер для уведомлений (55219XXXXXXXX)
 WA_OWNER_NUMBER  = os.environ.get("WA_OWNER_NUMBER", "")    # твой номер магазина
-SITE_URL         = os.environ.get("SITE_URL", "https://mtf-catalog.up.railway.ap")
+SITE_URL         = os.environ.get("SITE_URL", "https://mtf-catalog.up.railway.app")
 GA_ID            = os.environ.get("GA_ID", "")              # G-XXXXXXXXXX
 STORE_ADDRESS    = os.environ.get("STORE_ADDRESS", "Rua Exemplo, 123 — Cidade, UF")
 STORE_PHONE      = os.environ.get("STORE_PHONE", "")
