@@ -138,6 +138,7 @@ async def update_product(
     sale_price: str = Form("0"),
     cost_price: str = Form("0"),
     min_stock: int = Form(0),
+    description: str = Form(""),
     image: UploadFile = File(None),
     remove_image: str = Form(""),
     _=Depends(basic_auth),
