@@ -21,7 +21,7 @@ STORE_PHONE      = os.environ.get("STORE_PHONE", "")
 
 async def _get_products(conn):
     res = await conn.execute(text("""
-        SELECT p.id, p.name, p.sale_price, p.unit, p.image,
+        SELECT p.id, p.name, p.sale_price, p.unit, p.image, p.description,
                COALESCE(c.name, 'Outro') AS category_name
         FROM products p
         LEFT JOIN categories c ON c.id = p.category_id
@@ -68,24 +68,50 @@ async def catalog_page(request: Request):
     })
 
 
-@router.get("/produto/{slug}", response_class=HTMLResponse)
+@router.get("/product/{slug}", response_class=HTMLResponse)
 async def product_page(request: Request, slug: str):
     async with engine.connect() as conn:
         rows = await _get_products(conn)
 
+    product = None
     for r in rows:
         if slugify(r["name"]) == slug:
-            return templates.TemplateResponse("product.html", {
-                "request": request,
-                "product": r,
-                "ga_id": GA_ID,
-                "site_url": SITE_URL,
-                "wa_number": WA_OWNER_NUMBER,
-                "store_address": STORE_ADDRESS,
-                "store_phone": STORE_PHONE,
-            })
+            product = dict(r)
+            product["slug"] = slug
+            break
 
-    return HTMLResponse("Produto não encontrado", status_code=404)
+    if not product:
+        return HTMLResponse("Produto não encontrado", status_code=404)
+
+    related = [
+        dict(r) for r in rows
+        if r["category_name"] == product["category_name"]
+        and slugify(r["name"]) != slug
+    ][:6]
+
+    return templates.TemplateResponse("product.html", {
+        "request":       request,
+        "product":       product,
+        "related":       related,
+        "ga_id":         GA_ID,
+        "site_url":      SITE_URL,
+        "wa_number":     WA_OWNER_NUMBER,
+        "store_address": STORE_ADDRESS,
+        "store_phone":   STORE_PHONE,
+    })
+
+
+# ── ABOUT PAGE ───────────────────────────────────────────
+@router.get("/sobre", response_class=HTMLResponse)
+async def about_page(request: Request):
+    return templates.TemplateResponse("about.html", {
+        "request":       request,
+        "ga_id":         GA_ID,
+        "site_url":      SITE_URL,
+        "store_address": STORE_ADDRESS,
+        "store_phone":   STORE_PHONE,
+        "wa_number":     WA_OWNER_NUMBER,
+    })
 
 # ── API (still available for JS filtering) ──────────────
 @router.get("/api/catalog")
@@ -100,6 +126,7 @@ async def catalog_api():
             "unit":       r["unit"],
             "category":   r["category_name"],
             "image":      r["image"],
+            "description": r["description"],
             "in_stock":   True,
         }
         for r in rows
@@ -199,6 +226,7 @@ async def sitemap(request: Request):
         <url>
             <loc>{base}/produto/{slug}</loc>
             <priority>0.8</priority>
+            <lastmod>2026-03-05</lastmod>
         </url>
         """)
 

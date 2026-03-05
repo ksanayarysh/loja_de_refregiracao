@@ -15,7 +15,29 @@
   <script async src="https://www.googletagmanager.com/gtag/js?id={{ ga_id }}"></script>
   <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","{{ ga_id }}");</script>
   {% endif %}
-  <script type="application/ld+json">{"@context":"https://schema.org","@type":"Product","name":"{{ product.name }}","description":"{{ product.category_name }} para refrigeracao. Rio de Janeiro.","offers":{"@type":"Offer","priceCurrency":"BRL"{% if product.sale_price %},"price":"{{ product.sale_price }}"{% endif %},"availability":"https://schema.org/InStock"}}</script>
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": "{{ product.name }}",
+  "description": "{{ product.category_name }} para refrigeracao. Rio de Janeiro.",
+  "category": "{{ product.category_name }}",
+  "image": "{{ product.image }}",
+  "url": "{{ site_url }}/produto/{{ product.slug }}",
+  "sku": "{{ product.slug }}",
+  "brand": {
+    "@type": "Brand",
+    "name": "M.T.F Refrigeração"
+  },
+  "offers": {
+    "@type": "Offer",
+  "priceCurrency": "BRL"{% if product.sale_price %},
+  "price": "{{ product.sale_price }}"{% endif %}
+    "availability": "https://schema.org/InStock",
+    "url": "{{ site_url }}/produto/{{ product.slug }}"
+  }
+}
+</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
@@ -64,6 +86,17 @@
     .related-thumb-ph{width:40px;height:40px;border-radius:6px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;}
     .related-name{flex:1;font-weight:500;font-size:.92rem;}
     .related-price{font-family:"DM Mono",monospace;font-size:.88rem;color:var(--muted);flex-shrink:0;}
+
+    .related{max-width:900px;margin:0 auto;padding:0 20px 60px;}
+    .related-title{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding-bottom:12px;border-bottom:1px solid var(--border);}
+    .related-list{border:1px solid var(--border);border-top:none;border-radius:0 0 12px 12px;background:var(--surface);overflow:hidden;}
+    .related-item{display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border);gap:12px;text-decoration:none;color:var(--text);transition:background .1s;}
+    .related-item:last-child{border-bottom:none;}
+    .related-item:hover{background:var(--bg);}
+    .related-thumb{width:40px;height:40px;object-fit:contain;border-radius:6px;border:1px solid var(--border);background:var(--bg);flex-shrink:0;}
+    .related-thumb-ph{width:40px;height:40px;border-radius:6px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;}
+    .related-name{flex:1;font-weight:500;font-size:.92rem;}
+    .related-price{font-family:"DM Mono",monospace;font-size:.88rem;color:var(--muted);flex-shrink:0;}
     .wa-float{position:fixed;bottom:24px;right:24px;z-index:200;display:flex;align-items:center;gap:8px;background:var(--wa);color:#fff;padding:12px 20px;border-radius:50px;text-decoration:none;font-weight:700;font-size:.92rem;box-shadow:0 4px 20px rgba(37,211,102,.35);transition:transform .2s;}
     .wa-float:hover{transform:translateY(-2px);}
     footer{border-top:1px solid var(--border);padding:24px 20px;text-align:center;font-size:.8rem;color:var(--muted);}
@@ -92,7 +125,6 @@
       <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
       WhatsApp
     </a>
-    <a href="tel:+{{ wa_number }}" style="font-size:.82rem;color:var(--muted);text-decoration:none;flex-shrink:0;white-space:nowrap;">📞 {{ store_phone }}</a>
   </div>
 </header>
 
@@ -109,7 +141,7 @@
 <div class="product-page">
   <div class="product-img-wrap">
     {% if product.image %}
-    <img class="product-img" src="{{ product.image }}" alt="{{ product.name }}">
+    <img class="product-img" src="{{ product.image }}" alt="{{ product.name }} refrigeração">
     {% else %}
     <div class="product-img-ph">📦</div>
     {% endif %}
@@ -122,6 +154,9 @@
       <div class="product-unit">Unidade: {{ product.unit }}</div>
     </div>
 
+    {% if product.description %}
+    <p style="font-size:.95rem;line-height:1.6;color:var(--muted);">{{ product.description }}</p>
+    {% endif %}
     <div class="stock-pill">
       <svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor"><circle cx="4" cy="4" r="4"/></svg>
       Disponivel
@@ -151,7 +186,7 @@
 
     <div class="location-note">
       📍 <strong>Rio de Janeiro</strong> — {{ store_address }}<br>
-      📞 <a href="https://wa.me/{{ wa_number }}" style="color:var(--green);font-weight:600;">{{ store_phone }}</a><br>
+      Retirada no local ou entrega a combinar.
     </div>
   </div>
 </div>
@@ -162,6 +197,24 @@
   <div class="related-list">
     {% for r in related %}
     <a class="related-item" href="/produto/{{ r.id }}">
+      {% if r.image %}<img class="related-thumb" src="{{ r.image }}" alt="{{ r.name }}">
+      {% else %}<div class="related-thumb-ph">📦</div>{% endif %}
+      <span class="related-name">{{ r.name }} <span style="color:var(--muted);font-size:.8rem;">({{ r.unit }})</span></span>
+      {% if r.sale_price %}<span class="related-price">R$ {{ "%.2f"|format(r.sale_price) }}</span>
+      {% else %}<span class="related-price" style="font-family:inherit;font-size:.82rem;">Consulte</span>{% endif %}
+    </a>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+
+{% if related %}
+<div class="related">
+  <div class="related-title">Outros em {{ product.category_name }}</div>
+  <div class="related-list">
+    {% for r in related %}
+    <a class="related-item" href="/product/{{ r.slug }}">
       {% if r.image %}<img class="related-thumb" src="{{ r.image }}" alt="{{ r.name }}">
       {% else %}<div class="related-thumb-ph">📦</div>{% endif %}
       <span class="related-name">{{ r.name }} <span style="color:var(--muted);font-size:.8rem;">({{ r.unit }})</span></span>

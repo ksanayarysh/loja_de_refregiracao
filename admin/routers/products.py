@@ -83,6 +83,8 @@ async def create_product(
     sale_price: str = Form("0"),
     cost_price: str = Form("0"),
     min_stock: int = Form(0),
+    description: str = Form(""),
+    description: str = Form(""),
     image: UploadFile = File(None),
     _=Depends(basic_auth),
 ):
@@ -103,10 +105,10 @@ async def create_product(
             }, status_code=400)
 
         await conn.execute(
-            text("""INSERT INTO products (name, category_id, unit, sale_price, cost_price, min_stock, active, image)
-                    VALUES (:name, :category_id, :unit, :sale_price, :cost_price, :min_stock, TRUE, :image)"""),
+            text("""INSERT INTO products (name, category_id, unit, sale_price, cost_price, min_stock, active, image, description)
+                    VALUES (:name, :category_id, :unit, :sale_price, :cost_price, :min_stock, TRUE, :image, :description)"""),
             {"name": name.strip(), "category_id": category_id, "unit": unit,
-             "sale_price": price, "cost_price": cost, "min_stock": min_stock, "image": image_b64},
+             "sale_price": price, "cost_price": cost, "min_stock": min_stock, "image": image_b64, "description": description.strip() or None},
         )
     return RedirectResponse(url="/products/new?ok=1", status_code=303)
 
@@ -115,7 +117,7 @@ async def create_product(
 async def edit_product_form(product_id: int, request: Request, _=Depends(basic_auth)):
     async with engine.connect() as conn:
         res = await conn.execute(
-            text("SELECT id, name, category_id, unit, sale_price, cost_price, min_stock, image FROM products WHERE id = :id AND active = TRUE"),
+            text("SELECT id, name, category_id, unit, sale_price, cost_price, min_stock, image, description FROM products WHERE id = :id AND active = TRUE"),
             {"id": product_id},
         )
         product = res.mappings().first()
@@ -152,7 +154,7 @@ async def update_product(
         )
         if dup.first():
             res = await conn.execute(
-                text("SELECT id, name, category_id, unit, sale_price, cost_price, min_stock, image FROM products WHERE id = :id"),
+                text("SELECT id, name, category_id, unit, sale_price, cost_price, min_stock, image, description FROM products WHERE id = :id"),
                 {"id": product_id}
             )
             product    = res.mappings().first()
@@ -174,11 +176,11 @@ async def update_product(
 
         await conn.execute(
             text(f"""UPDATE products
-                    SET name=:name, category_id=:category_id, unit=:unit,
+                    SET name=:name, category_id=:category_id, unit=:unit, description=:description,
                         sale_price=:sale_price, cost_price=:cost_price, min_stock=:min_stock
                         {extra_sql}
                     WHERE id=:id"""),
-            {"id": product_id, "name": name.strip(), "category_id": category_id,
+            {"id": product_id, "name": name.strip(), "category_id": category_id, "description": description.strip() or None,
              "unit": unit, "sale_price": price, "cost_price": cost, "min_stock": min_stock, **extra_val},
         )
     return RedirectResponse(url=f"/products/{product_id}/edit?ok=1", status_code=303)
