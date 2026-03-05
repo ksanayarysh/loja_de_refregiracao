@@ -133,6 +133,19 @@
       .sidebar { width: 100%; border-right: none; border-bottom: 1px solid #ccc; }
       .sidebar .submenu { left: 0; top: 100%; }
     }
+
+    .troco-section { background: #fff; border-radius: 14px; box-shadow: 0 4px 14px rgba(0,0,0,.08); padding: 20px 24px; margin-top: 0; }
+    .troco-section h3 { font-size: 1rem; margin-bottom: 14px; color: black; }
+    .troco-row { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+    .troco-field { display: flex; flex-direction: column; gap: 4px; }
+    .troco-field label { font-size: .78rem; font-weight: 700; color: #555; text-transform: uppercase; letter-spacing: .04em; }
+    .troco-field input { padding: 10px 14px; border-radius: 8px; border: 1px solid #d1d5db; font-size: 1rem; font-family: inherit; width: 160px; }
+    .troco-field input:focus { outline: none; border-color: #111827; }
+    .troco-btn { padding: 10px 20px; border-radius: 8px; background: #111827; color: #fff; border: none; font-weight: 800; font-size: .9rem; cursor: pointer; font-family: inherit; white-space: nowrap; }
+    .troco-btn:hover { background: #374151; }
+    .troco-result { margin-top: 14px; font-size: 1.1rem; font-weight: 900; display: none; }
+    .troco-result.ok  { color: #166534; }
+    .troco-result.err { color: #dc2626; }
   </style>
 </head>
 <body>
@@ -208,6 +221,25 @@
           <tbody id="table-body"></tbody>
         </table>
       </div>
+
+    <!-- Troco -->
+    <div class="troco-section">
+      <h3>💵 Calculadora de troco</h3>
+      <div class="troco-row">
+        <div class="troco-field">
+          <label>Total da compra (R$)</label>
+          <input type="number" id="troco-total" min="0" step="0.01" placeholder="Ex.: 47,50"
+                 oninput="calcTroco()" onkeydown="if(event.key==='Enter') calcTroco()">
+        </div>
+        <div class="troco-field">
+          <label>Valor recebido (R$)</label>
+          <input type="number" id="troco-pago" min="0" step="0.01" placeholder="Ex.: 50,00"
+                 oninput="calcTroco()" onkeydown="if(event.key==='Enter') calcTroco()">
+        </div>
+        <button class="troco-btn" onclick="calcTroco()">Calcular</button>
+      </div>
+      <div class="troco-result" id="troco-result"></div>
+    </div>
     </div>
   </main>
 </div>
@@ -541,6 +573,22 @@ async function searchProducts() {
 document.getElementById('search-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') searchProducts();
 });
+
+function calcTroco() {
+  const total = parseFloat(document.getElementById('troco-total').value) || 0;
+  const pago  = parseFloat(document.getElementById('troco-pago').value)  || 0;
+  const el    = document.getElementById('troco-result');
+  if (!total || !pago) { el.style.display = 'none'; return; }
+  const troco = pago - total;
+  el.style.display = 'block';
+  if (troco < 0) {
+    el.className = 'troco-result err';
+    el.textContent = '⚠️ Falta R$ ' + Math.abs(troco).toFixed(2).replace('.', ',');
+  } else {
+    el.className = 'troco-result ok';
+    el.textContent = '✅ Troco: R$ ' + troco.toFixed(2).replace('.', ',');
+  }
+}
 </script>
 </body>
 </html>
