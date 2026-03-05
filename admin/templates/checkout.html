@@ -65,7 +65,7 @@
 
 
     /* TROCO */
-    .troco-block { margin-top: 16px; padding: 16px; background: #f9f9f9; border-radius: 10px; border: 1px solid #e5e7eb; display: none; }
+    .troco-block { margin-top: 16px; padding: 16px; background: #f9f9f9; border-radius: 10px; border: 1px solid #e5e7eb; display: block; }
     .troco-block label { margin-top: 0; margin-bottom: 6px; }
     .troco-input { width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid #d6d9e0; font-size: 1rem; font-family: inherit; background: #fff; }
     .troco-input:focus { outline: none; border-color: #007bff; }
@@ -256,8 +256,6 @@
     }
   }
   renderCart();
-  // Show troco block on load since dinheiro is default
-  document.getElementById('troco-block').style.display = 'block';
   }
 
   function updateTotal() {
@@ -287,13 +285,6 @@
     document.getElementById('checkout-form').submit();
   }
 
-
-  // Show troco block only for dinheiro
-  document.getElementById('payment_type').addEventListener('change', function() {
-    const block = document.getElementById('troco-block');
-    block.style.display = this.value === 'dinheiro' ? 'block' : 'none';
-
-  });
 
   function autoFillTroco() {
     const total = cart.reduce((s, i) => s + i.price * i.qty, 0);

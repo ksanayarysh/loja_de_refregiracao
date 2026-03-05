@@ -480,7 +480,7 @@ function calcG(i) {
   const total = (g * price / 1000).toFixed(2);
   showResult(res, `R$ ${total}<small>${g}g de ${gases[i].name}</small>`, false);
   document.getElementById('troco-total').value = total; calcTroco();
-  lastCalc[`g-${i}`] = {qty: g / 1000, price: parseFloat(total) / (g / 1000)};
+  lastCalc[`g-${i}`] = {qty: g / 1000, price: parseFloat(total) / (g / 1000), grams: g, total: parseFloat(total)};
   actions.style.display = 'flex';
   selectGas(i);
 }
