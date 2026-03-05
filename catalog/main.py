@@ -7,4 +7,4 @@ app.include_router(catalog_router)
 
 from fastapi.staticfiles import StaticFiles
 
-app.mount("/static", StaticFiles(directory="catalog/static"), name="static")
+app.mount("/static", StaticFiles(directory="static"), name="static")
