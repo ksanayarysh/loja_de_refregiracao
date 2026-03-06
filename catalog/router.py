@@ -16,6 +16,7 @@ SITE_URL         = os.environ.get("SITE_URL", "https://mtf-catalog.up.railway.ap
 GA_ID            = os.environ.get("GA_ID", "")              # G-XXXXXXXXXX
 STORE_ADDRESS    = os.environ.get("STORE_ADDRESS", "Rua Exemplo, 123 — Cidade, UF")
 STORE_PHONE      = os.environ.get("STORE_PHONE", "")
+ADMIN_URL        = os.environ.get("ADMIN_URL", "https://lojaderefregiracao-production.up.railway.app")
 # ────────────────────────────────────────────────────────
 
 
@@ -28,7 +29,14 @@ async def _get_products(conn):
         WHERE p.active = TRUE
         ORDER BY c.name NULLS LAST, p.name
     """))
-    return res.mappings().all()
+    rows = res.mappings().all()
+    result = []
+    for r in rows:
+        r = dict(r)
+        if r.get("image") and r["image"].startswith("/static/images/"):
+            r["image"] = ADMIN_URL + r["image"]
+        result.append(r)
+    return result
 
 
 def _group_by_category(rows):
