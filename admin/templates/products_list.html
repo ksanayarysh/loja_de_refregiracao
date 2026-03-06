@@ -193,6 +193,26 @@
       {% if not rows or rows|length == 0 %}
         <div class="empty">Nenhum produto cadastrado ainda.</div>
       {% else %}
+        <div class="pager" style="margin-top:0;margin-bottom:12px;">
+          <div class="pages">
+            <a class="pagebtn {{ 'disabled' if page<=1 else '' }}" href="{{ url(page-1 if page>1 else 1) }}">‹ Anterior</a>
+            {% set start = page-2 if page-2>1 else 1 %}
+            {% set end = page+2 if page+2<total_pages else total_pages %}
+            {% if start > 1 %}
+              <a class="pagebtn" href="{{ url(1) }}">1</a>
+              {% if start > 2 %}<span style="padding:0 4px;">…</span>{% endif %}
+            {% endif %}
+            {% for p in range(start, end+1) %}
+              <a class="pagebtn {{ 'active' if p==page else '' }}" href="{{ url(p) }}">{{ p }}</a>
+            {% endfor %}
+            {% if end < total_pages %}
+              {% if end < total_pages-1 %}<span style="padding:0 4px;">…</span>{% endif %}
+              <a class="pagebtn" href="{{ url(total_pages) }}">{{ total_pages }}</a>
+            {% endif %}
+            <a class="pagebtn {{ 'disabled' if page>=total_pages else '' }}" href="{{ url(page+1 if page<total_pages else total_pages) }}">Próxima ›</a>
+          </div>
+          <div class="pill">Página {{ page }} / {{ total_pages }}</div>
+        </div>
         {% set ns = namespace(current_cat=None) %}
         {% for r in rows %}
           {% set cat = r.category_name or 'Outro' %}
