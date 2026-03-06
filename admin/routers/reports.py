@@ -127,8 +127,8 @@ async def reports(
         """))
         avg_data = dict(avg_res.mappings().first())
 
-        # 1c. ПРИБЫЛЬ И МАРЖА СЧИТАЮТСЯ ПООБЩЕ ПО ВСЕМ ПРОДАЖАМ В ПЕРИОДЕ,
-        # НО ТОЛЬКО ДЛЯ ТОВАРОВ, У КОТОРЫХ ЗАПОЛНЕН COST_PRICE.
+        # 1c. ЛУКРО СЧИТАЕТСЯ ТОЛЬКО ПО ПОЗИЦИЯМ, У КОТОРЫХ ЗАПОЛНЕН COST_PRICE.
+        # Продажи без закупочной цены в lucro не участвуют.
         profit_res = await conn.execute(text("""
             SELECT
                 COALESCE(SUM(CASE WHEN p.cost_price IS NOT NULL THEN s.total ELSE 0 END), 0) AS revenue_with_cost,
@@ -146,17 +146,12 @@ async def reports(
         revenue_without_cost = float(profit_row["revenue_without_cost"] or 0)
         total_revenue = float(summary["total_revenue"] or 0)
         total_profit = revenue_with_cost - cost_with_cost
-        margin_pct = (total_profit / revenue_with_cost * 100) if revenue_with_cost > 0 else 0.0
-        coverage_pct = (revenue_with_cost / total_revenue * 100) if total_revenue > 0 else 0.0
-
         profit_summary = {
             "revenue_with_cost": revenue_with_cost,
             "cost_with_cost": cost_with_cost,
             "revenue_without_cost": revenue_without_cost,
             "sales_without_cost": int(profit_row["sales_without_cost"] or 0),
             "total_profit": total_profit,
-            "margin_pct": margin_pct,
-            "coverage_pct": coverage_pct,
         }
 
         # 2. ВЫРУЧКА ПО ДНЯМ
