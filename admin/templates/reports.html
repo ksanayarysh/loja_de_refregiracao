@@ -216,9 +216,9 @@
       <div class="sum-card" style="border-left: 4px solid {{ '#22c55e' if profit_summary.total_profit >= 0 else '#ef4444' }};">
         <div class="sum-label">Lucro estimado</div>
         <div class="sum-value" style="color:{{ '#16a34a' if profit_summary.total_profit >= 0 else '#dc2626' }}">R$ {{ "%.2f"|format(profit_summary.total_profit or 0) }}</div>
-        <div class="sum-sub">somente produtos com preço de compra cadastrado</div>
+        <div class="sum-sub">somente produtos com preço de compra > 0</div>
         {% if profit_summary.revenue_without_cost and profit_summary.revenue_without_cost > 0 %}
-          <div class="muted-note">Vendas sem preço de compra não entram no lucro: R$ {{ "%.2f"|format(profit_summary.revenue_without_cost) }}</div>
+          <div class="muted-note">Vendas sem preço de compra válida não entram no lucro: R$ {{ "%.2f"|format(profit_summary.revenue_without_cost) }}</div>
         {% endif %}
       </div>
     </div>

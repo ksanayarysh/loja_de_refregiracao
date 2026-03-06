@@ -131,10 +131,10 @@ async def reports(
         # Продажи без закупочной цены в lucro не участвуют.
         profit_res = await conn.execute(text("""
             SELECT
-                COALESCE(SUM(CASE WHEN p.cost_price IS NOT NULL THEN s.total ELSE 0 END), 0) AS revenue_with_cost,
-                COALESCE(SUM(CASE WHEN p.cost_price IS NOT NULL THEN s.qty * p.cost_price ELSE 0 END), 0) AS cost_with_cost,
-                COALESCE(SUM(CASE WHEN p.cost_price IS NULL THEN s.total ELSE 0 END), 0) AS revenue_without_cost,
-                COUNT(*) FILTER (WHERE p.cost_price IS NULL) AS sales_without_cost
+                COALESCE(SUM(CASE WHEN p.cost_price IS NOT NULL AND p.cost_price > 0 THEN s.total ELSE 0 END), 0) AS revenue_with_cost,
+                COALESCE(SUM(CASE WHEN p.cost_price IS NOT NULL AND p.cost_price > 0 THEN s.qty * p.cost_price ELSE 0 END), 0) AS cost_with_cost,
+                COALESCE(SUM(CASE WHEN p.cost_price IS NULL OR p.cost_price <= 0 THEN s.total ELSE 0 END), 0) AS revenue_without_cost,
+                COUNT(*) FILTER (WHERE p.cost_price IS NULL OR p.cost_price <= 0) AS sales_without_cost
             FROM sales s
             JOIN products p ON p.id = s.product_id
             WHERE s.sold_at::date BETWEEN :d_from AND :d_to
@@ -177,7 +177,7 @@ async def reports(
                 COUNT(*) AS sales_count,
                 COALESCE(SUM(s.qty), 0) AS total_qty,
                 COALESCE(SUM(s.total), 0) AS total_revenue,
-                COALESCE(SUM(CASE WHEN p.cost_price IS NOT NULL THEN s.qty * p.cost_price ELSE 0 END), 0) AS total_cost
+                COALESCE(SUM(CASE WHEN p.cost_price IS NOT NULL AND p.cost_price > 0 THEN s.qty * p.cost_price ELSE 0 END), 0) AS total_cost
             FROM sales s
             JOIN products p ON p.id = s.product_id
             WHERE s.sold_at::date BETWEEN :d_from AND :d_to
@@ -191,7 +191,7 @@ async def reports(
         for row in top_rows:
             revenue = float(row["total_revenue"] or 0)
             cost = float(row["total_cost"] or 0)
-            has_cost = row["cost_price"] is not None
+            has_cost = row["cost_price"] is not None and float(row["cost_price"]) > 0
             profit = (revenue - cost) if has_cost else None
             margin = ((profit / revenue) * 100) if has_cost and revenue > 0 else None
 
