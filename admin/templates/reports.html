@@ -188,7 +188,7 @@
       <div class="avg-card">
         <div class="sum-label">📆 Média diária (mês)</div>
         <div class="sum-value">R$ {{ "%.2f"|format((avg_data.avg_day_month or 0)|float) }}</div>
-        <div class="sum-sub">mês atual ÷ dias corridos</div>
+        <div class="sum-sub">mês atual ÷ dias passados</div>
       </div>
       <div class="avg-card" style="border-left-color:#10b981;">
         <div class="sum-label">🗓 Semana atual</div>
@@ -446,19 +446,17 @@
         {% if by_dow %}
           {% set dow_names = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'] %}
           {% set max_dow = by_dow | map(attribute='revenue') | map('float') | max %}
-          {% set dow_map = {} %}
-          {% for d in by_dow %}{% set _ = dow_map.update({d.dow: d}) %}{% endfor %}
           <div class="dow-grid">
             {% for i in range(7) %}
-              {% set d = dow_map.get(i) %}
-              {% set rev = d.revenue | float if d else 0 %}
-              {% set h = ((rev / max_dow) * 72) | int if max_dow > 0 else 0 %}
+              {% set rev = namespace(val=0) %}
+              {% for d in by_dow %}{% if d.dow == i %}{% set rev.val = d.revenue | float %}{% endif %}{% endfor %}
+              {% set h = ((rev.val / max_dow) * 72) | int if max_dow > 0 else 0 %}
               <div class="dow-cell">
                 <div class="dow-bar-wrap">
-                  <div class="dow-bar" style="height:{{ [h, 4] | max }}px; {% if h == 72 %}background:#e2144a;{% endif %}"></div>
+                  <div class="dow-bar" style="height:{{ [h, 4] | max }}px; {% if rev.val == max_dow and max_dow > 0 %}background:#e2144a;{% endif %}"></div>
                 </div>
                 <div class="dow-label">{{ dow_names[i] }}</div>
-                <div class="dow-value">{% if d %}R$ {{ "%.0f"|format(rev) }}{% else %}—{% endif %}</div>
+                <div class="dow-value">{% if rev.val > 0 %}R$ {{ "%.0f"|format(rev.val) }}{% else %}—{% endif %}</div>
               </div>
             {% endfor %}
           </div>
@@ -472,15 +470,13 @@
         <h2>📆 Receita por dia do mês</h2>
         {% if by_dom %}
           {% set max_dom = by_dom | map(attribute='revenue') | map('float') | max %}
-          {% set dom_map = {} %}
-          {% for d in by_dom %}{% set _ = dom_map.update({d.dom: d}) %}{% endfor %}
           <div class="dom-chart">
             {% for i in range(1, 32) %}
-              {% set d = dom_map.get(i) %}
-              {% set rev = d.revenue | float if d else 0 %}
-              {% set h = ((rev / max_dom) * 72) | int if max_dom > 0 else 0 %}
+              {% set rev = namespace(val=0) %}
+              {% for d in by_dom %}{% if d.dom == i %}{% set rev.val = d.revenue | float %}{% endif %}{% endfor %}
+              {% set h = ((rev.val / max_dom) * 72) | int if max_dom > 0 else 0 %}
               <div class="dom-bar" style="height:{{ [h, 2] | max }}px;"
-                   data-tip="Dia {{ i }}: R$ {{ '%.2f'|format(rev) }}"></div>
+                   data-tip="Dia {{ i }}: R$ {{ '%.2f'|format(rev.val) }}"></div>
             {% endfor %}
           </div>
           <div class="dom-labels">
