@@ -58,10 +58,13 @@ async def reports(
         # 1b. MÉDIA POR DIA / SEMANA / MÊS (fixos, independente do período)
         avg_res = await conn.execute(text("""
             SELECT
-                COALESCE(SUM(CASE WHEN sold_at = CURRENT_DATE THEN total END), 0)               AS today_revenue,
-                COALESCE(SUM(CASE WHEN sold_at >= CURRENT_DATE - 6 THEN total END), 0) / 7.0    AS avg_day_week,
+                COALESCE(SUM(CASE WHEN sold_at = CURRENT_DATE THEN total END), 0) AS today_revenue,
+                -- Média semanal: soma dos últimos 7 dias / dias com vendas nesse período
+                COALESCE(SUM(CASE WHEN sold_at >= CURRENT_DATE - 6 THEN total END), 0)
+                    / GREATEST((SELECT COUNT(DISTINCT sold_at) FROM sales WHERE sold_at >= CURRENT_DATE - 6), 1) AS avg_day_week,
+                -- Média mensal: soma do mês / dias corridos até hoje (dia do mês atual)
                 COALESCE(SUM(CASE WHEN sold_at >= date_trunc('month', CURRENT_DATE) THEN total END), 0)
-                    / GREATEST(EXTRACT(DAY FROM CURRENT_DATE), 1)                               AS avg_day_month,
+                    / GREATEST(EXTRACT(DAY FROM CURRENT_DATE)::int, 1) AS avg_day_month,
                 COALESCE(SUM(CASE WHEN date_trunc('week', sold_at) = date_trunc('week', CURRENT_DATE) THEN total END), 0) AS this_week,
                 COALESCE(SUM(CASE WHEN date_trunc('month', sold_at) = date_trunc('month', CURRENT_DATE) THEN total END), 0) AS this_month
             FROM sales
@@ -106,6 +109,33 @@ async def reports(
         """), params)
         by_payment = payment_res.mappings().all()
 
+        # 4b. VENDAS POR DIA DA SEMANA
+        dow_res = await conn.execute(text("""
+            SELECT
+                EXTRACT(DOW FROM sold_at)::int AS dow,
+                TO_CHAR(sold_at, 'Day') AS dow_name,
+                COUNT(*) AS cnt,
+                COALESCE(SUM(total), 0) AS revenue
+            FROM sales
+            WHERE sold_at BETWEEN :d_from AND :d_to
+            GROUP BY EXTRACT(DOW FROM sold_at), TO_CHAR(sold_at, 'Day')
+            ORDER BY dow
+        """), params)
+        by_dow = dow_res.mappings().all()
+
+        # 4c. VENDAS POR DIA DO MÊS
+        dom_res = await conn.execute(text("""
+            SELECT
+                EXTRACT(DAY FROM sold_at)::int AS dom,
+                COUNT(*) AS cnt,
+                COALESCE(SUM(total), 0) AS revenue
+            FROM sales
+            WHERE sold_at BETWEEN :d_from AND :d_to
+            GROUP BY EXTRACT(DAY FROM sold_at)
+            ORDER BY dom
+        """), params)
+        by_dom = dom_res.mappings().all()
+
         # 5. MOVIMENTO DE ESTOQUE (entradas vs vendas)
         stock_res = await conn.execute(text("""
             SELECT
@@ -145,5 +175,7 @@ async def reports(
         "by_category": by_category,
         "stock_moves": stock_moves,
         "total_revenue": float(summary["total_revenue"]),
+        "by_dow": by_dow,
+        "by_dom": by_dom,
         "avg_data": avg_data,
     })

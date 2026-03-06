@@ -86,6 +86,17 @@
 
     /* STOCK MOVES */
     .stock-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f3f4f6; font-size: .88rem; }
+    .dow-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+    .dow-cell { text-align: center; }
+    .dow-bar-wrap { height: 80px; display: flex; align-items: flex-end; justify-content: center; margin-bottom: 4px; }
+    .dow-bar { width: 28px; background: #6366f1; border-radius: 4px 4px 0 0; min-height: 4px; transition: height .3s; }
+    .dow-label { font-size: .72rem; font-weight: 700; color: #374151; }
+    .dow-value { font-size: .68rem; color: #6b7280; }
+    .dom-chart { display: flex; align-items: flex-end; gap: 3px; height: 80px; }
+    .dom-bar { flex: 1; background: #10b981; border-radius: 2px 2px 0 0; min-height: 2px; position: relative; }
+    .dom-bar:hover::after { content: attr(data-tip); position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: #111; color: #fff; font-size: .65rem; padding: 2px 5px; border-radius: 4px; white-space: nowrap; z-index: 10; }
+    .dom-labels { display: flex; gap: 3px; margin-top: 4px; }
+    .dom-label { flex: 1; text-align: center; font-size: .6rem; color: #9ca3af; }
     .stock-row:last-child { border-bottom: none; }
 
     /* TOP TABLE */
@@ -423,6 +434,69 @@
       {% else %}
         <div class="empty">Sem vendas no período</div>
       {% endif %}
+    </div>
+
+
+    <!-- ANALYTICS DIA DA SEMANA + DIA DO MÊS -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:0;">
+
+      <!-- DIA DA SEMANA -->
+      <div class="card">
+        <h2>📅 Receita por dia da semana</h2>
+        {% if by_dow %}
+          {% set dow_names = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'] %}
+          {% set max_dow = by_dow | map(attribute='revenue') | map('float') | max %}
+          {% set dow_map = {} %}
+          {% for d in by_dow %}{% set _ = dow_map.update({d.dow: d}) %}{% endfor %}
+          <div class="dow-grid">
+            {% for i in range(7) %}
+              {% set d = dow_map.get(i) %}
+              {% set rev = d.revenue | float if d else 0 %}
+              {% set h = ((rev / max_dow) * 72) | int if max_dow > 0 else 0 %}
+              <div class="dow-cell">
+                <div class="dow-bar-wrap">
+                  <div class="dow-bar" style="height:{{ [h, 4] | max }}px; {% if h == 72 %}background:#e2144a;{% endif %}"></div>
+                </div>
+                <div class="dow-label">{{ dow_names[i] }}</div>
+                <div class="dow-value">{% if d %}R$ {{ "%.0f"|format(rev) }}{% else %}—{% endif %}</div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="empty">Sem dados</div>
+        {% endif %}
+      </div>
+
+      <!-- DIA DO MÊS -->
+      <div class="card">
+        <h2>📆 Receita por dia do mês</h2>
+        {% if by_dom %}
+          {% set max_dom = by_dom | map(attribute='revenue') | map('float') | max %}
+          {% set dom_map = {} %}
+          {% for d in by_dom %}{% set _ = dom_map.update({d.dom: d}) %}{% endfor %}
+          <div class="dom-chart">
+            {% for i in range(1, 32) %}
+              {% set d = dom_map.get(i) %}
+              {% set rev = d.revenue | float if d else 0 %}
+              {% set h = ((rev / max_dom) * 72) | int if max_dom > 0 else 0 %}
+              <div class="dom-bar" style="height:{{ [h, 2] | max }}px;"
+                   data-tip="Dia {{ i }}: R$ {{ '%.2f'|format(rev) }}"></div>
+            {% endfor %}
+          </div>
+          <div class="dom-labels">
+            {% for i in [1,5,10,15,20,25,31] %}
+              <div class="dom-label" style="flex:{{ loop.index == 1 and '1' or '4' }}">{{ i }}</div>
+            {% endfor %}
+          </div>
+          {% set best = by_dom | sort(attribute='revenue', reverse=True) | first %}
+          <div style="margin-top:10px;font-size:.82rem;color:#6b7280;">
+            📈 Melhor dia: <strong>dia {{ best.dom }}</strong> — R$ {{ "%.2f"|format(best.revenue|float) }}
+          </div>
+        {% else %}
+          <div class="empty">Sem dados</div>
+        {% endif %}
+      </div>
+
     </div>
 
   </main>
