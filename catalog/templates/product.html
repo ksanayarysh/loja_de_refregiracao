@@ -29,7 +29,7 @@
   "description": "{{ product.category_name }} para refrigeracao. Rio de Janeiro.",
   "category": "{{ product.category_name }}",
   "image": "{{ product.image }}",
-  "url": "{{ site_url }}/produto/{{ product.slug }}",
+  "url": "{{ site_url }}/produсt/{{ product.slug }}",
   "sku": "{{ product.slug }}",
   "brand": {
     "@type": "Brand",
@@ -42,7 +42,7 @@
     "price": "{{ product.sale_price }}",
     {% endif %}
     "availability": "https://schema.org/InStock",
-    "url": "{{ site_url }}/produto/{{ product.slug }}"
+    "url": "{{ site_url }}/produсt/{{ product.slug }}"
   }
 }
 </script>
@@ -67,7 +67,7 @@
      "@type": "ListItem",
      "position": 3,
      "name": "{{ product.name }}",
-     "item": "{{ site_url }}/produto/{{ product.slug }}"
+     "item": "{{ site_url }}/produсt/{{ product.slug }}"
    }
  ]
 }
@@ -230,7 +230,7 @@
   <div class="related-title">Outros em {{ product.category_name }}</div>
   <div class="related-list">
     {% for r in related %}
-    <a class="related-item" href="/produto/{{ r.id }}">
+    <a class="related-item" href="/produсt/{{ r.id }}">
       {% if r.image %}<img class="related-thumb" src="{{ r.image }}" alt="{{ r.name }}">
       {% else %}<div class="related-thumb-ph">📦</div>{% endif %}
       <span class="related-name">{{ r.name }} <span style="color:var(--muted);font-size:.8rem;">({{ r.unit }})</span></span>

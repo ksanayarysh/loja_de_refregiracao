@@ -232,9 +232,9 @@ async def sitemap(request: Request):
         slug = slugify(r["name"])
         items.append(f"""
         <url>
-            <loc>{base}/produto/{slug}</loc>
+            <loc>{base}/product/{slug}</loc>
             <priority>0.8</priority>
-            <lastmod>2026-03-05</lastmod>
+            <lastmod>2026-03-07</lastmod>
         </url>
         """)
 
