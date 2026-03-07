@@ -91,11 +91,14 @@ async def product_page(request: Request, slug: str):
     if not product:
         return HTMLResponse("Produto não encontrado", status_code=404)
 
-    related = [
-        dict(r) for r in rows
-        if r["category_name"] == product["category_name"]
-        and slugify(r["name"]) != slug
-    ][:6]
+    related = []
+    for r in rows:
+        if r["category_name"] == product["category_name"] and slugify(r["name"]) != slug:
+            rd = dict(r)
+            rd["slug"] = slugify(rd["name"])
+            related.append(rd)
+            if len(related) >= 6:
+                break
 
     return templates.TemplateResponse("product.html", {
         "request":       request,
