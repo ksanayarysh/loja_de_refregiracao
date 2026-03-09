@@ -78,26 +78,26 @@ async def reports(
                     SELECT SUM(s.total)
                     FROM sales s
                     WHERE s.sold_at::date BETWEEN b.week_7_from AND b.today
-                      AND EXTRACT(ISODOW FROM s.sold_at::date) BETWEEN 1 AND 5
+                      AND EXTRACT(ISODOW FROM s.sold_at::date) BETWEEN 1 AND 6
                 ), 0)
                 /
                 GREATEST((
                     SELECT COUNT(*)
                     FROM generate_series(b.week_7_from, b.today, '1 day'::interval) AS d
-                    WHERE EXTRACT(ISODOW FROM d) BETWEEN 1 AND 5
+                    WHERE EXTRACT(ISODOW FROM d) BETWEEN 1 AND 6
                 ), 1) AS avg_day_week,
 
                 COALESCE((
                     SELECT SUM(s.total)
                     FROM sales s
                     WHERE s.sold_at::date BETWEEN b.month_from AND b.today
-                      AND EXTRACT(ISODOW FROM s.sold_at::date) BETWEEN 1 AND 5
+                      AND EXTRACT(ISODOW FROM s.sold_at::date) BETWEEN 1 AND 6
                 ), 0)
                 /
                 GREATEST((
                     SELECT COUNT(*)
                     FROM generate_series(b.month_from, b.today, '1 day'::interval) AS d
-                    WHERE EXTRACT(ISODOW FROM d) BETWEEN 1 AND 5
+                    WHERE EXTRACT(ISODOW FROM d) BETWEEN 1 AND 6
                 ), 1) AS avg_day_month,
 
                 COALESCE((
@@ -115,13 +115,13 @@ async def reports(
                 (
                     SELECT COUNT(*)
                     FROM generate_series(b.week_7_from, b.today, '1 day'::interval) AS d
-                    WHERE EXTRACT(ISODOW FROM d) BETWEEN 1 AND 5
+                    WHERE EXTRACT(ISODOW FROM d) BETWEEN 1 AND 6
                 ) AS week_workdays,
 
                 (
                     SELECT COUNT(*)
                     FROM generate_series(b.month_from, b.today, '1 day'::interval) AS d
-                    WHERE EXTRACT(ISODOW FROM d) BETWEEN 1 AND 5
+                    WHERE EXTRACT(ISODOW FROM d) BETWEEN 1 AND 6
                 ) AS month_workdays
             FROM bounds b
         """))
