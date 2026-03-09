@@ -169,7 +169,7 @@ async def sales_checkout(
         for item in items:
             qty_d   = money2(Decimal(str(item["qty"])))
             price_d = money2(Decimal(str(item["unit_price"])))
-            total_d = money2(Decimal(str(item["total"])))
+            total_d = money2(qty_d * price_d)
             await conn.exec_driver_sql(
                 "INSERT INTO sales (sold_at, product_id, qty, unit_price, total, payment_type) VALUES ($1,$2,$3,$4,$5,$6)",
                 (sold_at_date, int(item["product_id"]), qty_d, price_d, total_d, payment_type)
