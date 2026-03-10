@@ -260,7 +260,9 @@
       </div>
       <span class="stock-pill">Disponível</span>
       {% if p.sale_price %}
-      <div class="prod-price">R$ {{ "%.2f"|format(p.sale_price) }}</div>
+      <div class="prod-price">
+        R$ {{ "%.2f"|format(p.sale_price) }}{% if p.unit == 'kg' %}<span style="font-size:.75rem;color:var(--muted);font-weight:400;">/kg <span style="font-size:.7rem;">(varejo)</span></span>{% endif %}
+      </div>
       {% else %}
       <div class="prod-price no-price">Consulte</div>
       {% endif %}
