@@ -27,8 +27,10 @@ async def _get_products(conn):
         FROM products p
         LEFT JOIN categories c ON c.id = p.category_id
         WHERE p.active = TRUE
-        ORDER BY CASE WHEN c.name ILIKE '%gas%' OR c.name ILIKE '%gás%' THEN 0 ELSE 1 END,
+        ORDER BY
+            CASE WHEN c.name ILIKE '%gas%' OR c.name ILIKE '%gás%' THEN 0 ELSE 1 END,
             c.name NULLS LAST,
+            CASE WHEN p.unit = 'kg' THEN 0 ELSE 1 END,
             p.name
     """))
     rows = res.mappings().all()
