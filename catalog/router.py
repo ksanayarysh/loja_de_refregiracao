@@ -221,7 +221,7 @@ async def catalog_stats():
 # ── SITEMAP ──────────────────────────────────────────────
 @router.get("/sitemap.xml")
 async def sitemap(request: Request):
-    base = str(request.base_url).rstrip("/")
+    base = SITE_URL.rstrip("/")
 
     async with engine.connect() as conn:
         rows = await _get_products(conn)
@@ -234,6 +234,14 @@ async def sitemap(request: Request):
         <loc>{base}/</loc>
         <priority>1.0</priority>
         <lastmod>{today}</lastmod>
+    </url>
+    """)
+
+    items.append(f"""
+    <url>
+    <loc>{base}/sobre</loc>
+    <priority>0.6</priority>
+    <lastmod>{today}</lastmod>
     </url>
     """)
 
