@@ -227,11 +227,13 @@ async def sitemap(request: Request):
         rows = await _get_products(conn)
 
     items = []
+    today = datetime.utcnow().date().isoformat()
 
     items.append(f"""
     <url>
         <loc>{base}/</loc>
         <priority>1.0</priority>
+        <lastmod>{today}</lastmod>
     </url>
     """)
 
@@ -241,7 +243,7 @@ async def sitemap(request: Request):
         <url>
             <loc>{base}/product/{slug}</loc>
             <priority>0.8</priority>
-            <lastmod>2026-03-07</lastmod>
+            <lastmod>{today}</lastmod>
         </url>
         """)
 

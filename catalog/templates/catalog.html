@@ -35,35 +35,69 @@
   <meta name="twitter:description" content="Peças para refrigeração e ar condicionado no RJ + gás R134, R410, R22, R32 e R600. Atendimento: Bonsucesso, Maré, Ramos e Olaria. Consulte disponibilidade e preços.">
 
   <!-- Structured data (ajuda o Google a entender o negócio) -->
-<script type="application/ld+json">
-{
- "@context": "https://schema.org",
- "@type": "LocalBusiness",
- "name": "M.T.F Refrigeração",
- "url": "https://mtf-catalog.up.railway.app/",
- "telephone": "{{ store_phone if store_phone else '' }}",
- "address": {
-   "@type": "PostalAddress",
-   "streetAddress": "{{ store_address }}",
-   "addressLocality": "Rio de Janeiro",
-   "addressRegion": "RJ",
-   "addressCountry": "BR"
- },
- "geo": {
-   "@type": "GeoCoordinates",
-   "latitude": -22.8658,
-   "longitude": -43.2533
- },
- "areaServed": [
-   "Rio de Janeiro",
-   "Bonsucesso",
-   "Maré",
-   "Ramos",
-   "Olaria"
- ],
- "description": "Peças para refrigeração e ar condicionado no Rio de Janeiro. Gás refrigerante R134, R410, R22, R32, R290 e R600."
-}
-</script>
+  <script type="application/ld+json">
+  {
+   "@context": "https://schema.org",
+   "@type": "LocalBusiness",
+   "name": "M.T.F Refrigeração",
+   "url": "https://mtf-catalog.up.railway.app/",
+   "telephone": "{{ store_phone if store_phone else '' }}",
+   "address": {
+     "@type": "PostalAddress",
+     "streetAddress": "{{ store_address }}",
+     "addressLocality": "Rio de Janeiro",
+     "addressRegion": "RJ",
+     "addressCountry": "BR"
+   },
+   "geo": {
+     "@type": "GeoCoordinates",
+     "latitude": -22.8658,
+     "longitude": -43.2533
+   },
+   "areaServed": [
+     "Rio de Janeiro",
+     "Bonsucesso",
+     "Maré",
+     "Ramos",
+     "Olaria"
+   ],
+   "description": "Peças para refrigeração e ar condicionado no Rio de Janeiro. Gás refrigerante R134, R410, R22, R32, R290 e R600."
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+   "@context": "https://schema.org",
+   "@type": "ItemList",
+   "name": "Catálogo de peças e gás refrigerante",
+   "itemListElement": [
+    {
+     "@type": "Product",
+     "name": "gás refrigerante R134a"
+    },
+    {
+     "@type": "Product",
+     "name": "gás refrigerante R410A"
+    },
+    {
+     "@type": "Product",
+     "name": "gás refrigerante R22"
+    },
+    {
+     "@type": "Product",
+     "name": "gás refrigerante R32"
+    },
+    {
+     "@type": "Product",
+     "name": "gás refrigerante R290"
+    },
+    {
+     "@type": "Product",
+     "name": "gás refrigerante R600a"
+    }
+   ]
+  }
+  </script>
 
   <!-- Google Analytics -->
   {% if ga_id %}
