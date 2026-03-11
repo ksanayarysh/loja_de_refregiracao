@@ -5,326 +5,126 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <meta name="google-site-verification" content="q0OP5YCx9GAWqB9nDIhSCE1BZAehWQZflei36R5hO4U" />
-
-  <!-- SEO -->
-  <title>Gás refrigerante no RJ (refil e varejo) e peças para refrigeração | R134a R410A R22 R32 R290 R600a | M.T.F Refrigeração</title>
   <link rel="icon" type="image/png" href="/static/favicon.png">
 
-  <meta name="description" content="Gás refrigerante R134a, R410A, R22, R32, R290 e R600a no Rio de Janeiro. Refil e varejo. Catálogo de peças para refrigeração e ar condicionado no RJ (Rio de Janeiro): capacitores, termostatos, tubos, válvulas, relés, filtros, suportes e materiais de instalação. Gás refrigerante: R134, R410, R22, R32 e R600. Atendimento: Bonsucesso, Maré, Ramos e Olaria. Consulte disponibilidade e preços.">
-
-  <!-- (Opcional) Google почти игнорирует, но не мешает -->
-  <meta name="keywords" content="peças refrigeração RJ, peças ar condicionado RJ, gás refrigerante RJ, Bonsucesso, Maré, Ramos, Olaria, gás R134, gás R410, gás R22, gás R32, gás R600, capacitor, termostato, tubo, válvula, relé, filtro, suporte ar, fita, solda, refrigeração, ar condicionado, Rio de Janeiro">
-
+  <title>Peças para geladeiras, máquinas de lavar e gás refrigerante no RJ | M.T.F Refrigeração</title>
+  <meta name="description" content="Loja de refrigeração no RJ com peças para geladeiras, máquinas de lavar, freezers e ar-condicionado. Trabalhamos com refil e varejo de gás refrigerante e peças para manutenção no Rio de Janeiro.">
   <meta name="robots" content="index, follow">
-  <link rel="canonical" href="https://mtf-catalog.up.railway.app/">
+  <link rel="canonical" href="{{ site_url }}/">
 
-  <!-- Open Graph (WhatsApp/Facebook) -->
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://mtf-catalog.up.railway.app/">
-  <meta property="og:title" content="Peças e Gás Refrigerante no RJ | M.T.F Refrigeração — Catálogo">
-  <meta property="og:description" content="Peças para refrigeração e ar condicionado no RJ: capacitores, termostatos, tubos, válvulas, relés, filtros e materiais de instalação. Gás: R134, R410, R22, R32, R600. Atendimento: Bonsucesso, Maré, Ramos e Olaria. Consulte preços e disponibilidade.">
+  <meta property="og:url" content="{{ site_url }}/">
+  <meta property="og:title" content="Peças para geladeiras, máquinas de lavar e gás refrigerante no RJ | M.T.F Refrigeração">
+  <meta property="og:description" content="Peças para geladeiras, máquinas de lavar, freezers e ar-condicionado no RJ. Refil e varejo de gás refrigerante e itens para manutenção no Rio de Janeiro.">
   <meta property="og:locale" content="pt_BR">
   <meta property="og:image" content="{{ site_url }}/static/og-catalog.jpg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="M.T.F Refrigeração — Catálogo de peças e gases no RJ">
+  <meta property="og:image:alt" content="M.T.F Refrigeração - catálogo de peças e gás refrigerante no RJ">
 
-  <!-- Twitter -->
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="Peças e Gás Refrigerante no RJ | M.T.F Refrigeração — Catálogo">
-  <meta name="twitter:description" content="Peças para refrigeração e ar condicionado no RJ + gás R134, R410, R22, R32 e R600. Atendimento: Bonsucesso, Maré, Ramos e Olaria. Consulte disponibilidade e preços.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Peças para geladeiras, máquinas de lavar e gás refrigerante no RJ | M.T.F Refrigeração">
+  <meta name="twitter:description" content="Loja de refrigeração no RJ com peças para geladeiras, máquinas de lavar, freezers e ar-condicionado. Refil e varejo de gás refrigerante.">
+  <meta name="twitter:image" content="{{ site_url }}/static/og-catalog.jpg">
 
-  <!-- Structured data (ajuda o Google a entender o negócio) -->
   <script type="application/ld+json">
   {
-   "@context": "https://schema.org",
-   "@type": "LocalBusiness",
-   "name": "M.T.F Refrigeração",
-   "url": "https://mtf-catalog.up.railway.app/",
-   "telephone": "{{ store_phone if store_phone else '' }}",
-   "address": {
-     "@type": "PostalAddress",
-     "streetAddress": "{{ store_address }}",
-     "addressLocality": "Rio de Janeiro",
-     "addressRegion": "RJ",
-     "addressCountry": "BR"
-   },
-   "geo": {
-     "@type": "GeoCoordinates",
-     "latitude": -22.8658,
-     "longitude": -43.2533
-   },
-   "areaServed": [
-     "Rio de Janeiro",
-     "Bonsucesso",
-     "Maré",
-     "Ramos",
-     "Olaria"
-   ],
-   "description": "Peças para refrigeração e ar condicionado no Rio de Janeiro. Gás refrigerante R134, R410, R22, R32, R290 e R600."
+    "@context": "https://schema.org",
+    "@type": "Store",
+    "@id": "{{ site_url }}/#store",
+    "name": "M.T.F Refrigeração",
+    "url": "{{ site_url }}/",
+    "image": "{{ site_url }}/static/og-catalog.jpg",
+    "telephone": "{{ store_phone if store_phone else '' }}",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "{{ store_address }}",
+      "addressLocality": "Rio de Janeiro",
+      "addressRegion": "RJ",
+      "addressCountry": "BR"
+    },
+    "geo": {
+      "@type": "GeoCoordinates",
+      "latitude": -22.8658,
+      "longitude": -43.2533
+    },
+    "areaServed": [
+      { "@type": "City", "name": "Rio de Janeiro" },
+      { "@type": "Place", "name": "Bonsucesso" },
+      { "@type": "Place", "name": "Maré" },
+      { "@type": "Place", "name": "Ramos" },
+      { "@type": "Place", "name": "Olaria" }
+    ],
+    "description": "Loja de refrigeração no RJ com peças para geladeiras, máquinas de lavar, freezers, ar-condicionado e gás refrigerante em refil e varejo.",
+    "sameAs": [
+      "https://wa.me/{{ wa_number }}"
+    ]
   }
   </script>
 
   <script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "ItemList",
-  "name": "Catálogo de peças e gás refrigerante",
-  "itemListOrder": "https://schema.org/ItemListOrderAscending",
-  "numberOfItems": 31,
-  "itemListElement": [
-    {
-      "@type": "ListItem",
-      "position": 1,
-      "item": {
-        "@type": "Product",
-        "name": "gás refrigerante R134a"
-      }
-    },
-    {
-      "@type": "ListItem",
-      "position": 2,
-      "item": {
-        "@type": "Product",
-        "name": "gás refrigerante R410A"
-      }
-    },
-    {
-      "@type": "ListItem",
-      "position": 3,
-      "item": {
-        "@type": "Product",
-        "name": "gás refrigerante R22"
-      }
-    },
-    {
-      "@type": "ListItem",
-      "position": 4,
-      "item": {
-        "@type": "Product",
-        "name": "gás refrigerante R32"
-      }
-    },
-    {
-      "@type": "ListItem",
-      "position": 5,
-      "item": {
-        "@type": "Product",
-        "name": "gás refrigerante R290"
-      }
-    },
-    {
-      "@type": "ListItem",
-      "position": 6,
-      "item": {
-        "@type": "Product",
-        "name": "gás refrigerante R600a"
-      }
-    },
-    {
-      "@type": "ListItem",
-      "position": 7,
-      "item": {
-        "@type": "Product",
-        "name": "bomba de drenagem para máquina de lavar"
-      }
-    },
-    {
-      "@type": "ListItem",
-      "position": 8,
-      "item": {
-        "@type": "Product",
-        "name": "motor para máquina de lavar"
-      }
-    },
-    {
-      "@type": "ListItem",
-      "position": 9,
-      "item": {
-        "@type": "Product",
-        "name": "correia para máquina de lavar"
-      }
-    },
-    {
-      "@type": "ListItem",
-      "position": 10,
-      "item": {
-        "@type": "Product",
-        "name": "válvula de entrada de água para máquina de lavar"
-      }
-    },
-    {
-      "@type": "ListItem",
-      "position": 11,
-      "item": {
-        "@type": "Product",
-        "name": "placa eletrônica para máquina de lavar"
-      }
-    },
-    {
-      "@type": "ListItem",
-      "position": 12,
-      "item": {
-        "@type": "Product",
-        "name": "amortecedor para máquina de lavar"
-      }
-    },
-    {
-      "@type": "ListItem",
-      "position": 13,
-      "item": {
-        "@type": "Product",
-        "name": "pressostato para máquina de lavar"
-      }
-    },
-    {
-      "@type": "ListItem",
-      "position": 14,
-      "item": {
-        "@type": "Product",
-        "name": "trava da porta para máquina de lavar"
-      }
-    },
-    {
-      "@type": "ListItem",
-      "position": 15,
-      "item": {
-        "@type": "Product",
-        "name": "resistência para máquina de lavar"
-      }
-    },
-    {
-      "@type": "ListItem",
-      "position": 16,
-      "item": {
-        "@type": "Product",
-        "name": "mangueira para máquina de lavar"
-      }
-    },
-    {
-      "@type": "ListItem",
-      "position": 17,
-      "item": {
-        "@type": "Product",
-        "name": "timer para máquina de lavar"
-      }
-    },
-    {
-      "@type": "ListItem",
-      "position": 18,
-      "item": {
-        "@type": "Product",
-        "name": "capacitor para máquina de lavar"
-      }
-    },
-    {
-      "@type": "ListItem",
-      "position": 19,
-      "item": {
-        "@type": "Product",
-        "name": "rolamento para máquina de lavar"
-      }
-    },
-    {
-      "@type": "ListItem",
-      "position": 20,
-      "item": {
-        "@type": "Product",
-        "name": "retentor para máquina de lavar"
-      }
-    },
-    {
-      "@type": "ListItem",
-      "position": 21,
-      "item": {
-        "@type": "Product",
-        "name": "compressor para geladeira"
-      }
-    },
-    {
-      "@type": "ListItem",
-      "position": 22,
-      "item": {
-        "@type": "Product",
-        "name": "termostato para geladeira"
-      }
-    },
-    {
-      "@type": "ListItem",
-      "position": 23,
-      "item": {
-        "@type": "Product",
-        "name": "ventilador para geladeira"
-      }
-    },
-    {
-      "@type": "ListItem",
-      "position": 24,
-      "item": {
-        "@type": "Product",
-        "name": "placa eletrônica para geladeira"
-      }
-    },
-    {
-      "@type": "ListItem",
-      "position": 25,
-      "item": {
-        "@type": "Product",
-        "name": "sensor de temperatura para geladeira"
-      }
-    },
-    {
-      "@type": "ListItem",
-      "position": 26,
-      "item": {
-        "@type": "Product",
-        "name": "resistência de degelo para geladeira"
-      }
-    },
-    {
-      "@type": "ListItem",
-      "position": 27,
-      "item": {
-        "@type": "Product",
-        "name": "borracha de vedação para geladeira"
-      }
-    },
-    {
-      "@type": "ListItem",
-      "position": 28,
-      "item": {
-        "@type": "Product",
-        "name": "relé para compressor de geladeira"
-      }
-    },
-    {
-      "@type": "ListItem",
-      "position": 29,
-      "item": {
-        "@type": "Product",
-        "name": "protetor térmico para geladeira"
-      }
-    },
-    {
-      "@type": "ListItem",
-      "position": 30,
-      "item": {
-        "@type": "Product",
-        "name": "evaporador para geladeira"
-      }
-    },
-    {
-      "@type": "ListItem",
-      "position": 31,
-      "item": {
-        "@type": "Product",
-        "name": "condensador para geladeira"
-      }
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": "{{ site_url }}/#website",
+    "url": "{{ site_url }}/",
+    "name": "M.T.F Refrigeração",
+    "inLanguage": "pt-BR",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "{{ site_url }}/?q={search_term_string}",
+      "query-input": "required name=search_term_string"
     }
-  ]
-}
-</script>
-  <!-- Google Analytics -->
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "OfferCatalog",
+    "name": "Catálogo M.T.F Refrigeração",
+    "url": "{{ site_url }}/",
+    "itemListElement": [
+      {
+        "@type": "OfferCatalog",
+        "name": "Gases refrigerantes",
+        "itemListElement": [
+          { "@type": "Offer", "itemOffered": { "@type": "Product", "name": "Gás refrigerante R134a" } },
+          { "@type": "Offer", "itemOffered": { "@type": "Product", "name": "Gás refrigerante R410A" } },
+          { "@type": "Offer", "itemOffered": { "@type": "Product", "name": "Gás refrigerante R22" } },
+          { "@type": "Offer", "itemOffered": { "@type": "Product", "name": "Gás refrigerante R32" } },
+          { "@type": "Offer", "itemOffered": { "@type": "Product", "name": "Gás refrigerante R290" } },
+          { "@type": "Offer", "itemOffered": { "@type": "Product", "name": "Gás refrigerante R600a" } }
+        ]
+      },
+      {
+        "@type": "OfferCatalog",
+        "name": "Peças para geladeiras",
+        "itemListElement": [
+          { "@type": "Offer", "itemOffered": { "@type": "Product", "name": "Compressor para geladeira" } },
+          { "@type": "Offer", "itemOffered": { "@type": "Product", "name": "Termostato para geladeira" } },
+          { "@type": "Offer", "itemOffered": { "@type": "Product", "name": "Ventilador para geladeira" } },
+          { "@type": "Offer", "itemOffered": { "@type": "Product", "name": "Placa eletrônica para geladeira" } },
+          { "@type": "Offer", "itemOffered": { "@type": "Product", "name": "Sensor de temperatura para geladeira" } },
+          { "@type": "Offer", "itemOffered": { "@type": "Product", "name": "Resistência de degelo para geladeira" } }
+        ]
+      },
+      {
+        "@type": "OfferCatalog",
+        "name": "Peças para máquinas de lavar",
+        "itemListElement": [
+          { "@type": "Offer", "itemOffered": { "@type": "Product", "name": "Bomba de drenagem para máquina de lavar" } },
+          { "@type": "Offer", "itemOffered": { "@type": "Product", "name": "Motor para máquina de lavar" } },
+          { "@type": "Offer", "itemOffered": { "@type": "Product", "name": "Correia para máquina de lavar" } },
+          { "@type": "Offer", "itemOffered": { "@type": "Product", "name": "Válvula de entrada de água para máquina de lavar" } },
+          { "@type": "Offer", "itemOffered": { "@type": "Product", "name": "Placa eletrônica para máquina de lavar" } },
+          { "@type": "Offer", "itemOffered": { "@type": "Product", "name": "Pressostato para máquina de lavar" } }
+        ]
+      }
+    ]
+  }
+  </script>
+
   {% if ga_id %}
   <script async src="https://www.googletagmanager.com/gtag/js?id={{ ga_id }}"></script>
   <script>
@@ -354,7 +154,6 @@
     html { scroll-behavior: smooth; }
     body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
-    /* ── ADDRESS BAR ── */
     .address-bar {
       background: var(--text); color: #fff;
       padding: 7px 20px;
@@ -366,69 +165,251 @@
     .address-bar a:hover { opacity: 1; }
     .address-bar span { opacity: .5; }
 
-    /* ── HEADER ── */
-    header { background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
-    .header-inner { max-width: 900px; margin: 0 auto; padding: 0 20px; height: 60px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 20px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
     .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
-    .logo-mark { width: 34px; height: 34px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: 'DM Mono', monospace; font-weight: 500; color: #fff; font-size: .85rem; }
+    .logo-mark {
+      width: 34px; height: 34px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'DM Mono', monospace;
+      font-weight: 500; color: #fff; font-size: .85rem;
+    }
     .logo-text { font-weight: 700; font-size: 1rem; color: var(--text); line-height: 1.1; }
     .logo-sub  { font-size: .72rem; color: var(--muted); font-weight: 400; letter-spacing: .04em; }
-    .wa-btn-header { display: flex; align-items: center; gap: 7px; background: var(--wa); color: #fff; padding: 8px 14px; border-radius: 8px; font-weight: 700; font-size: .85rem; text-decoration: none; transition: opacity .15s; flex-shrink: 0; }
+
+    .wa-btn-header {
+      display: flex; align-items: center; gap: 7px;
+      background: var(--wa); color: #fff;
+      padding: 8px 14px; border-radius: 8px;
+      font-weight: 700; font-size: .85rem;
+      text-decoration: none;
+      transition: opacity .15s;
+      flex-shrink: 0;
+    }
     .wa-btn-header:hover { opacity: .88; }
 
-    /* ── HERO ── */
     .hero { max-width: 900px; margin: 0 auto; padding: 40px 20px 24px; }
-    .hero h1 { font-size: clamp(1.6rem, 4vw, 2.2rem); font-weight: 700; line-height: 1.2; letter-spacing: -.02em; }
-    .hero h1 span { color: var(--accent); }
-    .hero p { color: var(--muted); margin-top: 6px; font-size: .95rem; }
+    .hero h1 {
+      font-size: clamp(1.6rem, 4vw, 2.25rem);
+      font-weight: 700;
+      line-height: 1.18;
+      letter-spacing: -.02em;
+    }
+    .hero p { color: var(--muted); margin-top: 8px; font-size: .95rem; }
 
-    /* SEO text block (visible, but lightweight) */
-    .seo-copy { margin-top: 10px; color: var(--muted); font-size: .88rem; line-height: 1.4; max-width: 820px; }
+    .seo-copy {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: .9rem;
+      line-height: 1.5;
+      max-width: 820px;
+    }
     .seo-copy b { color: var(--text); font-weight: 700; }
+    .seo-copy a { color: var(--accent); text-decoration: none; font-weight: 600; }
+    .seo-copy a:hover { text-decoration: underline; }
 
-    /* ── CONTROLS ── */
-    .controls { max-width: 900px; margin: 0 auto; padding: 0 20px 16px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .controls {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 20px 16px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
     .search-wrap { flex: 1; min-width: 200px; position: relative; }
-    .search-wrap svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
-    .search-wrap input { width: 100%; padding: 10px 14px 10px 38px; border: 1.5px solid var(--border); border-radius: 10px; background: var(--surface); font-family: inherit; font-size: .95rem; color: var(--text); transition: border-color .15s; }
+    .search-wrap svg {
+      position: absolute; left: 12px; top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted); pointer-events: none;
+    }
+    .search-wrap input {
+      width: 100%;
+      padding: 10px 14px 10px 38px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface);
+      font-family: inherit;
+      font-size: .95rem;
+      color: var(--text);
+      transition: border-color .15s;
+    }
     .search-wrap input:focus { outline: none; border-color: var(--accent); }
     .search-wrap input::placeholder { color: var(--muted); }
-    .filter-row { display: flex; gap: 6px; flex-wrap: wrap; }
-    .filter-chip { padding: 7px 14px; border-radius: 20px; border: 1.5px solid var(--border); background: var(--surface); font-family: inherit; font-size: .82rem; font-weight: 500; color: var(--muted); cursor: pointer; transition: all .15s; white-space: nowrap; }
-    .filter-chip:hover { border-color: var(--accent); color: var(--accent); }
-    .filter-chip.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
 
-    /* ── STATS ── */
-    .stats-bar { max-width: 900px; margin: 0 auto; padding: 0 20px 14px; font-size: .82rem; color: var(--muted); }
+    .filter-row { display: flex; gap: 6px; flex-wrap: wrap; }
+    .filter-chip {
+      padding: 7px 14px;
+      border-radius: 20px;
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      font-family: inherit;
+      font-size: .82rem;
+      font-weight: 500;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all .15s;
+      white-space: nowrap;
+    }
+    .filter-chip:hover { border-color: var(--accent); color: var(--accent); }
+    .filter-chip.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      font-weight: 700;
+    }
+
+    .stats-bar {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 20px 14px;
+      font-size: .82rem;
+      color: var(--muted);
+    }
     .stats-bar b { color: var(--text); }
 
-    /* ── CATALOG ── */
     .catalog { max-width: 900px; margin: 0 auto; padding: 0 20px 80px; }
     .cat-group { margin-bottom: 28px; }
-    .cat-title { font-size: .7rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); padding-bottom: 8px; border-bottom: 1px solid var(--border); margin-bottom: 0; }
+    .cat-title {
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 0;
+    }
 
-    .product-row { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); gap: 12px; transition: background .1s; }
+    .product-row {
+      display: flex;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+      gap: 12px;
+      transition: background .1s;
+    }
     .product-row:last-child { border-bottom: none; }
-    .product-row:hover { background: rgba(0,0,0,.015); margin: 0 -8px; padding-left: 8px; padding-right: 8px; border-radius: 6px; }
+    .product-row:hover {
+      background: rgba(0,0,0,.015);
+      margin: 0 -8px;
+      padding-left: 8px;
+      padding-right: 8px;
+      border-radius: 6px;
+    }
+
+    .prod-img {
+      width: 48px; height: 48px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .prod-img-placeholder {
+      width: 48px; height: 48px;
+      border-radius: 8px;
+      background: var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem;
+      flex-shrink: 0;
+    }
+
     .prod-name { flex: 1; font-weight: 500; font-size: .97rem; color: var(--text); }
-    .prod-unit { font-size: .78rem; color: var(--muted); flex-shrink: 0; }
-    .stock-pill { font-size: .72rem; font-weight: 700; padding: 3px 8px; border-radius: 10px; flex-shrink: 0; white-space: nowrap; background: var(--green-l); color: var(--green); }
-    .prod-price { font-family: 'DM Mono', monospace; font-size: .95rem; font-weight: 500; color: var(--text); flex-shrink: 0; min-width: 80px; text-align: right; }
-    .prod-price.no-price { color: var(--muted); font-size: .82rem; font-family: 'DM Sans', sans-serif; }
-    .wa-row-btn { flex-shrink: 0; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; background: var(--green-l); color: var(--green); text-decoration: none; transition: all .15s; }
-    .wa-row-btn:hover { background: var(--wa); color: #fff; }
+    .prod-name a { text-decoration: none; color: inherit; }
+    .prod-name a:hover { color: var(--accent); }
 
-    /* ── FLOAT WA ── */
-    .wa-float { position: fixed; bottom: 24px; right: 24px; z-index: 200; display: flex; align-items: center; gap: 8px; background: var(--wa); color: #fff; padding: 12px 20px; border-radius: 50px; text-decoration: none; font-weight: 700; font-size: .92rem; box-shadow: 0 4px 20px rgba(37,211,102,.35); transition: transform .2s, box-shadow .2s; }
-    .wa-float:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(37,211,102,.45); }
+    .prod-unit {
+      font-size: .78rem;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+    .stock-pill {
+      font-size: .72rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 10px;
+      flex-shrink: 0;
+      white-space: nowrap;
+      background: var(--green-l);
+      color: var(--green);
+    }
+    .prod-price {
+      font-family: 'DM Mono', monospace;
+      font-size: .95rem;
+      font-weight: 500;
+      color: var(--text);
+      flex-shrink: 0;
+      min-width: 80px;
+      text-align: right;
+    }
+    .prod-price.no-price {
+      color: var(--muted);
+      font-size: .82rem;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .wa-row-btn {
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      background: var(--green-l);
+      color: var(--green);
+      text-decoration: none;
+      transition: all .15s;
+    }
+    .wa-row-btn:hover {
+      background: var(--wa);
+      color: #fff;
+    }
 
-    .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
+    .wa-float {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--wa);
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 50px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: .92rem;
+      box-shadow: 0 4px 20px rgba(37,211,102,.35);
+      transition: transform .2s, box-shadow .2s;
+    }
+    .wa-float:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(37,211,102,.45);
+    }
 
-    footer { border-top: 1px solid var(--border); padding: 24px 20px; text-align: center; font-size: .8rem; color: var(--muted); }
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 24px 20px;
+      text-align: center;
+      font-size: .8rem;
+      color: var(--muted);
+    }
 
-
-    .prod-img { width: 48px; height: 48px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); flex-shrink: 0; }
-    .prod-img-placeholder { width: 48px; height: 48px; border-radius: 8px; background: var(--border); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; }
     @media (max-width: 480px) {
       .address-bar { font-size: .72rem; gap: 10px; }
       .hero { padding: 24px 16px 16px; }
@@ -440,7 +421,6 @@
 </head>
 <body>
 
-<!-- ADDRESS BAR -->
 <div class="address-bar">
   📍 {{ store_address }}
   {% if store_phone %}
@@ -455,11 +435,18 @@
       <div class="logo-mark">MTF</div>
       <div>
         <div class="logo-text">M.T.F Refrigeração</div>
-        <div class="logo-sub">Peças e gases</div>
+        <div class="logo-sub">Peças, geladeiras, máquinas e gases</div>
       </div>
     </a>
-    <a href="/sobre" style="font-size:.85rem;font-weight:600;color:var(--muted);text-decoration:none;white-space:nowrap;">Sobre nós</a>
-    <a class="wa-btn-header wa-track" href="https://wa.me/{{ wa_number }}?text=Ol%C3%A1%21%20Gostaria%20de%20mais%20informa%C3%A7%C3%B5es%20sobre%20os%20produtos." target="_blank" rel="noopener" data-product="Geral">
+
+    <a href="/sobre" style="font-size:.85rem;font-weight:600;color:var(--muted);text-decoration:none;white-space:nowrap;">
+      Sobre nós
+    </a>
+
+    <a class="wa-btn-header wa-track"
+       href="https://wa.me/{{ wa_number }}?text=Ol%C3%A1%21%20Gostaria%20de%20mais%20informa%C3%A7%C3%B5es%20sobre%20os%20produtos."
+       target="_blank" rel="noopener"
+       data-product="Geral">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
       WhatsApp
     </a>
@@ -467,18 +454,15 @@
 </header>
 
 <div class="hero">
-  <h1>Gás refrigerante (R134a, R410a, R22, R32, R290 e R600a) e peças para refrigeração no Rio de Janeiro</h1>
-  <p>Componentes para refrigeração · Consulte disponibilidade e preços</p>
+  <h1>Peças para geladeiras, máquinas de lavar e gás refrigerante no Rio de Janeiro</h1>
+  <p>Loja de refrigeração no RJ com peças para manutenção, refil e varejo</p>
 
-  <!-- SEO copy: RJ + bairros + gases + peças (sem categorias, sem invenções) -->
   <div class="seo-copy">
-    <p><b>RJ (Rio de Janeiro):</b> peças para refrigeração e ar condicionado, como capacitores, termostatos, tubos, válvulas, relés, filtros, suportes e materiais de instalação.</p>
-    <p><b>Gás refrigerante:</b> R134a, R410a, R22, R32, R290 e R600a.</p>
-    <p>Disponível em varejo e refil.</p>
-    <p>Loja de refrigeração no Rio de Janeiro — Avenida Brasil, 6818.</p>
-    <a href="https://maps.google.com/?q=Avenida+Brasil+6818+Rio+de+Janeiro">
-      Ver no mapa
-    </a>
+    <p><b>M.T.F Refrigeração no RJ:</b> peças para geladeiras, máquinas de lavar, freezers, ar-condicionado e refrigeração em geral.</p>
+    <p><b>Trabalhamos com:</b> compressores, termostatos, placas, sensores, válvulas, relés, capacitores, mangueiras, correias e outros componentes para manutenção.</p>
+    <p><b>Gás refrigerante:</b> R134a, R410A, R22, R32, R290 e R600a em refil e varejo.</p>
+    <p>Loja de refrigeração no Rio de Janeiro, com atendimento na Avenida Brasil, 6818.</p>
+    <p><a href="https://maps.google.com/?q=Avenida+Brasil+6818+Rio+de+Janeiro" target="_blank" rel="noopener">Ver no mapa</a></p>
   </div>
 </div>
 
@@ -487,6 +471,7 @@
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
     <input type="text" id="searchInput" placeholder="Buscar produto..." oninput="filterProducts()">
   </div>
+
   <div class="filter-row" id="filterRow">
     <button class="filter-chip active" data-filter="all" onclick="setFilter(this, 'all')">Todos</button>
     {% for cat in categories %}
@@ -499,11 +484,11 @@
   <b>{{ total }}</b> produtos disponíveis
 </div>
 
-<!-- CATALOG (server-side rendered for SEO) -->
 <div class="catalog" id="catalog">
   {% for cat, products in groups.items() %}
   <div class="cat-group" data-cat="{{ cat }}">
     <div class="cat-title">{{ cat }}</div>
+
     {% for p in products %}
     {% set wa_msg = "Ol%C3%A1%21%20Tenho%20interesse%20no%20produto%3A%20" + p.name|urlencode + "%20%28" + p.unit|urlencode + "%29.%20Est%C3%A1%20dispon%C3%ADvel%3F" %}
     <div class="product-row" data-name="{{ p.name | lower }}" data-cat="{{ cat }}">
@@ -512,12 +497,15 @@
       {% else %}
       <div class="prod-img-placeholder">📦</div>
       {% endif %}
+
       <div class="prod-name">
-        <a href="/product/{{ p.slug }}" style="text-decoration:none; color:inherit;">
+        <a href="/product/{{ p.slug }}">
           {{ p.name }} <span class="prod-unit">({{ p.unit }})</span>
         </a>
       </div>
+
       <span class="stock-pill">Disponível</span>
+
       {% if p.sale_price %}
       <div class="prod-price">
         R$ {{ "%.2f"|format(p.sale_price) }}{% if p.unit == 'kg' %}<span style="font-size:.75rem;color:var(--muted);font-weight:400;">/kg <span style="font-size:.7rem;">(varejo)</span></span>{% endif %}
@@ -525,6 +513,7 @@
       {% else %}
       <div class="prod-price no-price">Consulte</div>
       {% endif %}
+
       <a class="wa-row-btn wa-track"
          href="https://wa.me/{{ wa_number }}?text={{ wa_msg }}"
          target="_blank" rel="noopener"
@@ -539,32 +528,31 @@
 </div>
 
 <section class="seo-text" style="max-width:900px;margin:40px auto 60px;padding:0 20px;color:#6b6b6b;font-size:.9rem;line-height:1.6;">
+  <h2 style="font-size:1.1rem;margin-bottom:10px;color:#222;">
+    Loja de peças para geladeiras, máquinas de lavar e refrigeração no RJ
+  </h2>
 
-    <h2 style="font-size:1.1rem;margin-bottom:10px;color:#222;">
-    Peças e gás refrigerante no Rio de Janeiro
-    </h2>
-
-    <p>
+  <p>
     A M.T.F Refrigeração fornece peças e componentes para manutenção de geladeiras,
-    freezers e ar condicionado no Rio de Janeiro. Trabalhamos com capacitores,
-    termostatos, válvulas, relés, sensores, tubos e materiais de instalação.
-    </p>
+    máquinas de lavar, freezers e ar-condicionado no Rio de Janeiro.
+  </p>
 
-    <p>
-    Também fornecemos <strong>gás refrigerante</strong> R134a, R410A, R22, R32,
-    R290 e R600a.
-    </p>
+  <p>
+    Trabalhamos com itens como compressores, termostatos, placas eletrônicas,
+    sensores, válvulas, relés, capacitores, mangueiras, correias e outros
+    componentes para reposição e manutenção.
+  </p>
 
-    <p>
-    Gases disponíveis em <strong>refil e varejo</strong>.
-    </p>
+  <p>
+    Também oferecemos gás refrigerante R134a, R410A, R22, R32, R290 e R600a
+    em refil e varejo.
+  </p>
 
-    <p>
-    Loja localizada na Avenida Brasil, 6818 — Rio de Janeiro.
-    Atendimento em Bonsucesso, Maré, Ramos e Olaria.
-    </p>
-
-  </section>
+  <p>
+    Loja localizada na Avenida Brasil, 6818, com atendimento no Rio de Janeiro
+    e região.
+  </p>
+</section>
 
 <a class="wa-float wa-track"
    href="https://wa.me/{{ wa_number }}?text=Ol%C3%A1%21%20Gostaria%20de%20mais%20informa%C3%A7%C3%B5es%20sobre%20os%20produtos."
@@ -593,7 +581,6 @@ function filterProducts() {
   let visible = 0;
 
   document.querySelectorAll('.cat-group').forEach(group => {
-    const cat = group.dataset.cat;
     let groupVisible = 0;
 
     group.querySelectorAll('.product-row').forEach(row => {
@@ -613,15 +600,14 @@ function filterProducts() {
     `<b>${visible}</b> produtos encontrados`;
 }
 
-// Track WhatsApp clicks
 document.querySelectorAll('.wa-track').forEach(el => {
   el.addEventListener('click', function() {
     const product = this.dataset.product || 'Geral';
-    // Google Analytics event
+
     if (typeof gtag !== 'undefined') {
       gtag('event', 'whatsapp_click', { product_name: product });
     }
-    // Server tracking
+
     fetch('/api/track/whatsapp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
