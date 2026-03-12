@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/png" href="/static/favicon.png">
+
+  <title>{{ category }} no RJ | M.T.F Refrigeração</title>
+  <meta name="description" content="{{ category }} para refrigeração no Rio de Janeiro. {{ total }} produtos disponíveis. Consulte preços e disponibilidade via WhatsApp.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="{{ site_url }}/category/{{ cat_slug }}">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="{{ category }} | M.T.F Refrigeração RJ">
+  <meta property="og:description" content="{{ category }} para refrigeração no RJ. {{ total }} produtos disponíveis.">
+  <meta property="og:image" content="{{ site_url }}/static/og-catalog.jpg">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": "{{ category }} — M.T.F Refrigeração",
+    "url": "{{ site_url }}/category/{{ cat_slug }}",
+    "description": "{{ category }} para refrigeração no Rio de Janeiro"
+  }
+  </script>
+
+  {% if ga_id %}
+  <script async src="https://www.googletagmanager.com/gtag/js?id={{ ga_id }}"></script>
+  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','{{ ga_id }}');</script>
+  {% endif %}
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    :root{--bg:#f8f7f4;--surface:#fff;--border:#e8e5df;--text:#1a1816;--muted:#8a8580;--accent:#e2144a;--green:#16a34a;--green-l:#f0fdf4;--wa:#25d366;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    html{scroll-behavior:smooth;}
+    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+    .address-bar{background:var(--text);color:#fff;padding:7px 20px;font-size:.78rem;letter-spacing:.02em;display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap;text-align:center;}
+    .address-bar a{color:#fff;text-decoration:none;opacity:.85;}
+    .address-bar span{opacity:.5;}
+
+    header{background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;}
+    .header-inner{max-width:900px;margin:0 auto;padding:0 20px;height:60px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+    .logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+    .logo-mark{width:34px;height:34px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-weight:500;color:#fff;font-size:.85rem;}
+    .logo-text{font-weight:700;font-size:1rem;color:var(--text);line-height:1.1;}
+    .logo-sub{font-size:.72rem;color:var(--muted);font-weight:400;letter-spacing:.04em;}
+    .wa-btn-header{display:flex;align-items:center;gap:7px;background:var(--wa);color:#fff;padding:8px 14px;border-radius:8px;font-weight:700;font-size:.85rem;text-decoration:none;transition:opacity .15s;flex-shrink:0;}
+    .wa-btn-header:hover{opacity:.88;}
+
+    .breadcrumb{max-width:900px;margin:0 auto;padding:16px 20px 0;font-size:.82rem;color:var(--muted);display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+    .breadcrumb a{color:var(--muted);text-decoration:none;}
+    .breadcrumb a:hover{color:var(--accent);}
+
+    .hero{max-width:900px;margin:0 auto;padding:24px 20px 16px;}
+    .hero h1{font-size:clamp(1.4rem,4vw,2rem);font-weight:700;line-height:1.2;letter-spacing:-.02em;}
+    .hero h1 span{color:var(--accent);}
+    .hero p{color:var(--muted);margin-top:6px;font-size:.95rem;}
+
+    .controls{max-width:900px;margin:0 auto;padding:0 20px 16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+    .search-wrap{flex:1;min-width:200px;position:relative;}
+    .search-wrap svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;}
+    .search-wrap input{width:100%;padding:10px 14px 10px 38px;border:1.5px solid var(--border);border-radius:10px;background:var(--surface);font-family:inherit;font-size:.95rem;color:var(--text);transition:border-color .15s;}
+    .search-wrap input:focus{outline:none;border-color:var(--accent);}
+    .search-wrap input::placeholder{color:var(--muted);}
+
+    .stats-bar{max-width:900px;margin:0 auto;padding:0 20px 14px;font-size:.82rem;color:var(--muted);}
+    .stats-bar b{color:var(--text);}
+
+    .catalog{max-width:900px;margin:0 auto;padding:0 20px 80px;}
+    .cat-title{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding-bottom:10px;border-bottom:1px solid var(--border);margin-bottom:2px;}
+
+    .product-row{display:flex;align-items:center;padding:13px 0;border-bottom:1px solid var(--border);gap:12px;transition:background .1s;}
+    .product-row:last-child{border-bottom:none;}
+    .product-row:hover{background:rgba(0,0,0,.015);margin:0 -8px;padding-left:8px;padding-right:8px;border-radius:6px;}
+    .prod-img{width:48px;height:48px;object-fit:contain;border-radius:8px;border:1px solid var(--border);background:var(--surface);flex-shrink:0;}
+    .prod-img-placeholder{width:48px;height:48px;border-radius:8px;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;}
+    .prod-name{flex:1;font-weight:500;font-size:.97rem;}
+    .prod-unit{font-size:.78rem;color:var(--muted);font-weight:400;}
+    .stock-pill{font-size:.72rem;font-weight:700;padding:3px 8px;border-radius:10px;background:var(--green-l);color:var(--green);flex-shrink:0;white-space:nowrap;}
+    .prod-price{font-family:'DM Mono',monospace;font-size:.95rem;font-weight:500;flex-shrink:0;min-width:90px;text-align:right;}
+    .no-price{color:var(--muted);font-size:.82rem;font-family:'DM Sans',sans-serif;}
+    .wa-row-btn{display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;background:var(--green-l);color:var(--wa);flex-shrink:0;transition:background .15s;}
+    .wa-row-btn:hover{background:#dcfce7;}
+
+    .other-cats{max-width:900px;margin:0 auto;padding:0 20px 60px;}
+    .other-cats-title{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding-bottom:10px;border-bottom:1px solid var(--border);margin-bottom:12px;}
+    .cats-grid{display:flex;flex-wrap:wrap;gap:8px;}
+    .cat-chip{padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface);font-size:.82rem;font-weight:500;color:var(--muted);text-decoration:none;transition:all .15s;white-space:nowrap;}
+    .cat-chip:hover{border-color:var(--accent);color:var(--accent);}
+    .cat-chip.current{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700;}
+
+    .wa-float{position:fixed;bottom:24px;right:24px;display:flex;align-items:center;gap:10px;background:var(--wa);color:#fff;padding:12px 20px;border-radius:50px;font-weight:700;font-size:.95rem;text-decoration:none;box-shadow:0 4px 20px rgba(37,211,102,.35);transition:transform .15s,opacity .15s;z-index:200;}
+    .wa-float:hover{transform:translateY(-2px);opacity:.95;}
+
+    footer{text-align:center;padding:24px 20px;font-size:.82rem;color:var(--muted);border-top:1px solid var(--border);}
+
+    @media(max-width:600px){
+      .address-bar{font-size:.72rem;gap:10px;}
+      .wa-float span{display:none;}
+      .wa-float{padding:14px;border-radius:50%;}
+    }
+  </style>
+</head>
+<body>
+
+<div class="address-bar">
+  📍 {{ store_address }}
+  {% if store_phone %}<span>·</span><a href="https://wa.me/{{ wa_number }}">📞 {{ store_phone }}</a>{% endif %}
+</div>
+
+<header>
+  <div class="header-inner">
+    <a class="logo" href="/">
+      <div class="logo-mark">MTF</div>
+      <div>
+        <div class="logo-text">M.T.F Refrigeração</div>
+        <div class="logo-sub">Peças e gases</div>
+      </div>
+    </a>
+    <a href="/sobre" style="font-size:.85rem;font-weight:600;color:var(--muted);text-decoration:none;white-space:nowrap;">Sobre nós</a>
+    <a class="wa-btn-header wa-track"
+       href="https://wa.me/{{ wa_number }}?text=Ol%C3%A1%21%20Gostaria%20de%20mais%20informa%C3%A7%C3%B5es%20sobre%20os%20produtos."
+       target="_blank" rel="noopener" data-product="Geral">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+      WhatsApp
+    </a>
+  </div>
+</header>
+
+<nav class="breadcrumb">
+  <a href="/">Catálogo</a>
+  <span>›</span>
+  <span>{{ category }}</span>
+</nav>
+
+<div class="hero">
+  <h1><span>{{ category }}</span> — peças para refrigeração no RJ</h1>
+  <p>{{ total }} produto{% if total != 1 %}s{% endif %} disponíve{% if total != 1 %}is{% endif %} · Rio de Janeiro</p>
+</div>
+
+<div class="controls">
+  <div class="search-wrap">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input type="text" id="searchInput" placeholder="Buscar em {{ category }}..." oninput="filterProducts()">
+  </div>
+</div>
+
+<div class="stats-bar">
+  <b id="visibleCount">{{ total }}</b> produtos encontrados
+</div>
+
+<div class="catalog" id="catalog">
+  <div class="cat-title">{{ category }}</div>
+  {% for p in products %}
+  {% set wa_msg = "Ol%C3%A1%21%20Tenho%20interesse%20no%20produto%3A%20" + p.name|urlencode + "%20%28" + p.unit|urlencode + "%29.%20Est%C3%A1%20dispon%C3%ADvel%3F" %}
+  <div class="product-row" data-name="{{ p.name | lower }}">
+    {% if p.image %}
+    <img class="prod-img" src="{{ p.image }}" alt="{{ p.name }}" loading="lazy">
+    {% else %}
+    <div class="prod-img-placeholder">📷</div>
+    {% endif %}
+    <div class="prod-name">
+      <a href="/product/{{ p.slug }}" style="text-decoration:none;color:inherit;">
+        {{ p.name }} <span class="prod-unit">({{ p.unit }})</span>
+      </a>
+    </div>
+    <span class="stock-pill">Disponível</span>
+    {% if p.sale_price %}
+    <div class="prod-price">R$ {{ "%.2f"|format(p.sale_price) }}{% if p.unit == 'kg' %}<span style="font-size:.75rem;color:var(--muted);font-weight:400;">/kg <span style="font-size:.7rem;">(varejo)</span></span>{% endif %}</div>
+    {% else %}
+    <div class="prod-price no-price">Consulte</div>
+    {% endif %}
+    <a class="wa-row-btn wa-track"
+       href="https://wa.me/{{ wa_number }}?text={{ wa_msg }}"
+       target="_blank" rel="noopener"
+       data-product="{{ p.name }}"
+       title="Consultar no WhatsApp">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+    </a>
+  </div>
+  {% endfor %}
+</div>
+
+{% if all_cats %}
+<div class="other-cats">
+  <div class="other-cats-title">Outras categorias</div>
+  <div class="cats-grid">
+    {% for c in all_cats %}
+    <a class="cat-chip {% if c == category %}current{% endif %}" href="/category/{{ cat_slugs_map[c] }}">{{ c }}</a>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<a class="wa-float wa-track"
+   href="https://wa.me/{{ wa_number }}?text=Ol%C3%A1%21%20Gostaria%20de%20mais%20informa%C3%A7%C3%B5es%20sobre%20os%20produtos."
+   target="_blank" rel="noopener" data-product="Geral">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+  <span>Falar no WhatsApp</span>
+</a>
+
+<footer>
+  <p>M.T.F Refrigeração · {{ store_address }}</p>
+</footer>
+
+<script>
+function filterProducts() {
+  const q = document.getElementById('searchInput').value.toLowerCase().trim();
+  let visible = 0;
+  document.querySelectorAll('.product-row').forEach(row => {
+    const name = row.dataset.name || '';
+    const show = !q || name.includes(q);
+    row.style.display = show ? '' : 'none';
+    if (show) visible++;
+  });
+  document.getElementById('visibleCount').textContent = visible;
+}
+
+document.querySelectorAll('.wa-track').forEach(el => {
+  el.addEventListener('click', function() {
+    const product = this.dataset.product || 'Geral';
+    if (typeof gtag !== 'undefined') gtag('event', 'whatsapp_click', {product_name: product});
+    fetch('/api/track/whatsapp', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({product})}).catch(()=>{});
+  });
+});
+</script>
+</body>
+</html>

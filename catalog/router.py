@@ -66,12 +66,14 @@ async def catalog_page(request: Request):
         for item in items:
             item["slug"] = slugify(item["name"])
     total  = len(rows)
+    cat_slugs = {cat: slugify(cat) for cat in groups.keys()}
 
     return templates.TemplateResponse("catalog.html", {
         "request":       request,
         "groups":        groups,
         "total":         total,
         "categories":    list(groups.keys()),
+        "cat_slugs":     cat_slugs,
         "ga_id":         GA_ID,
         "site_url":      SITE_URL,
         "store_address": STORE_ADDRESS,
@@ -108,6 +110,48 @@ async def product_page(request: Request, slug: str):
         "request":       request,
         "product":       product,
         "related":       related,
+        "ga_id":         GA_ID,
+        "site_url":      SITE_URL,
+        "wa_number":     WA_OWNER_NUMBER,
+        "store_address": STORE_ADDRESS,
+        "store_phone":   STORE_PHONE,
+    })
+
+
+# ── CATEGORY PAGE ───────────────────────────────────────
+@router.get("/category/{cat_slug}", response_class=HTMLResponse)
+async def category_page(request: Request, cat_slug: str):
+    async with engine.connect() as conn:
+        rows = await _get_products(conn)
+
+    # найти категорию по slug
+    matched_cat = None
+    for r in rows:
+        if slugify(r["category_name"]) == cat_slug:
+            matched_cat = r["category_name"]
+            break
+
+    if not matched_cat:
+        return HTMLResponse("Categoria não encontrada", status_code=404)
+
+    products = []
+    for r in rows:
+        if r["category_name"] == matched_cat:
+            rd = dict(r)
+            rd["slug"] = slugify(rd["name"])
+            products.append(rd)
+
+    all_cats = list(dict.fromkeys(r["category_name"] for r in rows))
+    cat_slugs_map = {cat: slugify(cat) for cat in all_cats}
+
+    return templates.TemplateResponse("category.html", {
+        "request":       request,
+        "category":      matched_cat,
+        "cat_slug":      cat_slug,
+        "products":      products,
+        "all_cats":      all_cats,
+        "cat_slugs_map": cat_slugs_map,
+        "total":         len(products),
         "ga_id":         GA_ID,
         "site_url":      SITE_URL,
         "wa_number":     WA_OWNER_NUMBER,
@@ -244,6 +288,19 @@ async def sitemap(request: Request):
     <lastmod>{today}</lastmod>
     </url>
     """)
+
+    seen_cats = set()
+    for r in rows:
+        cat = r["category_name"]
+        if cat not in seen_cats:
+            seen_cats.add(cat)
+            items.append(f"""
+        <url>
+            <loc>{base}/category/{slugify(cat)}</loc>
+            <priority>0.9</priority>
+            <lastmod>{today}</lastmod>
+        </url>
+        """)
 
     for r in rows:
         slug = slugify(r["name"])
