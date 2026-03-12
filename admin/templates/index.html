@@ -164,6 +164,27 @@
     🛒 Carrinho
     <span class="cart-badge hidden" id="cart-badge">0</span>
   </button>
+  <!-- CALCULADORA DE TROCO NAVBAR -->
+  <div style="position:relative;">
+    <button class="cart-icon-btn" onclick="toggleTrocoPopup()" id="troco-nav-btn" title="Calculadora de troco">
+      💵 Troco
+    </button>
+    <div id="troco-popup" style="display:none;position:absolute;top:calc(100% + 10px);right:0;width:280px;background:#fff;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.18);padding:18px;z-index:500;border:1px solid #e5e7eb;">
+      <div style="font-size:.8rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#555;margin-bottom:12px;">💵 Calculadora de troco</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div>
+          <label style="font-size:.72rem;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.04em;">Total da compra (R$)</label>
+          <input id="nav-troco-total" type="number" step="0.01" placeholder="Ex: 47,50" style="width:100%;margin-top:4px;padding:8px 12px;border-radius:8px;border:1px solid #d1d5db;font-size:.95rem;font-family:inherit;box-sizing:border-box;">
+        </div>
+        <div>
+          <label style="font-size:.72rem;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.04em;">Valor recebido (R$)</label>
+          <input id="nav-troco-recebido" type="number" step="0.01" placeholder="Ex: 50,00" style="width:100%;margin-top:4px;padding:8px 12px;border-radius:8px;border:1px solid #d1d5db;font-size:.95rem;font-family:inherit;box-sizing:border-box;" onkeydown="if(event.key==='Enter') calcNavTroco()">
+        </div>
+        <button onclick="calcNavTroco()" style="padding:9px;border-radius:8px;background:#111827;color:#fff;border:none;font-weight:800;font-size:.9rem;cursor:pointer;font-family:inherit;">Calcular</button>
+        <div id="nav-troco-result" style="display:none;font-size:1.1rem;font-weight:900;text-align:center;padding:8px;border-radius:8px;"></div>
+      </div>
+    </div>
+  </div>
 </header>
 
 <div class="layout">
@@ -591,6 +612,44 @@ function calcTroco() {
     el.textContent = '✅ Troco: R$ ' + troco.toFixed(2).replace('.', ',');
   }
 }
+</script>
+<script>
+function toggleTrocoPopup() {
+  const p = document.getElementById('troco-popup');
+  p.style.display = p.style.display === 'none' ? 'block' : 'none';
+  if (p.style.display === 'block') document.getElementById('nav-troco-total').focus();
+}
+function calcNavTroco() {
+  const total = parseFloat(document.getElementById('nav-troco-total').value);
+  const recebido = parseFloat(document.getElementById('nav-troco-recebido').value);
+  const res = document.getElementById('nav-troco-result');
+  if (isNaN(total) || isNaN(recebido)) {
+    res.style.display = 'block';
+    res.style.background = '#fee2e2';
+    res.style.color = '#dc2626';
+    res.textContent = 'Preencha os dois campos';
+    return;
+  }
+  const troco = recebido - total;
+  res.style.display = 'block';
+  if (troco < 0) {
+    res.style.background = '#fee2e2';
+    res.style.color = '#dc2626';
+    res.textContent = `Falta R$ ${Math.abs(troco).toFixed(2).replace('.', ',')}`;
+  } else {
+    res.style.background = '#dcfce7';
+    res.style.color = '#166534';
+    res.textContent = `Troco: R$ ${troco.toFixed(2).replace('.', ',')}`;
+  }
+}
+// Fechar popup ao clicar fora
+document.addEventListener('click', function(e) {
+  const popup = document.getElementById('troco-popup');
+  const btn = document.getElementById('troco-nav-btn');
+  if (popup && !popup.contains(e.target) && e.target !== btn) {
+    popup.style.display = 'none';
+  }
+});
 </script>
 </body>
 </html>

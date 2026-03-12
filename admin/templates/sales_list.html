@@ -124,7 +124,6 @@
   <a href="/sales" class="active">Vendas</a>
   <a href="/sales/new">+ Venda</a>
   <a href="/stock">Estoque</a>
-  <a href="/stock/new">+ Movimento</a>
   <a href="/reports">Relatórios</a>
   <a href="/calc">Calculadora</a>
 </header>
@@ -189,8 +188,32 @@
         </div>
       </div>
 
+      <!-- TOPACTIONS -->
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+        <a class="btn" href="/sales/new">+ Nova venda</a>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-left:auto;">
+          <a class="btn secondary" href="/sales" style="font-size:.82rem;padding:6px 12px;">Tudo</a>
+          <a class="btn secondary" id="btn-semana" href="#" style="font-size:.82rem;padding:6px 12px;">Esta semana</a>
+          <a class="btn secondary" id="btn-mes" href="#" style="font-size:.82rem;padding:6px 12px;">Este mês</a>
+        </div>
+      </div>
+      <script>
+        (function(){
+          function fmt(d){ return d.toISOString().slice(0,10); }
+          var today = new Date();
+          var todayStr = fmt(today);
+          // início da semana (segunda-feira)
+          var dow = today.getDay(); // 0=dom
+          var diff = (dow === 0) ? 6 : dow - 1;
+          var weekStart = new Date(today); weekStart.setDate(today.getDate() - diff);
+          // início do mês
+          var monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+          document.getElementById('btn-semana').href = '/sales?date_from=' + fmt(weekStart) + '&date_to=' + todayStr;
+          document.getElementById('btn-mes').href = '/sales?date_from=' + fmt(monthStart) + '&date_to=' + todayStr;
+        })();
+      </script>
+
       <!-- FILTERS -->
-      <form method="get" action="/sales">
         <div class="filters">
           <label>De</label>
           <input type="date" name="date_from" value="{{ date_from or '' }}">
@@ -212,7 +235,6 @@
 
       <!-- TOPBAR -->
       <div class="topbar">
-        <a class="btn" href="/sales/new">+ Nova venda</a>
         <span class="pill">{{ total_count }} registros</span>
         <form method="get" action="/sales" style="margin-left:auto;display:flex;gap:8px;align-items:center;">
           <input type="hidden" name="page" value="1">
