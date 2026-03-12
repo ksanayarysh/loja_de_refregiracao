@@ -264,64 +264,65 @@ async def catalog_stats():
 
 
 # ── SITEMAP ──────────────────────────────────────────────
-@router.get("/sitemap.xml")
-async def sitemap(request: Request):
+from datetime import datetime, timezone
+from xml.sax.saxutils import escape
+from fastapi.responses import PlainTextResponse
+
+@router.get("/sitemap.xml", response_class=PlainTextResponse)
+async def sitemap():
     base = SITE_URL.rstrip("/")
 
     async with engine.connect() as conn:
         rows = await _get_products(conn)
 
+    today = datetime.now(timezone.utc).date().isoformat()
     items = []
-    today = datetime.utcnow().date().isoformat()
 
-    items.append(f"""
-    <url>
-        <loc>{base}/</loc>
-        <priority>1.0</priority>
-        <lastmod>{today}</lastmod>
-    </url>
-    """)
+    def add_url(loc: str, priority: str, lastmod: str = today):
+        items.append(f"""
+  <url>
+    <loc>{escape(loc)}</loc>
+    <lastmod>{lastmod}</lastmod>
+    <priority>{priority}</priority>
+  </url>""")
 
-    items.append(f"""
-    <url>
-    <loc>{base}/sobre</loc>
-    <priority>0.6</priority>
-    <lastmod>{today}</lastmod>
-    </url>
-    """)
+    # главная
+    add_url(f"{base}/", "1.0")
 
+    # about
+    add_url(f"{base}/sobre", "0.6")
+
+    # категории
     seen_cats = set()
     for r in rows:
-        cat = r["category_name"]
-        if cat not in seen_cats:
-            seen_cats.add(cat)
-            items.append(f"""
-        <url>
-            <loc>{base}/category/{slugify(cat)}</loc>
-            <priority>0.9</priority>
-            <lastmod>{today}</lastmod>
-        </url>
-        """)
+        cat = (r.get("category_name") or "").strip()
+        if not cat:
+            continue
 
+        cat_slug = slugify(cat)
+        if not cat_slug or cat_slug in seen_cats:
+            continue
+
+        seen_cats.add(cat_slug)
+        add_url(f"{base}/category/{cat_slug}", "0.9")
+
+    # товары
+    seen_products = set()
     for r in rows:
-        slug = slugify(r["name"])
-        items.append(f"""
-        <url>
-            <loc>{base}/product/{slug}</loc>
-            <priority>0.8</priority>
-            <lastmod>{today}</lastmod>
-        </url>
-        """)
+        slug = slugify(r.get("name", ""))
+        if not slug or slug in seen_products:
+            continue
+
+        seen_products.add(slug)
+        add_url(f"{base}/product/{slug}", "0.8")
 
     xml = f"""<?xml version="1.0" encoding="UTF-8"?>
-        <urlset xmlns="https://www.sitemaps.org/schemas/sitemap/0.9">
+        <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
         {''.join(items)}
         </urlset>
         """
 
     return PlainTextResponse(xml, media_type="application/xml")
-
-
 # ── ROBOTS.TXT ───────────────────────────────────────────
 @router.get("/robots.txt", response_class=PlainTextResponse)
 async def robots():
