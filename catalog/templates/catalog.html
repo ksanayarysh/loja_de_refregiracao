@@ -531,7 +531,7 @@
 <div class="catalog" id="catalog">
   {% for cat, products in groups.items() %}
   <div class="cat-group" data-cat="{{ cat }}">
-    <div class="cat-title">{{ cat }}</div>
+    <div class="cat-title"><a href="/category/{{ cat_slugs[cat] }}" style="color:inherit;text-decoration:none;">{{ cat }}</a></div>
 
     {% for p in products %}
     {% set wa_msg = "Ol%C3%A1%21%20Tenho%20interesse%20no%20produto%3A%20" + p.name|urlencode + "%20%28" + p.unit|urlencode + "%29.%20Est%C3%A1%20dispon%C3%ADvel%3F" %}

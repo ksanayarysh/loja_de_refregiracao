@@ -110,6 +110,7 @@ async def product_page(request: Request, slug: str):
         "request":       request,
         "product":       product,
         "related":       related,
+        "cat_slug":      slugify(product["category_name"]),
         "ga_id":         GA_ID,
         "site_url":      SITE_URL,
         "wa_number":     WA_OWNER_NUMBER,
