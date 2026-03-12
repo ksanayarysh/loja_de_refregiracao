@@ -164,27 +164,6 @@
     🛒 Carrinho
     <span class="cart-badge hidden" id="cart-badge">0</span>
   </button>
-  <!-- CALCULADORA DE TROCO NAVBAR -->
-  <div style="position:relative;">
-    <button class="cart-icon-btn" onclick="toggleTrocoPopup()" id="troco-nav-btn" title="Calculadora de troco">
-      💵 Troco
-    </button>
-    <div id="troco-popup" style="display:none;position:absolute;top:calc(100% + 10px);right:0;width:280px;background:#fff;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.18);padding:18px;z-index:500;border:1px solid #e5e7eb;">
-      <div style="font-size:.8rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#555;margin-bottom:12px;">💵 Calculadora de troco</div>
-      <div style="display:flex;flex-direction:column;gap:8px;">
-        <div>
-          <label style="font-size:.72rem;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.04em;">Total da compra (R$)</label>
-          <input id="nav-troco-total" type="number" step="0.01" placeholder="Ex: 47,50" style="width:100%;margin-top:4px;padding:8px 12px;border-radius:8px;border:1px solid #d1d5db;font-size:.95rem;font-family:inherit;box-sizing:border-box;">
-        </div>
-        <div>
-          <label style="font-size:.72rem;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.04em;">Valor recebido (R$)</label>
-          <input id="nav-troco-recebido" type="number" step="0.01" placeholder="Ex: 50,00" style="width:100%;margin-top:4px;padding:8px 12px;border-radius:8px;border:1px solid #d1d5db;font-size:.95rem;font-family:inherit;box-sizing:border-box;" onkeydown="if(event.key==='Enter') calcNavTroco()">
-        </div>
-        <button onclick="calcNavTroco()" style="padding:9px;border-radius:8px;background:#111827;color:#fff;border:none;font-weight:800;font-size:.9rem;cursor:pointer;font-family:inherit;">Calcular</button>
-        <div id="nav-troco-result" style="display:none;font-size:1.1rem;font-weight:900;text-align:center;padding:8px;border-radius:8px;"></div>
-      </div>
-    </div>
-  </div>
 </header>
 
 <div class="layout">
@@ -227,22 +206,6 @@
       <a href="/sales">Lista de vendas</a>
     </div>
 
-    <!-- Search results -->
-    <div id="search-results">
-      <h3>Resultados:</h3>
-      <div id="results-list"></div>
-    </div>
-
-    <!-- Calculator -->
-    <div class="calc-section">
-      <h3>Calculadora de gás (kg)</h3>
-      <div class="gas-table-wrap">
-        <table class="gas-table" id="gas-table">
-          <thead><tr id="header-row"></tr></thead>
-          <tbody id="table-body"></tbody>
-        </table>
-      </div>
-
     <!-- Troco -->
     <div class="troco-section">
       <h3>💵 Calculadora de troco</h3>
@@ -261,6 +224,22 @@
       </div>
       <div class="troco-result" id="troco-result"></div>
     </div>
+
+    <!-- Search results -->
+    <div id="search-results">
+      <h3>Resultados:</h3>
+      <div id="results-list"></div>
+    </div>
+
+    <!-- Calculator -->
+    <div class="calc-section">
+      <h3>Calculadora de gás (kg)</h3>
+      <div class="gas-table-wrap">
+        <table class="gas-table" id="gas-table">
+          <thead><tr id="header-row"></tr></thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
     </div>
   </main>
 </div>
