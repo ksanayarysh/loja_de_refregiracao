@@ -318,6 +318,48 @@
           <div class="empty">Sem movimentos no período</div>
         {% endif %}
       </div>
+
+      <div class="card">
+        <h2>🧾 Gasto em materiais</h2>
+        {% if material_rows %}
+          <div style="margin-bottom:14px;padding:12px 16px;background:#f0fdf4;border-radius:10px;border-left:4px solid #16a34a;display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:.8rem;font-weight:800;color:#166534;text-transform:uppercase;letter-spacing:.04em;">Total no período</span>
+            <span style="font-size:1.3rem;font-weight:900;color:#166534;">R$ {{ "%.2f"|format(material_total) }}</span>
+          </div>
+          <table style="width:100%;border-collapse:collapse;">
+            <thead>
+              <tr>
+                <th style="text-align:left;font-size:.72rem;font-weight:800;color:#888;text-transform:uppercase;letter-spacing:.05em;padding:4px 8px;border-bottom:2px solid #f3f4f6;">Produto</th>
+                <th style="text-align:left;font-size:.72rem;font-weight:800;color:#888;text-transform:uppercase;letter-spacing:.05em;padding:4px 8px;border-bottom:2px solid #f3f4f6;">Qtd</th>
+                <th style="text-align:left;font-size:.72rem;font-weight:800;color:#888;text-transform:uppercase;letter-spacing:.05em;padding:4px 8px;border-bottom:2px solid #f3f4f6;">Custo unit.</th>
+                <th style="text-align:right;font-size:.72rem;font-weight:800;color:#888;text-transform:uppercase;letter-spacing:.05em;padding:4px 8px;border-bottom:2px solid #f3f4f6;">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for r in material_rows %}
+              <tr>
+                <td style="padding:8px 8px;border-bottom:1px solid #f3f4f6;font-size:.9rem;">
+                  {{ r.name }}
+                  <span style="color:#aaa;font-size:.78rem;">({{ r.category_name }})</span>
+                </td>
+                <td style="padding:8px 8px;border-bottom:1px solid #f3f4f6;font-size:.9rem;color:#555;">
+                  {{ "%.3f"|format(r.total_qty|float) | replace('.000','') }} {{ r.unit }}
+                </td>
+                <td style="padding:8px 8px;border-bottom:1px solid #f3f4f6;font-size:.9rem;color:#555;">
+                  R$ {{ "%.2f"|format(r.unit_cost|float) }}
+                </td>
+                <td style="padding:8px 8px;border-bottom:1px solid #f3f4f6;font-size:.9rem;font-weight:800;text-align:right;">
+                  R$ {{ "%.2f"|format(r.total_cost|float) }}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          <div style="font-size:.78rem;color:#aaa;margin-top:10px;">* Apenas entradas com custo unitário preenchido.</div>
+        {% else %}
+          <div class="empty">Nenhuma entrada com custo registrado no período.</div>
+        {% endif %}
+      </div>
     </div>
 
     <div class="card">

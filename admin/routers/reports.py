@@ -9,6 +9,38 @@ from dependencies import engine, templates, basic_auth
 router = APIRouter()
 
 
+@router.get("/reports/stock-alert", response_class=HTMLResponse)
+async def stock_alert(
+    request: Request,
+    threshold: float = Query(2.0),
+    _=Depends(basic_auth),
+):
+    async with engine.connect() as conn:
+        res = await conn.execute(text("""
+            SELECT
+                p.id,
+                p.name,
+                p.unit,
+                p.min_stock,
+                COALESCE(c.name, 'Outro') AS category_name,
+                COALESCE(SUM(sm.qty), 0) AS current_stock
+            FROM products p
+            LEFT JOIN categories c ON c.id = p.category_id
+            LEFT JOIN stock_movements sm ON sm.product_id = p.id
+            WHERE p.active = TRUE
+            GROUP BY p.id, p.name, p.unit, p.min_stock, c.name
+            HAVING COALESCE(SUM(sm.qty), 0) < :threshold
+            ORDER BY COALESCE(SUM(sm.qty), 0) ASC, p.name ASC
+        """), {"threshold": threshold})
+        rows = res.mappings().all()
+
+    return templates.TemplateResponse("stock_alert.html", {
+        "request": request,
+        "rows": rows,
+        "threshold": threshold,
+    })
+
+
 @router.get("/reports", response_class=HTMLResponse)
 async def reports(
     request: Request,
@@ -266,6 +298,29 @@ async def reports(
         """), params)
         stock_moves = {r["movement_type"]: float(r["total_qty"]) for r in stock_res.mappings().all()}
 
+        # 5b. GASTO EM MATERIAIS (entradas com unit_cost preenchido)
+        mat_res = await conn.execute(text("""
+            SELECT
+                p.name,
+                COALESCE(c.name, 'Outro') AS category_name,
+                SUM(sm.qty)               AS total_qty,
+                p.unit,
+                sm.unit_cost,
+                SUM(sm.qty * sm.unit_cost) AS total_cost
+            FROM stock_movements sm
+            JOIN products p ON p.id = sm.product_id
+            LEFT JOIN categories c ON c.id = p.category_id
+            WHERE sm.moved_at::date BETWEEN :d_from AND :d_to
+              AND sm.movement_type IN ('entrada', 'saldo_inicial')
+              AND sm.unit_cost IS NOT NULL
+              AND sm.unit_cost > 0
+              AND sm.qty > 0
+            GROUP BY p.name, c.name, p.unit, sm.unit_cost
+            ORDER BY total_cost DESC
+        """), params)
+        material_rows = mat_res.mappings().all()
+        material_total = sum(float(r["total_cost"] or 0) for r in material_rows)
+
         # 6. ТОП КАТЕГОРИЙ
         cat_res = await conn.execute(text("""
             SELECT
@@ -297,6 +352,8 @@ async def reports(
         "by_payment": by_payment,
         "by_category": by_category,
         "stock_moves": stock_moves,
+        "material_rows": material_rows,
+        "material_total": material_total,
         "total_revenue": total_revenue,
         "by_dow": by_dow,
         "by_dom": by_dom,
