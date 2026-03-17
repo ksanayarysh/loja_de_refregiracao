@@ -267,6 +267,8 @@
 <script>
 // ── CART ──
 let cart = JSON.parse(localStorage.getItem('mtf_cart') || '[]');
+// чистим старые грязные значения qty (например 1.0000000001)
+cart = cart.map(i => ({...i, qty: Math.round(parseFloat(i.qty) * 1000) / 1000}));
 
 function saveCart() { localStorage.setItem('mtf_cart', JSON.stringify(cart)); }
 
@@ -284,10 +286,15 @@ function updateBadge() {
   btn.childNodes[0].textContent = btnText;
 }
 
+function roundQty(qty) {
+  return Math.round(parseFloat(qty) * 1000) / 1000;
+}
+
 function addToCart(id, name, price, unit, qty = 1) {
+  qty = roundQty(qty);
   const existing = cart.find(i => i.id === id);
   if (existing) {
-    existing.qty += qty;
+    existing.qty = roundQty(existing.qty + qty);
   } else {
     cart.push({id, name, price, unit, qty});
   }
@@ -307,7 +314,7 @@ function removeFromCart(id) {
 
 function updateQty(id, qty) {
   const item = cart.find(i => i.id === id);
-  if (item) { item.qty = Math.max(0.001, parseFloat(qty) || 1); }
+  if (item) { item.qty = Math.max(0.001, roundQty(qty) || 1); }
   saveCart();
   updateBadge();
   renderCartTotal();
