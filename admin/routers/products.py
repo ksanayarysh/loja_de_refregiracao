@@ -13,30 +13,23 @@ from dependencies import engine, templates, basic_auth
 
 router = APIRouter()
 
-
 # ── ИСТОРИЯ ЦЕН ──────────────────────────────────────────────────────────────
-import asyncio, threading
+_price_history_ready = False
 
-async def _ensure_price_history():
-    async with engine.begin() as conn:
-        await conn.execute(text("""
-            CREATE TABLE IF NOT EXISTS price_history (
-                id          SERIAL PRIMARY KEY,
-                product_id  INTEGER NOT NULL REFERENCES products(id),
-                old_price   NUMERIC(10,2),
-                new_price   NUMERIC(10,2) NOT NULL,
-                changed_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
-            )
-        """))
-
-def _init_price_history():
-    try:
-        loop = asyncio.new_event_loop()
-        loop.run_until_complete(_ensure_price_history())
-        loop.close()
-    except Exception:
-        pass
-threading.Thread(target=_init_price_history, daemon=True).start()
+async def _ensure_price_history(conn):
+    global _price_history_ready
+    if _price_history_ready:
+        return
+    await conn.execute(text("""
+        CREATE TABLE IF NOT EXISTS price_history (
+            id          SERIAL PRIMARY KEY,
+            product_id  INTEGER NOT NULL REFERENCES products(id),
+            old_price   NUMERIC(10,2),
+            new_price   NUMERIC(10,2) NOT NULL,
+            changed_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        )
+    """))
+    _price_history_ready = True
 # ─────────────────────────────────────────────────────────────────────────────
 
 SORT_FIELDS = {
@@ -203,6 +196,9 @@ async def update_product(
         cur_row   = cur.mappings().first() or {}
         cur_image = cur_row.get("image")
         cur_price = cur_row.get("sale_price")
+
+        # Создаём таблицу если не существует (один раз за жизнь процесса)
+        await _ensure_price_history(conn)
 
         # Записываем историю если цена изменилась
         if cur_price is not None and Decimal(str(cur_price)) != price:
