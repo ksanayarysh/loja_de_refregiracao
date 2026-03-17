@@ -247,14 +247,22 @@
   function fmtQty(n, unit) {
     if (!Number.isFinite(n)) return "";
     if (isUnitUn(unit)) return String(Math.trunc(n));
-    return (Math.round(n*1000)/1000).toFixed(3);
+    // для других единиц (m, kg и т.д.) — убираем лишние нули
+    const rounded = Math.round(n * 1000) / 1000;
+    return rounded % 1 === 0 ? String(rounded) : rounded.toFixed(3).replace(/\.?0+$/, '');
   }
   function normalizeQtyInputForUnit() {
     const o = selectedOpt();
     const unit = o?.dataset.unit || "";
     const q = parseNum(qtyEl.value);
     if (q === null) return;
-    if (isUnitUn(unit)) qtyEl.value = String(Math.trunc(q));
+    if (isUnitUn(unit)) {
+      qtyEl.value = String(Math.trunc(q));
+    } else {
+      // убираем лишние нули: 1.000 → 1, 1.500 → 1.5
+      const rounded = Math.round(q * 1000) / 1000;
+      qtyEl.value = rounded % 1 === 0 ? String(rounded) : rounded.toFixed(3).replace(/\.?0+$/, '');
+    }
   }
 
   function setPriceFromProduct(force=false) {
@@ -268,7 +276,8 @@
   function recalcTotal() {
     const q=parseNum(qtyEl.value);
     const p=parseNum(priceEl.value) ?? getSelectedPrice();
-    if(q!==null && p!==null) totalEl.value=fmt2(q*p);
+    // умножаем через целые числа чтобы избежать 28*1.000 = 27.9999...
+    if(q!==null && p!==null) totalEl.value=fmt2(Math.round(q*1000) * Math.round(p*100) / 100000);
   }
 
   priceEl.addEventListener("input",()=>{

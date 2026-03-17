@@ -13,6 +13,32 @@ from dependencies import engine, templates, basic_auth
 
 router = APIRouter()
 
+
+# ── ИСТОРИЯ ЦЕН ──────────────────────────────────────────────────────────────
+import asyncio, threading
+
+async def _ensure_price_history():
+    async with engine.begin() as conn:
+        await conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS price_history (
+                id          SERIAL PRIMARY KEY,
+                product_id  INTEGER NOT NULL REFERENCES products(id),
+                old_price   NUMERIC(10,2),
+                new_price   NUMERIC(10,2) NOT NULL,
+                changed_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            )
+        """))
+
+def _init_price_history():
+    try:
+        loop = asyncio.new_event_loop()
+        loop.run_until_complete(_ensure_price_history())
+        loop.close()
+    except Exception:
+        pass
+threading.Thread(target=_init_price_history, daemon=True).start()
+# ─────────────────────────────────────────────────────────────────────────────
+
 SORT_FIELDS = {
     "name": "p.name",
     "unit": "p.unit",
@@ -173,8 +199,17 @@ async def update_product(
                 "error": f'Produto "{name.strip()}" já existe! Escolha outro nome.',
             }, status_code=400)
 
-        cur = await conn.execute(text("SELECT image FROM products WHERE id=:id"), {"id": product_id})
-        cur_image = (cur.mappings().first() or {}).get("image")
+        cur = await conn.execute(text("SELECT image, sale_price FROM products WHERE id=:id"), {"id": product_id})
+        cur_row   = cur.mappings().first() or {}
+        cur_image = cur_row.get("image")
+        cur_price = cur_row.get("sale_price")
+
+        # Записываем историю если цена изменилась
+        if cur_price is not None and Decimal(str(cur_price)) != price:
+            await conn.execute(
+                text("INSERT INTO price_history (product_id, old_price, new_price) VALUES (:pid, :old, :new)"),
+                {"pid": product_id, "old": cur_price, "new": price},
+            )
 
         if image_b64:
             _delete_image(cur_image)

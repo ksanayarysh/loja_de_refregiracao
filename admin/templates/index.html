@@ -126,7 +126,7 @@
     .cart-clear:hover { background: #fef2f2; }
 
     /* QTY input in cart */
-    .cart-qty { width: 75px; padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; text-align: center; font-family: inherit; }
+    .cart-qty { width: 95px; padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; text-align: center; font-family: inherit; }
 
     @media (max-width: 600px) {
       .layout { flex-direction: column; }
@@ -277,7 +277,7 @@ function updateBadge() {
   badge.classList.toggle('hidden', total === 0);
   // Показываем сумму на кнопке
   const btn = document.querySelector('.cart-icon-btn');
-  const totalValue = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const totalValue = cart.reduce((s, i) => s + Math.round(i.price * 100) * Math.round(i.qty * 1000) / 100000, 0);
   const btnText = total > 0
     ? `🛒 Carrinho · R$ ${totalValue.toFixed(2)}`
     : '🛒 Carrinho';
@@ -314,8 +314,15 @@ function updateQty(id, qty) {
 }
 
 function renderCartTotal() {
-  const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const total = cart.reduce((s, i) => s + Math.round(i.price * 100) * Math.round(i.qty * 1000) / 100000, 0);
   document.getElementById('cart-total-value').textContent = 'R$ ' + total.toFixed(2).replace('.', ',');
+}
+
+function fmtQtyCart(qty, unit) {
+  const u = String(unit || '').trim().toLowerCase();
+  if (u === 'un') return String(Math.trunc(qty));
+  const r = Math.round(qty * 1000) / 1000;
+  return r % 1 === 0 ? String(r) : r.toFixed(3).replace(/\.?0+$/, '');
 }
 
 function renderCart() {
@@ -328,9 +335,8 @@ function renderCart() {
   }
   footer.style.display = 'block';
   body.innerHTML = cart.map(item => {
-    const qtyDisplay = item.unit === 'kg'
-      ? parseFloat(item.qty).toFixed(3)
-      : Math.round(item.qty);
+    const qtyDisplay = fmtQtyCart(item.qty, item.unit);
+    const itemTotal = (Math.round(item.price * 100) * Math.round(item.qty * 1000) / 100000).toFixed(2);
     return `
     <div class="cart-item">
       <div class="cart-item-info">
@@ -342,7 +348,7 @@ function renderCart() {
         </div>
       </div>
       <div style="text-align:right">
-        <div class="cart-item-price">R$ ${(item.price * item.qty).toFixed(2)}</div>
+        <div class="cart-item-price">R$ ${itemTotal}</div>
         <button class="cart-item-remove" onclick="removeFromCart(${item.id})">🗑</button>
       </div>
     </div>
