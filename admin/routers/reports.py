@@ -68,16 +68,22 @@ async def stock_forecast(
                 p.id                                        AS product_id,
                 p.name,
                 p.unit,
-                COALESCE(SUM(sm.qty), 0)                   AS stock,
-                COALESCE(SUM(CASE
-                    WHEN s.sold_at::date >= :since THEN s.qty ELSE 0
-                END), 0)                                    AS sold_in_period
+                COALESCE(stock_sub.stock, 0)               AS stock,
+                COALESCE(sales_sub.sold_in_period, 0)      AS sold_in_period
             FROM products p
-            LEFT JOIN stock_movements sm ON sm.product_id = p.id
-            LEFT JOIN sales s ON s.product_id = p.id
+            LEFT JOIN (
+                SELECT product_id, SUM(qty) AS stock
+                FROM stock_movements
+                GROUP BY product_id
+            ) stock_sub ON stock_sub.product_id = p.id
+            LEFT JOIN (
+                SELECT product_id, SUM(qty) AS sold_in_period
+                FROM sales
+                WHERE sold_at::date >= :since
+                GROUP BY product_id
+            ) sales_sub ON sales_sub.product_id = p.id
             WHERE p.active = TRUE
-            GROUP BY p.id, p.name, p.unit
-            HAVING COALESCE(SUM(sm.qty), 0) > 0
+              AND COALESCE(stock_sub.stock, 0) > 0
             ORDER BY p.name
         """), {"since": since})
         rows = res.mappings().all()
