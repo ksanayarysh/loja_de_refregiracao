@@ -9,7 +9,118 @@ from dependencies import engine, templates, basic_auth
 router = APIRouter()
 
 
-@router.get("/reports/stock-alert", response_class=HTMLResponse)
+@router.get("/reports/price-history", response_class=HTMLResponse)
+async def price_history(
+    request: Request,
+    product_id: int = Query(None),
+    _=Depends(basic_auth),
+):
+    async with engine.connect() as conn:
+        # Все продукты у которых есть история — для фильтра
+        prods_res = await conn.execute(text("""
+            SELECT DISTINCT p.id, p.name
+            FROM price_history ph
+            JOIN products p ON p.id = ph.product_id
+            ORDER BY p.name
+        """))
+        products = prods_res.mappings().all()
+
+        # История изменений
+        where = "WHERE ph.product_id = :pid" if product_id else ""
+        params = {"pid": product_id} if product_id else {}
+        rows_res = await conn.execute(text(f"""
+            SELECT
+                ph.id,
+                p.name              AS product_name,
+                p.unit              AS unit,
+                ph.old_price,
+                ph.new_price,
+                ph.changed_at
+            FROM price_history ph
+            JOIN products p ON p.id = ph.product_id
+            {where}
+            ORDER BY ph.changed_at DESC
+            LIMIT 200
+        """), params)
+        rows = rows_res.mappings().all()
+
+    return templates.TemplateResponse("price_history.html", {
+        "request": request,
+        "rows": rows,
+        "products": products,
+        "selected_product_id": product_id,
+    })
+
+
+@router.get("/reports/stock-forecast", response_class=HTMLResponse)
+async def stock_forecast(
+    request: Request,
+    days: int = Query(30),
+    _=Depends(basic_auth),
+):
+    from datetime import date as _date
+    today = _date.today()
+    since = today - timedelta(days=days)
+
+    async with engine.connect() as conn:
+        res = await conn.execute(text("""
+            SELECT
+                p.id                                        AS product_id,
+                p.name,
+                p.unit,
+                COALESCE(SUM(sm.qty), 0)                   AS stock,
+                COALESCE(SUM(CASE
+                    WHEN s.sold_at::date >= :since THEN s.qty ELSE 0
+                END), 0)                                    AS sold_in_period
+            FROM products p
+            LEFT JOIN stock_movements sm ON sm.product_id = p.id
+            LEFT JOIN sales s ON s.product_id = p.id
+            WHERE p.active = TRUE
+            GROUP BY p.id, p.name, p.unit
+            HAVING COALESCE(SUM(sm.qty), 0) > 0
+            ORDER BY p.name
+        """), {"since": since})
+        rows = res.mappings().all()
+
+    critical, warning, ok, no_sales = [], [], [], []
+    for r in rows:
+        stock = float(r["stock"])
+        sold  = float(r["sold_in_period"])
+        daily_avg = sold / days if sold > 0 else 0
+        days_left = int(stock / daily_avg) if daily_avg > 0 else None
+        item = {
+            "product_id": r["product_id"],
+            "name": r["name"],
+            "unit": r["unit"],
+            "stock": stock,
+            "daily_avg": daily_avg,
+            "days_left": days_left,
+        }
+        if daily_avg == 0:
+            no_sales.append(item)
+        elif days_left is not None and days_left <= 7:
+            critical.append(item)
+        elif days_left is not None and days_left <= 30:
+            warning.append(item)
+        else:
+            ok.append(item)
+
+    critical.sort(key=lambda x: x["days_left"] if x["days_left"] is not None else 0)
+    warning.sort(key=lambda x: x["days_left"])
+    ok.sort(key=lambda x: x["days_left"])
+
+    return templates.TemplateResponse("stock_forecast.html", {
+        "request": request,
+        "days": days,
+        "critical": critical,
+        "warning": warning,
+        "ok": ok,
+        "no_sales": no_sales,
+    })
+
+
+
+
 async def stock_alert(
     request: Request,
     threshold: float = Query(2.0),
@@ -336,6 +447,96 @@ async def reports(
         """), params)
         by_category = cat_res.mappings().all()
 
+        # 7. СРАВНЕНИЕ МЕСЯЦЕВ (последние 6 месяцев)
+        monthly_res = await conn.execute(text("""
+            SELECT
+                DATE_TRUNC('month', s.sold_at::date)::date AS month,
+                COALESCE(SUM(s.total), 0)                  AS revenue,
+                COUNT(*)                                    AS cnt
+            FROM sales s
+            WHERE s.sold_at::date >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '5 months'
+            GROUP BY DATE_TRUNC('month', s.sold_at::date)
+            ORDER BY month ASC
+        """))
+        monthly_raw = monthly_res.mappings().all()
+
+        # Заполняем все 6 месяцев (даже пустые)
+        from datetime import date as _date
+        month_map = {r["month"]: {"revenue": float(r["revenue"]), "cnt": int(r["cnt"])} for r in monthly_raw}
+        monthly = []
+        for i in range(5, -1, -1):
+            # первый день месяца i месяцев назад
+            ref = today.replace(day=1)
+            m = ref.month - i
+            y = ref.year
+            while m <= 0:
+                m += 12
+                y -= 1
+            key = _date(y, m, 1)
+            monthly.append({
+                "month": key,
+                "revenue": month_map.get(key, {}).get("revenue", 0),
+                "cnt": month_map.get(key, {}).get("cnt", 0),
+            })
+
+        # 8. SAZONALIDADE DE GASES (últimos 12 meses)
+        gas_res = await conn.execute(text("""
+            SELECT
+                DATE_TRUNC('month', s.sold_at::date)::date AS month,
+                p.name                                      AS gas_name,
+                COALESCE(SUM(s.qty), 0)                    AS total_qty,
+                COALESCE(SUM(s.total), 0)                  AS total_revenue
+            FROM sales s
+            JOIN products p ON p.id = s.product_id
+            WHERE s.sold_at::date >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '11 months'
+              AND (
+                p.name ILIKE '%r32%' OR p.name ILIKE '%r410%' OR p.name ILIKE '%r22%'
+                OR p.name ILIKE '%r134%' OR p.name ILIKE '%r290%' OR p.name ILIKE '%r600%'
+              )
+            GROUP BY DATE_TRUNC('month', s.sold_at::date), p.name
+            ORDER BY month ASC, total_qty DESC
+        """))
+        gas_raw = gas_res.mappings().all()
+
+        # Строим структуру: {gas_name: {month: qty}}
+        from collections import defaultdict
+        gas_by_name = defaultdict(dict)
+        gas_months_set = set()
+        for r in gas_raw:
+            gas_by_name[r["gas_name"]][r["month"]] = {
+                "qty": float(r["total_qty"]),
+                "revenue": float(r["total_revenue"]),
+            }
+            gas_months_set.add(r["month"])
+
+        # Все 12 месяцев
+        gas_months = []
+        for i in range(11, -1, -1):
+            ref = today.replace(day=1)
+            m = ref.month - i
+            y = ref.year
+            while m <= 0:
+                m += 12
+                y -= 1
+            gas_months.append(_date(y, m, 1))
+
+        # Сортируем газы по суммарному объёму
+        gas_names = sorted(
+            gas_by_name.keys(),
+            key=lambda n: sum(v["qty"] for v in gas_by_name[n].values()),
+            reverse=True
+        )
+        gas_seasonality = {
+            "months": gas_months,
+            "gases": [
+                {
+                    "name": n,
+                    "data": [gas_by_name[n].get(m, {"qty": 0, "revenue": 0}) for m in gas_months],
+                }
+                for n in gas_names
+            ],
+        }
+
     return templates.TemplateResponse("reports.html", {
         "request": request,
         "period": period,
@@ -358,4 +559,6 @@ async def reports(
         "by_dow": by_dow,
         "by_dom": by_dom,
         "avg_data": avg_data,
+        "monthly": monthly,
+        "gas_seasonality": gas_seasonality,
     })

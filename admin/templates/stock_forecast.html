@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Previsão de Estoque — M.T.F</title>
+  <style>
+    body { font-family: Arial, Helvetica, sans-serif; background: bisque; min-height: 100vh; font-size: 15px; margin: 0; }
+    .navbar { background: bisque; padding: 10px 16px; display: flex; align-items: center; border-bottom: 1px solid #ccc; gap: 20px; flex-wrap: wrap; }
+    .nav-brand { font-weight: 900; font-size: 1.1rem; color: #111; text-decoration: none; }
+    .navbar a { color: #E2144A; text-decoration: none; font-weight: 700; font-size: .95rem; }
+    .navbar a:hover { text-decoration: underline; }
+    .navbar a.active { color: #111; font-weight: 900; }
+    .layout { display: flex; min-height: calc(100vh - 45px); }
+    .sidebar { width: 160px; flex-shrink: 0; border-right: 1px solid #ccc; padding: 16px 0; background: bisque; }
+    .sidebar ul { list-style: none; padding: 0; margin: 0; width: 100%; }
+    .sidebar ul li { position: relative; }
+    .sidebar ul li a { display: block; text-decoration: none; color: #E2144A; background: #fff; padding: 7px 10px; border: 1px solid #ccc; border-left: none; font-size: .9rem; }
+    .sidebar ul li a:hover { background: #ccc; font-weight: bold; }
+    .sidebar .submenu { display: none; position: absolute; left: 149px; top: 0; width: 150px; z-index: 10; }
+    .sidebar ul li:hover .submenu { display: block; }
+    .content { flex: 1; padding: 24px; max-width: 900px; }
+    h1 { font-size: 1.4rem; color: #111; margin-bottom: 4px; }
+    .subtitle { color: #666; font-size: .9rem; margin-bottom: 20px; }
+    .card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.06); margin-bottom: 20px; }
+    .card h2 { font-size: 1rem; font-weight: 900; color: #111; margin: 0 0 14px; }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; font-size: .75rem; font-weight: 800; color: #888; text-transform: uppercase; letter-spacing: .05em; padding: 6px 10px; border-bottom: 2px solid #f3f4f6; }
+    td { padding: 10px 10px; border-bottom: 1px solid #f3f4f6; font-size: .92rem; vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #fafafa; }
+    .status-critical { background: #fef2f2; }
+    .status-warning  { background: #fffbeb; }
+    .status-ok       { background: #f0fdf4; }
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: .78rem; font-weight: 800; white-space: nowrap; }
+    .badge-critical { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+    .badge-warning  { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+    .badge-ok       { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+    .badge-nodata   { background: #f3f4f6; color: #9ca3af; border: 1px solid #e5e7eb; }
+    .empty { color: #888; text-align: center; padding: 32px; }
+    .prod-link { color: #111; font-weight: 700; text-decoration: none; }
+    .prod-link:hover { text-decoration: underline; }
+    .add-stock-btn { display: inline-block; padding: 4px 10px; border-radius: 6px; background: #fff; border: 1px solid #ccc; color: #111; text-decoration: none; font-size: .78rem; font-weight: 700; }
+    .add-stock-btn:hover { background: bisque; }
+    .days-bar-wrap { width: 100px; height: 8px; background: #f3f4f6; border-radius: 4px; display: inline-block; vertical-align: middle; margin-left: 8px; }
+    .days-bar { height: 8px; border-radius: 4px; }
+    .note { font-size: .78rem; color: #9ca3af; margin-top: 14px; }
+    .filter-row { display: flex; gap: 10px; align-items: center; margin-bottom: 18px; flex-wrap: wrap; }
+    .filter-row a { padding: 6px 14px; border-radius: 8px; border: 1px solid #ccc; background: #fff; color: #111; font-weight: 700; font-size: .85rem; text-decoration: none; }
+    .filter-row a.active { background: #111827; color: #fff; border-color: #111827; }
+  </style>
+</head>
+<body>
+
+<header class="navbar">
+  <a href="/" class="nav-brand">🛍 M.T.F</a>
+  <a href="/">Início</a>
+  <a href="/products">Produtos</a>
+  <a href="/sales">Vendas</a>
+  <a href="/stock">Estoque</a>
+  <a href="/reports" class="active">Relatórios</a>
+</header>
+
+<div class="layout">
+  <nav class="sidebar">
+    <ul>
+      <li><a href="/">Início</a></li>
+      <li><a href="#">Produtos ▸</a><ul class="submenu"><li><a href="/products">Lista</a></li><li><a href="/products/new">+ Cadastrar</a></li></ul></li>
+      <li><a href="#">Vendas ▸</a><ul class="submenu"><li><a href="/sales">Lista</a></li><li><a href="/sales/new">+ Nova</a></li></ul></li>
+      <li><a href="#">Estoque ▸</a><ul class="submenu"><li><a href="/stock">Saldo</a></li><li><a href="/stock/new">+ Entrada</a></li></ul></li>
+      <li><a href="/reports">Relatórios</a></li>
+      <li><a href="/reports/price-history" style="font-weight:900;color:#6366f1;">💰 Histórico preços</a></li>
+      <li><a href="/reports/stock-alert" style="font-weight:900;color:#d97706;">⚠️ Estoque baixo</a></li>
+      <li><a href="/reports/stock-forecast" style="font-weight:900;color:#E2144A;">📉 Previsão estoque</a></li>
+      <li><a href="/calc">Calculadora</a></li>
+    </ul>
+  </nav>
+
+  <main class="content">
+    <h1>📉 Previsão de Estoque</h1>
+    <p class="subtitle">
+      Com base na média de vendas dos últimos <strong>{{ days }}</strong> dias —
+      estimativa de quando cada produto vai acabar.
+    </p>
+
+    <!-- Фильтр периода расчёта -->
+    <div class="filter-row">
+      <span style="font-weight:800;font-size:.88rem;">Base de cálculo:</span>
+      <a href="?days=30" class="{{ 'active' if days == 30 }}">30 dias</a>
+      <a href="?days=60" class="{{ 'active' if days == 60 }}">60 dias</a>
+      <a href="?days=90" class="{{ 'active' if days == 90 }}">90 dias</a>
+    </div>
+
+    {% if critical %}
+    <div class="card">
+      <h2>🚨 Crítico — acabando em menos de 7 dias</h2>
+      <table>
+        <thead><tr>
+          <th>Produto</th><th>Em estoque</th><th>Consumo/dia</th><th>Dura até</th><th>Status</th><th></th>
+        </tr></thead>
+        <tbody>
+          {% for r in critical %}
+          <tr class="status-critical">
+            <td><a class="prod-link" href="/products/{{ r.product_id }}/edit">{{ r.name }}</a>
+              <span style="color:#aaa;font-size:.8rem;"> ({{ r.unit }})</span></td>
+            <td style="font-weight:700;">{{ "%.2f"|format(r.stock) | replace('.00','') }}</td>
+            <td style="color:#888;">{{ "%.2f"|format(r.daily_avg) }}/dia</td>
+            <td style="font-weight:900;color:#dc2626;">
+              {% if r.days_left <= 0 %}Acabou!{% else %}{{ r.days_left }} dias{% endif %}
+            </td>
+            <td><span class="badge badge-critical">⚠️ Crítico</span></td>
+            <td><a class="add-stock-btn" href="/stock/new?product_id={{ r.product_id }}">+ Entrada</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+
+    {% if warning %}
+    <div class="card">
+      <h2>⚡ Atenção — acabando em 7–30 dias</h2>
+      <table>
+        <thead><tr>
+          <th>Produto</th><th>Em estoque</th><th>Consumo/dia</th><th>Dura até</th><th>Status</th><th></th>
+        </tr></thead>
+        <tbody>
+          {% for r in warning %}
+          <tr class="status-warning">
+            <td><a class="prod-link" href="/products/{{ r.product_id }}/edit">{{ r.name }}</a>
+              <span style="color:#aaa;font-size:.8rem;"> ({{ r.unit }})</span></td>
+            <td style="font-weight:700;">{{ "%.2f"|format(r.stock) | replace('.00','') }}</td>
+            <td style="color:#888;">{{ "%.2f"|format(r.daily_avg) }}/dia</td>
+            <td style="font-weight:700;color:#d97706;">{{ r.days_left }} dias
+              <span class="days-bar-wrap"><span class="days-bar" style="width:{{ [r.days_left * 100 // 30, 100] | min }}%; background:#f59e0b;"></span></span>
+            </td>
+            <td><span class="badge badge-warning">⚡ Atenção</span></td>
+            <td><a class="add-stock-btn" href="/stock/new?product_id={{ r.product_id }}">+ Entrada</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+
+    {% if ok %}
+    <div class="card">
+      <h2>✅ Estoque OK — mais de 30 dias</h2>
+      <table>
+        <thead><tr>
+          <th>Produto</th><th>Em estoque</th><th>Consumo/dia</th><th>Estimativa</th>
+        </tr></thead>
+        <tbody>
+          {% for r in ok %}
+          <tr>
+            <td><a class="prod-link" href="/products/{{ r.product_id }}/edit">{{ r.name }}</a>
+              <span style="color:#aaa;font-size:.8rem;"> ({{ r.unit }})</span></td>
+            <td>{{ "%.2f"|format(r.stock) | replace('.00','') }}</td>
+            <td style="color:#888;">{{ "%.2f"|format(r.daily_avg) }}/dia</td>
+            <td style="color:#16a34a;font-weight:700;">~{{ r.days_left }} dias
+              <span class="days-bar-wrap"><span class="days-bar" style="width:100%; background:#22c55e; opacity:.4;"></span></span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+
+    {% if no_sales %}
+    <div class="card">
+      <h2>📦 Sem vendas no período — sem previsão</h2>
+      <table>
+        <thead><tr><th>Produto</th><th>Em estoque</th></tr></thead>
+        <tbody>
+          {% for r in no_sales %}
+          <tr>
+            <td><a class="prod-link" href="/products/{{ r.product_id }}/edit">{{ r.name }}</a>
+              <span style="color:#aaa;font-size:.8rem;"> ({{ r.unit }})</span></td>
+            <td style="color:#aaa;">{{ "%.2f"|format(r.stock) | replace('.00','') }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+
+    {% if not critical and not warning and not ok and not no_sales %}
+    <div class="card"><div class="empty">Nenhum produto com estoque encontrado.</div></div>
+    {% endif %}
+
+    <p class="note">* Apenas produtos com estoque > 0 e pelo menos uma venda nos últimos {{ days }} dias aparecem nas seções Crítico/Atenção/OK. Produtos sem vendas ficam na última seção.</p>
+  </main>
+</div>
+
+</body>
+</html>

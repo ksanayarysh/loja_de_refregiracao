@@ -139,6 +139,9 @@
       <li><a href="#">Vendas ▸</a><ul class="submenu"><li><a href="/sales">Lista</a></li><li><a href="/sales/new">+ Nova</a></li></ul></li>
       <li><a href="#">Estoque ▸</a><ul class="submenu"><li><a href="/stock">Saldo</a></li><li><a href="/stock/new">+ Entrada</a></li></ul></li>
       <li><a href="/reports">Relatórios</a></li>
+      <li><a href="/reports/price-history" style="font-weight:900;color:#6366f1;">💰 Histórico preços</a></li>
+      <li><a href="/reports/stock-alert" style="font-weight:900;color:#d97706;">⚠️ Estoque baixo</a></li>
+      <li><a href="/reports/stock-forecast" style="font-weight:900;color:#E2144A;">📉 Previsão estoque</a></li>
       <li><a href="/calc">Calculadora</a></li>
     </ul>
   </nav>
@@ -236,6 +239,145 @@
           </div>
         {% endfor %}
       </div>
+    </div>
+    {% endif %}
+
+    <!-- COMPARAÇÃO MENSAL -->
+    <div class="card">
+      <h2>📆 Comparação mensal</h2>
+      {% if monthly %}
+        {% set max_month = monthly | map(attribute='revenue') | map('float') | max %}
+        {% set month_names = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'] %}
+        {% set cur_month = monthly[-1].month %}
+        <div style="display:flex; align-items:flex-end; gap:10px; height:160px; padding-top:16px;">
+          {% for m in monthly %}
+            {% set pct = (m.revenue / max_month * 100) if max_month > 0 else 0 %}
+            {% set is_current = (m.month.year == cur_month.year and m.month.month == cur_month.month) %}
+            {% set prev = monthly[loop.index0 - 1] if loop.index0 > 0 else None %}
+            {% set delta = ((m.revenue - prev.revenue) / prev.revenue * 100) if prev and prev.revenue > 0 else None %}
+            <div style="flex:1; display:flex; flex-direction:column; align-items:center; height:100%; justify-content:flex-end; position:relative;"
+                 title="R$ {{ '%.2f'|format(m.revenue) }} · {{ m.cnt }} vendas">
+              {% if delta is not none %}
+                <div style="font-size:.65rem; font-weight:800; margin-bottom:3px;
+                     color:{{ '#16a34a' if delta >= 0 else '#dc2626' }};">
+                  {{ '+' if delta >= 0 else '' }}{{ '%.0f'|format(delta) }}%
+                </div>
+              {% endif %}
+              <div style="font-size:.7rem; font-weight:700; color:#555; margin-bottom:4px;">
+                R$ {{ '%.0f'|format(m.revenue) }}
+              </div>
+              <div style="width:100%; height:{{ pct }}%; min-height:{{ '4px' if m.revenue > 0 else '0' }};
+                   background:{{ '#111827' if is_current else '#E2144A' }};
+                   border-radius:4px 4px 0 0; opacity:{{ '1' if is_current else '0.65' }};
+                   transition: height .3s;"></div>
+              <div style="font-size:.72rem; font-weight:{{ '900' if is_current else '700' }};
+                   color:{{ '#111' if is_current else '#888' }}; margin-top:6px; white-space:nowrap;">
+                {{ month_names[m.month.month - 1] }}/{{ m.month.year % 100 }}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+        <!-- resumo linha -->
+        {% set first = monthly[0] %}
+        {% set last = monthly[-1] %}
+        {% if first.revenue > 0 %}
+          {% set total_delta = ((last.revenue - first.revenue) / first.revenue * 100) %}
+          <div style="margin-top:14px; font-size:.82rem; color:#666; border-top:1px solid #f3f4f6; padding-top:10px;">
+            Variação
+            <strong>{{ month_names[first.month.month-1] }}/{{ first.month.year % 100 }}</strong>
+            →
+            <strong>{{ month_names[last.month.month-1] }}/{{ last.month.year % 100 }}</strong>:
+            <span style="font-weight:900; color:{{ '#16a34a' if total_delta >= 0 else '#dc2626' }};">
+              {{ '+' if total_delta >= 0 else '' }}{{ '%.1f'|format(total_delta) }}%
+            </span>
+          </div>
+        {% endif %}
+      {% else %}
+        <div class="empty">Sem dados mensais.</div>
+      {% endif %}
+    </div>
+
+    <!-- SAZONALIDADE DE GASES -->
+    {% if gas_seasonality.gases %}
+    <div class="card">
+      <h2>🌡️ Sazonalidade de gases (12 meses)</h2>
+      {% set month_names = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'] %}
+      {% set colors = ['#E2144A','#6366f1','#10b981','#f59e0b','#3b82f6','#ec4899'] %}
+
+      <!-- Легенда -->
+      <div style="display:flex; gap:14px; flex-wrap:wrap; margin-bottom:16px;">
+        {% for g in gas_seasonality.gases %}
+          <div style="display:flex; align-items:center; gap:5px; font-size:.82rem; font-weight:700;">
+            <div style="width:12px; height:12px; border-radius:3px; background:{{ colors[loop.index0 % colors|length] }};"></div>
+            {{ g.name }}
+          </div>
+        {% endfor %}
+      </div>
+
+      <!-- Метки месяцев -->
+      {% set max_qty = namespace(val=0) %}
+      {% for g in gas_seasonality.gases %}
+        {% for d in g.data %}
+          {% if d.qty > max_qty.val %}{% set max_qty.val = d.qty %}{% endif %}
+        {% endfor %}
+      {% endfor %}
+
+      <div style="overflow-x:auto;">
+        <div style="min-width:560px;">
+          <!-- Столбики сгруппированные по месяцу -->
+          <div style="display:flex; align-items:flex-end; gap:6px; height:140px; padding-top:8px;">
+            {% for i in range(gas_seasonality.months|length) %}
+              {% set mo = gas_seasonality.months[i] %}
+              <div style="flex:1; display:flex; flex-direction:column; align-items:center; height:100%; justify-content:flex-end;">
+                <div style="display:flex; align-items:flex-end; gap:2px; width:100%; justify-content:center; height:120px;">
+                  {% for g in gas_seasonality.gases %}
+                    {% set qty = g.data[i].qty %}
+                    {% set pct = (qty / max_qty.val * 100) if max_qty.val > 0 else 0 %}
+                    <div style="flex:1; max-width:18px; height:{{ pct }}%; min-height:{{ '3px' if qty > 0 else '0' }};
+                         background:{{ colors[loop.index0 % colors|length] }};
+                         border-radius:2px 2px 0 0; opacity:0.85;"
+                         title="{{ g.name }} — {{ month_names[mo.month-1] }}/{{ mo.year % 100 }}: {{ '%.2f'|format(qty) }} {{ 'kg' }}">
+                    </div>
+                  {% endfor %}
+                </div>
+                <div style="font-size:.62rem; color:#888; margin-top:5px; white-space:nowrap;">
+                  {{ month_names[mo.month-1] }}/{{ mo.year % 100 }}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Таблица итогов по газам -->
+      <table style="margin-top:16px;">
+        <thead>
+          <tr>
+            <th>Gás</th>
+            {% for mo in gas_seasonality.months %}
+              <th style="text-align:right; font-size:.65rem;">{{ month_names[mo.month-1] }}</th>
+            {% endfor %}
+            <th style="text-align:right;">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for g in gas_seasonality.gases %}
+            {% set total_qty = g.data | map(attribute='qty') | sum %}
+            <tr>
+              <td style="font-weight:700; white-space:nowrap;">
+                <span style="display:inline-block; width:10px; height:10px; border-radius:2px; background:{{ colors[loop.index0 % colors|length] }}; margin-right:5px;"></span>
+                {{ g.name }}
+              </td>
+              {% for d in g.data %}
+                <td style="text-align:right; font-size:.8rem; color:{{ '#111' if d.qty > 0 else '#ddd' }};">
+                  {{ '%.1f'|format(d.qty) if d.qty > 0 else '—' }}
+                </td>
+              {% endfor %}
+              <td style="text-align:right; font-weight:900;">{{ '%.1f'|format(total_qty) }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
     {% endif %}
 

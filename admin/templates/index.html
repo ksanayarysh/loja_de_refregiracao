@@ -156,8 +156,9 @@
 <header class="navbar">
   <div class="navbar-left">
     <div class="search-container">
-      <input type="text" id="search-input" placeholder="pesquisar produto..." class="search-input">
-      <button class="search-button" onclick="searchProducts()">pesquisar</button>
+      <input type="text" id="search-input" placeholder="pesquisar produto..." class="search-input"
+             style="border-radius:4px; width:260px;"
+             oninput="debouncedSearch()" onkeydown="if(event.key==='Escape') clearSearch()">
     </div>
   </div>
   <button class="cart-icon-btn" onclick="openCart()">
@@ -553,6 +554,18 @@ function buyFromCalc(i, mode) {
 loadGases();
 
 // ── SEARCH ──
+let _searchTimer = null;
+function debouncedSearch() {
+  clearTimeout(_searchTimer);
+  const q = document.getElementById('search-input').value.trim();
+  if (!q) { clearSearch(); return; }
+  _searchTimer = setTimeout(searchProducts, 280);
+}
+function clearSearch() {
+  document.getElementById('search-results').classList.remove('show');
+  document.getElementById('results-list').innerHTML = '';
+}
+
 async function searchProducts() {
   const q = document.getElementById('search-input').value.trim();
   if (!q) return;
@@ -584,10 +597,6 @@ async function searchProducts() {
     list.innerHTML = '<div class="result-item" style="color:red">Erro ao buscar.</div>';
   }
 }
-
-document.getElementById('search-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter') searchProducts();
-});
 
 function calcTroco() {
   const total = parseFloat(document.getElementById('troco-total').value) || 0;
