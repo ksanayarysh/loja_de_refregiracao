@@ -52,6 +52,38 @@ async def price_history(
     })
 
 
+@router.get("/reports/stock-alert", response_class=HTMLResponse)
+async def stock_alert(
+    request: Request,
+    threshold: float = Query(2.0),
+    _=Depends(basic_auth),
+):
+    async with engine.connect() as conn:
+        res = await conn.execute(text("""
+            SELECT
+                p.id,
+                p.name,
+                p.unit,
+                p.min_stock,
+                COALESCE(c.name, 'Outro') AS category_name,
+                COALESCE(SUM(sm.qty), 0) AS current_stock
+            FROM products p
+            LEFT JOIN categories c ON c.id = p.category_id
+            LEFT JOIN stock_movements sm ON sm.product_id = p.id
+            WHERE p.active = TRUE
+            GROUP BY p.id, p.name, p.unit, p.min_stock, c.name
+            HAVING COALESCE(SUM(sm.qty), 0) < :threshold
+            ORDER BY COALESCE(SUM(sm.qty), 0) ASC, p.name ASC
+        """), {"threshold": threshold})
+        rows = res.mappings().all()
+
+    return templates.TemplateResponse("stock_alert.html", {
+        "request": request,
+        "rows": rows,
+        "threshold": threshold,
+    })
+
+
 @router.get("/reports/stock-forecast", response_class=HTMLResponse)
 async def stock_forecast(
     request: Request,

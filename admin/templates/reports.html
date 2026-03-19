@@ -249,27 +249,38 @@
         {% set max_month = monthly | map(attribute='revenue') | map('float') | max %}
         {% set month_names = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'] %}
         {% set cur_month = monthly[-1].month %}
-        <div style="display:flex; align-items:flex-end; gap:10px; height:160px; padding-top:16px;">
+        {% set bar_height = 120 %}
+        <div style="display:flex; align-items:flex-end; gap:10px;">
           {% for m in monthly %}
-            {% set pct = (m.revenue / max_month * 100) if max_month > 0 else 0 %}
+            {% set pct = (m.revenue|float / max_month * bar_height)|int if max_month > 0 else 0 %}
             {% set is_current = (m.month.year == cur_month.year and m.month.month == cur_month.month) %}
             {% set prev = monthly[loop.index0 - 1] if loop.index0 > 0 else None %}
             {% set delta = ((m.revenue - prev.revenue) / prev.revenue * 100) if prev and prev.revenue > 0 else None %}
-            <div style="flex:1; display:flex; flex-direction:column; align-items:center; height:100%; justify-content:flex-end; position:relative;"
-                 title="R$ {{ '%.2f'|format(m.revenue) }} · {{ m.cnt }} vendas">
-              {% if delta is not none %}
-                <div style="font-size:.65rem; font-weight:800; margin-bottom:3px;
-                     color:{{ '#16a34a' if delta >= 0 else '#dc2626' }};">
-                  {{ '+' if delta >= 0 else '' }}{{ '%.0f'|format(delta) }}%
-                </div>
-              {% endif %}
-              <div style="font-size:.7rem; font-weight:700; color:#555; margin-bottom:4px;">
-                R$ {{ '%.0f'|format(m.revenue) }}
+            <div style="flex:1; display:flex; flex-direction:column; align-items:center;">
+              <!-- дельта -->
+              <div style="height:1.1rem; display:flex; align-items:center; justify-content:center;">
+                {% if delta is not none %}
+                  <span style="font-size:.65rem; font-weight:800;
+                       color:{{ '#16a34a' if delta >= 0 else '#dc2626' }};">
+                    {{ '+' if delta >= 0 else '' }}{{ '%.0f'|format(delta) }}%
+                  </span>
+                {% endif %}
               </div>
-              <div style="width:100%; height:{{ pct }}%; min-height:{{ '4px' if m.revenue > 0 else '0' }};
-                   background:{{ '#111827' if is_current else '#E2144A' }};
-                   border-radius:4px 4px 0 0; opacity:{{ '1' if is_current else '0.65' }};
-                   transition: height .3s;"></div>
+              <!-- сумма -->
+              <div style="font-size:.7rem; font-weight:700; color:#555; margin-bottom:4px; white-space:nowrap;">
+                {% if m.revenue > 0 %}R$ {{ '%.0f'|format(m.revenue|float) }}{% endif %}
+              </div>
+              <!-- столбик фиксированной высоты -->
+              <div style="width:100%; height:{{ bar_height }}px; display:flex; align-items:flex-end;">
+                <div style="width:100%; height:{{ pct }}px; min-height:{{ '3px' if m.revenue > 0 else '0' }};
+                     background:{{ '#111827' if is_current else '#E2144A' }};
+                     border-radius:4px 4px 0 0;
+                     opacity:{{ '1' if is_current else '0.7' }};
+                     transition: height .3s;"
+                     title="R$ {{ '%.2f'|format(m.revenue|float) }} · {{ m.cnt }} vendas">
+                </div>
+              </div>
+              <!-- метка месяца -->
               <div style="font-size:.72rem; font-weight:{{ '900' if is_current else '700' }};
                    color:{{ '#111' if is_current else '#888' }}; margin-top:6px; white-space:nowrap;">
                 {{ month_names[m.month.month - 1] }}/{{ m.month.year % 100 }}
