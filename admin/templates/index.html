@@ -134,18 +134,7 @@
       .sidebar .submenu { left: 0; top: 100%; }
     }
 
-    .troco-section { background: #fff; border-radius: 14px; box-shadow: 0 4px 14px rgba(0,0,0,.08); padding: 20px 24px; margin-top: 0; }
-    .troco-section h3 { font-size: 1rem; margin-bottom: 14px; color: black; }
-    .troco-row { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
-    .troco-field { display: flex; flex-direction: column; gap: 4px; }
-    .troco-field label { font-size: .78rem; font-weight: 700; color: #555; text-transform: uppercase; letter-spacing: .04em; }
-    .troco-field input { padding: 10px 14px; border-radius: 8px; border: 1px solid #d1d5db; font-size: 1rem; font-family: inherit; width: 160px; }
-    .troco-field input:focus { outline: none; border-color: #111827; }
-    .troco-btn { padding: 10px 20px; border-radius: 8px; background: #111827; color: #fff; border: none; font-weight: 800; font-size: .9rem; cursor: pointer; font-family: inherit; white-space: nowrap; }
-    .troco-btn:hover { background: #374151; }
-    .troco-result { margin-top: 14px; font-size: 1.1rem; font-weight: 900; display: none; }
-    .troco-result.ok  { color: #166534; }
-    .troco-result.err { color: #dc2626; }
+
   </style>
 </head>
 <body>
@@ -186,7 +175,6 @@
           <li><a href="/sales/new">+ Nova venda</a></li>
         </ul>
       </li>
-      <li><a href="/calc">Calculadora</a></li>
       <li>
         <a href="#">Estoque ▸</a>
         <ul class="submenu">
@@ -207,24 +195,6 @@
       <a href="/sales">Lista de vendas</a>
     </div>
 
-    <!-- Troco -->
-    <div class="troco-section">
-      <h3>💵 Calculadora de troco</h3>
-      <div class="troco-row">
-        <div class="troco-field">
-          <label>Total da compra (R$)</label>
-          <input type="number" id="troco-total" min="0" step="0.01" placeholder="Ex.: 47,50"
-                 oninput="calcTroco()" onkeydown="if(event.key==='Enter') calcTroco()">
-        </div>
-        <div class="troco-field">
-          <label>Valor recebido (R$)</label>
-          <input type="number" id="troco-pago" min="0" step="0.01" placeholder="Ex.: 50,00"
-                 oninput="calcTroco()" onkeydown="if(event.key==='Enter') calcTroco()">
-        </div>
-        <button class="troco-btn" onclick="calcTroco()">Calcular</button>
-      </div>
-      <div class="troco-result" id="troco-result"></div>
-    </div>
 
     <!-- Search results -->
     <div id="search-results">
@@ -493,7 +463,6 @@ function calcG(i) {
   if (isNaN(g) || g <= 0) { showResult(res, 'Digite uma quantidade válida.', true); actions.style.display='none'; return; }
   const total = (g * price / 1000).toFixed(2);
   showResult(res, `R$ ${total}<small>${g}g de ${gases[i].name}</small>`, false);
-  document.getElementById('troco-total').value = total; calcTroco();
   lastCalc[`g-${i}`] = {qty: g / 1000, price: parseFloat(total) / (g / 1000), grams: g, total: parseFloat(total)};
   actions.style.display = 'flex';
   selectGas(i);
@@ -513,8 +482,6 @@ function calcR(i) {
 
   // Show a friendly number, but store and pass the exact qty.
   showResult(res, `${gramsExact.toFixed(3)} g<small>R$ ${r.toFixed(2)} de ${gases[i].name}</small>`, false);
-  document.getElementById('troco-total').value = r.toFixed(2); calcTroco();
-
   lastCalc[`r-${i}`] = {
     qty: qtyExact,
     grams: gramsExact,
@@ -598,59 +565,6 @@ async function searchProducts() {
   }
 }
 
-function calcTroco() {
-  const total = parseFloat(document.getElementById('troco-total').value) || 0;
-  const pago  = parseFloat(document.getElementById('troco-pago').value)  || 0;
-  const el    = document.getElementById('troco-result');
-  if (!total || !pago) { el.style.display = 'none'; return; }
-  const troco = pago - total;
-  el.style.display = 'block';
-  if (troco < 0) {
-    el.className = 'troco-result err';
-    el.textContent = '⚠️ Falta R$ ' + Math.abs(troco).toFixed(2).replace('.', ',');
-  } else {
-    el.className = 'troco-result ok';
-    el.textContent = '✅ Troco: R$ ' + troco.toFixed(2).replace('.', ',');
-  }
-}
-</script>
-<script>
-function toggleTrocoPopup() {
-  const p = document.getElementById('troco-popup');
-  p.style.display = p.style.display === 'none' ? 'block' : 'none';
-  if (p.style.display === 'block') document.getElementById('nav-troco-total').focus();
-}
-function calcNavTroco() {
-  const total = parseFloat(document.getElementById('nav-troco-total').value);
-  const recebido = parseFloat(document.getElementById('nav-troco-recebido').value);
-  const res = document.getElementById('nav-troco-result');
-  if (isNaN(total) || isNaN(recebido)) {
-    res.style.display = 'block';
-    res.style.background = '#fee2e2';
-    res.style.color = '#dc2626';
-    res.textContent = 'Preencha os dois campos';
-    return;
-  }
-  const troco = recebido - total;
-  res.style.display = 'block';
-  if (troco < 0) {
-    res.style.background = '#fee2e2';
-    res.style.color = '#dc2626';
-    res.textContent = `Falta R$ ${Math.abs(troco).toFixed(2).replace('.', ',')}`;
-  } else {
-    res.style.background = '#dcfce7';
-    res.style.color = '#166534';
-    res.textContent = `Troco: R$ ${troco.toFixed(2).replace('.', ',')}`;
-  }
-}
-// Fechar popup ao clicar fora
-document.addEventListener('click', function(e) {
-  const popup = document.getElementById('troco-popup');
-  const btn = document.getElementById('troco-nav-btn');
-  if (popup && !popup.contains(e.target) && e.target !== btn) {
-    popup.style.display = 'none';
-  }
-});
 </script>
 </body>
 </html>
