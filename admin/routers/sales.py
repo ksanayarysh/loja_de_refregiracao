@@ -97,7 +97,8 @@ async def sales_create(
             default_price = Decimal(str(row[0] or 0))
             if unit_price.strip():
                 try:
-                    price_d = Decimal(unit_price.replace(",", "."))
+                    up = Decimal(unit_price.replace(",", "."))
+                    price_d = up if up > 0 else default_price
                 except Exception:
                     error = "Preço inválido. Ex: 35 ou 35,50"
                     price_d = None
@@ -220,7 +221,12 @@ async def sale_edit_save(
     _=Depends(basic_auth),
 ):
     qty_d = Decimal(qty.replace(",", "."))
-    price_d = money2(Decimal(unit_price.replace(",", ".")) if unit_price.strip() else 0)
+    if unit_price.strip():
+        up = Decimal(unit_price.replace(",", "."))
+        price_d = money2(up) if up > 0 else money2(total_d / qty_d if qty_d else Decimal(0))
+    else:
+        total_d_tmp = money2(Decimal(total.replace(",", ".")) if total.strip() else Decimal(0))
+        price_d = money2(total_d_tmp / qty_d) if qty_d else Decimal(0)
     total_d = money2(Decimal(total.replace(",", ".")) if total.strip() else qty_d * price_d)
     sold_at_date = _parse_date(sold_at)
 

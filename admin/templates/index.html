@@ -555,8 +555,8 @@ async function searchProducts() {
         </div>
         <span class="result-price">R$ ${parseFloat(p.sale_price).toFixed(2)}</span>
         <div class="result-actions">
-          <button class="btn-cart" onclick="addToCart(${p.id}, '${p.name.replace(/'/g,"\\'")}', ${p.sale_price}, '${p.unit}', 1)">🛒 Carrinho</button>
-          <button class="btn-buy" onclick="buyNow(${p.id}, '${p.name}', ${p.sale_price}, '${p.unit}')">⚡ Comprar agora</button>
+          <button class="btn-cart" onclick="addToCart(${p.id}, '${p.name.replace(/'/g,"\\'")}', ${parseFloat(p.sale_price) || 0}, '${p.unit}', 1)">🛒 Carrinho</button>
+          <button class="btn-buy" onclick="buyNow(${p.id}, '${p.name}', ${parseFloat(p.sale_price) || 0}, '${p.unit}')">⚡ Comprar agora</button>
         </div>
       </div>
     `).join('');
