@@ -194,6 +194,26 @@
     }
     .wa-btn-header:hover { opacity: .88; }
 
+    .dev-bar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 6px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-size: .72rem;
+      color: var(--muted);
+      letter-spacing: .03em;
+    }
+    .dev-bar a {
+      color: var(--muted);
+      text-decoration: none;
+      font-weight: 600;
+      transition: color .15s;
+    }
+    .dev-bar a:hover { color: var(--accent); }
+
     .hero { max-width: 900px; margin: 0 auto; padding: 40px 20px 24px; }
     .hero h1 {
       font-size: clamp(1.6rem, 4vw, 2.25rem);
@@ -506,6 +526,11 @@
   </div>
 </header>
 
+<div class="dev-bar">
+  Site desenvolvido por <a href="https://wa.me/5521998972467" target="_blank" rel="noopener">Ksenia</a>
+  &nbsp;·&nbsp; ponto de venda &amp; sites de qualquer complexidade
+</div>
+
 <div class="hero">
   <h1>Peças para geladeiras, máquinas de lavar e gás refrigerante no Rio de Janeiro</h1>
   <p>Loja de refrigeração no RJ com peças para manutenção, refil e varejo</p>
@@ -678,14 +703,6 @@
 
 <footer>
   <p>M.T.F Refrigeração · {{ store_address }}</p>
-  <p style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:.75rem;color:var(--muted);">
-    Site desenvolvido por <strong style="color:var(--text);">Ksenia</strong>
-    · Criação de <em>ponto de venda</em> e sites de qualquer complexidade
-    · <a href="https://wa.me/5521998972467" target="_blank" rel="noopener"
-         style="color:var(--accent);font-weight:700;text-decoration:none;">
-        📲 WhatsApp
-      </a>
-  </p>
 </footer>
 
 <script>
