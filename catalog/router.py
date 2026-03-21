@@ -23,9 +23,11 @@ ADMIN_URL        = os.environ.get("ADMIN_URL", "https://lojaderefregiracao-produ
 async def _get_products(conn):
     res = await conn.execute(text("""
         SELECT p.id, p.name, p.sale_price, p.unit, p.image, p.description,
-               COALESCE(c.name, 'Outro') AS category_name
+               COALESCE(c.name, 'Outro') AS category_name,
+               COALESCE(c2.name, NULL) AS category2_name
         FROM products p
-        LEFT JOIN categories c ON c.id = p.category_id
+        LEFT JOIN categories c  ON c.id  = p.category_id
+        LEFT JOIN categories c2 ON c2.id = p.category2_id
         WHERE p.active = TRUE
         ORDER BY
             CASE WHEN c.name ILIKE '%gas%' OR c.name ILIKE '%gás%' THEN 0 ELSE 1 END,
@@ -43,13 +45,35 @@ async def _get_products(conn):
     return result
 
 
+async def _get_banner_product(conn):
+    """Случайный товар с картинкой и ценой для баннера."""
+    res = await conn.execute(text("""
+        SELECT p.id, p.name, p.sale_price, p.unit, p.image,
+               COALESCE(c.name, 'Outro') AS category_name
+        FROM products p
+        LEFT JOIN categories c ON c.id = p.category_id
+        WHERE p.active = TRUE AND p.image IS NOT NULL AND p.sale_price IS NOT NULL
+        ORDER BY RANDOM()
+        LIMIT 1
+    """))
+    row = res.mappings().first()
+    if not row:
+        return None
+    r = dict(row)
+    if r.get("image") and r["image"].startswith("/static/images/"):
+        r["image"] = ADMIN_URL + r["image"]
+    return r
+
+
 def _group_by_category(rows):
     groups = {}
     for r in rows:
-        cat = r["category_name"]
-        if cat not in groups:
-            groups[cat] = []
-        groups[cat].append(r)
+        for cat in [r["category_name"], r.get("category2_name")]:
+            if not cat:
+                continue
+            if cat not in groups:
+                groups[cat] = []
+            groups[cat].append(r)
     return groups
 
 
@@ -58,6 +82,7 @@ def _group_by_category(rows):
 async def catalog_page(request: Request):
     async with engine.connect() as conn:
         rows = await _get_products(conn)
+        banner_product = await _get_banner_product(conn)
 
     rows = [dict(r) for r in rows]  # <- превращаем в обычные dict
     groups = _group_by_category(rows)
@@ -79,6 +104,7 @@ async def catalog_page(request: Request):
         "store_address": STORE_ADDRESS,
         "store_phone":   STORE_PHONE,
         "wa_number":     WA_OWNER_NUMBER,
+        "banner_product": banner_product,
     })
 
 

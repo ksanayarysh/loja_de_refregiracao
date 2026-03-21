@@ -30,6 +30,18 @@ async def _ensure_price_history(conn):
         )
     """))
     _price_history_ready = True
+
+# ── CATEGORY2 MIGRATION ───────────────────────────────────────────────────────
+_category2_ready = False
+
+async def _ensure_category2(conn):
+    global _category2_ready
+    if _category2_ready:
+        return
+    await conn.execute(text(
+        "ALTER TABLE products ADD COLUMN IF NOT EXISTS category2_id INTEGER REFERENCES categories(id)"
+    ))
+    _category2_ready = True
 # ─────────────────────────────────────────────────────────────────────────────
 
 SORT_FIELDS = {
@@ -107,6 +119,7 @@ async def create_product(
     request: Request,
     name: str = Form(...),
     category_id: int = Form(None),
+    category2_id: int = Form(None),
     unit: str = Form("un"),
     sale_price: str = Form("0"),
     cost_price: str = Form("0"),
@@ -120,6 +133,7 @@ async def create_product(
     image_b64 = await _process_image(image)
 
     async with engine.begin() as conn:
+        await _ensure_category2(conn)
         dup = await conn.execute(
             text("SELECT id FROM products WHERE LOWER(TRIM(name)) = LOWER(TRIM(:name)) AND active = TRUE"),
             {"name": name.strip()}
@@ -132,9 +146,9 @@ async def create_product(
             }, status_code=400)
 
         await conn.execute(
-            text("""INSERT INTO products (name, category_id, unit, sale_price, cost_price, min_stock, active, image, description)
-                    VALUES (:name, :category_id, :unit, :sale_price, :cost_price, :min_stock, TRUE, :image, :description)"""),
-            {"name": name.strip(), "category_id": category_id, "unit": unit,
+            text("""INSERT INTO products (name, category_id, category2_id, unit, sale_price, cost_price, min_stock, active, image, description)
+                    VALUES (:name, :category_id, :category2_id, :unit, :sale_price, :cost_price, :min_stock, TRUE, :image, :description)"""),
+            {"name": name.strip(), "category_id": category_id, "category2_id": category2_id or None, "unit": unit,
              "sale_price": price, "cost_price": cost, "min_stock": min_stock, "image": image_b64, "description": description.strip() or None},
         )
     return RedirectResponse(url="/products/new?ok=1", status_code=303)
@@ -144,7 +158,7 @@ async def create_product(
 async def edit_product_form(product_id: int, request: Request, _=Depends(basic_auth)):
     async with engine.connect() as conn:
         res = await conn.execute(
-            text("SELECT id, name, category_id, unit, sale_price, cost_price, min_stock, image, description FROM products WHERE id = :id AND active = TRUE"),
+            text("SELECT id, name, category_id, category2_id, unit, sale_price, cost_price, min_stock, image, description FROM products WHERE id = :id AND active = TRUE"),
             {"id": product_id},
         )
         product = res.mappings().first()
@@ -162,6 +176,7 @@ async def update_product(
     request: Request,
     name: str = Form(...),
     category_id: int = Form(None),
+    category2_id: int = Form(None),
     unit: str = Form("un"),
     sale_price: str = Form("0"),
     cost_price: str = Form("0"),
@@ -182,7 +197,7 @@ async def update_product(
         )
         if dup.first():
             res = await conn.execute(
-                text("SELECT id, name, category_id, unit, sale_price, cost_price, min_stock, image, description FROM products WHERE id = :id"),
+                text("SELECT id, name, category_id, category2_id, unit, sale_price, cost_price, min_stock, image, description FROM products WHERE id = :id"),
                 {"id": product_id}
             )
             product    = res.mappings().first()
@@ -198,6 +213,7 @@ async def update_product(
         cur_price = cur_row.get("sale_price")
 
         # Создаём таблицу если не существует (один раз за жизнь процесса)
+        await _ensure_category2(conn)
         await _ensure_price_history(conn)
 
         # Записываем историю если цена изменилась
@@ -221,11 +237,12 @@ async def update_product(
 
         await conn.execute(
             text(f"""UPDATE products
-                    SET name=:name, category_id=:category_id, unit=:unit, description=:description,
+                    SET name=:name, category_id=:category_id, category2_id=:category2_id, unit=:unit, description=:description,
                         sale_price=:sale_price, cost_price=:cost_price, min_stock=:min_stock
                         {extra_sql}
                     WHERE id=:id"""),
-            {"id": product_id, "name": name.strip(), "category_id": category_id, "description": description.strip() or None,
+            {"id": product_id, "name": name.strip(), "category_id": category_id, "category2_id": category2_id or None,
+             "description": description.strip() or None,
              "unit": unit, "sale_price": price, "cost_price": cost, "min_stock": min_stock, **extra_val},
         )
     return RedirectResponse(url=f"/products/{product_id}/edit?ok=1", status_code=303)

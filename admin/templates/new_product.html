@@ -131,7 +131,7 @@
         <label for="name">Nome do produto</label>
         <input id="name" name="name" required placeholder="Ex.: Filtro 1/4" autocomplete="off">
 
-        <label for="category_id">Categoria</label>
+        <label for="category_id">Categoria principal</label>
         <select id="category_id" name="category_id">
           {% for c in categories %}
             <option value="{{ c.id }}">{{ c.name }}</option>
@@ -142,6 +142,15 @@
           <input type="text" id="new_category_name" placeholder="Nova categoria...">
           <button type="button" onclick="addCategory()">+ Adicionar</button>
         </div>
+
+        <label for="category2_id">Segunda categoria (opcional)</label>
+        <select id="category2_id" name="category2_id">
+          <option value="">— Nenhuma —</option>
+          {% for c in categories %}
+            <option value="{{ c.id }}">{{ c.name }}</option>
+          {% endfor %}
+        </select>
+        <div class="hint">O produto aparecerá nas duas categorias no catálogo.</div>
 
         <label for="unit">Unidade</label>
         <select id="unit" name="unit">
