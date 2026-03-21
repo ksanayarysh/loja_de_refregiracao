@@ -283,7 +283,7 @@
                   <tr>
                     <td class="td-name">{{ dr.product_name }}<br><small style="color:#888;font-size:.75rem;">{{ dr.unit }}</small></td>
                     <td>{{ dr.qty }}</td>
-                    <td class="price">R$ {{ "%.2f"|format(dr.unit_price or 0) }}</td>
+                    <td class="price">R$ {{ "%.2f"|format((dr.unit_price if dr.unit_price == dr.unit_price else 0) or 0) }}</td>
                     <td class="price">R$ {{ "%.2f"|format(dr.total or 0) }}</td>
                     <td><span class="pay-badge pay-{{ pt }}">{{ pt_labels.get(pt, pt) }}</span></td>
                     <td style="color:#555;font-size:.85rem;">{{ dr.note or '—' }}</td>
@@ -338,7 +338,7 @@
                 <tr>
                   <td class="td-name">{{ dr.product_name }}<br><small style="color:#888;font-size:.75rem;">{{ dr.unit }}</small></td>
                   <td>{{ dr.qty }}</td>
-                  <td class="price">R$ {{ "%.2f"|format(dr.unit_price or 0) }}</td>
+                  <td class="price">R$ {{ "%.2f"|format((dr.unit_price if dr.unit_price == dr.unit_price else 0) or 0) }}</td>
                   <td class="price">R$ {{ "%.2f"|format(dr.total or 0) }}</td>
                   <td><span class="pay-badge pay-{{ pt }}">{{ pt_labels.get(pt, pt) }}</span></td>
                   <td style="color:#555;font-size:.85rem;">{{ dr.note or '—' }}</td>
