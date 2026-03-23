@@ -90,14 +90,19 @@ async def catalog_page(request: Request):
     for cat, items in groups.items():
         for item in items:
             item["slug"] = slugify(item["name"])
-    total  = len(rows)
+
+    # total — уникальные товары (не считая дублей по второй категории)
+    total = len(rows)
     cat_slugs = {cat: slugify(cat) for cat in groups.keys()}
+
+    # Преобразуем groups в plain dict со списками plain dict для Jinja2
+    groups_clean = {cat: [dict(i) for i in items] for cat, items in groups.items()}
 
     return templates.TemplateResponse("catalog.html", {
         "request":       request,
-        "groups":        groups,
+        "groups":        groups_clean,
         "total":         total,
-        "categories":    list(groups.keys()),
+        "categories":    list(groups_clean.keys()),
         "cat_slugs":     cat_slugs,
         "ga_id":         GA_ID,
         "site_url":      SITE_URL,
