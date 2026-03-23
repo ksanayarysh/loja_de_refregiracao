@@ -1,4 +1,5 @@
 import os
+import json as _json
 import httpx
 from datetime import datetime
 from fastapi import APIRouter, Request
@@ -100,8 +101,11 @@ async def catalog_page(request: Request):
     total = len(rows)
     cat_slugs = {cat: slugify(cat) for cat in groups.keys()}
 
-    # Преобразуем groups в plain dict со списками plain dict для Jinja2
-    groups_clean = {cat: [dict(i) for i in items] for cat, items in groups.items()}
+    # Гарантируем чистые Python типы через JSON round-trip
+    groups_clean = _json.loads(_json.dumps(
+        {cat: items for cat, items in groups.items()},
+        default=str
+    ))
 
     return templates.TemplateResponse("catalog.html", {
         "request":       request,
