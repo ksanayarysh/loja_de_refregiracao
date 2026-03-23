@@ -615,7 +615,7 @@
   <div class="filter-row" id="filterRow">
     <button class="filter-chip active" data-filter="all" onclick="setFilter(this, 'all')">Todos</button>
     {% for cat in categories %}
-    <button class="filter-chip" data-filter="{{ cat }}" onclick="setFilter(this, '{{ cat }}')">{{ cat }}</button>
+    <button class="filter-chip" data-filter="{{ cat }}" onclick="setFilter(this, this.dataset.filter)">{{ cat }}</button>
     {% endfor %}
   </div>
 </div>
@@ -663,7 +663,7 @@
       </a>
       {% if p.sale_price %}
       <button class="add-cart-btn" title="Adicionar ao carrinho"
-        onclick="addToCart({{ p.id }}, {{ p.name|tojson }}, {{ p.sale_price }}, {{ p.unit|tojson }}, this)">
+        onclick="addToCart({{ p.id }}, {{ p.name|tojson }}, {{ p.sale_price|float }}, {{ p.unit|tojson }}, this)">
         🛒
       </button>
       {% endif %}
