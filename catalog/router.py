@@ -1,5 +1,4 @@
 import os
-import json as _json
 import httpx
 from datetime import datetime
 from fastapi import APIRouter, Request
@@ -42,9 +41,6 @@ async def _get_products(conn):
         r = dict(r)
         if r.get("image") and r["image"].startswith("/static/images/"):
             r["image"] = ADMIN_URL + r["image"]
-        # конвертируем Decimal в float для Jinja2
-        if r.get("sale_price") is not None:
-            r["sale_price"] = float(r["sale_price"])
         result.append(r)
     return result
 
@@ -66,8 +62,6 @@ async def _get_banner_product(conn):
     r = dict(row)
     if r.get("image") and r["image"].startswith("/static/images/"):
         r["image"] = ADMIN_URL + r["image"]
-    if r.get("sale_price") is not None:
-        r["sale_price"] = float(r["sale_price"])
     return r
 
 
@@ -79,7 +73,7 @@ def _group_by_category(rows):
                 continue
             if cat not in groups:
                 groups[cat] = []
-            groups[cat].append(dict(r))  # копия для каждой категории
+            groups[cat].append(r)
     return groups
 
 
@@ -90,36 +84,27 @@ async def catalog_page(request: Request):
         rows = await _get_products(conn)
         banner_product = await _get_banner_product(conn)
 
+    rows = [dict(r) for r in rows]  # <- превращаем в обычные dict
     groups = _group_by_category(rows)
 
     for cat, items in groups.items():
         for item in items:
             item["slug"] = slugify(item["name"])
-
-    total = len(rows)
+    total  = len(rows)
     cat_slugs = {cat: slugify(cat) for cat in groups.keys()}
-
-    # Полная сериализация через JSON — гарантирует str/int/float/list/dict
-    ctx = _json.loads(_json.dumps({
-        "groups":     groups,
-        "total":      total,
-        "categories": list(groups.keys()),
-        "cat_slugs":  cat_slugs,
-        "banner_product": banner_product,
-    }, default=str))
 
     return templates.TemplateResponse("catalog.html", {
         "request":       request,
-        "groups":        ctx["groups"],
-        "total":         ctx["total"],
-        "categories":    ctx["categories"],
-        "cat_slugs":     ctx["cat_slugs"],
-        "banner_product": ctx["banner_product"],
+        "groups":        groups,
+        "total":         total,
+        "categories":    list(groups.keys()),
+        "cat_slugs":     cat_slugs,
         "ga_id":         GA_ID,
         "site_url":      SITE_URL,
         "store_address": STORE_ADDRESS,
         "store_phone":   STORE_PHONE,
         "wa_number":     WA_OWNER_NUMBER,
+        "banner_product": banner_product,
     })
 
 
