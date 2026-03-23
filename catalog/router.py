@@ -90,35 +90,36 @@ async def catalog_page(request: Request):
         rows = await _get_products(conn)
         banner_product = await _get_banner_product(conn)
 
-    rows = [dict(r) for r in rows]  # <- превращаем в обычные dict
     groups = _group_by_category(rows)
 
     for cat, items in groups.items():
         for item in items:
             item["slug"] = slugify(item["name"])
 
-    # total — уникальные товары (не считая дублей по второй категории)
     total = len(rows)
     cat_slugs = {cat: slugify(cat) for cat in groups.keys()}
 
-    # Гарантируем чистые Python типы через JSON round-trip
-    groups_clean = _json.loads(_json.dumps(
-        {cat: items for cat, items in groups.items()},
-        default=str
-    ))
+    # Полная сериализация через JSON — гарантирует str/int/float/list/dict
+    ctx = _json.loads(_json.dumps({
+        "groups":     groups,
+        "total":      total,
+        "categories": list(groups.keys()),
+        "cat_slugs":  cat_slugs,
+        "banner_product": banner_product,
+    }, default=str))
 
     return templates.TemplateResponse("catalog.html", {
         "request":       request,
-        "groups":        groups_clean,
-        "total":         total,
-        "categories":    list(groups_clean.keys()),
-        "cat_slugs":     cat_slugs,
+        "groups":        ctx["groups"],
+        "total":         ctx["total"],
+        "categories":    ctx["categories"],
+        "cat_slugs":     ctx["cat_slugs"],
+        "banner_product": ctx["banner_product"],
         "ga_id":         GA_ID,
         "site_url":      SITE_URL,
         "store_address": STORE_ADDRESS,
         "store_phone":   STORE_PHONE,
         "wa_number":     WA_OWNER_NUMBER,
-        "banner_product": banner_product,
     })
 
 
