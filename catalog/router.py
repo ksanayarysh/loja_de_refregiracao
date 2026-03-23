@@ -41,6 +41,9 @@ async def _get_products(conn):
         r = dict(r)
         if r.get("image") and r["image"].startswith("/static/images/"):
             r["image"] = ADMIN_URL + r["image"]
+        # конвертируем Decimal в float для Jinja2
+        if r.get("sale_price") is not None:
+            r["sale_price"] = float(r["sale_price"])
         result.append(r)
     return result
 
@@ -62,6 +65,8 @@ async def _get_banner_product(conn):
     r = dict(row)
     if r.get("image") and r["image"].startswith("/static/images/"):
         r["image"] = ADMIN_URL + r["image"]
+    if r.get("sale_price") is not None:
+        r["sale_price"] = float(r["sale_price"])
     return r
 
 
