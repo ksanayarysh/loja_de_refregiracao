@@ -66,6 +66,18 @@ async def _get_banner_product(conn):
         r["sale_price"] = float(r["sale_price"])
     return r
 
+def _group_by_category(rows):
+    groups = {}
+    for r in rows:
+        for cat in [r.get("category_name"), r.get("category2_name")]:
+            if not cat:
+                continue
+            if cat not in groups:
+                groups[cat] = []
+            groups[cat].append(dict(r))
+    return groups
+
+
 
 async def _get_promo_product(conn):
     """Товар для промо-баннера — ищет Gas R32 3kg по имени."""
