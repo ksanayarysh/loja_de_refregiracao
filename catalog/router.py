@@ -67,7 +67,26 @@ async def _get_banner_product(conn):
     return r
 
 
-def _group_by_category(rows):
+async def _get_promo_product(conn):
+    """Товар для промо-баннера — ищет Gas R32 3kg по имени."""
+    res = await conn.execute(text("""
+        SELECT p.id, p.name, p.sale_price, p.unit, p.image,
+               COALESCE(c.name, 'Outro') AS category_name
+        FROM products p
+        LEFT JOIN categories c ON c.id = p.category_id
+        WHERE p.active = TRUE AND LOWER(p.name) LIKE '%r32%' AND LOWER(p.name) LIKE '%3%'
+        ORDER BY p.name
+        LIMIT 1
+    """))
+    row = res.mappings().first()
+    if not row:
+        return None
+    r = dict(row)
+    if r.get("image") and r["image"].startswith("/static/images/"):
+        r["image"] = ADMIN_URL + r["image"]
+    if r.get("sale_price") is not None:
+        r["sale_price"] = float(r["sale_price"])
+    return r
     groups = {}
     for r in rows:
         for cat in [r.get("category_name"), r.get("category2_name")]:
@@ -84,6 +103,7 @@ async def catalog_page(request: Request):
     async with engine.connect() as conn:
         rows = await _get_products(conn)
         banner_product = await _get_banner_product(conn)
+        promo_product  = await _get_promo_product(conn)
 
     rows = [dict(r) for r in rows]
     groups = _group_by_category(rows)
@@ -96,7 +116,7 @@ async def catalog_page(request: Request):
 
     # JSON round-trip — гарантирует чистые Python типы для Jinja2
     clean = _json.loads(_json.dumps(
-        {"groups": groups, "cat_slugs": cat_slugs, "banner_product": banner_product},
+        {"groups": groups, "cat_slugs": cat_slugs, "banner_product": banner_product, "promo_product": promo_product},
         default=str
     ))
 
@@ -112,6 +132,7 @@ async def catalog_page(request: Request):
         "store_phone":    STORE_PHONE,
         "wa_number":      WA_OWNER_NUMBER,
         "banner_product": clean["banner_product"],
+        "promo_product":  clean["promo_product"],
     })
 
 
