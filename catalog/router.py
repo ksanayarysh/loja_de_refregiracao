@@ -1,4 +1,5 @@
 import os
+import json as _json
 import httpx
 from datetime import datetime
 from fastapi import APIRouter, Request
@@ -21,9 +22,11 @@ ADMIN_URL        = os.environ.get("ADMIN_URL", "https://lojaderefregiracao-produ
 async def _get_products(conn):
     res = await conn.execute(text("""
         SELECT p.id, p.name, p.sale_price, p.unit, p.image, p.description,
-               COALESCE(c.name, 'Outro') AS category_name
+               COALESCE(c.name, 'Outro') AS category_name,
+               c2.name AS category2_name
         FROM products p
-        LEFT JOIN categories c ON c.id = p.category_id
+        LEFT JOIN categories c  ON c.id  = p.category_id
+        LEFT JOIN categories c2 ON c2.id = p.category2_id
         WHERE p.active = TRUE
         ORDER BY
             CASE WHEN c.name ILIKE '%gas%' OR c.name ILIKE '%gás%' THEN 0 ELSE 1 END,
@@ -37,6 +40,8 @@ async def _get_products(conn):
         r = dict(r)
         if r.get("image") and r["image"].startswith("/static/images/"):
             r["image"] = ADMIN_URL + r["image"]
+        if r.get("sale_price") is not None:
+            r["sale_price"] = float(r["sale_price"])
         result.append(r)
     return result
 
@@ -57,16 +62,20 @@ async def _get_banner_product(conn):
     r = dict(row)
     if r.get("image") and r["image"].startswith("/static/images/"):
         r["image"] = ADMIN_URL + r["image"]
+    if r.get("sale_price") is not None:
+        r["sale_price"] = float(r["sale_price"])
     return r
 
 
 def _group_by_category(rows):
     groups = {}
     for r in rows:
-        cat = r["category_name"]
-        if cat not in groups:
-            groups[cat] = []
-        groups[cat].append(r)
+        for cat in [r.get("category_name"), r.get("category2_name")]:
+            if not cat:
+                continue
+            if cat not in groups:
+                groups[cat] = []
+            groups[cat].append(dict(r))
     return groups
 
 
@@ -85,18 +94,24 @@ async def catalog_page(request: Request):
     total = len(rows)
     cat_slugs = {cat: slugify(cat) for cat in groups.keys()}
 
+    # JSON round-trip — гарантирует чистые Python типы для Jinja2
+    clean = _json.loads(_json.dumps(
+        {"groups": groups, "cat_slugs": cat_slugs, "banner_product": banner_product},
+        default=str
+    ))
+
     return templates.TemplateResponse("catalog.html", {
         "request":        request,
-        "groups":         groups,
+        "groups":         clean["groups"],
         "total":          total,
-        "categories":     list(groups.keys()),
-        "cat_slugs":      cat_slugs,
+        "categories":     list(clean["groups"].keys()),
+        "cat_slugs":      clean["cat_slugs"],
         "ga_id":          GA_ID,
         "site_url":       SITE_URL,
         "store_address":  STORE_ADDRESS,
         "store_phone":    STORE_PHONE,
         "wa_number":      WA_OWNER_NUMBER,
-        "banner_product": banner_product,
+        "banner_product": clean["banner_product"],
     })
 
 
