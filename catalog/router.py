@@ -73,7 +73,7 @@ def _group_by_category(rows):
                 continue
             if cat not in groups:
                 groups[cat] = []
-            groups[cat].append(r)
+            groups[cat].append(dict(r))  # копия для каждой категории
     return groups
 
 
