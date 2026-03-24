@@ -17,7 +17,7 @@ async def force_domain(request: Request, call_next):
     host = request.headers.get("host", "")
 
     if "railway.app" in host:
-        url = str(request.url).replace(host, "mtfrefrigeracao.com.br")
+        url = str(request.url).replace(host, "www.mtfrefrigeracao.com.br")
         return RedirectResponse(url, status_code=301)
 
     return await call_next(request)
