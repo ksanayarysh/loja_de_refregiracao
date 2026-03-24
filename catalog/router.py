@@ -10,19 +10,6 @@ from dependencies import engine, templates
 
 router = APIRouter()
 
-from fastapi.responses import RedirectResponse
-
-
-@router.middleware("http")
-async def force_domain(request: Request, call_next):
-    host = request.headers.get("host", "")
-
-    if "railway.app" in host:
-        url = str(request.url).replace(host, "mtfrefrigeracao.com.br")
-        return RedirectResponse(url, status_code=301)
-
-    return await call_next(request)
-
 WA_NOTIFY_NUMBER = os.environ.get("WA_NOTIFY_NUMBER", "")
 WA_OWNER_NUMBER  = os.environ.get("WA_OWNER_NUMBER", "")
 SITE_URL         = os.environ.get("SITE_URL", "https://www.mtfrefrigeracao.com.br/")
