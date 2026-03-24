@@ -16,8 +16,14 @@ from fastapi.responses import RedirectResponse
 async def force_domain(request: Request, call_next):
     host = request.headers.get("host", "")
 
+    # 1. railway → домен
     if "railway.app" in host:
-        url = str(request.url).replace(host, "https://www.mtfrefrigeracao.com.br")
+        url = str(request.url).replace(host, "www.mtfrefrigeracao.com.br")
+        return RedirectResponse(url, status_code=301)
+
+    # 2. без www → с www
+    if host == "mtfrefrigeracao.com.br":
+        url = str(request.url).replace(host, "www.mtfrefrigeracao.com.br")
         return RedirectResponse(url, status_code=301)
 
     return await call_next(request)
