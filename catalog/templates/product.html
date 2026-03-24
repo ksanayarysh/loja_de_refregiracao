@@ -644,7 +644,7 @@
     {% if product.sale_price %}
     <button class="add-cart-btn" title="Adicionar ao carrinho"
       onclick='addToCart({{ product.id }}, {{ product.name|tojson }}, {{ product.sale_price|float }}, {{ product.unit|tojson }}, this)'>
-      🛒
+      🛒 Adicionar ao carrinho
     </button>
     {% endif %}
 
