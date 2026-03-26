@@ -5,23 +5,71 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/png" href="/static/favicon.png">
 
-  <title>{{ category }} no RJ | M.T.F Refrigeração</title>
+  {% if cat_slug == 'gases-refrigerantes' %}
+  <title>Gás Refrigerante RJ | Refil e Varejo | Entrega Rápida | MTF</title>
+{% elif cat_slug == 'geladeira' %}
+  <title>Peças para Geladeira RJ | Compra Online | Entrega | MTF</title>
+{% elif cat_slug == 'maquina-de-lavar' %}
+  <title>Peças para Máquina de Lavar RJ | Loja Online | Entrega | MTF</title>
+{% elif cat_slug == 'refrigeracao' %}
+  <title>Peças para Refrigeração RJ | Compra Online | MTF</title>
+{% elif cat_slug == 'bebedouro' %}
+  <title>Peças para Bebedouro RJ | Loja Online | MTF</title>
+{% else %}
+  <title>{{ category }} no RJ | Compra Online | M.T.F Refrigeração</title>
+{% endif %}
+  {% if cat_slug == 'gases-refrigerantes' %}
+  <meta name="description" content="Gás refrigerante no RJ com refil e varejo. Consulte preços, disponibilidade e entrega rápida pelo WhatsApp na M.T.F Refrigeração.">
+{% elif cat_slug == 'geladeira' %}
+  <meta name="description" content="Peças para geladeira no RJ com compra online. Consulte preços, disponibilidade e atendimento rápido pelo WhatsApp na M.T.F Refrigeração.">
+{% elif cat_slug == 'maquina-de-lavar' %}
+  <meta name="description" content="Peças para máquina de lavar no RJ com compra online e entrega. Consulte preços e disponibilidade pelo WhatsApp.">
+{% elif cat_slug == 'refrigeracao' %}
+  <meta name="description" content="Peças para refrigeração no RJ com compra online. Consulte preços, disponibilidade e atendimento rápido pelo WhatsApp.">
+{% elif cat_slug == 'bebedouro' %}
+  <meta name="description" content="Peças para bebedouro no RJ com compra online. Consulte preços e disponibilidade pelo WhatsApp na M.T.F Refrigeração.">
+{% else %}
   <meta name="description" content="{{ category }} para refrigeração no Rio de Janeiro. {{ total }} produtos disponíveis. Consulte preços e disponibilidade via WhatsApp.">
+{% endif %}
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="{{ site_url }}/category/{{ cat_slug }}">
 
   <meta property="og:type" content="website">
+  {% if cat_slug == 'gases-refrigerantes' %}
+  <meta property="og:title" content="Gás Refrigerante RJ | Refil e Varejo | MTF">
+{% elif cat_slug == 'geladeira' %}
+  <meta property="og:title" content="Peças para Geladeira RJ | Compra Online | MTF">
+{% elif cat_slug == 'maquina-de-lavar' %}
+  <meta property="og:title" content="Peças para Máquina de Lavar RJ | Loja Online | MTF">
+{% elif cat_slug == 'refrigeracao' %}
+  <meta property="og:title" content="Peças para Refrigeração RJ | Compra Online | MTF">
+{% elif cat_slug == 'bebedouro' %}
+  <meta property="og:title" content="Peças para Bebedouro RJ | Loja Online | MTF">
+{% else %}
   <meta property="og:title" content="{{ category }} | M.T.F Refrigeração RJ">
+{% endif %}
+  {% if cat_slug == 'gases-refrigerantes' %}
+  <meta property="og:description" content="Gás refrigerante no RJ com refil e varejo. Consulte preços, disponibilidade e entrega rápida.">
+{% elif cat_slug == 'geladeira' %}
+  <meta property="og:description" content="Peças para geladeira no RJ com compra online, preços sob consulta e atendimento rápido.">
+{% elif cat_slug == 'maquina-de-lavar' %}
+  <meta property="og:description" content="Peças para máquina de lavar no RJ com compra online e atendimento rápido pelo WhatsApp.">
+{% elif cat_slug == 'refrigeracao' %}
+  <meta property="og:description" content="Peças para refrigeração no RJ com compra online, preços sob consulta e atendimento rápido.">
+{% elif cat_slug == 'bebedouro' %}
+  <meta property="og:description" content="Peças para bebedouro no RJ com compra online e consulta rápida pelo WhatsApp.">
+{% else %}
   <meta property="og:description" content="{{ category }} para refrigeração no RJ. {{ total }} produtos disponíveis.">
+{% endif %}
   <meta property="og:image" content="{{ site_url }}/static/og-catalog.jpg">
 
-  <script type="application/ld+json">
+  <script type="text/javascript" src="https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=wEnYkiD65ez2_UAd_0ahgaD0A_mKqAMlA4YxGWOwP5aa232l-5BV0LgZlgKQf-wpfsRsYDUuAOefq3hjVHgv3KdYXtf7iT5tm2vD8VO5XQXEyQMb5QeLf23coEAx7EZRlovV-0363JTYcw6RXMeTMiHqvP-nUdxasf5mEZ-Bi_t4k4jhpOwY_HeLlbOL_ErkEFto0xuKI4hksF6h47Nag_T41kZu8mZl578p6gI5maMTgSR9TRYRKlHauu2KDfvToAUBcblOe7i41sfb-gPLEg" charset="UTF-8"></script><script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
     "name": "{{ category }} — M.T.F Refrigeração",
     "url": "{{ site_url }}/category/{{ cat_slug }}",
-    "description": "{{ category }} para refrigeração no Rio de Janeiro"
+    "description": "{% if cat_slug == 'gases-refrigerantes' %}Gás refrigerante no RJ com refil e varejo, preços sob consulta e atendimento rápido pelo WhatsApp{% elif cat_slug == 'geladeira' %}Peças para geladeira no RJ com compra online e consulta rápida pelo WhatsApp{% elif cat_slug == 'maquina-de-lavar' %}Peças para máquina de lavar no RJ com compra online e entrega{% elif cat_slug == 'refrigeracao' %}Peças para refrigeração no RJ com compra online{% elif cat_slug == 'bebedouro' %}Peças para bebedouro no RJ com compra online{% else %}{{ category }} para refrigeração no Rio de Janeiro{% endif %}"
   }
   </script>
 
@@ -140,7 +188,15 @@
 
 <div class="hero">
   <h1><span>{{ category }}</span> — peças para refrigeração no RJ</h1>
+  {% if cat_slug == 'gases-refrigerantes' %}
+  <p>{{ total }} produto{% if total != 1 %}s{% endif %} disponíve{% if total != 1 %}is{% endif %} · refil e varejo · consulta rápida pelo WhatsApp</p>
+{% elif cat_slug == 'geladeira' %}
+  <p>{{ total }} produto{% if total != 1 %}s{% endif %} disponíve{% if total != 1 %}is{% endif %} · compra online · atendimento rápido no RJ</p>
+{% elif cat_slug == 'maquina-de-lavar' %}
+  <p>{{ total }} produto{% if total != 1 %}s{% endif %} disponíve{% if total != 1 %}is{% endif %} · compra online · entrega no RJ</p>
+{% else %}
   <p>{{ total }} produto{% if total != 1 %}s{% endif %} disponíve{% if total != 1 %}is{% endif %} · Rio de Janeiro</p>
+{% endif %}
 </div>
 
 <div class="controls">
@@ -186,6 +242,36 @@
   {% endfor %}
 </div>
 
+
+<section class="seo-text" style="max-width:900px;margin:12px auto 60px;padding:0 20px;color:#6b6b6b;font-size:.92rem;line-height:1.65;">
+  {% if cat_slug == 'gases-refrigerantes' %}
+  <h2 style="font-size:1.08rem;margin-bottom:10px;color:#222;">Gás refrigerante no RJ com refil e varejo</h2>
+  <p>A M.T.F Refrigeração trabalha com <strong>gás refrigerante no RJ</strong> para refrigeração e ar-condicionado, com opções em <strong>refil e varejo</strong> para diferentes necessidades.</p>
+  <p>Consulte disponibilidade, preços e atendimento rápido pelo WhatsApp. Trabalhamos para facilitar a compra e agilizar o seu pedido no Rio de Janeiro.</p>
+  <p>Se você procura <strong>gás refrigerante com entrega rápida</strong>, variedade e suporte para compra, esta categoria reúne as opções disponíveis no catálogo.</p>
+  {% elif cat_slug == 'geladeira' %}
+  <h2 style="font-size:1.08rem;margin-bottom:10px;color:#222;">Peças para geladeira no RJ com compra online</h2>
+  <p>Aqui você encontra <strong>peças para geladeira no RJ</strong> com compra online, consulta rápida e atendimento pelo WhatsApp.</p>
+  <p>Trabalhamos com componentes para manutenção e reposição, ajudando quem procura praticidade, disponibilidade e atendimento rápido no Rio de Janeiro.</p>
+  <p>Se busca <strong>peças para geladeira com entrega</strong> e suporte para localizar o item certo, esta categoria é a página mais relevante para esse tipo de busca.</p>
+  {% elif cat_slug == 'maquina-de-lavar' %}
+  <h2 style="font-size:1.08rem;margin-bottom:10px;color:#222;">Peças para máquina de lavar no RJ</h2>
+  <p>A categoria reúne <strong>peças para máquina de lavar no RJ</strong> com compra online, consulta de preços e disponibilidade pelo WhatsApp.</p>
+  <p>É uma página pensada para quem procura componentes de reposição com mais rapidez, clareza e facilidade de contato.</p>
+  <p>Se você precisa de <strong>peças para máquina de lavar com entrega</strong> e atendimento rápido, esta é a categoria certa dentro do catálogo.</p>
+  {% elif cat_slug == 'refrigeracao' %}
+  <h2 style="font-size:1.08rem;margin-bottom:10px;color:#222;">Peças para refrigeração no RJ</h2>
+  <p>A M.T.F Refrigeração oferece <strong>peças para refrigeração no RJ</strong> com compra online e consulta rápida pelo WhatsApp.</p>
+  <p>Esta categoria reúne componentes para manutenção, reposição e atendimento rápido para quem busca praticidade no pedido.</p>
+  {% elif cat_slug == 'bebedouro' %}
+  <h2 style="font-size:1.08rem;margin-bottom:10px;color:#222;">Peças para bebedouro no RJ</h2>
+  <p>Encontre <strong>peças para bebedouro no RJ</strong> com compra online, consulta rápida e atendimento pelo WhatsApp.</p>
+  <p>Esta categoria facilita a busca por componentes de reposição com mais clareza e foco para o usuário e para o Google.</p>
+  {% else %}
+  <h2 style="font-size:1.08rem;margin-bottom:10px;color:#222;">{{ category }} no RJ</h2>
+  <p>Categoria com produtos disponíveis para refrigeração no Rio de Janeiro, com consulta rápida via WhatsApp.</p>
+  {% endif %}
+</section>
 {% if all_cats %}
 <div class="other-cats">
   <div class="other-cats-title">Outras categorias</div>
