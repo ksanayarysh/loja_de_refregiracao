@@ -273,7 +273,7 @@
             <td>
               <div class="action-cell">
                 <button class="cart-btn" onclick="addToCart({{ r['id'] }}, '{{ r['name']|replace("'", "\\'") }}', {{ r['sale_price'] or 0 }}, '{{ r['unit'] or 'un' }}', 1)">🛒</button>
-                <button class="buy-btn"  onclick="buyNow({{ r['id'] }}, {{ r['sale_price'] or 0 }})">⚡ Comprar</button>
+                <button class="buy-btn"  onclick="buyNow({{ r['id'] }}, {{ r['sale_price'] or 0 }}, '{{ r['unit'] or 'un' }}', 1)">⚡ Comprar</button>
                 <a class="edit-btn" href="/products/{{ r['id'] }}/edit">✏️</a>
                 <form method="post"
                       action="/products/{{ r['id'] }}/delete"
@@ -379,7 +379,7 @@ async function searchProducts() {
           <span class="result-price">R$ ${price.toFixed(2)}</span>
           <div class="result-actions">
             <button class="btn-cart" onclick="addToCart(${p.id}, '${name}', ${price}, '${unit}', 1)">🛒 Carrinho</button>
-            <button class="btn-buy"  onclick="buyNow(${p.id}, '${name}', ${price}, '${unit}', 1)">⚡ Comprar agora</button>
+            <button class="btn-buy"  onclick="buyNow(${p.id}, parseFloat('${price}') || 0, '${unit}', 1)">⚡ Comprar agora</button>
             <a class="edit-btn" href="/products/${p.id}/edit">✏️</a>
           </div>
         </div>

@@ -200,11 +200,14 @@ async def category_page(request: Request, cat_slug: str):
         return HTMLResponse("Categoria não encontrada", status_code=404)
 
     products = []
+    seen_ids = set()
     for r in rows:
-        if r["category_name"] == matched_cat:
-            rd = dict(r)
-            rd["slug"] = slugify(rd["name"])
-            products.append(rd)
+        if r["category_name"] == matched_cat or r.get("category2_name") == matched_cat:
+            if r["id"] not in seen_ids:
+                seen_ids.add(r["id"])
+                rd = dict(r)
+                rd["slug"] = slugify(rd["name"])
+                products.append(rd)
 
     all_cats = list(dict.fromkeys(r["category_name"] for r in rows))
     cat_slugs_map = {cat: slugify(cat) for cat in all_cats}
