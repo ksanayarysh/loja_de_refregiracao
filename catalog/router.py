@@ -17,6 +17,22 @@ GA_ID            = os.environ.get("GA_ID", "")
 STORE_ADDRESS    = os.environ.get("STORE_ADDRESS", "Rua Exemplo, 123 — Cidade, UF")
 STORE_PHONE      = os.environ.get("STORE_PHONE", "")
 ADMIN_URL        = os.environ.get("ADMIN_URL", "https://lojaderefregiracao-production.up.railway.app")
+TG_BOT_TOKEN     = os.environ.get("TG_BOT_TOKEN", "")
+TG_CHAT_ID       = os.environ.get("TG_CHAT_ID", "")
+
+
+async def _send_tg(message: str):
+    """Отправляет уведомление в Telegram."""
+    if not TG_BOT_TOKEN or not TG_CHAT_ID:
+        return
+    try:
+        async with httpx.AsyncClient(timeout=5) as client:
+            await client.post(
+                f"https://api.telegram.org/bot{TG_BOT_TOKEN}/sendMessage",
+                json={"chat_id": TG_CHAT_ID, "text": message, "parse_mode": "HTML"}
+            )
+    except Exception:
+        pass
 
 
 async def _get_products(conn):
@@ -99,15 +115,6 @@ async def _get_promo_product(conn):
     if r.get("sale_price") is not None:
         r["sale_price"] = float(r["sale_price"])
     return r
-    groups = {}
-    for r in rows:
-        for cat in [r.get("category_name"), r.get("category2_name")]:
-            if not cat:
-                continue
-            if cat not in groups:
-                groups[cat] = []
-            groups[cat].append(dict(r))
-    return groups
 
 
 @router.get("/", response_class=HTMLResponse)
@@ -274,6 +281,8 @@ async def track_whatsapp_click(request: Request):
         if WA_NOTIFY_NUMBER:
             msg = f"🛍 Novo interesse no catálogo!\nProduto: *{product}*\nHorário: {datetime.now().strftime('%d/%m %H:%M')}"
             await _send_wa_notification(msg)
+        if product == "Telefone":
+            await _send_tg(f"📞 <b>Alguém clicou em ligar!</b>\nHorário: {datetime.now().strftime('%d/%m %H:%M')}\nIP: {ip}")
         return JSONResponse({"ok": True})
     except Exception:
         return JSONResponse({"ok": False})
