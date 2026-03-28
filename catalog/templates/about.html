@@ -81,7 +81,7 @@
 
     @media(max-width:500px){
       .info-grid{grid-template-columns:1fr;}
-      .address-bar{font-size:.72rem;gap:10px;}
+      .address-bar{font-size:.82rem;gap:10px;}
       .nav-links{display:none;}
       .wa-float span{display:none;}
       .wa-float{padding:14px;border-radius:50%;}
@@ -109,7 +109,9 @@
   📍 {{ store_address }}
   {% if store_phone %}
   <span>·</span>
-  <a href="https://wa.me/{{ wa_number }}">📞 {{ store_phone }}</a>
+  <a href="tel:+{{ wa_number }}" class="phone-track">📞 {{ store_phone }}</a>
+  <span>·</span>
+  <a href="https://wa.me/{{ wa_number }}" class="wa-track" data-product="Geral">💬 WhatsApp</a>
   {% endif %}
 </div>
 

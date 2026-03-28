@@ -148,7 +148,7 @@
     footer{text-align:center;padding:24px 20px;font-size:.82rem;color:var(--muted);border-top:1px solid var(--border);}
 
     @media(max-width:600px){
-      .address-bar{font-size:.72rem;gap:10px;}
+      .address-bar{font-size:.82rem;gap:10px;}
       .wa-float span{display:none;}
       .wa-float{padding:14px;border-radius:50%;}
     }
@@ -344,6 +344,16 @@ document.querySelectorAll('.wa-track').forEach(el => {
     const product = this.dataset.product || 'Geral';
     if (typeof gtag !== 'undefined') gtag('event', 'whatsapp_click', {product_name: product});
     fetch('/api/track/whatsapp', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({product})}).catch(()=>{});
+  });
+});
+
+document.querySelectorAll('.phone-track').forEach(el => {
+  el.addEventListener('click', function() {
+    fetch('/api/track/whatsapp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ product: 'Telefone' })
+    }).catch(() => {});
   });
 });
 </script>

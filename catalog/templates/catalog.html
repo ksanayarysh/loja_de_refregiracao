@@ -145,12 +145,13 @@
 
     .address-bar {
       background: var(--text); color: #fff;
-      padding: 7px 20px;
-      font-size: .78rem; letter-spacing: .02em;
+      padding: 10px 20px;
+      font-size: .95rem; letter-spacing: .02em;
       display: flex; align-items: center; justify-content: center;
       gap: 20px; flex-wrap: wrap; text-align: center;
+      font-weight: 500;
     }
-    .address-bar a { color: #fff; text-decoration: none; opacity: .85; }
+    .address-bar a { color: #fff; text-decoration: none; opacity: .9; }
     .address-bar a:hover { opacity: 1; }
     .address-bar span { opacity: .5; }
 
@@ -445,7 +446,7 @@
     }
 
     @media (max-width: 480px) {
-      .address-bar { font-size: .72rem; gap: 10px; }
+      .address-bar { font-size: .82rem; gap: 10px; }
       .hero { padding: 24px 16px 16px; }
       .controls, .stats-bar, .catalog { padding-left: 16px; padding-right: 16px; }
       .wa-float span { display: none; }
@@ -497,7 +498,9 @@
   📍 {{ store_address }}
   {% if store_phone %}
   <span>·</span>
-  <a href="https://wa.me/{{ wa_number }}">📞 {{ store_phone }}</a>
+  <a href="tel:+{{ wa_number }}" class="phone-track">📞 {{ store_phone }}</a>
+  <span>·</span>
+  <a href="https://wa.me/{{ wa_number }}" class="wa-track" data-product="Geral">💬 WhatsApp</a>
   {% endif %}
 </div>
 
@@ -886,6 +889,16 @@ document.querySelectorAll('.wa-track').forEach(el => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ product })
+    }).catch(() => {});
+  });
+});
+
+document.querySelectorAll('.phone-track').forEach(el => {
+  el.addEventListener('click', function() {
+    fetch('/api/track/whatsapp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ product: 'Telefone' })
     }).catch(() => {});
   });
 });
