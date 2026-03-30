@@ -167,6 +167,44 @@
     }
     .dev-bar a { color: var(--muted); text-decoration: none; font-weight: 600; transition: color .15s; }
     .dev-bar a:hover { color: var(--accent); }
+
+    /* ── CARRINHO ── */
+    .cart-btn{position:relative;display:flex;align-items:center;gap:6px;background:var(--text);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-family:inherit;font-size:.85rem;font-weight:700;cursor:pointer;flex-shrink:0;transition:opacity .15s;}
+    .cart-btn:hover{opacity:.85;}
+    .cart-badge{background:var(--accent);color:#fff;font-size:.68rem;font-weight:900;border-radius:10px;padding:1px 6px;min-width:18px;text-align:center;display:none;}
+    .cart-badge.show{display:inline-block;}
+    .cart-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:300;}
+    .cart-overlay.open{display:block;}
+    .cart-drawer{position:fixed;top:0;right:-420px;width:400px;max-width:96vw;height:100vh;background:var(--surface);box-shadow:-4px 0 24px rgba(0,0,0,.12);z-index:301;transition:right .28s ease;display:flex;flex-direction:column;}
+    .cart-drawer.open{right:0;}
+    .cart-head{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:#fafaf8;}
+    .cart-head h2{font-size:1.05rem;font-weight:700;}
+    .cart-close{background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--muted);line-height:1;padding:2px 6px;border-radius:6px;}
+    .cart-close:hover{background:var(--border);}
+    .cart-body{flex:1;overflow-y:auto;padding:12px 20px;}
+    .cart-empty{text-align:center;padding:48px 0;color:var(--muted);font-size:.95rem;}
+    .cart-item{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);}
+    .cart-item:last-child{border-bottom:none;}
+    .cart-item-info{flex:1;min-width:0;}
+    .cart-item-name{font-weight:600;font-size:.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .cart-item-unit{font-size:.75rem;color:var(--muted);margin-top:2px;}
+    .cart-item-price{font-family:'DM Mono',monospace;font-size:.88rem;font-weight:600;margin-top:4px;}
+    .cart-qty-row{display:flex;align-items:center;gap:6px;margin-top:6px;}
+    .qty-btn{width:26px;height:26px;border-radius:6px;border:1.5px solid var(--border);background:var(--surface);font-size:1rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text);transition:border-color .1s;}
+    .qty-btn:hover{border-color:var(--accent);color:var(--accent);}
+    .qty-val{font-size:.88rem;font-weight:700;min-width:20px;text-align:center;}
+    .cart-item-remove{background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.1rem;padding:2px;border-radius:4px;flex-shrink:0;margin-top:2px;}
+    .cart-item-remove:hover{color:var(--accent);}
+    .cart-foot{padding:16px 20px;border-top:1px solid var(--border);background:#fafaf8;}
+    .cart-total-row{display:flex;justify-content:space-between;font-weight:700;font-size:1.05rem;margin-bottom:14px;}
+    .cart-total-val{font-family:'DM Mono',monospace;}
+    .cart-wa-btn{width:100%;padding:14px;border-radius:10px;border:none;background:var(--wa);color:#fff;font-family:inherit;font-size:.95rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .15s;}
+    .cart-wa-btn:hover{opacity:.88;}
+    .cart-clear-btn{width:100%;margin-top:8px;padding:10px;border-radius:8px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-family:inherit;font-size:.82rem;font-weight:600;cursor:pointer;}
+    .cart-clear-btn:hover{border-color:var(--accent);color:var(--accent);}
+    .add-cart-btn{flex-shrink:0;display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;border:none;background:#eff6ff;color:#2563eb;cursor:pointer;font-size:1rem;transition:all .15s;}
+    .add-cart-btn:hover{background:#2563eb;color:#fff;}
+    .add-cart-btn.added{background:var(--green-l);color:var(--green);}
   </style>
 </head>
 <body>
@@ -185,6 +223,10 @@
         <div class="logo-sub">Peças e gases</div>
       </div>
     </a>
+    <button class="cart-btn" onclick="openCart()">
+      🛒 Carrinho
+      <span class="cart-badge" id="cart-badge"></span>
+    </button>
     <a href="/sobre" style="font-size:.85rem;font-weight:600;color:var(--muted);text-decoration:none;white-space:nowrap;">Sobre nós</a>
     <a class="wa-btn-header wa-track"
        href="https://wa.me/{{ wa_number }}?text=Ol%C3%A1%21%20Gostaria%20de%20mais%20informa%C3%A7%C3%B5es%20sobre%20os%20produtos."
@@ -270,6 +312,12 @@
        title="Consultar no WhatsApp">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
     </a>
+    {% if p.sale_price %}
+    <button class="add-cart-btn" title="Adicionar ao carrinho"
+      onclick='addToCart({{ p.id }}, {{ p.name|tojson }}, {{ p.sale_price|float }}, {{ p.unit|tojson }}, this)'>
+      🛒
+    </button>
+    {% endif %}
   </div>
   {% endfor %}
 </div>
@@ -278,23 +326,25 @@
 <section class="seo-text" style="max-width:900px;margin:12px auto 60px;padding:0 20px;color:#6b6b6b;font-size:.92rem;line-height:1.65;">
   {% if cat_slug == 'gases-refrigerantes' %}
   <h2 style="font-size:1.08rem;margin-bottom:10px;color:#222;">Gás refrigerante no RJ com refil e varejo</h2>
-  <p>A M.T.F Refrigeração trabalha com <strong>gás refrigerante no RJ</strong> para refrigeração e ar-condicionado, com opções em <strong>refil e varejo</strong> para diferentes necessidades.</p>
-  <p>Consulte disponibilidade, preços e atendimento rápido pelo WhatsApp. Trabalhamos para facilitar a compra e agilizar o seu pedido no Rio de Janeiro.</p>
-  <p>Se você procura <strong>gás refrigerante com entrega rápida</strong>, variedade e suporte para compra, esta categoria reúne as opções disponíveis no catálogo.</p>
+  <p>A M.T.F Refrigeração trabalha com <strong>gás refrigerante no RJ</strong> para refrigeração e ar-condicionado, com opções em <strong>refil e varejo</strong>. Trabalhamos com R134a, R410A, R22, R32, R290 e R600a.</p>
+  <p>Atendemos técnicos de refrigeração, instaladores de ar-condicionado e clientes finais no Rio de Janeiro. Consulte disponibilidade e preços pelo WhatsApp para pedidos de qualquer quantidade.</p>
+  <p>Se você procura <strong>gás refrigerante com entrega rápida no RJ</strong>, variedade e suporte técnico para escolher o tipo certo para seu equipamento, esta categoria reúne as opções disponíveis no nosso catálogo.</p>
+  <p>Nossa loja fica na Avenida Brasil, 6818, com <strong>instalação e manutenção</strong> disponíveis através do nosso técnico Douglas — atendimento no Rio de Janeiro e região.</p>
   {% elif cat_slug == 'geladeira' %}
   <h2 style="font-size:1.08rem;margin-bottom:10px;color:#222;">Peças para geladeira no RJ com compra online</h2>
-  <p>Aqui você encontra <strong>peças para geladeira no RJ</strong> com compra online, consulta rápida e atendimento pelo WhatsApp.</p>
-  <p>Trabalhamos com componentes para manutenção e reposição, ajudando quem procura praticidade, disponibilidade e atendimento rápido no Rio de Janeiro.</p>
-  <p>Se busca <strong>peças para geladeira com entrega</strong> e suporte para localizar o item certo, esta categoria é a página mais relevante para esse tipo de busca.</p>
+  <p>Aqui você encontra <strong>peças para geladeira no RJ</strong> com compra online, consulta rápida e atendimento pelo WhatsApp. Trabalhamos com termostatos, placas eletrônicas, compressores, sensores, válvulas e outros componentes.</p>
+  <p>Atendemos técnicos de refrigeração e clientes finais que precisam de <strong>reposição de peças para geladeira</strong> com rapidez e praticidade no Rio de Janeiro.</p>
+  <p>Se busca <strong>peças para geladeira com entrega</strong> e suporte técnico para localizar o item certo, esta categoria é a página mais relevante. Nossa equipe técnica também realiza instalação e manutenção — fale com Douglas pelo WhatsApp: (21) 96583-2950.</p>
   {% elif cat_slug == 'maquina-de-lavar' %}
   <h2 style="font-size:1.08rem;margin-bottom:10px;color:#222;">Peças para máquina de lavar no RJ</h2>
-  <p>A categoria reúne <strong>peças para máquina de lavar no RJ</strong> com compra online, consulta de preços e disponibilidade pelo WhatsApp.</p>
-  <p>É uma página pensada para quem procura componentes de reposição com mais rapidez, clareza e facilidade de contato.</p>
-  <p>Se você precisa de <strong>peças para máquina de lavar com entrega</strong> e atendimento rápido, esta é a categoria certa dentro do catálogo.</p>
+  <p>A categoria reúne <strong>peças para máquina de lavar no RJ</strong> com compra online, consulta de preços e disponibilidade pelo WhatsApp. Trabalhamos com correias, rolamentos, mangueiras, placas eletrônicas e outros componentes.</p>
+  <p>Atendemos técnicos e clientes finais que precisam de <strong>reposição de peças para máquina de lavar</strong> com praticidade e rapidez no Rio de Janeiro.</p>
+  <p>Se você precisa de <strong>peças para máquina de lavar com entrega</strong> e atendimento rápido, esta é a categoria certa. Nossa equipe também realiza manutenção — fale com Douglas: (21) 96583-2950.</p>
   {% elif cat_slug == 'refrigeracao' %}
   <h2 style="font-size:1.08rem;margin-bottom:10px;color:#222;">Peças para refrigeração no RJ</h2>
-  <p>A M.T.F Refrigeração oferece <strong>peças para refrigeração no RJ</strong> com compra online e consulta rápida pelo WhatsApp.</p>
-  <p>Esta categoria reúne componentes para manutenção, reposição e atendimento rápido para quem busca praticidade no pedido.</p>
+  <p>A M.T.F Refrigeração oferece <strong>peças para refrigeração no RJ</strong> com compra online e consulta rápida pelo WhatsApp. Trabalhamos com capacitores, relés, pressostatos, filtros secadores, tubos de cobre e muito mais.</p>
+  <p>Esta categoria reúne componentes para manutenção e reposição de equipamentos de refrigeração comercial e residencial no Rio de Janeiro.</p>
+  <p>Nossa equipe técnica realiza instalação e manutenção de sistemas de refrigeração. Fale com Douglas pelo WhatsApp: (21) 96583-2950.</p>
   {% elif cat_slug == 'bebedouro' %}
   <h2 style="font-size:1.08rem;margin-bottom:10px;color:#222;">Peças para bebedouro no RJ</h2>
   <p>Encontre <strong>peças para bebedouro no RJ</strong> com compra online, consulta rápida e atendimento pelo WhatsApp.</p>
@@ -322,11 +372,110 @@
   <span>Falar no WhatsApp</span>
 </a>
 
+
+<!-- CART OVERLAY -->
+<div class="cart-overlay" id="cart-overlay" onclick="closeCart()"></div>
+<div class="cart-drawer" id="cart-drawer">
+  <div class="cart-head">
+    <h2>🛒 Carrinho</h2>
+    <button class="cart-close" onclick="closeCart()">✕</button>
+  </div>
+  <div class="cart-body" id="cart-body">
+    <div class="cart-empty">Nenhum produto adicionado ainda.</div>
+  </div>
+  <div class="cart-foot" id="cart-foot" style="display:none">
+    <div class="cart-total-row">
+      <span>Total</span>
+      <span class="cart-total-val" id="cart-total">R$ 0,00</span>
+    </div>
+    <button class="cart-wa-btn" onclick="sendCartWA()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+      Enviar pedido no WhatsApp
+    </button>
+    <button class="cart-clear-btn" onclick="clearCart()">Limpar carrinho</button>
+  </div>
+</div>
+
 <footer>
   <p>M.T.F Refrigeração · {{ store_address }}</p>
 </footer>
 
 <script>
+
+const WA_NUMBER = '{{ wa_number }}';
+let cart = JSON.parse(localStorage.getItem('mtf_cart') || '[]');
+function saveCart() { localStorage.setItem('mtf_cart', JSON.stringify(cart)); }
+function openCart() {
+  document.getElementById('cart-drawer').classList.add('open');
+  document.getElementById('cart-overlay').classList.add('open');
+  renderCart();
+}
+function closeCart() {
+  document.getElementById('cart-drawer').classList.remove('open');
+  document.getElementById('cart-overlay').classList.remove('open');
+}
+function addToCart(id, name, price, unit, btn) {
+  const existing = cart.find(i => i.id === id);
+  if (existing) { existing.qty += 1; }
+  else { cart.push({ id, name, price, unit, qty: 1 }); }
+  saveCart(); updateBadge();
+  if (btn) {
+    btn.classList.add('added'); btn.textContent = '✓';
+    setTimeout(() => { btn.classList.remove('added'); btn.textContent = '🛒'; }, 1200);
+  }
+}
+function changeQty(id, delta) {
+  const item = cart.find(i => i.id === id);
+  if (!item) return;
+  item.qty += delta;
+  if (item.qty <= 0) cart = cart.filter(i => i.id !== id);
+  saveCart(); updateBadge(); renderCart();
+}
+function removeFromCart(id) { cart = cart.filter(i => i.id !== id); saveCart(); updateBadge(); renderCart(); }
+function clearCart() { cart = []; saveCart(); updateBadge(); renderCart(); }
+function updateBadge() {
+  const total = cart.reduce((s, i) => s + i.qty, 0);
+  const badge = document.getElementById('cart-badge');
+  badge.textContent = total;
+  badge.classList.toggle('show', total > 0);
+}
+function renderCart() {
+  const body = document.getElementById('cart-body');
+  const foot = document.getElementById('cart-foot');
+  if (!cart.length) {
+    body.innerHTML = '<div class="cart-empty">Nenhum produto adicionado ainda.</div>';
+    foot.style.display = 'none'; return;
+  }
+  foot.style.display = 'block';
+  let total = 0;
+  body.innerHTML = cart.map(item => {
+    const subtotal = item.price * item.qty;
+    total += subtotal;
+    return `<div class="cart-item">
+      <div class="cart-item-info">
+        <div class="cart-item-name">${item.name}</div>
+        <div class="cart-item-unit">${item.unit}</div>
+        <div class="cart-item-price">R$ ${item.price.toFixed(2).replace('.', ',')} × ${item.qty} = R$ ${subtotal.toFixed(2).replace('.', ',')}</div>
+        <div class="cart-qty-row">
+          <button class="qty-btn" onclick="changeQty(${item.id}, -1)">−</button>
+          <span class="qty-val">${item.qty}</span>
+          <button class="qty-btn" onclick="changeQty(${item.id}, 1)">+</button>
+        </div>
+      </div>
+      <button class="cart-item-remove" onclick="removeFromCart(${item.id})">✕</button>
+    </div>`;
+  }).join('');
+  document.getElementById('cart-total').textContent = 'R$ ' + total.toFixed(2).replace('.', ',');
+}
+function sendCartWA() {
+  if (!cart.length) return;
+  const lines = cart.map(i => `• ${i.name} (${i.unit}) × ${i.qty} = R$ ${(i.price * i.qty).toFixed(2).replace('.', ',')}`);
+  const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const msg = `Olá! Gostaria de fazer o seguinte pedido:\n\n${lines.join('\n')}\n\n*Total: R$ ${total.toFixed(2).replace('.', ',')}*\n\nAinda está disponível?`;
+  window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
+}
+updateBadge();
+
 function filterProducts() {
   const q = document.getElementById('searchInput').value.toLowerCase().trim();
   let visible = 0;
