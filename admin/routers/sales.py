@@ -246,16 +246,16 @@ async def sale_edit_save(
 async def sale_delete(sale_id: int, _=Depends(basic_auth)):
     async with engine.begin() as conn:
         # Восстанавливаем сток перед удалением
-        sale_res = await conn.execute(
-            text("SELECT product_id, qty FROM sales WHERE id = :id"), {"id": sale_id}
-        )
-        sale = sale_res.mappings().first()
-        if sale:
-            await conn.execute(
-                text("""INSERT INTO stock_movements (product_id, qty, movement_type, note, moved_at)
-                        VALUES (:pid, :qty, 'estorno', 'Estorno por exclusão de venda', CURRENT_DATE)"""),
-                {"pid": sale["product_id"], "qty": sale["qty"]}
-            )
+        # sale_res = await conn.execute(
+        #     text("SELECT product_id, qty FROM sales WHERE id = :id"), {"id": sale_id}
+        # )
+        # sale = sale_res.mappings().first()
+        # if sale:
+        #     await conn.execute(
+        #         text("""INSERT INTO stock_movements (product_id, qty, movement_type, note, moved_at)
+        #                 VALUES (:pid, :qty, 'estorno', 'Estorno por exclusão de venda', CURRENT_DATE)"""),
+        #         {"pid": sale["product_id"], "qty": sale["qty"]}
+        #     )
         await conn.execute(
             text("DELETE FROM stock_movements WHERE sale_id = :id"), {"id": sale_id}
         )
