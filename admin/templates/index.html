@@ -273,19 +273,7 @@ function addToCart(id, name, price, unit, qty = 1) {
     cart.push({id, name, price, unit, qty});
   }
   saveCart();
-  const WA_NUMBER = '{{ wa_number }}';
-
-function shareOrcamento() {
-  if (!cart.length) return;
-  const lines = cart.map(i =>
-    `• ${i.name} (${i.unit}) × ${i.qty} = R$ ${(i.price * i.qty).toFixed(2).replace('.', ',')}`
-  );
-  const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
-  const msg = `Olá! Segue o orçamento:\n\n${lines.join('\n')}\n\n*Total: R$ ${total.toFixed(2).replace('.', ',')}*\n\nPodemos confirmar?`;
-  window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
-}
-
-updateBadge();
+  updateBadge();
   renderCart();
   // flash feedback
   openCart();
@@ -374,6 +362,18 @@ function checkoutCart() {
 
 function buyNow(id, name, price, unit, qty = 1) {
   window.location.href = `/sales/new?product_id=${id}&qty=${qty}&unit_price=${price}`;
+}
+
+const WA_NUMBER = '{{ wa_number }}';
+
+function shareOrcamento() {
+  if (!cart.length) return;
+  const lines = cart.map(i =>
+    `• ${i.name} (${i.unit}) × ${i.qty} = R$ ${(i.price * i.qty).toFixed(2).replace('.', ',')}`
+  );
+  const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const msg = `Olá! Segue o orçamento:\n\n${lines.join('\n')}\n\n*Total: R$ ${total.toFixed(2).replace('.', ',')}*\n\nPodemos confirmar?`;
+  window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
 }
 
 updateBadge();
