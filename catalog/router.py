@@ -247,6 +247,18 @@ async def about_page(request: Request):
     })
 
 
+@router.get("/servicos", response_class=HTMLResponse)
+async def servicos_page(request: Request):
+    return templates.TemplateResponse("servicos.html", {
+        "request":       request,
+        "ga_id":         GA_ID,
+        "site_url":      SITE_URL,
+        "store_address": STORE_ADDRESS,
+        "store_phone":   STORE_PHONE,
+        "wa_number":     WA_OWNER_NUMBER,
+    })
+
+
 @router.get("/api/catalog")
 async def catalog_api():
     async with engine.connect() as conn:
@@ -341,6 +353,7 @@ async def sitemap():
         items.append(f"\n  <url>\n    <loc>{escape(loc)}</loc>\n    <lastmod>{lastmod}</lastmod>\n    <priority>{priority}</priority>\n  </url>")
     add_url(f"{base}/", "1.0")
     add_url(f"{base}/sobre", "0.6")
+    add_url(f"{base}/servicos", "0.7")
     seen_cats = set()
     for r in rows:
         cat = (r.get("category_name") or "").strip()
