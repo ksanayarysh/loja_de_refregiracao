@@ -258,6 +258,11 @@ async def servicos_page(request: Request):
         "wa_number":     WA_OWNER_NUMBER,
     })
 
+@router.get("/politica-de-devolucao", response_class=HTMLResponse)
+async def politica_page():
+    return templates.TemplateResponse("/politica-de-devolucao.html")
+
+
 
 @router.get("/api/catalog")
 async def catalog_api():
