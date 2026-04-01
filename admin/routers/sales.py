@@ -1,3 +1,4 @@
+import os
 from math import ceil
 from datetime import date
 from decimal import Decimal, ROUND_HALF_UP
@@ -149,7 +150,10 @@ import json as _json
 
 @router.get("/checkout", response_class=HTMLResponse)
 async def checkout_page(request: Request, _=Depends(basic_auth)):
-    return templates.TemplateResponse("checkout.html", {"request": request})
+    return templates.TemplateResponse("checkout.html", {
+        "request": request,
+        "wa_number": os.environ.get("WA_OWNER_NUMBER", ""),
+    })
 
 
 @router.post("/sales/checkout")
