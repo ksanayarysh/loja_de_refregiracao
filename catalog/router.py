@@ -259,8 +259,10 @@ async def servicos_page(request: Request):
     })
 
 @router.get("/politica-de-devolucao", response_class=HTMLResponse)
-async def politica_page():
-    return templates.TemplateResponse("/politica-de-devolucao.html")
+async def politica_page(request: Request):
+    return templates.TemplateResponse("/politica-de-devolucao.html", {
+        "request":       request
+    })
 
 
 
