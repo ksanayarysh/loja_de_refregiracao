@@ -124,6 +124,8 @@
     .cart-checkout:hover { background: #374151; }
     .cart-clear { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #E2144A; background: #fff; color: #E2144A; font-weight: 800; font-size: 1rem; cursor: pointer; margin-top: 10px; font-family: inherit; }
     .cart-clear:hover { background: #fef2f2; }
+    .cart-wa { width: 100%; padding: 13px; border-radius: 10px; border: none; background: #25d366; color: #fff; font-weight: 900; font-size: 1rem; cursor: pointer; margin-top: 10px; font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .cart-wa:hover { background: #1ebe5d; }
 
     /* QTY input in cart */
     .cart-qty { width: 95px; padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; text-align: center; font-family: inherit; }
@@ -231,6 +233,7 @@
       <span id="cart-total-value">R$ 0,00</span>
     </div>
     <button class="cart-checkout" onclick="checkoutCart()">✅ Finalizar vendas</button>
+    <button class="cart-wa" onclick="shareOrcamento()">💬 Compartilhar orçamento</button>
     <button class="cart-clear" onclick="clearCart()">🗑 Limpar carrinho</button>
   </div>
 </div>
@@ -270,7 +273,19 @@ function addToCart(id, name, price, unit, qty = 1) {
     cart.push({id, name, price, unit, qty});
   }
   saveCart();
-  updateBadge();
+  const WA_NUMBER = '{{ wa_number }}';
+
+function shareOrcamento() {
+  if (!cart.length) return;
+  const lines = cart.map(i =>
+    `• ${i.name} (${i.unit}) × ${i.qty} = R$ ${(i.price * i.qty).toFixed(2).replace('.', ',')}`
+  );
+  const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const msg = `Olá! Segue o orçamento:\n\n${lines.join('\n')}\n\n*Total: R$ ${total.toFixed(2).replace('.', ',')}*\n\nPodemos confirmar?`;
+  window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+updateBadge();
   renderCart();
   // flash feedback
   openCart();

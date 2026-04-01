@@ -59,8 +59,6 @@
     .btn-primary:hover { background: #374151; }
     .btn-secondary { padding: 14px 24px; border-radius: 10px; border: 1px solid #ccc; background: #fff; color: #E2144A; font-weight: 900; font-size: 1rem; text-decoration: none; display: inline-block; }
     .btn-secondary:hover { background: #ccc; }
-    .btn-wa { padding: 14px 24px; border-radius: 10px; border: none; background: #25d366; color: #fff; font-weight: 900; font-size: 1rem; cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
-    .btn-wa:hover { background: #1ebe5d; }
 
     .empty-msg { text-align: center; padding: 40px 0; color: #888; }
     .empty-msg a { color: #E2144A; font-weight: 700; }
@@ -167,10 +165,6 @@
 
           <div class="btns">
             <button class="btn-primary" type="button" onclick="submitCheckout()">✅ Confirmar vendas</button>
-            <button class="btn-wa" type="button" onclick="shareOrcamento()">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
-              Compartilhar orçamento
-            </button>
             <a class="btn-secondary" href="/" onclick="void(0)">← Voltar</a>
           </div>
         </form>
@@ -238,10 +232,6 @@
 
   });
 
-  const WA_NUMBER = '{{ wa_number }}';
-
-  function shareOrcamento() {
-    if (!cart.length) { alert('Carrinho vazio!'); return; }
     const lines = cart.map(i =>
       `• ${i.name} (${i.unit}) × ${i.qty} = R$ ${(i.price * i.qty).toFixed(2).replace('.', ',')}`
     );

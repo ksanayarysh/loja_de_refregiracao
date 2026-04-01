@@ -40,21 +40,34 @@ async def monthly_report(request: Request):
     first_prev = first_this - relativedelta(months=1)
     last_prev  = first_this - relativedelta(days=1)
 
+    # Считаем рабочие дни (пн-сб) в прошлом месяце
+    from calendar import monthrange
+    import datetime as dt
+    days_in_month = (last_prev - first_prev).days + 1
+    work_days_expected = sum(
+        1 for d in range(days_in_month)
+        if (first_prev + dt.timedelta(days=d)).weekday() != 6  # не воскресенье
+    )
+
+    DAYS_PT = {0: "Segunda", 1: "Terça", 2: "Quarta", 3: "Quinta", 4: "Sexta", 5: "Sábado", 6: "Domingo"}
+
     async with engine.connect() as conn:
-        # Выручка и кол-во продаж
+        # Выручка, кол-во продаж и себестоимость
         agg = await conn.execute(text("""
             SELECT
-                COALESCE(SUM(total), 0)  AS revenue,
-                COUNT(*)                  AS sales_count,
-                COUNT(DISTINCT sold_at)   AS working_days
-            FROM sales
-            WHERE sold_at >= :from AND sold_at <= :to
+                COALESCE(SUM(s.total), 0)               AS revenue,
+                COUNT(*)                                  AS sales_count,
+                COALESCE(SUM(p.cost_price * s.qty), 0)  AS cost
+            FROM sales s
+            JOIN products p ON p.id = s.product_id
+            WHERE s.sold_at >= :from AND s.sold_at <= :to
         """), {"from": first_prev, "to": last_prev})
         row = agg.mappings().first()
         revenue     = float(row["revenue"])
         sales_count = int(row["sales_count"])
-        work_days   = int(row["working_days"]) or 1
-        avg_day     = revenue / work_days
+        cost        = float(row["cost"])
+        profit      = revenue - cost
+        avg_day     = revenue / work_days_expected
 
         # Топ-3 товаров
         top_products = await conn.execute(text("""
@@ -81,12 +94,39 @@ async def monthly_report(request: Request):
         """), {"from": first_prev, "to": last_prev})
         top_c = top_cats.mappings().all()
 
+        # Продажи по дням недели
+        by_dow = await conn.execute(text("""
+            SELECT EXTRACT(DOW FROM sold_at)::int AS dow,
+                   SUM(total) AS total,
+                   COUNT(DISTINCT sold_at) AS days_count
+            FROM sales
+            WHERE sold_at >= :from AND sold_at <= :to
+            GROUP BY dow
+            ORDER BY total DESC
+        """), {"from": first_prev, "to": last_prev})
+        dow_rows = by_dow.mappings().all()
+
     month_name = first_prev.strftime("%B/%Y")
+
+    # Лучший день недели (по средней выручке за день)
+    best_dow_name = "—"
+    best_dow_avg  = 0.0
+    for r in dow_rows:
+        dow_int = int(r["dow"])  # 0=воскресенье в postgres
+        # конвертируем postgres DOW (0=вс) в python weekday (0=пн)
+        py_dow = (dow_int - 1) % 7
+        avg = float(r["total"]) / max(int(r["days_count"]), 1)
+        if avg > best_dow_avg:
+            best_dow_avg  = avg
+            best_dow_name = DAYS_PT.get(py_dow, str(py_dow))
 
     lines = [f"📊 <b>Relatório mensal — {month_name}</b>\n"]
     lines.append(f"💰 Receita total: <b>R$ {revenue:,.2f}</b>")
+    lines.append(f"📦 Custo materiais: <b>R$ {cost:,.2f}</b>")
+    lines.append(f"✅ Lucro estimado: <b>R$ {profit:,.2f}</b>")
     lines.append(f"🛒 Vendas: <b>{sales_count}</b>")
-    lines.append(f"📅 Média/dia: <b>R$ {avg_day:,.2f}</b> ({work_days} dias com venda)\n")
+    lines.append(f"📅 Média/dia útil: <b>R$ {avg_day:,.2f}</b> ({work_days_expected} dias úteis)\n")
+    lines.append(f"📆 Melhor dia da semana: <b>{best_dow_name}</b> (média R$ {best_dow_avg:,.2f})\n")
 
     lines.append("🏆 <b>Top 3 produtos:</b>")
     for i, r in enumerate(top_p, 1):
@@ -99,4 +139,4 @@ async def monthly_report(request: Request):
     msg = "\n".join(lines)
     await _send_tg(msg)
 
-    return JSONResponse({"ok": True, "month": str(first_prev), "revenue": revenue})
+    return JSONResponse({"ok": True, "month": str(first_prev), "revenue": revenue, "profit": profit})
