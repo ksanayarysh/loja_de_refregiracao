@@ -228,7 +228,7 @@ async def update_product(
                         {extra_sql}
                     WHERE id=:id"""),
             {"id": product_id, "name": name.strip(), "category_id": category_id,
-             "category2_id": category2_id or None,
+             "category2_id": category2_id if category2_id and category2_id > 0 else None,
              "description": description.strip() or None,
              "unit": unit, "sale_price": price, "cost_price": cost, "min_stock": min_stock, **extra_val},
         )

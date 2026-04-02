@@ -147,7 +147,7 @@
 
         <label for="category2_id">Segunda categoria (opcional)</label>
         <select id="category2_id" name="category2_id">
-          <option value="">— Nenhuma —</option>
+          <option value="0">— Nenhuma —</option>
           {% for c in categories %}
             <option value="{{ c.id }}" {% if c.id == product.category2_id %}selected{% endif %}>{{ c.name }}</option>
           {% endfor %}
