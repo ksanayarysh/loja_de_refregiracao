@@ -162,7 +162,7 @@ async def update_product(
     request: Request,
     name: str = Form(...),
     category_id: int = Form(None),
-    category2_id: int = Form(None),
+    category2_id: Optional[int] = Form(None),
     unit: str = Form("un"),
     sale_price: str = Form("0"),
     cost_price: str = Form("0"),
