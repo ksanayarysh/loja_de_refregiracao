@@ -120,38 +120,62 @@ async def _get_promo_product(conn):
 @router.get("/", response_class=HTMLResponse)
 async def catalog_page(request: Request):
     async with engine.connect() as conn:
-        rows = await _get_products(conn)
-        banner_product = await _get_banner_product(conn)
-        promo_product  = await _get_promo_product(conn)
+        # Только категории с кол-вом товаров
+        cats_res = await conn.execute(text("""
+            SELECT COALESCE(c.name, 'Outro') AS name, COUNT(p.id) AS total
+            FROM products p
+            LEFT JOIN categories c ON c.id = p.category_id
+            WHERE p.active = TRUE
+            GROUP BY c.name
+            ORDER BY
+                CASE WHEN c.name ILIKE '%gas%' OR c.name ILIKE '%gás%' THEN 0 ELSE 1 END,
+                c.name NULLS LAST
+        """))
+        categories_raw = [dict(r) for r in cats_res.mappings().all()]
 
-    rows = [dict(r) for r in rows]
-    groups = _group_by_category(rows)
+        # 3 случайных товара с картинками для баннеров
+        banners_res = await conn.execute(text("""
+            SELECT p.id, p.name, p.sale_price, p.unit, p.image,
+                   COALESCE(c.name, 'Outro') AS category_name
+            FROM products p
+            LEFT JOIN categories c ON c.id = p.category_id
+            WHERE p.active = TRUE AND p.image IS NOT NULL AND p.sale_price IS NOT NULL
+            ORDER BY RANDOM()
+            LIMIT 3
+        """))
+        banners_raw = []
+        for row in banners_res.mappings().all():
+            r = dict(row)
+            if r.get("image") and r["image"].startswith("/static/images/"):
+                r["image"] = ADMIN_URL + r["image"]
+            if r.get("sale_price") is not None:
+                r["sale_price"] = float(r["sale_price"])
+            r["slug"] = slugify(r["name"])
+            r["cat_slug"] = slugify(r["category_name"])
+            banners_raw.append(r)
 
-    for cat, items in groups.items():
-        for item in items:
-            item["slug"] = slugify(item["name"])
-    total = len(rows)
-    cat_slugs = {cat: slugify(cat) for cat in groups.keys()}
+        promo_product = await _get_promo_product(conn)
 
-    # JSON round-trip — гарантирует чистые Python типы для Jinja2
+    categories = [
+        {"name": c["name"], "total": c["total"], "slug": slugify(c["name"])}
+        for c in categories_raw
+    ]
+
     clean = _json.loads(_json.dumps(
-        {"groups": groups, "cat_slugs": cat_slugs, "banner_product": banner_product, "promo_product": promo_product},
+        {"categories": categories, "banners": banners_raw, "promo_product": promo_product},
         default=str
     ))
 
     return templates.TemplateResponse("catalog.html", {
-        "request":        request,
-        "groups":         clean["groups"],
-        "total":          total,
-        "categories":     list(clean["groups"].keys()),
-        "cat_slugs":      clean["cat_slugs"],
-        "ga_id":          GA_ID,
-        "site_url":       SITE_URL,
-        "store_address":  STORE_ADDRESS,
-        "store_phone":    STORE_PHONE,
-        "wa_number":      WA_OWNER_NUMBER,
-        "banner_product": clean["banner_product"],
-        "promo_product":  clean["promo_product"],
+        "request":       request,
+        "categories":    clean["categories"],
+        "banners":       clean["banners"],
+        "promo_product": clean["promo_product"],
+        "ga_id":         GA_ID,
+        "site_url":      SITE_URL,
+        "store_address": STORE_ADDRESS,
+        "store_phone":   STORE_PHONE,
+        "wa_number":     WA_OWNER_NUMBER,
     })
 
 
@@ -232,6 +256,43 @@ async def category_page(request: Request, cat_slug: str):
         "wa_number":     WA_OWNER_NUMBER,
         "store_address": STORE_ADDRESS,
         "store_phone":   STORE_PHONE,
+    })
+
+
+@router.get("/catalogo", response_class=HTMLResponse)
+async def catalogo_page(request: Request):
+    async with engine.connect() as conn:
+        rows = await _get_products(conn)
+        banner_product = await _get_banner_product(conn)
+        promo_product  = await _get_promo_product(conn)
+
+    rows = [dict(r) for r in rows]
+    groups = _group_by_category(rows)
+
+    for cat, items in groups.items():
+        for item in items:
+            item["slug"] = slugify(item["name"])
+    total = len(rows)
+    cat_slugs = {cat: slugify(cat) for cat in groups.keys()}
+
+    clean = _json.loads(_json.dumps(
+        {"groups": groups, "cat_slugs": cat_slugs, "banner_product": banner_product, "promo_product": promo_product},
+        default=str
+    ))
+
+    return templates.TemplateResponse("catalogo.html", {
+        "request":        request,
+        "groups":         clean["groups"],
+        "total":          total,
+        "categories":     list(clean["groups"].keys()),
+        "cat_slugs":      clean["cat_slugs"],
+        "ga_id":          GA_ID,
+        "site_url":       SITE_URL,
+        "store_address":  STORE_ADDRESS,
+        "store_phone":    STORE_PHONE,
+        "wa_number":      WA_OWNER_NUMBER,
+        "banner_product": clean["banner_product"],
+        "promo_product":  clean["promo_product"],
     })
 
 
