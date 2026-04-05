@@ -10,6 +10,26 @@ from dependencies import engine, templates
 
 router = APIRouter()
 
+# ── КЭШКЭШ ПРОДУКТОВ (5 минут) ───────────────────────────────────────────────
+import time as _time
+_products_cache: list = []
+_products_cache_ts: float = 0
+_CACHE_TTL = 300  # секунд
+
+async def _get_products_cached(conn) -> list:
+    global _products_cache, _products_cache_ts
+    if _products_cache and (_time.time() - _products_cache_ts) < _CACHE_TTL:
+        return _products_cache
+    rows = await _get_products_cached(conn)
+    _products_cache = rows
+    _products_cache_ts = _time.time()
+    return rows
+
+def _invalidate_cache():
+    global _products_cache_ts
+    _products_cache_ts = 0
+# ─────────────────────────────────────────────────────────────────────────────
+
 WA_NOTIFY_NUMBER = os.environ.get("WA_NOTIFY_NUMBER", "")
 WA_OWNER_NUMBER  = os.environ.get("WA_OWNER_NUMBER", "")
 SITE_URL         = os.environ.get("SITE_URL", "https://www.mtfrefrigeracao.com.br/")
@@ -182,7 +202,7 @@ async def catalog_page(request: Request):
 @router.get("/product/{slug}", response_class=HTMLResponse)
 async def product_page(request: Request, slug: str):
     async with engine.connect() as conn:
-        rows = await _get_products(conn)
+        rows = await _get_products_cached(conn)
 
     product = None
     for r in rows:
@@ -219,7 +239,7 @@ async def product_page(request: Request, slug: str):
 @router.get("/category/{cat_slug}", response_class=HTMLResponse)
 async def category_page(request: Request, cat_slug: str):
     async with engine.connect() as conn:
-        rows = await _get_products(conn)
+        rows = await _get_products_cached(conn)
 
     matched_cat = None
     for r in rows:
@@ -262,7 +282,7 @@ async def category_page(request: Request, cat_slug: str):
 @router.get("/catalogo", response_class=HTMLResponse)
 async def catalogo_page(request: Request):
     async with engine.connect() as conn:
-        rows = await _get_products(conn)
+        rows = await _get_products_cached(conn)
         banner_product = await _get_banner_product(conn)
         promo_product  = await _get_promo_product(conn)
 
@@ -330,7 +350,7 @@ async def politica_page(request: Request):
 @router.get("/api/catalog")
 async def catalog_api():
     async with engine.connect() as conn:
-        rows = await _get_products(conn)
+        rows = await _get_products_cached(conn)
     return [
         {
             "id":          r["id"],
