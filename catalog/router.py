@@ -20,7 +20,7 @@ async def _get_products_cached(conn) -> list:
     global _products_cache, _products_cache_ts
     if _products_cache and (_time.time() - _products_cache_ts) < _CACHE_TTL:
         return _products_cache
-    rows = await _get_products_cached(conn)
+    rows = await _get_products(conn)
     _products_cache = rows
     _products_cache_ts = _time.time()
     return rows
