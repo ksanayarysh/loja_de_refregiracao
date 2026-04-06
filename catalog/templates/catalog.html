@@ -42,7 +42,8 @@
     .wa-btn-header:hover{opacity:.88;}
     .dev-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:6px 20px;display:flex;align-items:center;justify-content:center;gap:6px;font-size:.72rem;color:var(--muted);flex-wrap:wrap;text-align:center;}
     .dev-bar a{color:var(--muted);text-decoration:none;font-weight:600;}.dev-bar a:hover{color:var(--accent);}
-    .hero{max-width:1000px;margin:0 auto;padding:56px 20px 32px;display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;}
+    .hero{max-width:1000px;margin:0 auto;padding:56px 20px 32px;display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:40px;align-items:start;}
+    .hero-banners{display:flex;flex-direction:column;gap:10px;min-width:0;}
     .hero-text h1{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:700;line-height:1.15;letter-spacing:-.03em;}
     .hero-text h1 span{color:var(--accent);}
     .hero-text p{color:var(--muted);margin-top:12px;font-size:1rem;line-height:1.65;}
@@ -53,10 +54,9 @@
     .btn-hero-cat:hover{border-color:var(--accent);color:var(--accent);}
     .hero-badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px;}
     .badge{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:.78rem;color:var(--muted);font-weight:500;}
-    .hero-banners{display:flex;flex-direction:column;gap:10px;}
-    .hero-banner-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;display:flex;gap:12px;align-items:center;text-decoration:none;color:inherit;transition:box-shadow .15s,border-color .15s;}
+    .hero-banner-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;display:flex;gap:12px;align-items:center;text-decoration:none;color:inherit;transition:box-shadow .15s,border-color .15s;min-height:92px;}
     .hero-banner-card:hover{border-color:var(--accent);box-shadow:0 4px 16px rgba(226,20,74,.08);}
-    .hero-banner-img{width:64px;height:64px;object-fit:contain;border-radius:8px;border:1px solid var(--border);background:var(--bg);flex-shrink:0;}
+    .hero-banner-img{width:64px;height:64px;object-fit:contain;border-radius:8px;border:1px solid var(--border);background:var(--bg);flex-shrink:0;display:block;}
     .hero-banner-img-ph{width:64px;height:64px;border-radius:8px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;}
     .hero-banner-info{flex:1;min-width:0;}
     .hero-banner-name{font-weight:600;font-size:.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
