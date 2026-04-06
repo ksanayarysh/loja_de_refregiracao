@@ -381,8 +381,18 @@ async def track_whatsapp_click(request: Request):
         if WA_NOTIFY_NUMBER:
             msg = f"🛍 Novo interesse no catálogo!\nProduto: *{product}*\nHorário: {datetime.now().strftime('%d/%m %H:%M')}"
             await _send_wa_notification(msg)
+        # Telegram — дублируем все WA клики
+        now_str = datetime.now().strftime('%d/%m %H:%M')
         if product == "Telefone":
-            await _send_tg(f"📞 <b>Alguém clicou em ligar!</b>\nHorário: {datetime.now().strftime('%d/%m %H:%M')}\nIP: {ip}")
+            await _send_tg(f"📞 <b>Alguém clicou em ligar!</b>\nHorário: {now_str}\nIP: {ip}")
+        else:
+            icon = "🛒" if "pedido" in product.lower() or product == "Carrinho" else "💬"
+            await _send_tg(
+                f"{icon} <b>Clique no WhatsApp!</b>\n"
+                f"Produto: <b>{product}</b>\n"
+                f"Horário: {now_str}\n"
+                f"IP: {ip}"
+            )
         return JSONResponse({"ok": True})
     except Exception:
         return JSONResponse({"ok": False})
