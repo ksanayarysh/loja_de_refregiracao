@@ -526,11 +526,9 @@ async def reports(
                 COALESCE(SUM(s.total), 0)                  AS total_revenue
             FROM sales s
             JOIN products p ON p.id = s.product_id
+            JOIN categories c ON c.id = p.category_id
             WHERE s.sold_at::date >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '11 months'
-              AND (
-                p.name ILIKE '%r32%' OR p.name ILIKE '%r410%' OR p.name ILIKE '%r22%'
-                OR p.name ILIKE '%r134%' OR p.name ILIKE '%r290%' OR p.name ILIKE '%r600%'
-              )
+              AND c.name ILIKE '%gases refrigerantes%'
             GROUP BY DATE_TRUNC('month', s.sold_at::date), p.name
             ORDER BY month ASC, total_qty DESC
         """))

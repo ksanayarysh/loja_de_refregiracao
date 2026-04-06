@@ -595,7 +595,7 @@
           <div class="dow-grid">
             {% for i in range(7) %}
               {% set rev = namespace(val=0) %}
-              {% for d in by_dow %}{% if d.dow == i %}{% set rev.val = d.revenue | float %}{% endif %}{% endfor %}
+              {% for d in by_dow %}{% if d.dow | int == i %}{% set rev.val = d.revenue | float %}{% endif %}{% endfor %}
               {% set h = ((rev.val / max_dow) * 72) | int if max_dow > 0 else 0 %}
               <div class="dow-cell">
                 <div class="dow-bar-wrap">
@@ -618,9 +618,9 @@
           <div class="dom-chart">
             {% for i in range(1, 32) %}
               {% set rev = namespace(val=0) %}
-              {% for d in by_dom %}{% if d.dom == i %}{% set rev.val = d.revenue | float %}{% endif %}{% endfor %}
+              {% for d in by_dom %}{% if d.dom | int == i %}{% set rev.val = d.revenue | float %}{% endif %}{% endfor %}
               {% set h = ((rev.val / max_dom) * 72) | int if max_dom > 0 else 0 %}
-              <div class="dom-bar" style="height:{{ [h, 2] | max }}px;"
+              <div class="dom-bar" style="height:{{ h if h > 0 else 2 }}px; opacity:{{ '1' if rev.val > 0 else '0.15' }};"
                    data-tip="Dia {{ i }}: R$ {{ '%.2f'|format(rev.val) }}"></div>
             {% endfor %}
           </div>
