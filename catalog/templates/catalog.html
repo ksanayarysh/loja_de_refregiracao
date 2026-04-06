@@ -160,10 +160,10 @@
     .cart-total-val{font-family:'DM Mono',monospace;font-weight:700;font-size:1.1rem;color:var(--accent);}
     .cart-wa-btn{display:flex;align-items:center;justify-content:center;gap:8px;background:var(--wa);color:#fff;padding:13px 20px;border-radius:10px;font-weight:700;font-size:.95rem;text-decoration:none;transition:opacity .15s;width:100%;}
     .cart-wa-btn:hover{opacity:.88;}
-    .add-cart-btn{display:inline-flex;align-items:center;gap:5px;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:7px 12px;font-size:.78rem;font-weight:700;cursor:pointer;flex-shrink:0;transition:opacity .15s;font-family:inherit;}
-    .add-cart-btn:hover{opacity:.85;}
-    .search-item-cart{display:inline-flex;align-items:center;gap:4px;background:var(--accent);color:#fff;border:none;border-radius:6px;padding:5px 10px;font-size:.75rem;font-weight:700;cursor:pointer;flex-shrink:0;transition:opacity .15s;font-family:inherit;white-space:nowrap;}
-    .search-item-cart:hover{opacity:.85;}
+    .add-cart-btn{display:inline-flex;align-items:center;gap:5px;background:var(--text);color:#fff;border:none;border-radius:8px;padding:7px 12px;font-size:.78rem;font-weight:700;cursor:pointer;flex-shrink:0;transition:opacity .15s;font-family:inherit;}
+    .add-cart-btn:hover{opacity:.75;}
+    .search-item-cart{display:inline-flex;align-items:center;gap:4px;background:var(--text);color:#fff;border:none;border-radius:6px;padding:5px 10px;font-size:.75rem;font-weight:700;cursor:pointer;flex-shrink:0;transition:opacity .15s;font-family:inherit;white-space:nowrap;}
+    .search-item-cart:hover{opacity:.75;}
   </style>
 </head>
 <body>
@@ -270,7 +270,7 @@
         {% endif %}
       </a>
       {% if b.sale_price %}
-      <button class="add-cart-btn" onclick="addToCart({{ b.id }}, '{{ b.name|e }}', {{ b.sale_price }}, '{{ b.image or '' }}')">
+      <button class="add-cart-btn" data-id="{{ b.id }}" data-name="{{ b.name|e }}" data-price="{{ b.sale_price }}" data-image="{{ b.image or '' }}">
         🛒
       </button>
       {% endif %}
@@ -446,7 +446,7 @@ function cartRender() {
   let total = 0;
   el.innerHTML = cart.map(i => {
     total += i.price * i.qty;
-    const img = i.image ? `<img class="cart-item-img" src="${i.image}" alt="${i.name}">` : `<div class="cart-item-img-ph">📦</div>`;
+    const img = i.image ? `<img class="cart-item-img" src="${i.image}" alt="${i.name}">` : `<div style="width:48px;height:48px;border-radius:8px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;">📦</div>`;
     return `<div class="cart-item">
       ${img}
       <div class="cart-item-info">
@@ -499,7 +499,7 @@ async function quickSearchHandler(q) {
       const slug = p.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\w\s-]/g,' ').replace(/[\s_]+/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');
       const price = p.sale_price ? `<span style="font-family:'DM Mono',monospace;font-weight:700;color:var(--accent);font-size:.88rem;white-space:nowrap;">R$ ${p.sale_price.toFixed(2).replace('.',',')}</span>` : `<span style="color:var(--muted);font-size:.82rem;">Consulte</span>`;
       const img = p.image ? `<img src="${p.image}" style="width:36px;height:36px;object-fit:contain;border-radius:6px;border:1px solid var(--border);background:var(--bg);flex-shrink:0;">` : `<div style="width:36px;height:36px;border-radius:6px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;">📦</div>`;
-      const cartBtn = p.sale_price ? `<button class="search-item-cart" onclick="event.preventDefault();event.stopPropagation();addToCart(${p.id},'${p.name.replace(/'/g,"\\'")}',${p.sale_price},'${p.image||''}')">🛒</button>` : '';
+      const cartBtn = p.sale_price ? `<button class="search-item-cart" data-id="${p.id}" data-name="${p.name.replace(/"/g,'&quot;')}" data-price="${p.sale_price}" data-image="${(p.image||'').replace(/"/g,'&quot;')}">🛒</button>` : '';
       return `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);"><a href="/product/${slug}" style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;text-decoration:none;color:inherit;">${img}<div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</div><div style="font-size:.75rem;color:var(--muted);">${p.category} · ${p.unit}</div></div>${price}</a>${cartBtn}</div>`;
     }).join('') + `<a href="/catalogo" style="display:block;padding:10px 16px;text-align:center;font-size:.82rem;color:var(--accent);font-weight:700;text-decoration:none;border-top:1px solid var(--border);">Ver catálogo completo →</a>`;
     box.style.display = 'block';
@@ -507,6 +507,30 @@ async function quickSearchHandler(q) {
 }
 
 document.addEventListener('click', e => {
+  // кнопка корзины в поиске
+  const searchBtn = e.target.closest('.search-item-cart');
+  if (searchBtn) {
+    e.preventDefault(); e.stopPropagation();
+    addToCart(
+      parseInt(searchBtn.dataset.id),
+      searchBtn.dataset.name,
+      parseFloat(searchBtn.dataset.price),
+      searchBtn.dataset.image || ''
+    );
+    return;
+  }
+  // кнопка корзины в баннерах
+  const bannerBtn = e.target.closest('.add-cart-btn');
+  if (bannerBtn) {
+    e.preventDefault(); e.stopPropagation();
+    addToCart(
+      parseInt(bannerBtn.dataset.id),
+      bannerBtn.dataset.name,
+      parseFloat(bannerBtn.dataset.price),
+      bannerBtn.dataset.image || ''
+    );
+    return;
+  }
   if (!e.target.closest('#quickSearch') && !e.target.closest('#quickResults')) {
     document.getElementById('quickResults').style.display = 'none';
   }
