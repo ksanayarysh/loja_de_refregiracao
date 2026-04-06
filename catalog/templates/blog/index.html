@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Guias de Refrigeração | M.T.F Refrigeração</title>
+  <meta name="description" content="Guias práticos sobre peças, manutenção e defeitos comuns em geladeiras, ar-condicionado e máquina de lavar. M.T.F Refrigeração no Rio de Janeiro." />
+  <meta name="robots" content="index,follow" />
+  <link rel="canonical" href="{{ site_url }}/blog" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Guias de Refrigeração | M.T.F Refrigeração" />
+  <meta property="og:description" content="Guias práticos sobre peças, manutenção e defeitos comuns em geladeiras, ar-condicionado e máquina de lavar." />
+  <meta property="og:url" content="{{ site_url }}/blog" />
+  <meta property="og:image" content="{{ site_url }}/static/og-catalog.jpg" />
+
+  {% if ga_id %}
+  <script async src="https://www.googletagmanager.com/gtag/js?id={{ ga_id }}"></script>
+  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','{{ ga_id }}');</script>
+  {% endif %}
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    :root{--bg:#f8f7f4;--surface:#fff;--border:#e8e5df;--text:#1a1816;--muted:#8a8580;--accent:#e2144a;--wa:#25d366;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    html{scroll-behavior:smooth;}
+    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+    .address-bar{background:var(--text);color:#fff;padding:10px 20px;font-size:.95rem;font-weight:500;display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap;text-align:center;}
+    .address-bar a{color:#fff;text-decoration:none;opacity:.9;}.address-bar a:hover{opacity:1;}.address-bar span{opacity:.4;}
+
+    header{background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;}
+    .header-inner{max-width:1000px;margin:0 auto;padding:0 20px;height:64px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+    .logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+    .logo-mark{width:36px;height:36px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-weight:500;color:#fff;font-size:.85rem;}
+    .logo-text{font-weight:700;font-size:1rem;color:var(--text);line-height:1.1;}
+    .logo-sub{font-size:.72rem;color:var(--muted);font-weight:400;letter-spacing:.04em;}
+    .nav-links{display:flex;align-items:center;gap:20px;}
+    .nav-links a{color:var(--muted);text-decoration:none;font-size:.88rem;font-weight:500;transition:color .15s;}
+    .nav-links a:hover,.nav-links a.active{color:var(--accent);}
+    .wa-btn-header{display:flex;align-items:center;gap:7px;background:var(--wa);color:#fff;padding:9px 16px;border-radius:8px;font-weight:700;font-size:.88rem;text-decoration:none;transition:opacity .15s;flex-shrink:0;}
+    .wa-btn-header:hover{opacity:.88;}
+
+    .breadcrumb{max-width:1000px;margin:0 auto;padding:18px 20px 0;display:flex;align-items:center;gap:8px;flex-wrap:wrap;color:var(--muted);font-size:.84rem;}
+    .breadcrumb a{color:var(--muted);text-decoration:none;}.breadcrumb a:hover{color:var(--accent);}
+
+    .hero{max-width:1000px;margin:0 auto;padding:24px 20px 28px;}
+    .hero h1{font-size:clamp(1.6rem,4vw,2.2rem);font-weight:700;letter-spacing:-.03em;line-height:1.15;}
+    .hero p{color:var(--muted);margin-top:8px;font-size:.98rem;line-height:1.6;max-width:600px;}
+
+    .section-wrap{max-width:1000px;margin:0 auto;padding:0 20px 48px;}
+    .section-label{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding-bottom:12px;border-bottom:1px solid var(--border);margin-bottom:20px;display:flex;align-items:center;gap:10px;}
+    .section-label-icon{font-size:1rem;}
+
+    .articles-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;}
+
+    .article-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:10px;transition:border-color .15s,box-shadow .15s;position:relative;}
+    .article-card:not(.soon):hover{border-color:var(--accent);box-shadow:0 4px 16px rgba(226,20,74,.08);}
+    .article-card.soon{opacity:.55;cursor:default;}
+    .soon-badge{position:absolute;top:14px;right:14px;background:var(--bg);border:1px solid var(--border);border-radius:20px;padding:3px 10px;font-size:.72rem;color:var(--muted);font-weight:600;}
+    .article-icon{font-size:1.4rem;line-height:1;}
+    .article-title{font-weight:700;font-size:.95rem;line-height:1.35;color:var(--text);}
+    .article-desc{font-size:.84rem;color:var(--muted);line-height:1.55;flex:1;}
+    .article-tags{display:flex;flex-wrap:wrap;gap:5px;}
+    .article-tag{background:var(--bg);border:1px solid var(--border);border-radius:20px;padding:3px 9px;font-size:.73rem;color:var(--muted);font-weight:500;}
+    .article-cta{font-size:.84rem;color:var(--accent);font-weight:700;margin-top:2px;}
+
+    .wa-float{position:fixed;bottom:24px;right:24px;display:flex;align-items:center;gap:10px;background:var(--wa);color:#fff;padding:13px 22px;border-radius:50px;font-weight:700;font-size:.95rem;text-decoration:none;box-shadow:0 4px 20px rgba(37,211,102,.35);transition:transform .15s;z-index:200;}
+    .wa-float:hover{transform:translateY(-2px);}
+    footer{text-align:center;padding:28px 20px;font-size:.82rem;color:var(--muted);border-top:1px solid var(--border);}
+
+    @media(max-width:600px){
+      .address-bar{font-size:.82rem;gap:10px;}
+      .nav-links{display:none;}
+      .wa-float span{display:none;}
+      .wa-float{padding:14px;border-radius:50%;}
+    }
+  </style>
+</head>
+<body>
+
+<div class="address-bar">
+  📍 {{ store_address }}
+  {% if store_phone %}
+  <span>·</span>
+  <a href="tel:+{{ wa_number }}" class="phone-track">📞 {{ store_phone }}</a>
+  <span>·</span>
+  <a href="https://wa.me/{{ wa_number }}" class="wa-track" data-product="Geral">💬 WhatsApp</a>
+  {% endif %}
+</div>
+
+<header>
+  <div class="header-inner">
+    <a class="logo" href="/">
+      <div class="logo-mark">MTF</div>
+      <div>
+        <div class="logo-text">M.T.F Refrigeração</div>
+        <div class="logo-sub">Peças · Gases · Serviços</div>
+      </div>
+    </a>
+    <div class="nav-links">
+      <a href="/catalogo">Catálogo completo</a>
+      <a href="/servicos">Serviços</a>
+      <a href="/blog" class="active">Guias</a>
+      <a href="/sobre">Sobre nós</a>
+    </div>
+    <a class="wa-btn-header wa-track" href="https://wa.me/{{ wa_number }}?text=Ol%C3%A1%21%20Gostaria%20de%20mais%20informa%C3%A7%C3%B5es." target="_blank" rel="noopener" data-product="Geral">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+      WhatsApp
+    </a>
+  </div>
+</header>
+
+<nav class="breadcrumb">
+  <a href="/">Catálogo</a>
+  <span>›</span>
+  <span>Guias</span>
+</nav>
+
+<section style="max-width:1000px;margin:0 auto;padding:24px 20px 32px;">
+  <h1 style="font-size:clamp(1.6rem,4vw,2.2rem);font-weight:700;letter-spacing:-.03em;line-height:1.15;">Guias de refrigeração</h1>
+  <p style="color:var(--muted);margin-top:8px;font-size:.98rem;line-height:1.6;max-width:600px;">Dicas práticas, diagnósticos e orientações para resolver problemas comuns em geladeiras, ar-condicionado e máquina de lavar.</p>
+</section>
+
+{% for cat_key, cat_label, cat_icon, cat_articles in categories %}
+<div class="section-wrap">
+  <div class="section-label">
+    <span class="section-label-icon">{{ cat_icon }}</span>
+    {{ cat_label }}
+  </div>
+  <div class="articles-grid">
+    {% for article in cat_articles %}
+    {% if article.published %}
+    <a class="article-card" href="/blog/{{ article.slug }}">
+      <div class="article-icon">{{ article.icon }}</div>
+      <div class="article-title">{{ article.title }}</div>
+      <div class="article-desc">{{ article.description }}</div>
+      {% if article.tags %}
+      <div class="article-tags">
+        {% for tag in article.tags %}<span class="article-tag">{{ tag }}</span>{% endfor %}
+      </div>
+      {% endif %}
+      <div class="article-cta">Ler guia →</div>
+    </a>
+    {% else %}
+    <div class="article-card soon">
+      <span class="soon-badge">Em breve</span>
+      <div class="article-icon">{{ article.icon }}</div>
+      <div class="article-title">{{ article.title }}</div>
+      <div class="article-desc">{{ article.description }}</div>
+    </div>
+    {% endif %}
+    {% endfor %}
+  </div>
+</div>
+{% endfor %}
+
+<a class="wa-float wa-track" href="https://wa.me/{{ wa_number }}?text=Ol%C3%A1%21%20Tenho%20uma%20d%C3%BAvida%20sobre%20refrigera%C3%A7%C3%A3o." target="_blank" rel="noopener" data-product="Blog WA flutuante">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+  <span>Falar no WhatsApp</span>
+</a>
+
+<footer>
+  <p>M.T.F Refrigeração · {{ store_address }} · Seg–Sáb 8h30–18h</p>
+</footer>
+
+<script>
+  document.querySelectorAll('.wa-track').forEach(el => {
+    el.addEventListener('click', function() {
+      const product = this.dataset.product || 'Geral';
+      if (typeof gtag !== 'undefined') gtag('event', 'whatsapp_click', {product_name: product});
+      fetch('/api/track/whatsapp', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({product})}).catch(()=>{});
+    });
+  });
+</script>
+</body>
+</html>

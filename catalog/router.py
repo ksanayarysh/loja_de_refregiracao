@@ -7,6 +7,7 @@ from fastapi.responses import HTMLResponse, PlainTextResponse, JSONResponse
 from sqlalchemy import text
 
 from dependencies import engine, templates
+from articles import ARTICLES, ARTICLES_BY_SLUG
 
 router = APIRouter()
 
@@ -346,6 +347,51 @@ async def politica_page(request: Request):
     })
 
 
+@router.get("/blog", response_class=HTMLResponse)
+async def blog_index(request: Request):
+    from articles import ARTICLES, CATEGORY_LABELS
+    cat_icons = {
+        "geladeira":        "🧊",
+        "ar-condicionado":  "❄️",
+        "maquina-de-lavar": "🫧",
+    }
+    # группируем все статьи по категории (включая неопубликованные)
+    groups: dict = {}
+    for a in ARTICLES:
+        cat = a["category"]
+        if cat not in groups:
+            groups[cat] = []
+        groups[cat].append(a)
+    categories = [
+        (cat, CATEGORY_LABELS.get(cat, cat), cat_icons.get(cat, "📋"), articles)
+        for cat, articles in groups.items()
+    ]
+    return templates.TemplateResponse("blog/index.html", {
+        "request":       request,
+        "categories":    categories,
+        "ga_id":         GA_ID,
+        "site_url":      SITE_URL,
+        "store_address": STORE_ADDRESS,
+        "store_phone":   STORE_PHONE,
+        "wa_number":     WA_OWNER_NUMBER,
+    })
+
+
+@router.get("/blog/{slug}", response_class=HTMLResponse)
+async def blog_article(request: Request, slug: str):
+    article = ARTICLES_BY_SLUG.get(slug)
+    if not article or not article.get("published"):
+        return HTMLResponse("Artigo não encontrado", status_code=404)
+    return templates.TemplateResponse(article["template"], {
+        "request":       request,
+        "ga_id":         GA_ID,
+        "site_url":      SITE_URL,
+        "store_address": STORE_ADDRESS,
+        "store_phone":   STORE_PHONE,
+        "wa_number":     WA_OWNER_NUMBER,
+    })
+
+
 
 @router.get("/api/catalog")
 async def catalog_api():
@@ -452,6 +498,10 @@ async def sitemap():
     add_url(f"{base}/", "1.0")
     add_url(f"{base}/sobre", "0.6")
     add_url(f"{base}/servicos", "0.7")
+    add_url(f"{base}/blog", "0.7")
+    for article in ARTICLES:
+        if article.get("published"):
+            add_url(f"{base}/blog/{article['slug']}", "0.8")
     seen_cats = set()
     for r in rows:
         cat = (r.get("category_name") or "").strip()
