@@ -5,12 +5,12 @@
   <link rel="icon" type="image/png" href="/static/favicon.png">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Serviços de Refrigeração no RJ | M.T.F Refrigeração</title>
-  <meta name="description" content="Instalação e manutenção de ar-condicionado, geladeira e máquina de lavar no Rio de Janeiro. Técnico Douglas — atendimento rápido pelo WhatsApp.">
+  <meta name="description" content="Instalação e manutenção de ar-condicionado e geladeira no Rio de Janeiro. Técnico Douglas — atendimento rápido pelo WhatsApp.">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="{{ site_url }}/servicos">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Serviços de Refrigeração | M.T.F Refrigeração RJ">
-  <meta property="og:description" content="Instalação e manutenção de ar-condicionado, geladeira e máquina de lavar no RJ.">
+  <meta property="og:description" content="Instalação e manutenção de ar-condicionado e geladeira no RJ.">
   <meta property="og:image" content="{{ site_url }}/static/og-catalog.jpg">
 
   {% if ga_id %}
@@ -38,6 +38,17 @@
     .section-label{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);}
     .section p{font-size:.95rem;line-height:1.7;color:var(--text);margin-bottom:12px;}
     .section p:last-child{margin-bottom:0;}
+
+    /* Орçamento CTA */
+    .orcamento-cta{background:#f0f7ff;border:1.5px solid #c6dfff;border-radius:16px;padding:32px 28px;margin-bottom:40px;display:flex;gap:32px;align-items:center;flex-wrap:wrap;}
+    .orcamento-cta-label{font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#1a6bc4;margin-bottom:8px;}
+    .orcamento-cta-text h2{font-size:clamp(1.4rem,4vw,1.9rem);font-weight:700;color:#0d3f7a;line-height:1.2;margin-bottom:10px;}
+    .orcamento-cta-text p{font-size:.92rem;color:#4a7bb5;line-height:1.6;max-width:340px;}
+    .orcamento-cta-btns{display:flex;flex-direction:column;gap:12px;flex-shrink:0;}
+    .orcamento-btn-main{display:inline-flex;align-items:center;gap:10px;background:var(--wa);color:#fff;padding:14px 24px;border-radius:12px;font-weight:700;font-size:1rem;text-decoration:none;transition:opacity .15s;white-space:nowrap;box-shadow:0 4px 16px rgba(37,211,102,.3);}
+    .orcamento-btn-main:hover{opacity:.88;transform:translateY(-1px);}
+    .orcamento-badges{display:flex;flex-direction:column;gap:5px;}
+    .orcamento-badges span{font-size:.78rem;color:#4a7bb5;}
 
     /* Сетка услуг */
     .services-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:4px;}
@@ -91,6 +102,9 @@
       .form-submit{font-size:.92rem;}
       .wa-float span{display:none;}
       .wa-float{padding:14px;border-radius:50%;bottom:16px;right:16px;}
+      .orcamento-cta{flex-direction:column;gap:20px;padding:24px 20px;}
+      .orcamento-btn-main{width:100%;justify-content:center;}
+      .orcamento-badges{flex-direction:row;flex-wrap:wrap;gap:8px;}
     }
   </style>
 </head>
@@ -102,13 +116,38 @@
 
 
 <div class="page-wrap">
-  <a class="back-link" href="/">← Voltar ao catálogo</a>
+  <a class="back-link" href="/">← Voltar à página principal</a>
 
   <div class="page-hero">
     <h1>Instalação e<br><span>Manutenção</span></h1>
-    <p>Serviços técnicos para ar-condicionado, geladeira e máquina de lavar no Rio de Janeiro. Atendimento rápido, orçamento pelo WhatsApp.</p>
+    <p>Serviços técnicos para ar-condicionado e geladeira no Rio de Janeiro. Atendimento rápido, orçamento pelo WhatsApp.</p>
   </div>
 
+  <div class="section">
+    <div class="section-label">Nosso técnico</div>
+    <div class="tech-card">
+      <div class="tech-avatar">👨‍🔧</div>
+      <div style="flex:1;">
+        <div class="tech-name">Douglas</div>
+        <div class="tech-role">Técnico em refrigeração · Rio de Janeiro</div>
+        <p style="font-size:.88rem;color:var(--muted);line-height:1.5;margin:10px 0 16px;">Especialista em instalação e manutenção de equipamentos de refrigeração. Atende toda a região metropolitana do Rio de Janeiro e Grande Rio com rapidez e qualidade.</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <a class="tech-wa wa-track"
+             href="https://wa.me/5521965832950?text=Ol%C3%A1%20Douglas%21%20Gostaria%20de%20solicitar%20um%20or%C3%A7amento%20gratuito."
+             target="_blank" rel="noopener" data-product="Orçamento Douglas">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+            Solicitar orçamento
+          </a>
+          <a class="tech-wa wa-track"
+             href="https://wa.me/5521965832950?text=Ol%C3%A1%20Douglas%21%20Gostaria%20de%20solicitar%20um%20servi%C3%A7o."
+             target="_blank" rel="noopener" data-product="Falar Douglas"
+             style="background:#f0f7ff;color:#1a6bc4;border:1.5px solid #c6dfff;">
+            Falar com Douglas
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
   <div class="section">
     <div class="section-label">O que fazemos</div>
     <div class="services-grid">
@@ -123,11 +162,6 @@
         <div class="service-desc">Reparo de compressor, troca de termostato, sensores, vedação, recarga de gás e muito mais.</div>
       </div>
       <div class="service-card">
-        <div class="service-icon">🫧</div>
-        <div class="service-title">Máquina de lavar</div>
-        <div class="service-desc">Troca de correia, rolamento, válvulas, placa eletrônica, mangueiras e peças diversas.</div>
-      </div>
-      <div class="service-card">
         <div class="service-icon">🔧</div>
         <div class="service-title">Refrigeração comercial</div>
         <div class="service-desc">Manutenção de câmaras frias, balcões refrigerados, bebedouros e equipamentos industriais.</div>
@@ -135,21 +169,6 @@
     </div>
   </div>
 
-  <div class="section">
-    <div class="section-label">Nosso técnico</div>
-    <div class="tech-card">
-      <div class="tech-avatar">👨‍🔧</div>
-      <div>
-        <div class="tech-name">Douglas</div>
-        <div class="tech-role">Técnico em refrigeração · Rio de Janeiro</div>
-        <p style="font-size:.88rem;color:var(--muted);line-height:1.5;margin-bottom:14px;">Especialista em instalação e manutenção de equipamentos de refrigeração. Atende toda a região do Rio de Janeiro com rapidez e qualidade.</p>
-        <a class="tech-wa wa-track" href="https://wa.me/5521965832950?text=Ol%C3%A1%20Douglas%21%20Gostaria%20de%20solicitar%20um%20servi%C3%A7o." target="_blank" rel="noopener" data-product="Técnico Douglas">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
-          Falar com Douglas
-        </a>
-      </div>
-    </div>
-  </div>
 
   <div class="section">
     <div class="section-label">Solicitar serviço</div>
@@ -163,7 +182,6 @@
           <option>Ar-condicionado</option>
           <option>Geladeira</option>
           <option>Freezer</option>
-          <option>Máquina de lavar</option>
           <option>Bebedouro</option>
           <option>Câmara fria</option>
           <option>Outro</option>
