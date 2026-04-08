@@ -3,6 +3,7 @@ from math import ceil
 from datetime import date
 from decimal import Decimal, ROUND_HALF_UP
 
+import httpx
 from fastapi import APIRouter, Depends, Form, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy import text
@@ -10,6 +11,33 @@ from sqlalchemy import text
 from dependencies import engine, templates, basic_auth
 
 router = APIRouter()
+
+TG_BOT_TOKEN = os.environ.get("TG_BOT_TOKEN", "")
+TG_CHAT_ID   = os.environ.get("TG_CHAT_ID", "")
+
+
+async def tg_notify_sale(product_name: str, qty, unit_price, total, payment_type: str, note: str = ""):
+    if not TG_BOT_TOKEN or not TG_CHAT_ID:
+        return
+    payment_icons = {
+        "dinheiro": "💵", "pix": "🟢 Pix", "cartao": "💳", "cartão": "💳",
+    }
+    pay_label = payment_icons.get(payment_type.lower(), payment_type)
+    lines = [
+        "🛒 *Nova venda registrada*",
+        f"📦 {product_name}",
+        f"📊 Qtd: {qty} × R$ {unit_price:.2f} = *R$ {total:.2f}*",
+        f"💳 Pagamento: {pay_label}",
+    ]
+    if note:
+        lines.append(f"📝 {note}")
+    msg = "\n".join(lines)
+    url = f"https://api.telegram.org/bot{TG_BOT_TOKEN}/sendMessage"
+    try:
+        async with httpx.AsyncClient(timeout=5) as client:
+            await client.post(url, json={"chat_id": TG_CHAT_ID, "text": msg, "parse_mode": "Markdown"})
+    except Exception:
+        pass
 
 SORT_FIELDS = {
     "sold_at": "s.sold_at",
@@ -134,6 +162,12 @@ async def sales_create(
                          "sid": sale_id, "dt": sold_at_date}
                     )
                     success = "Venda registrada."
+                    # Получаем имя продукта для уведомления
+                    pname_res = await conn.execute(
+                        text("SELECT name FROM products WHERE id = :pid"), {"pid": product_id}
+                    )
+                    pname = (pname_res.scalar() or "")
+                    await tg_notify_sale(pname, qty_d, price_d, total_d, payment_type, note.strip())
 
     return templates.TemplateResponse("new_sale.html", {
         "request": request,
@@ -171,6 +205,17 @@ async def sales_checkout(
         return HTMLResponse("Dados inválidos", status_code=400)
 
     async with engine.begin() as conn:
+        # Подтягиваем имена продуктов для уведомления
+        product_ids = [int(i["product_id"]) for i in items]
+        if product_ids:
+            names_res = await conn.execute(
+                text(f"SELECT id, name FROM products WHERE id = ANY(:ids)"),
+                {"ids": product_ids}
+            )
+            names_map = {r["id"]: r["name"] for r in names_res.mappings()}
+            for item in items:
+                item["name"] = names_map.get(int(item["product_id"]), "")
+
         for item in items:
             qty_d   = money2(Decimal(str(item["qty"])))
             price_d = money2(Decimal(str(item["unit_price"])))
@@ -188,7 +233,31 @@ async def sales_checkout(
                 {"pid": int(item["product_id"]), "qty": -qty_d, "sid": sale_id, "dt": sold_at_date}
             )
 
+    await _tg_notify_checkout(items, payment_type)
     return RedirectResponse(url="/sales?checkout=1", status_code=303)
+
+
+async def _tg_notify_checkout(items: list, payment_type: str):
+    """Отправляет одно суммарное уведомление по всем позициям чекаута."""
+    if not TG_BOT_TOKEN or not TG_CHAT_ID:
+        return
+    payment_icons = {"dinheiro": "💵", "pix": "🟢 Pix", "cartao": "💳", "cartão": "💳"}
+    pay_label = payment_icons.get(payment_type.lower(), payment_type)
+    grand_total = sum(Decimal(str(i["qty"])) * Decimal(str(i["unit_price"])) for i in items)
+    lines = ["🛒 *Nova venda (checkout)*"]
+    for i in items:
+        qty = Decimal(str(i["qty"]))
+        price = Decimal(str(i["unit_price"]))
+        lines.append(f"  • {i.get('name', f'ID {i[\"product_id\"]}')} × {qty} = R$ {qty*price:.2f}")
+    lines.append(f"💰 *Total: R$ {grand_total:.2f}*")
+    lines.append(f"💳 Pagamento: {pay_label}")
+    msg = "\n".join(lines)
+    url = f"https://api.telegram.org/bot{TG_BOT_TOKEN}/sendMessage"
+    try:
+        async with httpx.AsyncClient(timeout=5) as client:
+            await client.post(url, json={"chat_id": TG_CHAT_ID, "text": msg, "parse_mode": "Markdown"})
+    except Exception:
+        pass
 
 
 # ── EDIT SALE ──
