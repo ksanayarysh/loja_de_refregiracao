@@ -329,9 +329,9 @@ async def about_page(request: Request):
     })
 
 
-@router.get("/ajuda", response_class=HTMLResponse)
-async def ajuda_page(request: Request):
-    return templates.TemplateResponse("ajuda.html", {
+@router.get("/servicos", response_class=HTMLResponse)
+async def servicos_page(request: Request):
+    return templates.TemplateResponse("servicos.html", {
         "request":       request,
         "ga_id":         GA_ID,
         "site_url":      SITE_URL,
@@ -341,9 +341,9 @@ async def ajuda_page(request: Request):
     })
 
 
-@router.get("/servicos", response_class=HTMLResponse)
-async def servicos_page(request: Request):
-    return templates.TemplateResponse("servicos.html", {
+@router.get("/calculadora-gas", response_class=HTMLResponse)
+async def calculadora_gas_page(request: Request):
+    return templates.TemplateResponse("calculadora-gas.html", {
         "request":       request,
         "ga_id":         GA_ID,
         "site_url":      SITE_URL,

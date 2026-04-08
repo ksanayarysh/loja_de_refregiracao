@@ -18,31 +18,9 @@
   <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','{{ ga_id }}');</script>
   {% endif %}
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-
+  {% include '_header_styles.html' %}
   <style>
-    :root{--bg:#f8f7f4;--surface:#fff;--border:#e8e5df;--text:#1a1816;--muted:#8a8580;--accent:#e2144a;--wa:#25d366;}
-    *{box-sizing:border-box;margin:0;padding:0;}
-    html{scroll-behavior:smooth;}
-    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
-
-    .address-bar{background:var(--text);color:#fff;padding:10px 20px;font-size:.95rem;font-weight:500;display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap;text-align:center;}
-    .address-bar a{color:#fff;text-decoration:none;opacity:.9;}.address-bar a:hover{opacity:1;}.address-bar span{opacity:.4;}
-
-    header{background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;}
-    .header-inner{max-width:1000px;margin:0 auto;padding:0 20px;height:64px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
-    .logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
-    .logo-mark{width:36px;height:36px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-weight:500;color:#fff;font-size:.85rem;}
-    .logo-text{font-weight:700;font-size:1rem;color:var(--text);line-height:1.1;}
-    .logo-sub{font-size:.72rem;color:var(--muted);font-weight:400;letter-spacing:.04em;}
-    .nav-links{display:flex;align-items:center;gap:20px;}
-    .nav-links a{color:var(--muted);text-decoration:none;font-size:.88rem;font-weight:500;transition:color .15s;}
-    .nav-links a:hover,.nav-links a.active{color:var(--accent);}
-    .wa-btn-header{display:flex;align-items:center;gap:7px;background:var(--wa);color:#fff;padding:9px 16px;border-radius:8px;font-weight:700;font-size:.88rem;text-decoration:none;transition:opacity .15s;flex-shrink:0;}
-    .wa-btn-header:hover{opacity:.88;}
-
-    .breadcrumb{max-width:1000px;margin:0 auto;padding:18px 20px 0;display:flex;align-items:center;gap:8px;flex-wrap:wrap;color:var(--muted);font-size:.84rem;}
+.breadcrumb{max-width:1000px;margin:0 auto;padding:18px 20px 0;display:flex;align-items:center;gap:8px;flex-wrap:wrap;color:var(--muted);font-size:.84rem;}
     .breadcrumb a{color:var(--muted);text-decoration:none;}.breadcrumb a:hover{color:var(--accent);}
 
     .hero{max-width:1000px;margin:0 auto;padding:24px 20px 28px;}
@@ -76,41 +54,13 @@
       .wa-float span{display:none;}
       .wa-float{padding:14px;border-radius:50%;}
     }
+
   </style>
 </head>
 <body>
 
-<div class="address-bar">
-  📍 {{ store_address }}
-  {% if store_phone %}
-  <span>·</span>
-  <a href="tel:+{{ wa_number }}" class="phone-track">📞 {{ store_phone }}</a>
-  <span>·</span>
-  <a href="https://wa.me/{{ wa_number }}" class="wa-track" data-product="Geral">💬 WhatsApp</a>
-  {% endif %}
-</div>
-
-<header>
-  <div class="header-inner">
-    <a class="logo" href="/">
-      <div class="logo-mark">MTF</div>
-      <div>
-        <div class="logo-text">M.T.F Refrigeração</div>
-        <div class="logo-sub">Peças · Gases · Serviços</div>
-      </div>
-    </a>
-    <div class="nav-links">
-      <a href="/catalogo">Catálogo completo</a>
-      <a href="/servicos">Serviços</a>
-      <a href="/blog" class="active">Guias</a>
-      <a href="/sobre">Sobre nós</a>
-    </div>
-    <a class="wa-btn-header wa-track" href="https://wa.me/{{ wa_number }}?text=Ol%C3%A1%21%20Gostaria%20de%20mais%20informa%C3%A7%C3%B5es." target="_blank" rel="noopener" data-product="Geral">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
-      WhatsApp
-    </a>
-  </div>
-</header>
+{% set active_page = 'blog' %}
+{% include '_header.html' %}
 
 <nav class="breadcrumb">
   <a href="/">Catálogo</a>

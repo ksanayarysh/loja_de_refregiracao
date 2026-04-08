@@ -246,6 +246,19 @@
   <b id="visibleCount">{{ total }}</b> produtos encontrados
 </div>
 
+{% if cat_slug == 'gases-refrigerantes' %}
+<div style="max-width:900px;margin:0 auto 20px;padding:0 20px;">
+  <a href="/calculadora-gas" style="display:flex;align-items:center;gap:16px;background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:16px 20px;text-decoration:none;color:inherit;transition:border-color .15s,box-shadow .15s;" onmouseover="this.style.borderColor='var(--accent)';this.style.boxShadow='0 4px 16px rgba(226,20,74,.08)'" onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='none'">
+    <div style="width:44px;height:44px;background:#fff7f9;border:1px solid #ffd9e4;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;">🧮</div>
+    <div style="flex:1;min-width:0;">
+      <div style="font-weight:700;font-size:.95rem;">Não sabe quanto gás precisa?</div>
+      <div style="font-size:.82rem;color:var(--muted);margin-top:3px;">Use nossa calculadora — selecione o equipamento e descubra a quantidade certa de R134a, R410A, R32 e outros.</div>
+    </div>
+    <div style="font-size:.82rem;color:var(--accent);font-weight:700;white-space:nowrap;flex-shrink:0;">Calcular →</div>
+  </a>
+</div>
+{% endif %}
+
 <div class="catalog" id="catalog">
   <div class="cat-title">{{ category }}</div>
   {% for p in products %}
