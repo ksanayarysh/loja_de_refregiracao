@@ -18,8 +18,8 @@ ARTICLES = [
         "category": "geladeira",
         "icon": "🔊",
         "tags": ["geladeira", "barulho", "compressor", "ventilador"],
-        "template": None,
-        "published": False,
+        "template": "blog/geladeira-fazendo-barulho.html",
+        "published": True,
     },
     {
         "slug": "geladeira-frost-free-acumulando-gelo",
