@@ -467,16 +467,6 @@
     .equipe-link:hover{color:var(--accent);}
     .equipe-divider{width:1px;height:40px;background:var(--border);flex-shrink:0;}
   
-  
-    @media(max-width:480px){
-      .address-bar{font-size:.78rem;gap:6px;padding:8px 12px;}
-      .hero{padding:20px 16px 16px;}
-      .catalog{padding:0 16px 40px;}
-      .controls{flex-direction:column;gap:8px;}
-      .search-wrap input{font-size:.9rem;}
-      .wa-float span{display:none;}
-      .wa-float{padding:14px;border-radius:50%;bottom:16px;right:16px;}
-    }
   </style>
 </head>
 <body>
@@ -808,6 +798,7 @@ function clearCart() {
 function updateBadge() {
   const total = cart.reduce((s, i) => s + i.qty, 0);
   const badge = document.getElementById('cart-badge');
+  if (!badge) return;
   badge.textContent = total;
   badge.classList.toggle('show', total > 0);
 }
@@ -839,7 +830,8 @@ function renderCart() {
         <button class="cart-item-remove" onclick="removeFromCart(${item.id})" title="Remover">✕</button>
       </div>`;
   }).join('');
-  document.getElementById('cart-total').textContent = 'R$ ' + total.toFixed(2).replace('.', ',');
+  const cartTotal = document.getElementById('cart-total');
+  if (cartTotal) cartTotal.textContent = 'R$ ' + total.toFixed(2).replace('.', ',');
 }
 
 function sendCartWA() {
@@ -854,7 +846,7 @@ function sendCartWA() {
 
 updateBadge();
 
-let currentFilter = 'all';
+var currentFilter = 'all';
 
 function setFilter(btn, filter) {
   currentFilter = filter;

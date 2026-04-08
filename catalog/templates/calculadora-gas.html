@@ -263,38 +263,69 @@ function calcular(){
 
   // Fetch price from catalog
   fetch('/api/catalog').then(r=>r.json()).then(products=>{
-    const gasKey = gas.toLowerCase().replace('a','').replace('410','410');
-    // Match gas products loosely by gas name
-    const gasProducts = products.filter(p => {
-      if(!p.name) return false;
-      const n = p.name.toLowerCase();
-      // Match R410A → r410, R134a → r134, R22 → r22, R32 → r32, R600a → r600, R290 → r290
-      const code = gas.toLowerCase().replace(/[a-z]+$/,''); // "r410", "r134", "r22" etc
-      return n.includes(code) && n.includes('gas');
-    });
-    const varejo = gasProducts.find(p => p.name.toLowerCase().includes('varejo') || (!p.name.toLowerCase().includes('refil') && !p.name.toLowerCase().includes('recarga')));
-    const refil  = gasProducts.find(p => p.name.toLowerCase().includes('refil') || p.name.toLowerCase().includes('recarga'));
+    const code = gas.toLowerCase().replace(/[a-z]$/,'');
+    const allMatches = products.filter(p =>
+      p.name && p.name.toLowerCase().includes(code) && p.sale_price &&
+      !p.name.toLowerCase().includes('maçarico') && !p.name.toLowerCase().includes('macarico')
+    );
+
+    // Разделяем: газы (имя начинается с "gas") и остальное
+    const gasItems = allMatches.filter(p => p.name.toLowerCase().startsWith('gas'));
+    const otherItems = allMatches.filter(p => !p.name.toLowerCase().startsWith('gas'));
+
     const priceEl = document.getElementById('result-price');
+    if(!allMatches.length){
+      priceEl.innerHTML = '💬 Consulte o preço atual pelo WhatsApp';
+      priceEl.style.display='block';
+      return;
+    }
+
     let html = '';
-    if(varejo && varejo.sale_price){
-      const tot = (varejo.sale_price * total).toFixed(2).replace('.',',');
-      html += `<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px;">
-        <span>🛒 <strong>Varejo</strong> — ${varejo.name}</span>
-        <span>R$ ${varejo.sale_price.toFixed(2).replace('.',',')}/${varejo.unit} × ${totalStr} kg = <strong style="color:var(--accent);">R$ ${tot}</strong></span>
-      </div>`;
+
+    // Блок газов
+    if(gasItems.length){
+      html += `<div style="font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Preços do gás</div>`;
+      gasItems.forEach((p, i) => {
+        const priceStr = p.sale_price.toFixed(2).replace('.',',');
+        let totalLine = '';
+        if(p.unit === 'kg'){
+          const tot = (p.sale_price * total).toFixed(2).replace('.',',');
+          totalLine = `<strong style="color:var(--accent);">R$ ${tot}</strong> <span style="color:var(--muted);font-size:.78rem;">(R$ ${priceStr}/kg)</span>`;
+        } else {
+          // unidade — extract grams
+          const m = p.name.match(/(\d+)\s*(kg|g)/i);
+          const productGrams = m ? (m[2].toLowerCase()==='kg' ? parseFloat(m[1])*1000 : parseFloat(m[1])) : null;
+          if(productGrams){
+            const unitsNeeded = Math.ceil(total * 1000 / productGrams);
+            const tot = (p.sale_price * unitsNeeded).toFixed(2).replace('.',',');
+            totalLine = `<strong style="color:var(--accent);">R$ ${tot}</strong> <span style="color:var(--muted);font-size:.78rem;">(${unitsNeeded} un × R$ ${priceStr})</span>`;
+          } else {
+            totalLine = `<strong style="color:var(--accent);">R$ ${priceStr}</strong>`;
+          }
+        }
+        html += `<div style="${i>0?'border-top:1px solid var(--border);padding-top:8px;margin-top:8px;':''}display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+          <a href="/product/${p.slug||''}" style="color:var(--text);text-decoration:none;font-weight:600;font-size:.92rem;">${p.name}</a>
+          <span style="font-size:.88rem;text-align:right;">${totalLine}</span>
+        </div>`;
+      });
     }
-    if(refil && refil.sale_price){
-      const tot = (refil.sale_price * total).toFixed(2).replace('.',',');
-      if(html) html += `<div style="border-top:1px solid var(--border);margin-top:8px;padding-top:8px;">`;
-      html += `<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px;">
-        <span>🔄 <strong>Refil</strong> — ${refil.name}</span>
-        <span>R$ ${refil.sale_price.toFixed(2).replace('.',',')}/${refil.unit} × ${totalStr} kg = <strong style="color:var(--green);">R$ ${tot}</strong></span>
-      </div>`;
-      if(html.includes('<div style="border-top')) html += '</div>';
+
+    // Блок аксессуаров
+    if(otherItems.length){
+      html += `<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);">
+        <div style="font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Pode ser necessário</div>`;
+      otherItems.forEach((p, i) => {
+        const priceStr = p.sale_price.toFixed(2).replace('.',',');
+        html += `<div style="${i>0?'border-top:1px solid var(--border);padding-top:6px;margin-top:6px;':''}display:flex;justify-content:space-between;align-items:center;gap:8px;">
+          <a href="/product/${p.slug||''}" style="color:var(--muted);text-decoration:none;font-size:.82rem;">${p.name}</a>
+          <span style="font-size:.8rem;color:var(--muted);white-space:nowrap;">R$ ${priceStr}</span>
+        </div>`;
+      });
+      html += `</div>`;
     }
-    if(!html){
-      html = '💬 Consulte o preço atual pelo WhatsApp';
-    }
+
+    html += `<a href="/category/gases-refrigerantes" style="display:block;margin-top:10px;font-size:.8rem;color:var(--muted);text-decoration:none;font-weight:600;">Ver todos os gases →</a>`;
+
     priceEl.innerHTML = html;
     priceEl.style.display='block';
   }).catch(()=>{
@@ -309,7 +340,6 @@ function calcular(){
   }else{rb.style.display='none';}
   document.getElementById('result').style.display='block';
   document.getElementById('result').scrollIntoView({behavior:'smooth',block:'nearest'});
-  fetch('/api/track/whatsapp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({product:`Calculadora: ${gas} - ${eqName}`})}).catch(()=>{});
 }
 
 document.querySelectorAll('.wa-track').forEach(el=>{
