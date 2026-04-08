@@ -248,7 +248,8 @@ async def _tg_notify_checkout(items: list, payment_type: str):
     for i in items:
         qty = Decimal(str(i["qty"]))
         price = Decimal(str(i["unit_price"]))
-        lines.append(f"  • {i.get('name', f'ID {i[\"product_id\"]}')} × {qty} = R$ {qty*price:.2f}")
+        name = i.get('name') or f'ID {i["product_id"]}'
+        lines.append(f"  • {name} × {qty} = R$ {qty*price:.2f}")
     lines.append(f"💰 *Total: R$ {grand_total:.2f}*")
     lines.append(f"💳 Pagamento: {pay_label}")
     msg = "\n".join(lines)
