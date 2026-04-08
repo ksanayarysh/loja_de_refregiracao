@@ -341,6 +341,18 @@ async def servicos_page(request: Request):
     })
 
 
+@router.get("/ajuda", response_class=HTMLResponse)
+async def ajuda_page(request: Request):
+    return templates.TemplateResponse("ajuda.html", {
+        "request":       request,
+        "ga_id":         GA_ID,
+        "site_url":      SITE_URL,
+        "store_address": STORE_ADDRESS,
+        "store_phone":   STORE_PHONE,
+        "wa_number":     WA_OWNER_NUMBER,
+    })
+
+
 @router.get("/calculadora-gas", response_class=HTMLResponse)
 async def calculadora_gas_page(request: Request):
     return templates.TemplateResponse("calculadora-gas.html", {
