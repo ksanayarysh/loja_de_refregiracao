@@ -418,8 +418,7 @@
     }
 
     /* ── CARRINHO ── */
-    .cart-btn{position:relative;display:flex;align-items:center;gap:6px;background:var(--text);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-family:inherit;font-size:.85rem;font-weight:700;cursor:pointer;flex-shrink:0;transition:opacity .15s;}
-    .cart-btn:hover{opacity:.85;}
+    .cart-btn:hover{border-color:var(--accent);color:var(--accent);}
     .cart-badge{background:var(--accent);color:#fff;font-size:.68rem;font-weight:900;border-radius:10px;padding:1px 6px;min-width:18px;text-align:center;display:none;}
     .cart-badge.show{display:inline-block;}
     .cart-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:300;}
@@ -479,14 +478,19 @@
 <div style="max-width:1000px;margin:0 auto;padding:16px 20px 0;"><a href="/" style="display:inline-flex;align-items:center;gap:6px;color:var(--muted);text-decoration:none;font-size:.88rem;font-weight:500;">← Voltar à página principal</a></div>
 <div class="hero">
   <h1>Gas, peças, instalação e manutenção de refrigeração, maquina de lavar e geladeira no Rio de Janeiro</h1>
-  <p>Loja de refrigeração no RJ com peças, instalação, manutenção, refil e varejo</p>
 
-  <div class="seo-copy">
-    <p><b>M.T.F Refrigeração no RJ:</b> peças, instalação e manutenção para geladeiras, máquinas de lavar, freezers, ar-condicionado e refrigeração em geral.</p>
-    <p><b>Trabalhamos com:</b> termostatos, placas, sensores, válvulas, relés, capacitores, mangueiras, correias, instalação e outros serviços e componentes para manutenção.</p>
-    <p><b>Gás refrigerante:</b> R134a, R410A, R22, R32, R290 e R600a em refil e varejo.</p>
-    <p>Loja de refrigeração no Rio de Janeiro, com atendimento na Avenida Brasil, 6818.</p>
-    <p><a href="https://maps.google.com/?q=Avenida+Brasil+6818+Rio+de+Janeiro" target="_blank" rel="noopener">Ver no mapa</a></p>
+  <div class="controls" style="margin-top:20px;">
+    <div class="search-wrap">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" id="searchInput" placeholder="O que você está procurando hoje?" oninput="filterProducts()">
+    </div>
+
+    <div class="filter-row" id="filterRow">
+      <button class="filter-chip active" data-filter="all" onclick="setFilter(this, 'all')">Todas as categorias</button>
+      {% for cat in categories %}
+      <button class="filter-chip" data-filter="{{ cat }}" onclick="setFilter(this, '{{ cat }}')">{{ cat }}</button>
+      {% endfor %}
+    </div>
   </div>
 </div>
 
@@ -548,20 +552,6 @@
   {% endif %}
 </div>
 
-
-<div class="controls">
-  <div class="search-wrap">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-    <input type="text" id="searchInput" placeholder="Buscar produto..." oninput="filterProducts()">
-  </div>
-
-  <div class="filter-row" id="filterRow">
-    <button class="filter-chip active" data-filter="all" onclick="setFilter(this, 'all')">Todos</button>
-    {% for cat in categories %}
-    <button class="filter-chip" data-filter="{{ cat }}" onclick="setFilter(this, '{{ cat }}')">{{ cat }}</button>
-    {% endfor %}
-  </div>
-</div>
 
 <div class="stats-bar">
   <b>{{ total }}</b> produtos disponíveis
