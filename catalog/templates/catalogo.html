@@ -586,7 +586,7 @@
     {% set wa_msg = "Ol%C3%A1%21%20Tenho%20interesse%20no%20produto%3A%20" + p.name|urlencode + "%20%28" + p.unit|urlencode + "%29.%20Est%C3%A1%20dispon%C3%ADvel%3F" %}
     <div class="product-row" data-name="{{ p.name | lower }}" data-cat="{{ cat }}">
       {% if p.image %}
-      <img class="prod-img" data-src="{{ p.image }}" alt="{{ p.name }}">
+      <img class="prod-img" src="{{ p.image }}" alt="{{ p.name }}" loading="lazy">
       {% else %}
       <div class="prod-img-placeholder">📦</div>
       {% endif %}
@@ -905,13 +905,6 @@ document.querySelectorAll('.phone-track').forEach(el => {
   });
 });
 </script>
-<script>
-if (window.innerWidth > 768) {
-  document.querySelectorAll("img[data-src]").forEach(function(img) {
-    img.src = img.dataset.src;
-    img.removeAttribute("data-src");
-  });
-}
-</script>
+
 </body>
 </html>
