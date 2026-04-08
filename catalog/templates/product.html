@@ -106,7 +106,8 @@
   </script>
 
   {% include '_header_styles.html' %}
-  <style>.breadcrumb{
+  <style>
+.breadcrumb{
       max-width:900px;
       margin:0 auto;
       padding:16px 20px 0;
@@ -193,6 +194,19 @@
       width:fit-content;
     }
 
+    .payment-methods{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+    .pay-chip{font-size:.72rem;font-weight:600;padding:3px 9px;border-radius:20px;background:var(--bg);border:1px solid var(--border);color:var(--muted);}
+    .pay-chip-pix{background:#e8f5e9;border-color:#c8e6c9;color:#2e7d32;}
+    .tecnico-card-wrap{max-width:900px;margin:0 auto;padding:0 20px 40px;}
+    .tecnico-card{background:var(--surface);border:1.5px solid var(--border);border-radius:16px;padding:20px 24px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;}
+    .tecnico-avatar{width:48px;height:48px;border-radius:50%;background:#f0f7ff;color:#1a6bc4;border:2px solid #c6dfff;display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:800;flex-shrink:0;}
+    .tecnico-info{flex:1;min-width:160px;}
+    .tecnico-label{font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
+    .tecnico-name{font-size:1.05rem;font-weight:700;color:var(--text);}
+    .tecnico-role{font-size:.82rem;color:var(--muted);margin-top:2px;}
+    .tecnico-btn{display:inline-flex;align-items:center;gap:8px;background:var(--wa);color:#fff;padding:12px 20px;border-radius:10px;font-weight:700;font-size:.92rem;text-decoration:none;white-space:nowrap;transition:opacity .15s;flex-shrink:0;}
+    .tecnico-btn:hover{opacity:.88;}
+    @media(max-width:500px){.tecnico-card{flex-direction:column;align-items:flex-start;}.tecnico-btn{width:100%;justify-content:center;}}
     .price-block{
       padding:20px;
       background:var(--surface);
@@ -384,21 +398,37 @@
     @media(max-width:600px){
       .product-page{
         grid-template-columns:1fr;
-        gap:24px;
-        padding:16px 16px 80px;
+        gap:20px;
+        padding:12px 16px 80px;
       }
       .product-img-wrap{position:static;}
+      .product-img{padding:12px;max-height:280px;}
+      .product-name{font-size:1.4rem;}
+      .wa-cta{font-size:.95rem;padding:14px 20px;}
+      .add-cart-btn{font-size:.9rem;padding:12px 16px;}
+      .breadcrumb{padding:10px 16px 0;font-size:.78rem;}
+      .seo-product-text{padding:0 16px 24px;}
+      .related{padding:0 16px 40px;}
+      .related-title{font-size:.7rem;}
       .wa-float span{display:none;}
-      .wa-float{
-        padding:14px;
-        border-radius:50%;
-      }
+      .wa-float{padding:14px;border-radius:50%;bottom:16px;right:16px;}
+      .location-note{font-size:.8rem;}
+      .product-details{gap:8px;}
+      .detail-row{font-size:.85rem;}
+      .tecnico-card{flex-direction:column;align-items:flex-start;}
+      .tecnico-btn{width:100%;justify-content:center;}
+      /* catbar + search */
+      .catbar{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+      .catbar-inner{flex-wrap:nowrap;padding:0 16px;gap:6px;}
+      .catbar-item{font-size:.82rem;padding:7px 12px;}
+      .catbar-all{font-size:.8rem;padding:7px 12px;}
+      .search-bar-row{padding:8px 0;}
+      .search-bar-inner{padding:0 16px;flex-wrap:wrap;gap:8px;}
+      .search-bar-inner .header-search{flex:1 1 100%;}
+      .btn-foto{width:100%;justify-content:center;}
     }
 
     /* ── CARRINHO ── */
-    .cart-btn{position:relative;display:flex;align-items:center;gap:6px;background:var(--text);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-family:inherit;font-size:.85rem;font-weight:700;cursor:pointer;flex-shrink:0;transition:opacity .15s;}
-    .cart-btn:hover{opacity:.85;}
-    .cart-badge{background:var(--accent);color:#fff;font-size:.68rem;font-weight:900;border-radius:10px;padding:1px 6px;min-width:18px;text-align:center;display:none;}
     .cart-badge.show{display:inline-block;}
     .cart-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:300;}
     .cart-overlay.open{display:block;}
@@ -432,6 +462,8 @@
     .add-cart-btn{width:100%;padding:14px;border-radius:10px;border:2px solid var(--text);background:transparent;color:var(--text);font-family:inherit;font-size:.95rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .15s;margin-top:10px;}
     .add-cart-btn:hover{background:var(--text);color:#fff;}
     .add-cart-btn.added{background:var(--green);border-color:var(--green);color:#fff;}
+    .tecnico-inline-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:12px 20px;border-radius:10px;border:1.5px solid #c6dfff;background:#f0f7ff;color:#1a6bc4;font-family:inherit;font-size:.92rem;font-weight:700;text-decoration:none;margin-top:8px;transition:background .15s,border-color .15s;}
+    .tecnico-inline-btn:hover{background:#dbeeff;border-color:#1a6bc4;}
 
     .dev-bar {
       background: var(--surface);
@@ -465,6 +497,43 @@
 <body>
 
 {% include '_header.html' %}
+
+<div class="catbar">
+  <div class="catbar-inner">
+    <a class="catbar-item" href="/category/ar-condicionado">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="6" width="20" height="8" rx="2"/><path d="M7 14v4M12 14v4M17 14v4"/><path d="M5 10h1M8 10h1"/></svg>
+      Ar condicionado
+    </a>
+    <a class="catbar-item" href="/category/geladeira">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M5 10h14"/><path d="M9 6v2M9 14v3"/></svg>
+      Geladeira
+    </a>
+    <a class="catbar-item" href="/category/maquina-de-lavar">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="2" width="18" height="20" rx="2"/><circle cx="12" cy="13" r="4"/><path d="M7 6h1M10 6h1"/></svg>
+      Máquina de lavar
+    </a>
+    <a class="catbar-all" href="/catalogo">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      Todas as categorias
+    </a>
+  </div>
+</div>
+
+<div class="search-bar-row">
+  <div class="search-bar-inner">
+    <div class="header-search">
+      <input type="text" id="quickSearch" placeholder="o que procura hoje?" oninput="quickSearchHandler(this.value)" autocomplete="off">
+      <button class="header-search-btn" onclick="document.getElementById('quickSearch').focus()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </button>
+      <div class="header-search-results" id="quickResults"></div>
+    </div>
+    <a class="btn-foto" href="https://wa.me/{{ wa_number }}?text=Ol%C3%A1%21%20N%C3%A3o%20encontrei%20o%20produto%20que%20preciso.%20Posso%20enviar%20uma%20foto%3F" target="_blank" rel="noopener">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+      Não achou? Envie uma foto
+    </a>
+  </div>
+</div>
 
 <nav class="breadcrumb" aria-label="Breadcrumb">
   <a href="/">Início</a>
@@ -523,6 +592,12 @@
       {% else %}
       <div class="price-consult">Consulte disponibilidade</div>
       {% endif %}
+      <div class="payment-methods">
+        <span class="pay-chip">💵 Dinheiro</span>
+        <span class="pay-chip pay-chip-pix">Pix</span>
+        <span class="pay-chip">Cartão</span>
+        <span class="pay-chip">Parcelamos</span>
+      </div>
     </div>
 
     <a class="wa-cta wa-track"
@@ -539,6 +614,12 @@
       🛒 Adicionar ao carrinho
     </button>
     {% endif %}
+
+    <a class="tecnico-inline-btn wa-track"
+       href="https://wa.me/5521965832950?text=Ol%C3%A1%20Douglas%21%20Tenho%20interesse%20em%20instala%C3%A7%C3%A3o%20ou%20manuten%C3%A7%C3%A3o.%20Vi%20o%20produto%3A%20{{ product.name | urlencode }}"
+       target="_blank" rel="noopener" data-product="Técnico Douglas">
+      🔧 Falar com o técnico
+    </a>
 
     <div class="product-details">
       <div class="detail-row">
@@ -607,8 +688,60 @@
   <span>Consultar agora</span>
 </a>
 
+<div class="tecnico-card-wrap">
+  <div class="tecnico-card">
+    <div class="tecnico-avatar">DO</div>
+    <div class="tecnico-info">
+      <div class="tecnico-label">Precisa de instalação ou reparo?</div>
+      <div class="tecnico-name">Douglas</div>
+      <div class="tecnico-role">Técnico em refrigeração · Rio de Janeiro</div>
+    </div>
+    <a class="tecnico-btn wa-track"
+       href="https://wa.me/5521965832950?text=Ol%C3%A1%20Douglas%21%20Preciso%20de%20um%20servi%C3%A7o%20t%C3%A9cnico."
+       target="_blank" rel="noopener" data-product="Douglas técnico">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+      Falar com o técnico
+    </a>
+  </div>
+</div>
+
 <footer>
-  <p>M.T.F Refrigeração · {{ store_address }}</p>
+  <div style="max-width:900px;margin:0 auto;padding:32px 20px 20px;display:grid;grid-template-columns:1fr 1fr;gap:32px;">
+    <div>
+      <div style="font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;">Atendimento</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="font-size:.88rem;">📞 <a href="tel:+{{ wa_number }}" style="color:var(--text);text-decoration:none;">{{ store_phone }}</a></div>
+        <div style="font-size:.88rem;">💬 <a href="https://wa.me/{{ wa_number }}" target="_blank" style="color:var(--text);text-decoration:none;">WhatsApp</a></div>
+        <div style="font-size:.88rem;">📍 <a href="https://maps.google.com/?q=MTF+Refrigera%C3%A7%C3%A3o+Rio+de+Janeiro" target="_blank" style="color:var(--text);text-decoration:none;">{{ store_address }}</a></div>
+        <div style="font-size:.85rem;color:var(--muted);">Seg. a Sáb. 08h30 às 18h00</div>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;">Nossa equipe</div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:32px;height:32px;border-radius:50%;background:#fff0f4;color:var(--accent);border:1.5px solid #ffd0dc;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;flex-shrink:0;">KS</div>
+          <div>
+            <div style="font-size:.88rem;font-weight:700;">Ksenia</div>
+            <div style="font-size:.72rem;color:var(--muted);">Desenvolvimento · PDV &amp; sites</div>
+            <div style="display:flex;gap:6px;margin-top:3px;">
+              <a href="https://ksenia-card.vercel.app" target="_blank" style="font-size:.72rem;color:var(--muted);text-decoration:none;font-weight:600;">🌐 Portfolio</a>
+              <a href="https://wa.me/5521998972467" target="_blank" style="font-size:.72rem;color:var(--wa);text-decoration:none;font-weight:600;">(21) 99897-2467</a>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:32px;height:32px;border-radius:50%;background:#f0f7ff;color:#1a6bc4;border:1.5px solid #c6dfff;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;flex-shrink:0;">DO</div>
+          <div>
+            <div style="font-size:.88rem;font-weight:700;">Douglas</div>
+            <div style="font-size:.72rem;color:var(--muted);">Técnico · Instalação e manutenção</div>
+            <a href="https://wa.me/5521965832950" target="_blank" style="font-size:.72rem;color:var(--wa);text-decoration:none;font-weight:600;display:block;margin-top:3px;">(21) 96583-2950</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="border-top:1px solid var(--border);padding:14px 20px;text-align:center;font-size:.78rem;color:var(--muted);">M.T.F Refrigeração · Rio de Janeiro</div>
 </footer>
 
 <!-- CART OVERLAY -->
@@ -754,6 +887,35 @@ document.querySelectorAll('.phone-track').forEach(el => {
       body: JSON.stringify({ product: 'Telefone' })
     }).catch(() => {});
   });
+});
+
+// ── SEARCH ──
+async function quickSearchHandler(q) {
+  const box = document.getElementById('quickResults');
+  if (!q || q.length < 2) { box.style.display = 'none'; return; }
+  try {
+    const res = await fetch('/api/catalog');
+    const products = await res.json();
+    const filtered = products.filter(p => p.name.toLowerCase().includes(q.toLowerCase())).slice(0, 8);
+    if (!filtered.length) {
+      box.innerHTML = `<div style="padding:14px 16px;color:var(--muted);font-size:.88rem;">Nenhum produto encontrado. <a href="https://wa.me/${WA_NUMBER}" style="color:var(--accent);font-weight:700;" target="_blank">Pergunte no WhatsApp →</a></div>`;
+      box.style.display = 'block'; return;
+    }
+    box.innerHTML = filtered.map(p => {
+      const slug = p.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\w\s-]/g,' ').replace(/[\s_]+/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');
+      const price = p.sale_price ? `<span style="font-family:'DM Mono',monospace;font-weight:700;color:var(--accent);font-size:.88rem;white-space:nowrap;">R$ ${p.sale_price.toFixed(2).replace('.',',')}</span>` : `<span style="color:var(--muted);font-size:.82rem;">Consulte</span>`;
+      const img = p.image ? `<img src="${p.image}" style="width:36px;height:36px;object-fit:contain;border-radius:6px;border:1px solid var(--border);background:var(--bg);flex-shrink:0;">` : `<div style="width:36px;height:36px;border-radius:6px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;">📦</div>`;
+      return `<a href="/product/${slug}" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);text-decoration:none;color:inherit;">${img}<div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</div><div style="font-size:.75rem;color:var(--muted);">${p.category} · ${p.unit}</div></div>${price}</a>`;
+    }).join('') + `<a href="/catalogo" style="display:block;padding:10px 16px;text-align:center;font-size:.82rem;color:var(--accent);font-weight:700;text-decoration:none;border-top:1px solid var(--border);">Ver catálogo completo →</a>`;
+    box.style.display = 'block';
+  } catch(e) { box.style.display = 'none'; }
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('#quickSearch') && !e.target.closest('#quickResults') && !e.target.closest('.header-search-btn')) {
+    const box = document.getElementById('quickResults');
+    if (box) box.style.display = 'none';
+  }
 });
 </script>
 </body>

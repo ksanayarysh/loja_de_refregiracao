@@ -1,18 +1,85 @@
-Política de Devolução – MTF Refrigeração
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <link rel="icon" type="image/png" href="/static/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Política de Devolução | M.T.F Refrigeração</title>
+  <meta name="robots" content="index, follow">
+  {% include '_header_styles.html' %}
+  <style>
+    .page-wrap{max-width:680px;margin:0 auto;padding:48px 20px 80px;}
+    .back-link{display:inline-flex;align-items:center;gap:6px;color:var(--muted);text-decoration:none;font-size:.88rem;font-weight:500;margin-bottom:32px;}
+    .back-link:hover{color:var(--accent);}
+    .page-hero{margin-bottom:40px;}
+    .page-hero h1{font-size:clamp(1.6rem,4vw,2.2rem);font-weight:700;letter-spacing:-.02em;}
+    .section{margin-bottom:32px;}
+    .section-label{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+    .section p{font-size:.95rem;line-height:1.7;color:var(--text);margin-bottom:10px;}
+    .section ul{padding-left:20px;margin-top:8px;}
+    .section ul li{font-size:.95rem;line-height:1.7;color:var(--text);margin-bottom:6px;}
+    .highlight{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-top:8px;}
+    .wa-cta{display:inline-flex;align-items:center;gap:8px;background:var(--wa);color:#fff;padding:12px 20px;border-radius:10px;font-weight:700;font-size:.92rem;text-decoration:none;margin-top:16px;}
+    .wa-cta:hover{opacity:.88;}
+    footer{border-top:1px solid var(--border);padding:20px;text-align:center;font-size:.8rem;color:var(--muted);}
+    @media(max-width:500px){
+      .page-wrap{padding:24px 16px 60px;}
+      .wa-cta{width:100%;justify-content:center;}
+    }
+  </style>
+</head>
+<body>
 
-Aceitamos devoluções em até 7 dias após o recebimento do produto, conforme o Código de Defesa do Consumidor.
+{% include '_header.html' %}
 
-Condições:
-- O produto deve estar sem uso e em perfeitas condições
-- Deve ser devolvido na embalagem original
+<div class="page-wrap">
+  <a class="back-link" href="/">← Voltar ao catálogo</a>
 
-Produtos com defeito:
-- Podem ser trocados ou reembolsados
-- Será necessário enviar fotos ou vídeo do problema
+  <div class="page-hero">
+    <h1>Política de Devolução</h1>
+  </div>
 
-Importante:
-- Peças elétricas ou instaladas incorretamente não têm devolução
-- Custos de envio podem ser por conta do cliente, dependendo do caso
+  <div class="section">
+    <div class="section-label">Prazo para devolução</div>
+    <p>Aceitamos devoluções em até <strong>7 dias</strong> após o recebimento do produto, conforme o Código de Defesa do Consumidor.</p>
+  </div>
 
-Para solicitar:
-Entre em contato pelo WhatsApp ou e-mail com o número do pedido.
+  <div class="section">
+    <div class="section-label">Condições</div>
+    <ul>
+      <li>O produto deve estar sem uso e em perfeitas condições</li>
+      <li>Deve ser devolvido na embalagem original</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Produtos com defeito</div>
+    <ul>
+      <li>Podem ser trocados ou reembolsados</li>
+      <li>Será necessário enviar fotos ou vídeo do problema</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Importante</div>
+    <div class="highlight">
+      <ul>
+        <li>Peças elétricas ou instaladas incorretamente não têm devolução</li>
+        <li>Custos de envio podem ser por conta do cliente, dependendo do caso</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Como solicitar</div>
+    <p>Entre em contato pelo WhatsApp com o número do pedido e descreva o problema.</p>
+    <a class="wa-cta" href="https://wa.me/{{ wa_number }}?text=Ol%C3%A1%21%20Quero%20solicitar%20uma%20devolu%C3%A7%C3%A3o." target="_blank" rel="noopener">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+      Solicitar via WhatsApp
+    </a>
+  </div>
+</div>
+
+<footer>M.T.F Refrigeração · Rio de Janeiro</footer>
+</body>
+</html>
