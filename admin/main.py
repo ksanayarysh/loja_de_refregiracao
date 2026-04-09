@@ -7,6 +7,7 @@ from dependencies import engine, basic_auth, templates
 from routers.stock import router as stock_router
 from routers.reports import router as reports_router
 from routers.reports_cron import router as cron_router
+from routers.clients import router as clients_router
 
 app = FastAPI()
 
@@ -15,7 +16,7 @@ app = FastAPI()
 async def _startup():
     await init_db()
 
-
+app.include_router(clients_router)
 app.include_router(products.router)
 app.include_router(sales.router)
 app.include_router(reports_router)
