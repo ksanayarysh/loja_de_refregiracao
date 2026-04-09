@@ -50,6 +50,12 @@
     .amount-neg{color:#dc2626;font-weight:700}
     .empty-row{text-align:center;color:#9ca3af;padding:20px;font-size:.9rem}
     .hint{color:#6b7280;font-size:.82rem;margin-top:4px}
+    .prod-wrap{position:relative}
+    .prod-results{display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #d6d9e0;border-radius:10px;z-index:50;max-height:220px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,.1)}
+    .prod-item{padding:10px 12px;cursor:pointer;font-size:.9rem;border-bottom:1px solid #f3f4f6;display:flex;justify-content:space-between;align-items:center;gap:8px}
+    .prod-item:last-child{border-bottom:none}
+    .prod-item:hover,.prod-item.active{background:#f0f4ff}
+    .prod-item-price{color:#E2144A;font-weight:700;font-size:.85rem;white-space:nowrap}
     @media(max-width:700px){.layout{flex-direction:column}.sidebar{width:100%;border-right:none;border-bottom:1px solid #ccc}.two-col{grid-template-columns:1fr}}
   </style>
 </head>
@@ -115,6 +121,12 @@
         <form method="post" action="/clients/{{ client.id }}/deposit">
           <label>Valor (R$)</label>
           <input name="amount" inputmode="decimal" placeholder="Ex: 200,00" required>
+          <label>Forma de pagamento</label>
+          <select name="payment_type">
+            <option value="pix" selected>🟢 Pix</option>
+            <option value="dinheiro">💵 Dinheiro</option>
+            <option value="transferencia">🏦 Transferência</option>
+          </select>
           <label>Observação (opcional)</label>
           <input name="note" placeholder="Ex: Pix recebido">
           <div class="btns"><button class="btn-green" type="submit">+ Registrar depósito</button></div>
@@ -127,15 +139,12 @@
         <div class="hint" style="margin-bottom:12px">Saldo disponível: <b>R$ {{ '%.2f'|format(client.balance) }}</b></div>
         <form method="post" action="/clients/{{ client.id }}/sale">
           <input type="hidden" name="sold_at" value="{{ today }}">
+          <input type="hidden" id="prod-id" name="product_id">
           <label>Produto</label>
-          <select id="prod-sel" name="product_id" required onchange="updatePrice()">
-            <option value="">Selecione...</option>
-            {% for p in products %}
-            <option value="{{ p.id }}" data-price="{{ p.sale_price or 0 }}" data-unit="{{ p.unit or '' }}">
-              {{ p.name }}{% if p.unit %} ({{ p.unit }}){% endif %}
-            </option>
-            {% endfor %}
-          </select>
+          <div class="prod-wrap">
+            <input type="text" id="prod-search" placeholder="Digite para buscar..." autocomplete="off" oninput="searchProd(this.value)" onkeydown="prodKeydown(event)">
+            <div class="prod-results" id="prod-results"></div>
+          </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
             <div><label>Qtd</label><input id="c-qty" name="qty" inputmode="decimal" value="1" oninput="calcTotal()"></div>
             <div><label>Preço unit.</label><input id="c-price" name="unit_price" inputmode="decimal" oninput="calcTotal()"></div>
@@ -186,13 +195,60 @@
 </div>
 
 <script>
-function updatePrice() {
-  const sel = document.getElementById('prod-sel');
-  const opt = sel.options[sel.selectedIndex];
-  const price = opt ? (opt.dataset.price || '') : '';
-  document.getElementById('c-price').value = price ? parseFloat(price).toFixed(2) : '';
+// Products data from server
+const allProducts = [
+  {% for p in products %}
+  {id: {{ p.id }}, name: {{ p.name|tojson }}, price: {{ p.sale_price or 0 }}, unit: {{ (p.unit or '')|tojson }}},
+  {% endfor %}
+];
+
+let prodActive = -1;
+
+function searchProd(q) {
+  const box = document.getElementById('prod-results');
+  document.getElementById('prod-id').value = '';
+  document.getElementById('c-price').value = '';
+  document.getElementById('c-total').value = '';
+  prodActive = -1;
+  if (!q || q.length < 1) { box.style.display = 'none'; return; }
+  const filtered = allProducts.filter(p => p.name.toLowerCase().includes(q.toLowerCase())).slice(0, 12);
+  if (!filtered.length) { box.innerHTML = '<div class="prod-item" style="color:#9ca3af">Nenhum produto encontrado</div>'; box.style.display = 'block'; return; }
+  box.innerHTML = filtered.map((p, i) =>
+    `<div class="prod-item" data-idx="${i}" data-id="${p.id}" data-price="${p.price}" data-name="${p.name}" onclick="selectProd(${i})">
+      <span>${p.name}${p.unit ? ' <span style="color:#9ca3af;font-size:.8rem">('+p.unit+')</span>' : ''}</span>
+      <span class="prod-item-price">R$ ${p.price.toFixed(2).replace('.',',')}</span>
+    </div>`
+  ).join('');
+  box._data = filtered;
+  box.style.display = 'block';
+}
+
+function selectProd(idx) {
+  const box = document.getElementById('prod-results');
+  const p = box._data[idx];
+  document.getElementById('prod-id').value = p.id;
+  document.getElementById('prod-search').value = p.name + (p.unit ? ' (' + p.unit + ')' : '');
+  document.getElementById('c-price').value = p.price.toFixed(2);
+  box.style.display = 'none';
   calcTotal();
 }
+
+function prodKeydown(e) {
+  const box = document.getElementById('prod-results');
+  const items = box.querySelectorAll('.prod-item[data-idx]');
+  if (!items.length) return;
+  if (e.key === 'ArrowDown') { prodActive = Math.min(prodActive + 1, items.length - 1); }
+  else if (e.key === 'ArrowUp') { prodActive = Math.max(prodActive - 1, 0); }
+  else if (e.key === 'Enter' && prodActive >= 0) { e.preventDefault(); selectProd(prodActive); return; }
+  else if (e.key === 'Escape') { box.style.display = 'none'; return; }
+  items.forEach((el, i) => el.classList.toggle('active', i === prodActive));
+  if (prodActive >= 0) items[prodActive].scrollIntoView({block:'nearest'});
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.prod-wrap')) document.getElementById('prod-results').style.display = 'none';
+});
+
 function calcTotal() {
   const q = parseFloat((document.getElementById('c-qty').value||'').replace(',','.'));
   const p = parseFloat((document.getElementById('c-price').value||'').replace(',','.'));
