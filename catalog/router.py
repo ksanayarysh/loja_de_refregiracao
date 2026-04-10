@@ -436,71 +436,20 @@ async def catalog_api():
     ]
 
 
-@router.get("/feed/google.xml", response_class=PlainTextResponse)
-async def google_merchant_feed():
-    """Google Merchant Center product feed (RSS 2.0 / Google Shopping)."""
-    base = SITE_URL.rstrip("/")
-    async with engine.connect() as conn:
-        rows = await _get_products_cached(conn)
-
-    items = []
-    seen = set()
-    for r in rows:
-        slug = slugify(r["name"])
-        if not slug or slug in seen:
-            continue
-        seen.add(slug)
-
-        title       = escape(r["name"])
-        link        = f"{base}/product/{slug}"
-        description = escape((r.get("description") or r["name"]).replace("\n", " ")[:500])
-        category    = escape(r.get("category_name") or "Peças de Refrigeração")
-        image_url   = r.get("image") or ""
-        price       = r.get("sale_price")
-        condition   = "new"
-        availability = "in_stock"
-
-        # g:price обязателен — пропускаем товары без цены
-        if not price:
-            continue
-
-        price_str = f"{price:.2f} BRL"
-
-        item = f"""
-    <item>
-      <title>{title}</title>
-      <link>{link}</link>
-      <description>{description}</description>
-      <g:id>{slug}</g:id>
-      <g:condition>{condition}</g:condition>
-      <g:availability>{availability}</g:availability>
-      <g:price>{price_str}</g:price>
-      <g:brand>M.T.F Refrigeração</g:brand>
-      <g:google_product_category>Connected Home &gt; Appliances</g:google_product_category>
-      <g:product_type>{category}</g:product_type>
-      <g:shipping>
-        <g:country>BR</g:country>
-        <g:service>WhatsApp / Retirada</g:service>
-        <g:price>0.00 BRL</g:price>
-      </g:shipping>"""
-
-        if image_url:
-            item += f"\n      <g:image_link>{escape(image_url)}</g:image_link>"
-
-        item += "\n    </item>"
-        items.append(item)
-
-    xml = f"""<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">
-  <channel>
-    <title>M.T.F Refrigeração</title>
-    <link>{base}/</link>
-    <description>Peças de refrigeração e gases refrigerantes no Rio de Janeiro</description>
-{"".join(items)}
-  </channel>
-</rss>"""
-
-    return PlainTextResponse(xml, media_type="application/xml")
+@router.post("/api/track/search")
+async def track_search(request: Request):
+    try:
+        body  = await request.json()
+        query = (body.get("query") or "").strip()[:100]
+        page  = (body.get("page") or "").strip()[:30]
+        if not query:
+            return JSONResponse({"ok": False})
+        now_str = datetime.now().strftime('%d/%m %H:%M')
+        page_label = "🏠 Início" if page == "inicio" else "📋 Catálogo"
+        await _send_tg(f"🔍 <b>Busca no site</b>\nPágina: {page_label}\nBusca: <b>{query}</b>\nHorário: {now_str}")
+        return JSONResponse({"ok": True})
+    except Exception:
+        return JSONResponse({"ok": False})
 
 
 @router.post("/api/track/whatsapp")

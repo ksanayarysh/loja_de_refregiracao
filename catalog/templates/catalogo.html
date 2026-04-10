@@ -845,8 +845,15 @@ function setFilter(btn, filter) {
   filterProducts();
 }
 
+let _catalogTrackTimer = null;
 function filterProducts() {
   const q = document.getElementById('searchInput').value.toLowerCase().trim();
+  if (q.length >= 2) {
+    clearTimeout(_catalogTrackTimer);
+    _catalogTrackTimer = setTimeout(() => {
+      fetch('/api/track/search', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({query: q, page: 'catalogo'})}).catch(()=>{});
+    }, 1500);
+  }
   let visible = 0;
 
   document.querySelectorAll('.cat-group').forEach(group => {

@@ -64,6 +64,11 @@
     .img-actions { display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
     .img-change-btn { padding: 5px 12px; border-radius: 8px; border: 1px solid #ccc; background: #fff; color: #E2144A; font-weight: 700; font-size: .82rem; cursor: pointer; }
     .img-remove-btn { padding: 5px 12px; border-radius: 8px; border: 1px solid #fecaca; background: #fff; color: #dc2626; font-weight: 700; font-size: .82rem; cursor: pointer; }
+    .btn-ai { padding: 8px 14px; border-radius: 8px; border: none; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; font-weight: 900; font-size: .85rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: opacity .15s; }
+    .btn-ai:hover { opacity: .85; }
+    .btn-ai:disabled { opacity: .5; cursor: not-allowed; }
+    .desc-row { display: flex; align-items: center; justify-content: space-between; margin: 14px 0 6px; }
+    .desc-row label { margin: 0; }
     @media (max-width: 600px) {
       .layout { flex-direction: column; }
       .sidebar { width: 100%; border-right: none; border-bottom: 1px solid #ccc; }
@@ -171,8 +176,11 @@
 
 
 
-        <label for="description">Descrição (opcional)</label>
-        <textarea id="description" name="description" rows="3" placeholder="Ex.: Refil e varejo disponível. Compatível com ar condicionado split." style="width:100%;padding:10px 14px;border-radius:10px;border:1px solid #d1d5db;font-size:.95rem;font-family:inherit;resize:vertical;">{{ product.description or "" }}</textarea>
+        <div class="desc-row">
+          <label for="description">Descrição (opcional)</label>
+          <button type="button" class="btn-ai" id="btnAi" onclick="gerarDescricao()">✨ Gerar com IA</button>
+        </div>
+        <textarea id="description" name="description" rows="5" placeholder="Ex.: Refil e varejo disponível. Compatível com ar condicionado split." style="width:100%;padding:10px 14px;border-radius:10px;border:1px solid #d1d5db;font-size:.95rem;font-family:inherit;resize:vertical;">{{ product.description or "" }}</textarea>
         <label>Foto do produto</label>
         <div class="img-upload-area">
           <div id="previewWrap">
@@ -297,6 +305,57 @@ function removeImage() {
   document.getElementById('imgInput').value = '';
   const ph = document.getElementById('imgPlaceholder');
   if (ph) ph.style.display = 'flex';
+}
+
+async function gerarDescricao() {
+  const name = document.getElementById('name').value.trim();
+  const catSel = document.getElementById('category_id');
+  const cat = catSel.options[catSel.selectedIndex]?.text || '';
+  if (!name) { alert('Preencha o nome do produto primeiro.'); return; }
+
+  const btn = document.getElementById('btnAi');
+  const textarea = document.getElementById('description');
+  btn.disabled = true;
+  btn.textContent = '⏳ Gerando...';
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{
+          role: 'user',
+          content: `Escreva uma descrição de produto para loja de peças de refrigeração no Rio de Janeiro.
+Produto: ${name}
+Categoria: ${cat}
+
+Regras:
+- 3 a 5 frases em português
+- Mencione compatibilidade, uso e benefício
+- Mencione "Rio de Janeiro" ou "RJ" e "WhatsApp"
+- Tom profissional mas acessível
+- NÃO use markdown, só texto puro
+- NÃO invente especificações técnicas que não sabe`
+        }]
+      })
+    });
+    const data = await resp.json();
+    const text = data.content?.[0]?.text || '';
+    if (text) {
+      textarea.value = text.trim();
+      textarea.style.borderColor = '#6366f1';
+      setTimeout(() => textarea.style.borderColor = '', 2000);
+    } else {
+      alert('Erro ao gerar descrição. Tente novamente.');
+    }
+  } catch(e) {
+    alert('Erro de conexão. Tente novamente.');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '✨ Gerar com IA';
+  }
 }
 </script>
 </body>
