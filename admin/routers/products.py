@@ -289,6 +289,56 @@ async def products_list(
     })
 
 
+@router.post("/api/generate-description")
+async def generate_description(request: Request, _=Depends(basic_auth)):
+    try:
+        body = await request.json()
+        name = (body.get("name") or "").strip()
+        cat  = (body.get("category") or "").strip()
+        if not name:
+            return {"error": "Nome obrigatório"}
+
+        import httpx
+        anthropic_key = os.environ.get("ANTHROPIC_API_KEY", "")
+        if not anthropic_key:
+            return {"error": "ANTHROPIC_API_KEY não configurada"}
+
+        async with httpx.AsyncClient(timeout=30) as client:
+            resp = await client.post(
+                "https://api.anthropic.com/v1/messages",
+                headers={
+                    "x-api-key": anthropic_key,
+                    "anthropic-version": "2023-06-01",
+                    "content-type": "application/json",
+                },
+                json={
+                    "model": "claude-haiku-4-5-20251001",
+                    "max_tokens": 400,
+                    "messages": [{
+                        "role": "user",
+                        "content": f"""Escreva uma descrição de produto para loja de peças de refrigeração no Rio de Janeiro.
+Produto: {name}
+Categoria: {cat}
+
+Regras:
+- 3 a 5 frases em português
+- Mencione compatibilidade, uso e benefício
+- Mencione "Rio de Janeiro" ou "RJ" e "WhatsApp"
+- Tom profissional mas acessível
+- SÓ texto puro, sem markdown
+- NÃO invente especificações técnicas"""
+                    }]
+                }
+            )
+        data = resp.json()
+        text_out = data.get("content", [{}])[0].get("text", "")
+        if not text_out:
+            return {"error": "Resposta vazia da IA"}
+        return {"description": text_out.strip()}
+    except Exception as e:
+        return {"error": str(e)}
+
+
 @router.get("/api/products")
 async def api_products(search: str = Query(""), unit: str = Query(""), category: str = Query(""), _=Depends(basic_auth)):
     async with engine.connect() as conn:

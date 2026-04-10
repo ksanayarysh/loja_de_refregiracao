@@ -319,30 +319,13 @@ async function gerarDescricao() {
   btn.textContent = '⏳ Gerando...';
 
   try {
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    const resp = await fetch('/api/generate-description', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        messages: [{
-          role: 'user',
-          content: `Escreva uma descrição de produto para loja de peças de refrigeração no Rio de Janeiro.
-Produto: ${name}
-Categoria: ${cat}
-
-Regras:
-- 3 a 5 frases em português
-- Mencione compatibilidade, uso e benefício
-- Mencione "Rio de Janeiro" ou "RJ" e "WhatsApp"
-- Tom profissional mas acessível
-- NÃO use markdown, só texto puro
-- NÃO invente especificações técnicas que não sabe`
-        }]
-      })
+      body: JSON.stringify({ name, category: cat })
     });
     const data = await resp.json();
-    const text = data.content?.[0]?.text || '';
+    const text = data.description || '';
     if (text) {
       textarea.value = text.trim();
       textarea.style.borderColor = '#6366f1';
