@@ -28,8 +28,8 @@ ARTICLES = [
         "category": "geladeira",
         "icon": "❄️",
         "tags": ["geladeira", "frost free", "degelo", "resistência"],
-        "template": "blog/geladeira-frost-free-acumula-gelo.html",
-        "published": True,
+        "template": None,
+        "published": False,
     },
     {
         "slug": "tipos-de-gas-refrigerante-geladeira",
@@ -92,8 +92,8 @@ ARTICLES = [
         "category": "maquina-de-lavar",
         "icon": "🫧",
         "tags": ["máquina de lavar", "centrífuga", "motor", "tampa"],
-        "template": None,
-        "published": False,
+        "template": "blog/maquina-de-lavar-nao-centrifuga.html",
+        "published": True,
     },
     {
         "slug": "maquina-de-lavar-vazando-agua",
