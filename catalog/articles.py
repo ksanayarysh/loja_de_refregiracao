@@ -28,8 +28,8 @@ ARTICLES = [
         "category": "geladeira",
         "icon": "❄️",
         "tags": ["geladeira", "frost free", "degelo", "resistência"],
-        "template": None,
-        "published": False,
+        "template": "blog/geladeira-frost-free-acumula-gelo.html",
+        "published": True,
     },
     {
         "slug": "tipos-de-gas-refrigerante-geladeira",
