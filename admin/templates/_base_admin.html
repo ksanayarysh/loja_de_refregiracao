@@ -109,7 +109,14 @@
           <li><a href="/stock/new">+ Entrada</a></li>
         </ul>
       </li>
-      <li><a href="/reports" {% if active_page == 'reports' %}class="active"{% endif %}>Relatórios</a></li>
+      <li>
+        <a href="/reports" {% if active_page == 'reports' %}class="active"{% endif %}>Relatórios ▸</a>
+        <ul class="submenu">
+          <li><a href="/reports">Geral</a></li>
+          <li><a href="/reports/stock-alert">Alerta estoque</a></li>
+          <li><a href="/reports/stock-forecast">Previsão estoque</a></li>
+        </ul>
+      </li>
       <li>
         <a href="#">Clientes ▸</a>
         <ul class="submenu">
