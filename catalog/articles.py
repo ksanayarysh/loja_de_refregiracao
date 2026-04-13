@@ -102,8 +102,8 @@ ARTICLES = [
         "category": "maquina-de-lavar",
         "icon": "💧",
         "tags": ["máquina de lavar", "vazamento", "mangueira", "bomba"],
-        "template": None,
-        "published": False,
+        "template": "blog/maquina-de-lavar-vazando-agua.html",
+        "published": True,
     },
     {
         "slug": "maquina-de-lavar-nao-liga",
