@@ -1,27 +1,12 @@
-<!doctype html>
-<html lang="pt-BR">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Relatórios — M.T.F</title>
-  <style>
+{% extends '_base_admin.html' %}
+{% block title %}Relatórios — M.T.F{% endblock %}
+{% block extra_styles %}
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: Arial, Helvetica, sans-serif; background: bisque; min-height: 100vh; font-size: 15px; }
 
-    .navbar { background: bisque; padding: 10px 16px; display: flex; align-items: center; border-bottom: 1px solid #ccc; gap: 20px; flex-wrap: wrap; }
-    .nav-brand { font-weight: 900; font-size: 1.1rem; color: #111; text-decoration: none; }
-    .navbar a { color: #E2144A; text-decoration: none; font-weight: 700; font-size: .95rem; }
-    .navbar a:hover { text-decoration: underline; }
-    .navbar a.active { color: #111; font-weight: 900; }
 
     .layout { display: flex; min-height: calc(100vh - 50px); }
-    .sidebar { width: 160px; flex-shrink: 0; border-right: 1px solid #ccc; padding: 16px 0; background: bisque; }
-    .sidebar ul { list-style: none; }
-    .sidebar ul li { position: relative; }
-    .sidebar ul li a { display: block; text-decoration: none; color: #E2144A; background: #fff; padding: 7px 10px; border: 1px solid #ccc; border-left: none; font-size: .9rem; }
-    .sidebar ul li a:hover { background: #ccc; font-weight: bold; }
-    .sidebar .submenu { display: none; position: absolute; left: 149px; top: 0; width: 150px; z-index: 10; }
-    .sidebar ul li:hover .submenu { display: block; }
 
     .content { flex: 1; padding: 24px; display: flex; flex-direction: column; gap: 20px; overflow-x: auto; }
 
@@ -107,47 +92,18 @@
     .empty { color: #888; }
     .muted-note { color: #9ca3af; font-size: .8rem; margin-top: 8px; }
 
-    @media (max-width: 800px) {
       .avg-grid { grid-template-columns: 1fr 1fr; }
       .summary-grid { grid-template-columns: 1fr 1fr; }
       .two-col { grid-template-columns: 1fr; }
     }
-    @media (max-width: 500px) {
       .layout { flex-direction: column; }
-      .sidebar { width: 100%; border-right: none; border-bottom: 1px solid #ccc; }
       .summary-grid { grid-template-columns: 1fr; }
       .avg-grid { grid-template-columns: 1fr; }
     }
-  </style>
-</head>
-<body>
-
-<header class="navbar">
-  <a href="/" class="nav-brand">🛍 M.T.F</a>
-  <a href="/">Início</a>
-  <a href="/products">Produtos</a>
-  <a href="/sales">Vendas</a>
-  <a href="/stock">Estoque</a>
-  <a href="/reports" class="active">Relatórios</a>
-</header>
-
-<div class="layout">
-  <nav class="sidebar">
-    <ul>
-      <li><a href="/">Início</a></li>
-      <li><a href="#">Produtos ▸</a><ul class="submenu"><li><a href="/products">Lista</a></li><li><a href="/products/new">+ Cadastrar</a></li></ul></li>
-      <li><a href="#">Vendas ▸</a><ul class="submenu"><li><a href="/sales">Lista</a></li><li><a href="/sales/new">+ Nova</a></li></ul></li>
-      <li><a href="#">Estoque ▸</a><ul class="submenu"><li><a href="/stock">Saldo</a></li><li><a href="/stock/new">+ Entrada</a></li></ul></li>
-      <li><a href="/reports">Relatórios</a></li>
-      <li><a href="/reports/price-history" style="font-weight:900;color:#6366f1;">💰 Histórico preços</a></li>
-      <li><a href="/reports/stock-alert" style="font-weight:900;color:#d97706;">⚠️ Estoque baixo</a></li>
-      <li><a href="/reports/stock-forecast" style="font-weight:900;color:#E2144A;">📉 Previsão estoque</a></li>
-      <li><a href="/calc">Calculadora</a></li>
-    </ul>
-  </nav>
-
-  <main class="content">
-    <div>
+  
+{% endblock %}
+{% block content %}
+<div>
       <h1>📊 Relatórios</h1>
       <div class="period-label">{{ date_from }} até {{ date_to }}</div>
     </div>
@@ -638,8 +594,8 @@
         {% endif %}
       </div>
     </div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
 
-  </main>
-</div>
-</body>
-</html>
+{% endblock %}

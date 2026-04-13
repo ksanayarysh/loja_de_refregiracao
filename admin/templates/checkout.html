@@ -74,6 +74,16 @@
     .troco-result { margin-top: 10px; font-size: 1.1rem; font-weight: 900; display: none; }
     .troco-result.ok  { color: #166534; }
     .troco-result.err { color: #dc2626; }
+    .saldo-block { margin-top: 8px; padding: 14px; background: #f0fdf4; border-radius: 10px; border: 1px solid #bbf7d0; display: none; }
+    .saldo-block label { margin-top: 0; color: #166534; }
+    .saldo-balance { margin-top: 8px; font-size: 1.05rem; font-weight: 900; display: none; }
+    .saldo-ok  { color: #166534; }
+    .saldo-err { color: #dc2626; }
+    .client-search-wrap { position: relative; }
+    .client-results { display: none; position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid #d6d9e0; border-radius: 10px; z-index: 50; max-height: 200px; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,.1); }
+    .client-item { padding: 10px 14px; cursor: pointer; font-size: .9rem; border-bottom: 1px solid #f3f4f6; }
+    .client-item:last-child { border-bottom: none; }
+    .client-item:hover { background: #f0fdf4; }
     @media (max-width: 600px) {
       .layout { flex-direction: column; }
       .sidebar { width: 100%; border-right: none; border-bottom: 1px solid #ccc; }
@@ -154,8 +164,19 @@
             <option value="pix">📱 Pix</option>
             <option value="cartao_credito">💳 Cartão de crédito</option>
             <option value="cartao_debito">💳 Cartão de débito</option>
+            <option value="saldo">💰 Saldo do cliente</option>
           </select>
 
+          <!-- Saldo block -->
+          <div class="saldo-block" id="saldo-block">
+            <input type="hidden" id="client_id" name="client_id" value="">
+            <label>Cliente</label>
+            <div class="client-search-wrap">
+              <input type="text" id="client-search" placeholder="Digite o nome do cliente..." autocomplete="off" oninput="searchClients(this.value)">
+              <div class="client-results" id="client-results"></div>
+            </div>
+            <div class="saldo-balance" id="saldo-balance"></div>
+          </div>
 
           <!-- Troco (só dinheiro) -->
           <div class="troco-block" id="troco-block">
@@ -239,6 +260,10 @@
         return;
       }
     }
+    const clientId = document.getElementById('client_id').value;
+    if (document.getElementById('payment_type').value === 'saldo' && !clientId) {
+      alert('Selecione um cliente para pagamento por saldo!'); return;
+    }
     document.getElementById('items-json').value = JSON.stringify(cart.map(i => ({
       product_id: i.id,
       qty: i.qty,
@@ -281,9 +306,52 @@
     }
   }
 
-  // Показывать troco только для dinheiro
   document.getElementById('payment_type').addEventListener('change', function() {
     document.getElementById('troco-block').style.display = this.value === 'dinheiro' ? 'block' : 'none';
+    document.getElementById('saldo-block').style.display = this.value === 'saldo' ? 'block' : 'none';
+    if (this.value !== 'saldo') { document.getElementById('client_id').value = ''; document.getElementById('saldo-balance').style.display = 'none'; }
+  });
+
+  let allClients = [];
+  fetch('/api/clients').then(r => r.json()).then(data => { allClients = data; }).catch(() => {});
+
+  function searchClients(q) {
+    const box = document.getElementById('client-results');
+    document.getElementById('client_id').value = '';
+    document.getElementById('saldo-balance').style.display = 'none';
+    if (!q || q.length < 1) { box.style.display = 'none'; return; }
+    const filtered = allClients.filter(c => c.name.toLowerCase().includes(q.toLowerCase())).slice(0, 8);
+    if (!filtered.length) { box.innerHTML = '<div class="client-item" style="color:#888">Nenhum cliente encontrado</div>'; box.style.display = 'block'; return; }
+    box.innerHTML = filtered.map(c =>
+      `<div class="client-item" onclick="selectClient(${c.id}, '${c.name.replace(/'/g,"\'")}', ${c.balance})">
+        ${c.name} <span style="color:#888;font-size:.85rem">— R$ ${parseFloat(c.balance).toFixed(2).replace('.',',')}</span>
+      </div>`
+    ).join('');
+    box.style.display = 'block';
+  }
+
+  function selectClient(id, name, balance) {
+    document.getElementById('client_id').value = id;
+    document.getElementById('client-search').value = name;
+    document.getElementById('client-results').style.display = 'none';
+    const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+    const bal = document.getElementById('saldo-balance');
+    bal.style.display = 'block';
+    const balNum = parseFloat(balance);
+    if (balNum > 0 && balNum >= total) {
+      bal.className = 'saldo-balance saldo-ok';
+      bal.textContent = '✅ Saldo: R$ ' + balNum.toFixed(2).replace('.',',');
+    } else if (balNum <= 0) {
+      bal.className = 'saldo-balance saldo-err';
+      bal.textContent = '⚠️ Crédito (fiado) — saldo: R$ ' + balNum.toFixed(2).replace('.',',');
+    } else {
+      bal.className = 'saldo-balance saldo-err';
+      bal.textContent = '⚠️ Saldo parcial: R$ ' + balNum.toFixed(2).replace('.',',') + ' (ficará negativo)';
+    }
+  }
+
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.client-search-wrap')) document.getElementById('client-results').style.display = 'none';
   });
 
   renderCart();

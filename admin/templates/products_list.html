@@ -1,405 +1,214 @@
-<!doctype html>
-<html lang="pt-BR">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Produtos — M.T.F</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: Arial, Helvetica, sans-serif; background: bisque; min-height: 100vh; font-size: 16px; }
+{% extends '_base_admin.html' %}
+{% block title %}Produtos — M.T.F{% endblock %}
 
-    .navbar { background: bisque; padding: 10px 16px; display: flex; align-items: center; border-bottom: 1px solid #ccc; gap: 20px; flex-wrap: wrap; }
-    .nav-brand { font-weight: 900; font-size: 1.1rem; color: #111; text-decoration: none; }
-    .navbar a { color: #E2144A; text-decoration: none; font-weight: 700; font-size: .95rem; }
-    .navbar a:hover { text-decoration: underline; }
-    .navbar a.active { color: #111; font-weight: 900; }
+{% block extra_styles %}
+    .card{background:#fff;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.08);padding:20px;}
+    h1{font-size:1.4rem;margin-bottom:14px;color:#111;}
+    .topbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px;}
+    .topbar-left{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+    .topbar-right{margin-left:auto;display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+    .btn{display:inline-block;padding:8px 14px;border-radius:8px;background:#111827;color:#fff;text-decoration:none;font-weight:800;border:none;cursor:pointer;font-size:.9rem;font-family:inherit;}
+    .btn:hover{background:#374151;}
+    .pill{padding:7px 12px;border-radius:8px;background:bisque;border:1px solid #ccc;color:#111;font-weight:700;font-size:.88rem;}
+    .ok-banner{background:#ecfdf5;border:1px solid #bbf7d0;color:#065f46;padding:10px 14px;border-radius:8px;margin-bottom:14px;font-weight:800;}
+    .cat-group{margin-bottom:24px;}
+    .cat-title{font-size:1rem;font-weight:900;color:#E2144A;padding:8px 0 6px;border-bottom:2px solid #E2144A;margin-bottom:0;}
+    table{width:100%;border-collapse:collapse;table-layout:fixed;}
+    th,td{padding:12px 10px;border-bottom:1px solid #e7e9ee;text-align:left;font-size:1rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    th{background:bisque;font-weight:900;font-size:.9rem;}
+    th a{color:#111;text-decoration:none;}
+    th a:hover{text-decoration:underline;}
+    .price{white-space:nowrap;font-weight:900;}
+    .unit-cell{color:#555;}
+    .edit-btn{display:inline-block;padding:7px 12px;border-radius:6px;background:#fff;border:1px solid #ccc;color:#111;text-decoration:none;font-size:.88rem;font-weight:700;white-space:nowrap;}
+    .edit-btn:hover{background:bisque;border-color:#999;}
+    .del-btn{padding:7px 10px;border-radius:6px;background:#fff;border:1px solid #fca5a5;color:#dc2626;font-size:.88rem;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit;}
+    .del-btn:hover{background:#dc2626;color:#fff;}
+    .cart-btn{padding:7px 12px;border-radius:6px;background:#fff;border:1px solid #ccc;color:#111;font-size:.88rem;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit;}
+    .cart-btn:hover{background:bisque;}
+    .buy-btn{padding:7px 12px;border-radius:6px;background:#111827;border:none;color:#fff;font-size:.88rem;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit;}
+    .buy-btn:hover{background:#374151;}
+    .action-cell{display:flex;gap:6px;align-items:center;justify-content:flex-end;flex-wrap:wrap;}
+    td:last-child,th:last-child{text-align:right;}
+    .empty{padding:14px;background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;color:#7c2d12;}
+    .pager{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-top:16px;}
+    .pages{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+    .pagebtn{padding:8px 11px;border-radius:8px;background:bisque;border:1px solid #ccc;text-decoration:none;color:#111;font-weight:800;font-size:.85rem;}
+    .pagebtn.active{background:#111827;color:#fff;border-color:#111827;}
+    .pagebtn.disabled{opacity:.4;pointer-events:none;}
+    .searchbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+    .search-input{padding:8px;border:1px solid #ccc;border-radius:8px;outline:none;font-size:.95rem;width:260px;background:#fff;}
+    .search-button{padding:8px 12px;border:none;background:#111827;color:#fff;border-radius:8px;cursor:pointer;font-size:.9rem;font-weight:800;}
+    .search-button:hover{background:#374151;}
+    #search-results{display:none;background:#fff;border:1px solid #ccc;border-radius:10px;padding:16px;margin:10px 0 14px;}
+    #search-results.show{display:block;}
+    #search-results h3{font-size:1rem;font-weight:900;color:#111;margin-bottom:12px;}
+    .result-item{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #eee;gap:12px;flex-wrap:wrap;}
+    .result-item:last-child{border-bottom:none;}
+    .result-info{flex:1;min-width:200px;}
+    .result-name{font-size:1rem;font-weight:900;color:#111;}
+    .result-unit{color:#888;font-size:.82rem;margin-top:2px;}
+    .result-price{font-weight:900;font-size:1.1rem;white-space:nowrap;color:#E2144A;}
+    .result-actions{display:flex;gap:8px;flex-wrap:wrap;}
+    .btn-cart{padding:9px 14px;border-radius:8px;border:1px solid #ccc;background:#fff;color:#111;font-weight:800;font-size:.88rem;cursor:pointer;font-family:inherit;white-space:nowrap;}
+    .btn-cart:hover{background:bisque;}
+    .btn-buy{padding:9px 14px;border-radius:8px;border:none;background:#111827;color:#fff;font-weight:800;font-size:.88rem;cursor:pointer;font-family:inherit;white-space:nowrap;}
+    .btn-buy:hover{background:#374151;}
+    .cat-filter-wrap{margin-bottom:14px;position:relative;}
+    .cat-filter-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#aaa;pointer-events:none;}
+    .cat-filter-input{width:100%;max-width:320px;padding:8px 12px 8px 34px;border:1px solid #ccc;border-radius:8px;font-size:.92rem;font-family:inherit;background:#fff;outline:none;}
+    .cat-filter-input:focus{border-color:#E2144A;}
+    .cat-no-match{padding:12px;color:#888;font-size:.9rem;display:none;}
+    @media(max-width:600px){.topbar-right{margin-left:0;}.search-input{width:100%;}}
+{% endblock %}
 
-    .layout { display: flex; min-height: calc(100vh - 50px); }
+{% block content %}
+<div class="card">
+  <h1>Produtos</h1>
+  {% if deleted %}<div class="ok-banner">🗑 Produto excluído com sucesso.</div>{% endif %}
 
-    .sidebar { width: 160px; flex-shrink: 0; border-right: 1px solid #ccc; padding: 16px 0; background: bisque; }
-    .sidebar ul { list-style: none; }
-    .sidebar ul li { position: relative; }
-    .sidebar ul li a { display: block; text-decoration: none; color: #E2144A; background: #fff; padding: 7px 10px; border: 1px solid #ccc; border-left: none; font-size: .9rem; }
-    .sidebar ul li a:hover { background: #ccc; font-weight: bold; }
-    .sidebar .submenu { display: none; position: absolute; left: 149px; top: 0; width: 150px; z-index: 10; }
-    .sidebar ul li:hover .submenu { display: block; }
+  {% set base = "/products" %}
+  {% set dir_toggle = "desc" if direction == "asc" else "asc" %}
+  {% macro url(p, sort_key=None, dir_key=None) -%}
+    {{ base }}?page={{ p }}&per_page={{ per_page }}&sort={{ sort_key or sort }}&direction={{ dir_key or direction }}
+  {%- endmacro %}
 
-    .content { flex: 1; padding: 24px; overflow-x: auto; }
-    .card { background: #fff; border-radius: 14px; box-shadow: 0 4px 14px rgba(0,0,0,.08); padding: 20px; }
-
-    h1 { font-size: 1.4rem; margin-bottom: 14px; color: #111; }
-
-    .topbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
-    .topbar-left { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-    .topbar-right { margin-left:auto; display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-
-    .btn { display: inline-block; padding: 8px 14px; border-radius: 8px; background: #111827; color: #fff; text-decoration: none; font-weight: 800; border: none; cursor: pointer; font-size: .9rem; font-family: inherit; }
-    .btn:hover { background: #374151; }
-    .pill { padding: 7px 12px; border-radius: 8px; background: bisque; border: 1px solid #ccc; color: #111; font-weight: 700; font-size: .88rem; }
-    select { padding: 8px 10px; border-radius: 8px; border: 1px solid #ccc; font-size: .9rem; font-family: inherit; background: #fff; }
-
-    .ok-banner { background: #ecfdf5; border: 1px solid #bbf7d0; color: #065f46; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px; font-weight: 800; }
-
-    .cat-group { margin-bottom: 24px; }
-    .cat-title { font-size: 1rem; font-weight: 900; color: #E2144A; padding: 8px 0 6px; border-bottom: 2px solid #E2144A; margin-bottom: 0; }
-
-    /* TABLE: fixed layout + consistent column widths */
-    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-    th, td { padding: 12px 10px; border-bottom: 1px solid #e7e9ee; text-align: left; font-size: 1rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    th { background: bisque; font-weight: 900; font-size: .9rem; }
-    th a { color: #111; text-decoration: none; }
-    th a:hover { text-decoration: underline; }
-
-    .price { white-space: nowrap; font-weight: 900; }
-    .unit-cell { color: #555; }
-    .edit-btn { display: inline-block; padding: 7px 12px; border-radius: 6px; background: #fff; border: 1px solid #ccc; color: #111; text-decoration: none; font-size: .88rem; font-weight: 700; white-space: nowrap; }
-    .edit-btn:hover { background: bisque; border-color: #999; }
-    .del-btn { padding: 7px 10px; border-radius: 6px; background: #fff; border: 1px solid #fca5a5; color: #dc2626; font-size: .88rem; font-weight: 700; cursor: pointer; white-space: nowrap; font-family: inherit; }
-    .del-btn:hover { background: #dc2626; color: #fff; border-color: #dc2626; }
-    .cart-btn { padding: 7px 12px; border-radius: 6px; background: #fff; border: 1px solid #ccc; color: #111; font-size: .88rem; font-weight: 700; cursor: pointer; white-space: nowrap; font-family: inherit; }
-    .cart-btn:hover { background: bisque; }
-    .buy-btn { padding: 7px 12px; border-radius: 6px; background: #111827; border: none; color: #fff; font-size: .88rem; font-weight: 700; cursor: pointer; white-space: nowrap; font-family: inherit; }
-    .buy-btn:hover { background: #374151; }
-    .action-cell { display: flex; gap: 6px; align-items: center; justify-content: flex-end; flex-wrap: wrap; }
-    td:last-child, th:last-child { text-align: right; }
-
-    .empty { padding: 14px; background: #fff7ed; border: 1px solid #fed7aa; border-radius: 10px; color: #7c2d12; }
-
-    .pager { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: space-between; margin-top: 16px; }
-    .pages { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
-    .pagebtn { padding: 8px 11px; border-radius: 8px; background: bisque; border: 1px solid #ccc; text-decoration: none; color: #111; font-weight: 800; font-size: .85rem; }
-    .pagebtn.active { background: #111827; color: #fff; border-color: #111827; }
-    .pagebtn.disabled { opacity: .4; pointer-events: none; }
-
-    /* SEARCH (same logic as index) */
-    .searchbar { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-    .search-input { padding: 8px; border: 1px solid #ccc; border-radius: 8px; outline: none; font-size: .95rem; width: 260px; background:#fff; }
-    .search-button { padding: 8px 12px; border: none; background: #111827; color: #fff; border-radius: 8px; cursor: pointer; font-size: .9rem; font-weight: 800; }
-    .search-button:hover { background:#374151; }
-
-    #search-results { display:none; background:#fff; border:1px solid #ccc; border-radius:10px; padding:16px; margin: 10px 0 14px; }
-    #search-results.show { display:block; }
-    #search-results h3 { font-size:1rem; font-weight:900; color:#111; margin-bottom:12px; }
-    .result-item { display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid #eee; gap:12px; flex-wrap:wrap; }
-    .result-item:last-child { border-bottom:none; }
-    .result-info { flex:1; min-width: 200px; }
-    .result-name { font-size:1rem; font-weight:900; color:#111; }
-    .result-unit { color:#888; font-size:.82rem; margin-top:2px; }
-    .result-price { font-weight:900; font-size:1.1rem; white-space:nowrap; color:#E2144A; }
-    .result-actions { display:flex; gap:8px; flex-wrap:wrap; }
-    .btn-cart { padding: 9px 14px; border-radius: 8px; border: 1px solid #ccc; background: #fff; color: #111; font-weight: 800; font-size: .88rem; cursor: pointer; font-family: inherit; white-space: nowrap; }
-    .btn-cart:hover { background: bisque; }
-    .btn-buy  { padding: 9px 14px; border-radius: 8px; border: none; background: #111827; color: #fff; font-weight: 800; font-size: .88rem; cursor: pointer; font-family: inherit; white-space: nowrap; }
-    .btn-buy:hover { background: #374151; }
-
-    /* category filter */
-    .cat-filter-wrap { margin-bottom: 14px; position: relative; }
-    .cat-filter-wrap svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #aaa; pointer-events: none; }
-    .cat-filter-input { width: 100%; max-width: 320px; padding: 8px 12px 8px 34px; border: 1px solid #ccc; border-radius: 8px; font-size: .92rem; font-family: inherit; background: #fff; outline: none; }
-    .cat-filter-input:focus { border-color: #E2144A; }
-    .cat-no-match { padding: 12px; color: #888; font-size: .9rem; display: none; }
-
-    @media (max-width: 600px) {
-      .layout { flex-direction: column; }
-      .sidebar { width: 100%; border-right: none; border-bottom: 1px solid #ccc; }
-      .topbar-right { margin-left: 0; }
-      .search-input { width: 100%; }
-    }
-  </style>
-</head>
-<body>
-
-<header class="navbar">
-  <a href="/" class="nav-brand">🛍 M.T.F</a>
-  <a href="/">Início</a>
-  <a href="/products" class="active">Produtos</a>
-  <a href="/products/new">+ Produto</a>
-  <a href="/sales">Vendas</a>
-  <a href="/sales/new">+ Venda</a>
-  <a href="/stock">Estoque</a>
-  <a href="/stock/new">+ Movimento</a>
-  <a href="/reports">Relatórios</a>
-</header>
-
-<div class="layout">
-  <nav class="sidebar">
-    <ul>
-      <li><a href="/">Início</a></li>
-      <li>
-        <a href="#">Produtos ▸</a>
-        <ul class="submenu">
-          <li><a href="/products">Lista</a></li>
-          <li><a href="/products/new">+ Cadastrar</a></li>
-        </ul>
-      </li>
-      <li>
-        <a href="#">Vendas ▸</a>
-        <ul class="submenu">
-          <li><a href="/sales">Lista</a></li>
-          <li><a href="/sales/new">+ Nova</a></li>
-        </ul>
-      </li>
-      <li>
-        <a href="#">Estoque ▸</a>
-        <ul class="submenu">
-          <li><a href="/stock">Saldo</a></li>
-          <li><a href="/stock/new">+ Entrada</a></li>
-        </ul>
-      </li>
-      <li><a href="/reports">Relatórios</a></li>
-    </ul>
-  </nav>
-
-  <main class="content">
-    <div class="card">
-      <h1>Produtos</h1>
-
-      {% if deleted %}
-      <div class="ok-banner">🗑 Produto excluído com sucesso.</div>
-      {% endif %}
-
-      {% set base = "/products" %}
-      {% set dir_toggle = "desc" if direction == "asc" else "asc" %}
-      {% macro url(p, sort_key=None, dir_key=None) -%}
-        {{ base }}?page={{ p }}&per_page={{ per_page }}&sort={{ sort_key or sort }}&direction={{ dir_key or direction }}
-      {%- endmacro %}
-
-      <div class="topbar">
-        <div class="topbar-left">
-          <div class="searchbar">
-            <input type="text" id="search-input" placeholder="pesquisar produto..." class="search-input">
-            <button class="search-button" type="button" onclick="searchProducts()">pesquisar</button>
-          </div>
-        </div>
-
-        <div class="topbar-right">
-          <a class="btn" href="/products/new">+ Cadastrar produto</a>
-          <span class="pill">{{ total_count }} itens</span>
-          <form method="get" action="/products" style="display:flex;gap:8px;align-items:center;">
-            <input type="hidden" name="page" value="1">
-            <input type="hidden" name="sort" value="{{ sort }}">
-            <input type="hidden" name="direction" value="{{ direction }}">
-            <label style="font-weight:800;font-size:.88rem;">Por página</label>
-            <select name="per_page" onchange="this.form.submit()">
-              {% for n in [10,25,50,100,200] %}
-                <option value="{{ n }}" {% if per_page == n %}selected{% endif %}>{{ n }}</option>
-              {% endfor %}
-            </select>
-          </form>
-        </div>
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="searchbar">
+        <input type="text" id="search-input" placeholder="pesquisar produto..." class="search-input">
+        <button class="search-button" type="button" onclick="searchProducts()">pesquisar</button>
       </div>
-
-      <!-- Search results (API /api/products?search=...) -->
-      <div id="search-results">
-        <h3>Resultados:</h3>
-        <div id="results-list"></div>
-      </div>
-
-      <!-- Category filter -->
-      <div class="cat-filter-wrap">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <input type="text" class="cat-filter-input" id="cat-filter" placeholder="Filtrar por categoria..." oninput="filterCategories()">
-      </div>
-      <div class="cat-no-match" id="cat-no-match">Nenhuma categoria encontrada.</div>
-
-      {% if not rows or rows|length == 0 %}
-        <div class="empty">Nenhum produto cadastrado ainda.</div>
-      {% else %}
-        <div class="pager" style="margin-top:0;margin-bottom:12px;">
-          <div class="pages">
-            <a class="pagebtn {{ 'disabled' if page<=1 else '' }}" href="{{ url(page-1 if page>1 else 1) }}">‹ Anterior</a>
-            {% set start = page-2 if page-2>1 else 1 %}
-            {% set end = page+2 if page+2<total_pages else total_pages %}
-            {% if start > 1 %}
-              <a class="pagebtn" href="{{ url(1) }}">1</a>
-              {% if start > 2 %}<span style="padding:0 4px;">…</span>{% endif %}
-            {% endif %}
-            {% for p in range(start, end+1) %}
-              <a class="pagebtn {{ 'active' if p==page else '' }}" href="{{ url(p) }}">{{ p }}</a>
-            {% endfor %}
-            {% if end < total_pages %}
-              {% if end < total_pages-1 %}<span style="padding:0 4px;">…</span>{% endif %}
-              <a class="pagebtn" href="{{ url(total_pages) }}">{{ total_pages }}</a>
-            {% endif %}
-            <a class="pagebtn {{ 'disabled' if page>=total_pages else '' }}" href="{{ url(page+1 if page<total_pages else total_pages) }}">Próxima ›</a>
-          </div>
-          <div class="pill">Página {{ page }} / {{ total_pages }}</div>
-        </div>
-        {% set ns = namespace(current_cat=None) %}
-        {% for r in rows %}
-          {% set cat = r.category_name or 'Outro' %}
-          {% if cat != ns.current_cat %}
-            {% if ns.current_cat is not none %}
-                </tbody></table></div>
-            {% endif %}
-            {% set ns.current_cat = cat %}
-            <div class="cat-group" data-cat="{{ cat | lower }}">
-            <div class="cat-title">📂 {{ cat }}</div>
-            <table>
-              <colgroup>
-                <col style="width:5%">
-                <col style="width:30%">
-                <col style="width:11%">
-                <col style="width:8%">
-                <col style="width:10%">
-                <col style="width:36%">
-              </colgroup>
-              <thead>
-                <tr>
-                  <th></th>
-                  <th><a href="{{ url(1, 'name', (dir_toggle if sort=='name' else 'asc')) }}">Produto {% if sort=='name' %}{{ '↑' if direction=='asc' else '↓' }}{% endif %}</a></th>
-                  <th><a href="{{ url(1, 'sale_price', (dir_toggle if sort=='sale_price' else 'asc')) }}">Preço {% if sort=='sale_price' %}{{ '↑' if direction=='asc' else '↓' }}{% endif %}</a></th>
-                  <th><a href="{{ url(1, 'unit', (dir_toggle if sort=='unit' else 'asc')) }}">Unidade {% if sort=='unit' %}{{ '↑' if direction=='asc' else '↓' }}{% endif %}</a></th>
-                  <th style="text-align:right;">Estoque</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-          {% endif %}
-          <tr>
-            <td style="padding:6px 8px;">
-              {% if r['image'] %}
-              <img style="width:38px;height:38px;object-fit:cover;border-radius:6px;border:1px solid #e5e7eb;display:block;" src="{{ r['image'] }}" alt="{{ r['name'] }}">
-              {% else %}
-              <div style="width:38px;height:38px;border-radius:6px;background:#f3f4f6;border:1px solid #e5e7eb;display:flex;align-items:center;justify-content:center;font-size:1.1rem;">📦</div>
-              {% endif %}
-            </td>
-            <td title="{{ r['name'] }}">{{ r["name"] }}</td>
-            <td class="price">R$ {{ "%.2f"|format(r["sale_price"] or 0) }}</td>
-            <td class="unit-cell">{{ r["unit"] or "" }}</td>
-            <td style="text-align:right;font-weight:800;color:{% if r['current_stock'] <= 0 %}#dc2626{% else %}#166534{% endif %};">
-              {% if r['unit'] == 'kg' %}{{ "%.3f"|format(r['current_stock']) }}{% else %}{{ "%.0f"|format(r['current_stock']) }}{% endif %}
-            </td>
-            <td>
-              <div class="action-cell">
-                <button class="cart-btn" onclick="addToCart({{ r['id'] }}, '{{ r['name']|replace("'", "\\'") }}', {{ r['sale_price'] or 0 }}, '{{ r['unit'] or 'un' }}', 1)">🛒</button>
-                <button class="buy-btn"  onclick="buyNow({{ r['id'] }}, {{ r['sale_price'] or 0 }}, '{{ r['unit'] or 'un' }}', 1)">⚡ Comprar</button>
-                <a class="edit-btn" href="/products/{{ r['id'] }}/edit">✏️</a>
-                <form method="post"
-                      action="/products/{{ r['id'] }}/delete"
-                      onsubmit="return confirm({{ ('Excluir ' ~ (r['name'] or '') ~ '?') | tojson }});">
-                  <button class="del-btn" type="submit">🗑</button>
-                </form>
-              </div>
-            </td>
-          </tr>
-        {% endfor %}
-        {% if ns.current_cat is not none %}
-          </tbody></table></div>
-        {% endif %}
-
-        <div class="pager">
-          <div class="pages">
-            <a class="pagebtn {{ 'disabled' if page<=1 else '' }}" href="{{ url(page-1 if page>1 else 1) }}">‹ Anterior</a>
-            {% set start = page-2 if page-2>1 else 1 %}
-            {% set end = page+2 if page+2<total_pages else total_pages %}
-            {% if start > 1 %}
-              <a class="pagebtn" href="{{ url(1) }}">1</a>
-              {% if start > 2 %}<span style="padding:0 4px;">…</span>{% endif %}
-            {% endif %}
-            {% for p in range(start, end+1) %}
-              <a class="pagebtn {{ 'active' if p==page else '' }}" href="{{ url(p) }}">{{ p }}</a>
-            {% endfor %}
-            {% if end < total_pages %}
-              {% if end < total_pages-1 %}<span style="padding:0 4px;">…</span>{% endif %}
-              <a class="pagebtn" href="{{ url(total_pages) }}">{{ total_pages }}</a>
-            {% endif %}
-            <a class="pagebtn {{ 'disabled' if page>=total_pages else '' }}" href="{{ url(page+1 if page<total_pages else total_pages) }}">Próxima ›</a>
-          </div>
-          <div class="pill">Página {{ page }} / {{ total_pages }}</div>
-        </div>
-      {% endif %}
     </div>
-  </main>
-</div>
+    <div class="topbar-right">
+      <a class="btn" href="/products/new">+ Cadastrar produto</a>
+      <span class="pill">{{ total_count }} itens</span>
+      <form method="get" action="/products" style="display:flex;gap:8px;align-items:center;">
+        <input type="hidden" name="page" value="1">
+        <input type="hidden" name="sort" value="{{ sort }}">
+        <input type="hidden" name="direction" value="{{ direction }}">
+        <label style="font-weight:800;font-size:.88rem;">Por página</label>
+        <select name="per_page" onchange="this.form.submit()">
+          {% for n in [10,25,50,100,200] %}<option value="{{ n }}" {% if per_page==n %}selected{% endif %}>{{ n }}</option>{% endfor %}
+        </select>
+      </form>
+    </div>
+  </div>
 
+  <div id="search-results"><h3>Resultados:</h3><div id="results-list"></div></div>
+
+  <div class="cat-filter-wrap">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input type="text" class="cat-filter-input" id="cat-filter" placeholder="Filtrar por categoria..." oninput="filterCategories()">
+  </div>
+  <div class="cat-no-match" id="cat-no-match">Nenhuma categoria encontrada.</div>
+
+  {% if not rows or rows|length == 0 %}
+    <div class="empty">Nenhum produto cadastrado ainda.</div>
+  {% else %}
+    <div class="pager" style="margin-top:0;margin-bottom:12px;">
+      <div class="pages">
+        <a class="pagebtn {{ 'disabled' if page<=1 else '' }}" href="{{ url(page-1 if page>1 else 1) }}">‹ Anterior</a>
+        {% set start = page-2 if page-2>1 else 1 %}{% set end = page+2 if page+2<total_pages else total_pages %}
+        {% if start>1 %}<a class="pagebtn" href="{{ url(1) }}">1</a>{% if start>2 %}<span style="padding:0 4px;">…</span>{% endif %}{% endif %}
+        {% for p in range(start,end+1) %}<a class="pagebtn {{ 'active' if p==page else '' }}" href="{{ url(p) }}">{{ p }}</a>{% endfor %}
+        {% if end<total_pages %}{% if end<total_pages-1 %}<span style="padding:0 4px;">…</span>{% endif %}<a class="pagebtn" href="{{ url(total_pages) }}">{{ total_pages }}</a>{% endif %}
+        <a class="pagebtn {{ 'disabled' if page>=total_pages else '' }}" href="{{ url(page+1 if page<total_pages else total_pages) }}">Próxima ›</a>
+      </div>
+      <div class="pill">Página {{ page }} / {{ total_pages }}</div>
+    </div>
+    {% set ns = namespace(current_cat=None) %}
+    {% for r in rows %}
+      {% set cat = r.category_name or 'Outro' %}
+      {% if cat != ns.current_cat %}
+        {% if ns.current_cat is not none %}</tbody></table></div>{% endif %}
+        {% set ns.current_cat = cat %}
+        <div class="cat-group" data-cat="{{ cat|lower }}">
+        <div class="cat-title">📂 {{ cat }}</div>
+        <table>
+          <colgroup><col style="width:5%"><col style="width:30%"><col style="width:11%"><col style="width:8%"><col style="width:10%"><col style="width:36%"></colgroup>
+          <thead><tr>
+            <th></th>
+            <th><a href="{{ url(1,'name',(dir_toggle if sort=='name' else 'asc')) }}">Produto {% if sort=='name' %}{{ '↑' if direction=='asc' else '↓' }}{% endif %}</a></th>
+            <th><a href="{{ url(1,'sale_price',(dir_toggle if sort=='sale_price' else 'asc')) }}">Preço {% if sort=='sale_price' %}{{ '↑' if direction=='asc' else '↓' }}{% endif %}</a></th>
+            <th><a href="{{ url(1,'unit',(dir_toggle if sort=='unit' else 'asc')) }}">Unidade {% if sort=='unit' %}{{ '↑' if direction=='asc' else '↓' }}{% endif %}</a></th>
+            <th style="text-align:right;">Estoque</th>
+            <th></th>
+          </tr></thead>
+          <tbody>
+      {% endif %}
+      <tr>
+        <td style="padding:6px 8px;">
+          {% if r['image'] %}<img style="width:38px;height:38px;object-fit:cover;border-radius:6px;border:1px solid #e5e7eb;display:block;" src="{{ r['image'] }}" alt="{{ r['name'] }}">
+          {% else %}<div style="width:38px;height:38px;border-radius:6px;background:#f3f4f6;border:1px solid #e5e7eb;display:flex;align-items:center;justify-content:center;font-size:1.1rem;">📦</div>{% endif %}
+        </td>
+        <td title="{{ r['name'] }}">{{ r['name'] }}</td>
+        <td class="price">R$ {{ "%.2f"|format(r['sale_price'] or 0) }}</td>
+        <td class="unit-cell">{{ r['unit'] or '' }}</td>
+        <td style="text-align:right;font-weight:800;color:{% if r['current_stock']<=0 %}#dc2626{% else %}#166534{% endif %};">
+          {% if r['unit']=='kg' %}{{ "%.3f"|format(r['current_stock']) }}{% else %}{{ "%.0f"|format(r['current_stock']) }}{% endif %}
+        </td>
+        <td>
+          <div class="action-cell">
+            <button class="cart-btn" onclick="addToCart({{ r['id'] }}, '{{ r['name']|replace("'","\\'") }}', {{ r['sale_price'] or 0 }}, '{{ r['unit'] or 'un' }}', 1)">🛒</button>
+            <button class="buy-btn" onclick="buyNow({{ r['id'] }}, {{ r['sale_price'] or 0 }}, '{{ r['unit'] or 'un' }}', 1)">⚡ Comprar</button>
+            <a class="edit-btn" href="/products/{{ r['id'] }}/edit">✏️</a>
+            <form method="post" action="/products/{{ r['id'] }}/delete" onsubmit="return confirm({{ ('Excluir ' ~ (r['name'] or '') ~ '?')|tojson }});">
+              <button class="del-btn" type="submit">🗑</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+    {% endfor %}
+    {% if ns.current_cat is not none %}</tbody></table></div>{% endif %}
+
+    <div class="pager">
+      <div class="pages">
+        <a class="pagebtn {{ 'disabled' if page<=1 else '' }}" href="{{ url(page-1 if page>1 else 1) }}">‹ Anterior</a>
+        {% set start = page-2 if page-2>1 else 1 %}{% set end = page+2 if page+2<total_pages else total_pages %}
+        {% if start>1 %}<a class="pagebtn" href="{{ url(1) }}">1</a>{% if start>2 %}<span style="padding:0 4px;">…</span>{% endif %}{% endif %}
+        {% for p in range(start,end+1) %}<a class="pagebtn {{ 'active' if p==page else '' }}" href="{{ url(p) }}">{{ p }}</a>{% endfor %}
+        {% if end<total_pages %}{% if end<total_pages-1 %}<span style="padding:0 4px;">…</span>{% endif %}<a class="pagebtn" href="{{ url(total_pages) }}">{{ total_pages }}</a>{% endif %}
+        <a class="pagebtn {{ 'disabled' if page>=total_pages else '' }}" href="{{ url(page+1 if page<total_pages else total_pages) }}">Próxima ›</a>
+      </div>
+      <div class="pill">Página {{ page }} / {{ total_pages }}</div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
 <script>
 function filterCategories() {
   const q = document.getElementById('cat-filter').value.toLowerCase().trim();
   const groups = document.querySelectorAll('.cat-group');
   let visible = 0;
-  groups.forEach(g => {
-    const cat = g.dataset.cat || '';
-    const show = !q || cat.includes(q);
-    g.style.display = show ? '' : 'none';
-    if (show) visible++;
-  });
-  document.getElementById('cat-no-match').style.display = (q && visible === 0) ? 'block' : 'none';
+  groups.forEach(g => { const show = !q || (g.dataset.cat||'').includes(q); g.style.display = show?'':'none'; if(show) visible++; });
+  document.getElementById('cat-no-match').style.display = (q&&visible===0)?'block':'none';
 }
-
-// ── CARRINHO (localStorage) ──
-let cart = JSON.parse(localStorage.getItem('mtf_cart') || '[]');
-function saveCart() { localStorage.setItem('mtf_cart', JSON.stringify(cart)); }
-
-function addToCart(id, name, price, unit, qty) {
-  const existing = cart.find(i => i.id === id);
-  if (existing) {
-    existing.qty += qty;
-  } else {
-    cart.push({id, name, price, unit, qty});
-  }
-  saveCart();
-  alert(`🛒 ${name} adicionado ao carrinho!`);
-}
-
-function buyNow(id, price, unit, qty) {
-  window.location.href = `/sales/new?product_id=${id}&qty=${qty || 1}&unit_price=${price}`;
-}
-
-// ── SEARCH ──
+let cart = JSON.parse(localStorage.getItem('mtf_cart')||'[]');
+function saveCart(){localStorage.setItem('mtf_cart',JSON.stringify(cart));}
+function addToCart(id,name,price,unit,qty){const e=cart.find(i=>i.id===id);if(e){e.qty+=qty;}else{cart.push({id,name,price,unit,qty});}saveCart();alert(`🛒 ${name} adicionado ao carrinho!`);}
+function buyNow(id,price,unit,qty){window.location.href=`/sales/new?product_id=${id}&qty=${qty||1}&unit_price=${price}`;}
+function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 async function searchProducts() {
   const q = document.getElementById('search-input').value.trim();
   const container = document.getElementById('search-results');
   const list = document.getElementById('results-list');
-
-  if (!q) { container.classList.remove('show'); return; }
-
-  list.innerHTML = '<div class="result-item" style="color:#888">Buscando...</div>';
+  if(!q){container.classList.remove('show');return;}
+  list.innerHTML='<div class="result-item" style="color:#888">Buscando...</div>';
   container.classList.add('show');
-
   try {
     const res = await fetch(`/api/products?search=${encodeURIComponent(q)}`);
     const data = await res.json();
-
-    if (!data.length) {
-      list.innerHTML = '<div class="result-item" style="color:#888">Nenhum produto encontrado.</div>';
-      return;
-    }
-
-    list.innerHTML = data.map(p => {
-      const price = parseFloat(p.sale_price || 0);
-      const name  = escapeHtml(p.name);
-      const unit  = escapeHtml(p.unit || 'un');
-      return `
-        <div class="result-item">
-          <div class="result-info">
-            <div class="result-name">${name}</div>
-            <div class="result-unit">${unit}</div>
-          </div>
-          <span class="result-price">R$ ${price.toFixed(2)}</span>
-          <div class="result-actions">
-            <button class="btn-cart" onclick="addToCart(${p.id}, '${name}', ${price}, '${unit}', 1)">🛒 Carrinho</button>
-            <button class="btn-buy"  onclick="buyNow(${p.id}, parseFloat('${price}') || 0, '${unit}', 1)">⚡ Comprar agora</button>
-            <a class="edit-btn" href="/products/${p.id}/edit">✏️</a>
-          </div>
-        </div>
-      `;
+    if(!data.length){list.innerHTML='<div class="result-item" style="color:#888">Nenhum produto encontrado.</div>';return;}
+    list.innerHTML = data.map(p=>{
+      const price=parseFloat(p.sale_price||0);const name=escapeHtml(p.name);const unit=escapeHtml(p.unit||'un');
+      return `<div class="result-item"><div class="result-info"><div class="result-name">${name}</div><div class="result-unit">${unit}</div></div><span class="result-price">R$ ${price.toFixed(2)}</span><div class="result-actions"><button class="btn-cart" onclick="addToCart(${p.id},'${name}',${price},'${unit}',1)">🛒 Carrinho</button><button class="btn-buy" onclick="buyNow(${p.id},${price},'${unit}',1)">⚡ Comprar agora</button><a class="edit-btn" href="/products/${p.id}/edit">✏️</a></div></div>`;
     }).join('');
-  } catch (e) {
-    list.innerHTML = '<div class="result-item" style="color:#dc2626">Erro ao buscar.</div>';
-  }
+  } catch { list.innerHTML='<div class="result-item" style="color:#dc2626">Erro ao buscar.</div>'; }
 }
-
-function escapeHtml(s) {
-  return String(s ?? '').replace(/[&<>"']/g, (c) => ({
-    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-  }[c]));
-}
-
-document.getElementById('search-input')?.addEventListener('keydown', e => {
-  if (e.key === 'Enter') searchProducts();
-});
+document.getElementById('search-input')?.addEventListener('keydown',e=>{if(e.key==='Enter')searchProducts();});
 </script>
-
-</body>
-</html>
+{% endblock %}

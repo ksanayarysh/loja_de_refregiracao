@@ -1,195 +1,33 @@
-<!DOCTYPE HTML>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Calculadora de Gás</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: Arial, Helvetica, sans-serif;
-      background-color: bisque;
-      padding: 20px;
-    }
-
-    h1 {
-      text-align: center;
-      font-size: 2rem;
-      margin-bottom: 6px;
-      color: black;
-    }
-
-    .subtitle {
-      text-align: center;
-      color: #555;
-      margin-bottom: 28px;
-      font-size: 1.1rem;
-    }
-
-    /* ── TABLE ── */
-    .gas-table-wrap {
-      overflow-x: auto;
-    }
-
-    table.gas-table {
-      width: 100%;
-      border-collapse: separate;
-      border-spacing: 10px;
-      table-layout: fixed;
-    }
-
-    /* Header row — gas name + price */
-    .gas-table thead th {
-      background: #fff;
-      border: 3px solid #ccc;
-      border-radius: 12px;
-      padding: 16px 10px;
-      text-align: center;
-      cursor: pointer;
-      transition: border-color .2s, background .2s;
-      vertical-align: top;
-    }
-
-    .gas-table thead th:hover { border-color: #007bff; }
-
-    .gas-table thead th.selected {
-      border-color: #007bff;
-      border-width: 4px;
-      background: #cfe2ff;
-      box-shadow: 0 0 0 4px rgba(0,123,255,.18);
-    }
-
-    .gas-name {
-      font-size: 1.5rem;
-      font-weight: bold;
-      color: #E2144A;
-      margin-bottom: 6px;
-    }
-
-    .gas-price-label {
-      font-size: 1rem;
-      color: #333;
-    }
-
-    .gas-unit {
-      font-size: .82rem;
-      color: #888;
-    }
-
-    /* Body cells */
-    .gas-table tbody td {
-      background: #fff;
-      border: 2px solid #ddd;
-      border-radius: 10px;
-      padding: 16px 12px;
-      vertical-align: top;
-      transition: border-color .2s, background .2s;
-    }
-
-    .gas-table tbody td.selected {
-      border-color: #007bff;
-      border-width: 3px;
-      background: #e8f0ff;
-    }
-
-    .section-title {
-      font-size: 1.05rem;
-      font-weight: bold;
-      margin-bottom: 10px;
-      color: black;
-    }
-
-    .calc-label {
-      display: block;
-      font-size: .95rem;
-      color: #333;
-      margin-bottom: 6px;
-    }
-
-    input[type="number"] {
-      width: 100%;
-      padding: 10px;
-      font-size: 1.1rem;
-      border: 2px solid #ccc;
-      border-radius: 8px;
-      margin-bottom: 10px;
-      outline: none;
-      transition: border-color .2s;
-    }
-    input[type="number"]:focus { border-color: #007bff; }
-
-    .calc-btn {
-      width: 100%;
-      padding: 11px;
-      font-size: 1rem;
-      font-weight: bold;
-      background: #28a745;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background .2s;
-    }
-    .calc-btn:hover { background: #1e7e34; }
-
-    .resultado {
-      display: none;
-      margin-top: 12px;
-      padding: 12px;
-      background: #e8f5e9;
-      border: 2px solid #28a745;
-      border-radius: 8px;
-      font-size: 1.2rem;
-      font-weight: bold;
-      color: #1a6e2e;
-      text-align: center;
-    }
-    .resultado.show { display: block; }
-    .resultado small {
-      display: block;
-      font-size: .8rem;
-      font-weight: normal;
-      color: #555;
-      margin-top: 4px;
-    }
-    .resultado.error {
-      background: #fff3cd;
-      border-color: #ffc107;
-      color: #856404;
-    }
-
-    .cart-btn {
-      width: 100%;
-      padding: 11px;
-      font-size: 1rem;
-      font-weight: bold;
-      background: #fff;
-      color: #E2144A;
-      border: 2px solid #E2144A;
-      border-radius: 8px;
-      cursor: pointer;
-      margin-top: 8px;
-      transition: background .2s, color .2s;
-    }
-    .cart-btn:hover { background: #E2144A; color: #fff; }
-    .row-label {
-      font-size: 1rem;
-      font-weight: bold;
-      color: #555;
-      text-align: center;
-      padding: 4px 0 0;
-      letter-spacing: .03em;
-    }
-
-    @media (max-width: 600px) {
-      .gas-name { font-size: 1.1rem; }
-      input[type="number"] { font-size: 1rem; }
-    }
-  </style>
-</head>
-<body>
-
+{% extends '_base_admin.html' %}
+{% block title %}Calculadora de Gás — M.T.F{% endblock %}
+{% block extra_styles %}
+    .content{padding:20px;}
+    h1{text-align:center;font-size:2rem;margin-bottom:6px;color:black;}
+    .subtitle{text-align:center;color:#555;margin-bottom:28px;font-size:1.1rem;}
+    .gas-table-wrap{overflow-x:auto;}
+    table.gas-table{width:100%;border-collapse:separate;border-spacing:10px;table-layout:fixed;}
+    .gas-table thead th{background:#fff;border:3px solid #ccc;border-radius:12px;padding:16px 10px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;vertical-align:top;}
+    .gas-table thead th:hover{border-color:#007bff;}
+    .gas-table thead th.selected{border-color:#007bff;border-width:4px;background:#cfe2ff;box-shadow:0 0 0 4px rgba(0,123,255,.18);}
+    .gas-name{font-size:1.5rem;font-weight:bold;color:#E2144A;margin-bottom:6px;}
+    .gas-price-label{font-size:1rem;color:#333;}
+    .gas-unit{font-size:.82rem;color:#888;}
+    .gas-table tbody td{background:#fff;border:2px solid #ddd;border-radius:10px;padding:16px 12px;vertical-align:top;transition:border-color .2s,background .2s;}
+    .gas-table tbody td.selected{border-color:#007bff;border-width:3px;background:#e8f0ff;}
+    .calc-label{display:block;font-size:.95rem;color:#333;margin-bottom:6px;}
+    input[type="number"]{width:100%;padding:10px;font-size:1.1rem;border:2px solid #ccc;border-radius:8px;margin-bottom:10px;outline:none;}
+    input[type="number"]:focus{border-color:#007bff;}
+    .calc-btn{width:100%;padding:11px;font-size:1rem;font-weight:bold;background:#28a745;color:white;border:none;border-radius:8px;cursor:pointer;}
+    .calc-btn:hover{background:#1e7e34;}
+    .resultado{display:none;margin-top:12px;padding:12px;background:#e8f5e9;border:2px solid #28a745;border-radius:8px;font-size:1.2rem;font-weight:bold;color:#1a6e2e;text-align:center;}
+    .resultado.show{display:block;}
+    .resultado small{display:block;font-size:.8rem;font-weight:normal;color:#555;margin-top:4px;}
+    .resultado.error{background:#fff3cd;border-color:#ffc107;color:#856404;}
+    .cart-btn{width:100%;padding:11px;font-size:1rem;font-weight:bold;background:#fff;color:#E2144A;border:2px solid #E2144A;border-radius:8px;cursor:pointer;margin-top:8px;}
+    .cart-btn:hover{background:#E2144A;color:#fff;}
+    .row-label{font-size:1rem;font-weight:bold;color:#555;text-align:center;padding:4px 0 0;letter-spacing:.03em;}
+{% endblock %}
+{% block content %}
 <h1>🧊 Calculadora de Gás</h1>
 <p class="subtitle">Clique no gás para selecionar e use as calculadoras abaixo</p>
 
@@ -205,8 +43,11 @@
     </tbody>
   </table>
 </div>
-
+{% endblock %}
+{% block scripts %}
+{{ super() }}
 <script>
+
   let gases = [];
   let selectedIdx = null;
 
@@ -334,7 +175,6 @@
   }
 
   loadGases();
-</script>
 
-</body>
-</html>
+</script>
+{% endblock %}

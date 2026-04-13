@@ -56,6 +56,8 @@
     .prod-item:last-child{border-bottom:none}
     .prod-item:hover,.prod-item.active{background:#f0f4ff}
     .prod-item-price{color:#E2144A;font-weight:700;font-size:.85rem;white-space:nowrap}
+    .cart-item-row{display:flex;align-items:center;padding:6px 8px;border-bottom:1px solid #f3f4f6;font-size:.85rem;gap:6px}
+    .cart-item-row:last-child{border-bottom:none}
     @media(max-width:700px){.layout{flex-direction:column}.sidebar{width:100%;border-right:none;border-bottom:1px solid #ccc}.two-col{grid-template-columns:1fr}}
   </style>
 </head>
@@ -134,25 +136,62 @@
         </form>
       </div>
 
-      <!-- NOVA VENDA -->
+      <!-- NOVA VENDA CARRINHO -->
       <div class="card">
         <div class="section-title">🛒 Nova venda por saldo</div>
-        <div class="hint" style="margin-bottom:12px">Saldo disponível: <b>R$ {{ '%.2f'|format(client.balance) }}</b></div>
-        <form method="post" action="/clients/{{ client.id }}/sale">
-          <input type="hidden" name="sold_at" value="{{ today }}">
-          <input type="hidden" id="prod-id" name="product_id">
-          <label>Produto</label>
-          <div class="prod-wrap">
-            <input type="text" id="prod-search" placeholder="Digite para buscar..." autocomplete="off" oninput="searchProd(this.value)" onkeydown="prodKeydown(event)">
-            <div class="prod-results" id="prod-results"></div>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-            <div><label>Qtd</label><input id="c-qty" name="qty" inputmode="decimal" value="1" oninput="calcTotal()"></div>
-            <div><label>Preço unit.</label><input id="c-price" name="unit_price" inputmode="decimal" oninput="calcTotal()"></div>
-          </div>
-          <label>Total</label>
-          <input id="c-total" name="total" inputmode="decimal">
-          <div class="btns"><button class="btn-primary" type="submit">Registrar venda</button></div>
+        <div class="hint" style="margin-bottom:12px">Saldo disponível: <b id="saldo-disp">R$ {{ '%.2f'|format(client.balance) }}</b></div>
+
+        <!-- Busca produto -->
+        <div class="prod-wrap" style="margin-bottom:10px">
+          <input type="text" id="prod-search" placeholder="Buscar produto para adicionar..." autocomplete="off" oninput="searchProd(this.value)" onkeydown="prodKeydown(event)">
+          <div class="prod-results" id="prod-results"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 80px;gap:8px;margin-bottom:10px">
+          <div><label style="margin-top:0">Qtd</label><input id="c-qty" inputmode="decimal" value="1" oninput="calcItemTotal()"></div>
+          <div><label style="margin-top:0">Preço unit.</label><input id="c-price" inputmode="decimal" oninput="calcItemTotal()"></div>
+          <div><label style="margin-top:0">Total</label><input id="c-item-total" inputmode="decimal" readonly style="background:#f9fafb"></div>
+        </div>
+        <button class="btn-green" type="button" onclick="addToClientCart()" style="width:100%;margin-bottom:14px">+ Adicionar ao pedido</button>
+
+        <!-- Lista de itens -->
+        <div id="cart-items" style="display:none;margin-bottom:12px">
+          <table style="width:100%;border-collapse:collapse;font-size:.88rem">
+            <thead><tr style="background:#f9fafb">
+              <th style="padding:7px 8px;text-align:left;border-bottom:1px solid #e5e7eb">Produto</th>
+              <th style="padding:7px 8px;text-align:center;border-bottom:1px solid #e5e7eb">Qtd</th>
+              <th style="padding:7px 8px;text-align:right;border-bottom:1px solid #e5e7eb">Total</th>
+              <th style="padding:7px 8px;border-bottom:1px solid #e5e7eb"></th>
+            </tr></thead>
+            <tbody id="cart-tbody"></tbody>
+            <tfoot><tr>
+              <td colspan="2" style="padding:8px;font-weight:900;text-align:right">Total pedido:</td>
+              <td style="padding:8px;font-weight:900;color:#E2144A;text-align:right" id="cart-total-val">R$ 0,00</td>
+              <td></td>
+            </tr></tfoot>
+          </table>
+        </div>
+
+        <!-- Diferença saldo -->
+        <div id="diff-block" style="display:none;margin-bottom:12px;padding:12px;border-radius:10px;border:1px solid #fde68a;background:#fffbeb">
+          <div style="font-size:.88rem;font-weight:700;color:#92400e;margin-bottom:8px" id="diff-msg"></div>
+          <label style="margin-top:0;font-size:.85rem">Como pagar a diferença?</label>
+          <select id="diff-payment" style="margin-top:4px">
+            <option value="fiado">📋 Registrar em fiado (saldo negativo)</option>
+            <option value="pix">📱 Pix</option>
+            <option value="dinheiro">💵 Dinheiro</option>
+            <option value="cartao_credito">💳 Cartão de crédito</option>
+            <option value="cartao_debito">💳 Cartão de débito</option>
+          </select>
+        </div>
+
+        <!-- Form submit -->
+        <form method="post" action="/clients/{{ client.id }}/cart" id="cart-form">
+          <input type="hidden" name="sold_at" id="cart-sold-at" value="{{ today }}">
+          <input type="hidden" name="items_json" id="cart-items-json">
+          <input type="hidden" name="diff_payment" id="cart-diff-payment" value="fiado">
+          <label style="font-size:.85rem">Data da venda</label>
+          <input type="date" name="sold_at" id="cart-date" value="{{ today }}" required style="margin-bottom:10px">
+          <button class="btn-primary" type="button" id="btn-confirmar" onclick="submitClientCart()" style="width:100%;display:none">✅ Confirmar pedido</button>
         </form>
       </div>
 
@@ -167,7 +206,7 @@
         {% endif %}
       </div>
       <table>
-        <thead><tr><th>Data</th><th>Tipo</th><th>Descrição</th><th>Valor</th></tr></thead>
+        <thead><tr><th>Data</th><th>Tipo</th><th>Descrição</th><th>Valor</th><th></th></tr></thead>
         <tbody>
           {% for d in deposits %}
           <tr>
@@ -175,6 +214,7 @@
             <td>💰 Depósito</td>
             <td>{{ d.note or '—' }}</td>
             <td class="amount-pos">+ R$ {{ '%.2f'|format(d.amount) }}</td>
+            <td></td>
           </tr>
           {% endfor %}
           {% for s in sales %}
@@ -183,10 +223,15 @@
             <td>🛒 Venda</td>
             <td>{{ s.product_name }} × {{ s.qty }}</td>
             <td class="amount-neg">− R$ {{ '%.2f'|format(s.total) }}</td>
+            <td>
+              <form method="post" action="/clients/{{ client.id }}/sale/{{ s.id }}/delete" onsubmit="return confirm('Excluir esta venda?')">
+                <button type="submit" style="background:none;border:none;color:#dc2626;cursor:pointer;font-size:.85rem;font-weight:700;padding:2px 6px;">✕</button>
+              </form>
+            </td>
           </tr>
           {% endfor %}
           {% if not deposits and not sales %}
-          <tr><td colspan="4" class="empty-row">Nenhuma operação registrada ainda.</td></tr>
+          <tr><td colspan="5" class="empty-row">Nenhuma operação registrada ainda.</td></tr>
           {% endif %}
         </tbody>
       </table>
@@ -196,26 +241,25 @@
 </div>
 
 <script>
-// Products data from server
 const allProducts = [
   {% for p in products %}
   {id: {{ p.id }}, name: {{ p.name|tojson }}, price: {{ p.sale_price or 0 }}, unit: {{ (p.unit or '')|tojson }}},
   {% endfor %}
 ];
-
+const clientBalance = {{ client.balance }};
 let prodActive = -1;
+let clientCart = [];
+let currentProd = null;
 
 function searchProd(q) {
   const box = document.getElementById('prod-results');
-  document.getElementById('prod-id').value = '';
-  document.getElementById('c-price').value = '';
-  document.getElementById('c-total').value = '';
+  currentProd = null;
   prodActive = -1;
   if (!q || q.length < 1) { box.style.display = 'none'; return; }
   const filtered = allProducts.filter(p => p.name.toLowerCase().includes(q.toLowerCase())).slice(0, 12);
   if (!filtered.length) { box.innerHTML = '<div class="prod-item" style="color:#9ca3af">Nenhum produto encontrado</div>'; box.style.display = 'block'; return; }
   box.innerHTML = filtered.map((p, i) =>
-    `<div class="prod-item" data-idx="${i}" data-id="${p.id}" data-price="${p.price}" data-name="${p.name}" onclick="selectProd(${i})">
+    `<div class="prod-item" data-idx="${i}" onclick="selectProd(${i})">
       <span>${p.name}${p.unit ? ' <span style="color:#9ca3af;font-size:.8rem">('+p.unit+')</span>' : ''}</span>
       <span class="prod-item-price">R$ ${p.price.toFixed(2).replace('.',',')}</span>
     </div>`
@@ -227,11 +271,11 @@ function searchProd(q) {
 function selectProd(idx) {
   const box = document.getElementById('prod-results');
   const p = box._data[idx];
-  document.getElementById('prod-id').value = p.id;
+  currentProd = p;
   document.getElementById('prod-search').value = p.name + (p.unit ? ' (' + p.unit + ')' : '');
   document.getElementById('c-price').value = p.price.toFixed(2);
   box.style.display = 'none';
-  calcTotal();
+  calcItemTotal();
 }
 
 function prodKeydown(e) {
@@ -250,10 +294,85 @@ document.addEventListener('click', e => {
   if (!e.target.closest('.prod-wrap')) document.getElementById('prod-results').style.display = 'none';
 });
 
-function calcTotal() {
+function calcItemTotal() {
   const q = parseFloat((document.getElementById('c-qty').value||'').replace(',','.'));
   const p = parseFloat((document.getElementById('c-price').value||'').replace(',','.'));
-  if (!isNaN(q) && !isNaN(p)) document.getElementById('c-total').value = (q*p).toFixed(2);
+  if (!isNaN(q) && !isNaN(p)) document.getElementById('c-item-total').value = (q*p).toFixed(2);
+}
+
+function addToClientCart() {
+  if (!currentProd) { alert('Selecione um produto primeiro!'); return; }
+  const qty = parseFloat((document.getElementById('c-qty').value||'1').replace(',','.'));
+  const price = parseFloat((document.getElementById('c-price').value||'0').replace(',','.'));
+  if (!qty || qty <= 0) { alert('Quantidade inválida!'); return; }
+  const total = parseFloat((qty * price).toFixed(2));
+  clientCart.push({id: currentProd.id, name: currentProd.name, unit: currentProd.unit, qty, price, total});
+  // reset
+  document.getElementById('prod-search').value = '';
+  document.getElementById('c-qty').value = '1';
+  document.getElementById('c-price').value = '';
+  document.getElementById('c-item-total').value = '';
+  currentProd = null;
+  renderCart();
+}
+
+function removeFromCart(idx) {
+  clientCart.splice(idx, 1);
+  renderCart();
+}
+
+function renderCart() {
+  const tbody = document.getElementById('cart-tbody');
+  const cartDiv = document.getElementById('cart-items');
+  const btn = document.getElementById('btn-confirmar');
+  const diffBlock = document.getElementById('diff-block');
+
+  if (!clientCart.length) {
+    cartDiv.style.display = 'none';
+    btn.style.display = 'none';
+    diffBlock.style.display = 'none';
+    return;
+  }
+
+  cartDiv.style.display = 'block';
+  btn.style.display = 'block';
+
+  const grandTotal = clientCart.reduce((s, i) => s + i.total, 0);
+  document.getElementById('cart-total-val').textContent = 'R$ ' + grandTotal.toFixed(2).replace('.',',');
+
+  tbody.innerHTML = clientCart.map((item, idx) => `
+    <tr>
+      <td style="padding:7px 8px">${item.name} <span style="color:#9ca3af;font-size:.78rem">(${item.unit})</span></td>
+      <td style="padding:7px 8px;text-align:center">${item.qty}</td>
+      <td style="padding:7px 8px;text-align:right;font-weight:700">R$ ${item.total.toFixed(2).replace('.',',')}</td>
+      <td style="padding:7px 8px"><button onclick="removeFromCart(${idx})" style="background:none;border:none;color:#dc2626;cursor:pointer;font-weight:700">✕</button></td>
+    </tr>
+  `).join('');
+
+  const diff = grandTotal - clientBalance;
+  if (diff > 0) {
+    diffBlock.style.display = 'block';
+    document.getElementById('diff-msg').textContent =
+      `⚠️ Saldo insuficiente — faltam R$ ${diff.toFixed(2).replace('.',',')} (saldo: R$ ${clientBalance.toFixed(2).replace('.',',')})`;
+  } else {
+    diffBlock.style.display = 'none';
+  }
+}
+
+function submitClientCart() {
+  if (!clientCart.length) { alert('Adicione pelo menos um produto!'); return; }
+  const grandTotal = clientCart.reduce((s, i) => s + i.total, 0);
+  const diff = grandTotal - clientBalance;
+  let diffPayment = 'saldo';
+  if (diff > 0) {
+    diffPayment = document.getElementById('diff-payment').value;
+  }
+  document.getElementById('cart-items-json').value = JSON.stringify(clientCart);
+  document.getElementById('cart-diff-payment').value = diffPayment;
+  document.getElementById('cart-sold-at').value = document.getElementById('cart-date').value;
+  const btn = document.getElementById('btn-confirmar');
+  btn.disabled = true; btn.textContent = 'Registrando...';
+  document.getElementById('cart-form').submit();
 }
 
 function sendWA() {

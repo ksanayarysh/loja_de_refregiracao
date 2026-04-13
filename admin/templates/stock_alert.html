@@ -1,80 +1,35 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Estoque Baixo — M.T.F</title>
-  <style>
-    body { font-family: Arial, Helvetica, sans-serif; background: bisque; min-height: 100vh; font-size: 15px; margin: 0; }
-    .navbar { background: bisque; padding: 10px 16px; display: flex; align-items: center; border-bottom: 1px solid #ccc; gap: 20px; flex-wrap: wrap; }
-    .nav-brand { font-weight: 900; font-size: 1.1rem; color: #111; text-decoration: none; }
-    .navbar a { color: #E2144A; text-decoration: none; font-weight: 700; font-size: .95rem; }
-    .navbar a:hover { text-decoration: underline; }
-    .navbar a.active { color: #111; font-weight: 900; }
-    .layout { display: flex; min-height: calc(100vh - 45px); }
-    .sidebar { width: 160px; flex-shrink: 0; border-right: 1px solid #ccc; padding: 16px 0; background: bisque; }
-    .sidebar ul { list-style: none; padding: 0; margin: 0; width: 100%; }
-    .sidebar ul li { position: relative; }
-    .sidebar ul li a { display: block; text-decoration: none; color: #E2144A; background: #fff; padding: 7px 10px; border: 1px solid #ccc; border-left: none; font-size: .9rem; }
-    .sidebar ul li a:hover { background: #ccc; font-weight: bold; }
-    .sidebar .submenu { display: none; position: absolute; left: 149px; top: 0; width: 150px; z-index: 10; }
-    .sidebar ul li:hover .submenu { display: block; }
-    .content { flex: 1; padding: 24px; max-width: 860px; }
-    h1 { font-size: 1.4rem; color: #111; margin-bottom: 4px; }
-    .subtitle { color: #666; font-size: .9rem; margin-bottom: 20px; }
-    .card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
-    .card h2 { font-size: 1rem; font-weight: 900; color: #111; margin: 0 0 14px; }
-    table { width: 100%; border-collapse: collapse; }
-    th { text-align: left; font-size: .75rem; font-weight: 800; color: #888; text-transform: uppercase; letter-spacing: .05em; padding: 6px 10px; border-bottom: 2px solid #f3f4f6; }
-    td { padding: 10px 10px; border-bottom: 1px solid #f3f4f6; font-size: .95rem; vertical-align: middle; }
-    tr:last-child td { border-bottom: none; }
-    tr:hover td { background: #fafafa; }
-    .stock-val { font-weight: 900; font-size: 1rem; }
-    .stock-empty { color: #dc2626; }
-    .stock-low   { color: #d97706; }
-    .stock-ok    { color: #16a34a; }
-    .cat-badge { display: inline-block; background: #f3f4f6; color: #555; border-radius: 6px; padding: 2px 8px; font-size: .78rem; font-weight: 700; }
-    .threshold-form { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-    .threshold-form label { font-weight: 800; font-size: .9rem; }
-    .threshold-form input { padding: 7px 12px; border-radius: 8px; border: 1px solid #d1d5db; font-size: .95rem; font-family: inherit; width: 80px; }
-    .threshold-form button { padding: 8px 16px; border-radius: 8px; border: none; background: #111827; color: #fff; font-weight: 800; font-size: .88rem; cursor: pointer; font-family: inherit; }
-    .summary-pills { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
-    .pill { background: #fff; border-radius: 10px; padding: 12px 16px; box-shadow: 0 2px 8px rgba(0,0,0,.06); min-width: 110px; }
-    .pill-label { font-size: .72rem; font-weight: 800; color: #888; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
-    .pill-value { font-size: 1.3rem; font-weight: 900; }
-    .pill-value.red { color: #dc2626; }
-    .pill-value.orange { color: #d97706; }
-    .empty { color: #888; text-align: center; padding: 32px; font-size: .95rem; }
-    .add-stock-btn { display: inline-block; padding: 4px 10px; border-radius: 6px; background: #fff; border: 1px solid #ccc; color: #111; text-decoration: none; font-size: .78rem; font-weight: 700; white-space: nowrap; }
-    .add-stock-btn:hover { background: bisque; }
-  </style>
-</head>
-<body>
+{% extends '_base_admin.html' %}
+{% block title %}Estoque Baixo — M.T.F{% endblock %}
+{% block extra_styles %}
 
-<header class="navbar">
-  <a href="/" class="nav-brand">🛍 M.T.F</a>
-  <a href="/">Início</a>
-  <a href="/products">Produtos</a>
-  <a href="/sales">Vendas</a>
-  <a href="/stock">Estoque</a>
-  <a href="/reports" class="active">Relatórios</a>
-</header>
-
-<div class="layout">
-  <nav class="sidebar">
-    <ul>
-      <li><a href="/">Início</a></li>
-      <li><a href="#">Produtos ▸</a><ul class="submenu"><li><a href="/products">Lista</a></li><li><a href="/products/new">+ Cadastrar</a></li></ul></li>
-      <li><a href="#">Vendas ▸</a><ul class="submenu"><li><a href="/sales">Lista</a></li><li><a href="/sales/new">+ Nova</a></li></ul></li>
-      <li><a href="#">Estoque ▸</a><ul class="submenu"><li><a href="/stock">Saldo</a></li><li><a href="/stock/new">+ Entrada</a></li></ul></li>
-      <li><a href="/reports">Relatórios</a></li>
-      <li><a href="/reports/stock-alert" style="font-weight:900;color:#d97706;">⚠️ Estoque baixo</a></li>
-      <li><a href="/calc">Calculadora</a></li>
-    </ul>
-  </nav>
-
-  <main class="content">
-    <h1>⚠️ Estoque Baixo</h1>
+    h1{font-size:1.4rem;color:#111;margin-bottom:4px;}
+    .subtitle{color:#666;font-size:.9rem;margin-bottom:20px;}
+    .card{background:#fff;border-radius:12px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.06);}
+    .threshold-form{display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
+    .threshold-form label{font-weight:800;font-size:.9rem;}
+    .threshold-form input{padding:7px 12px;border-radius:8px;border:1px solid #d1d5db;font-size:.95rem;font-family:inherit;width:80px;}
+    .threshold-form button{padding:8px 16px;border-radius:8px;border:none;background:#111827;color:#fff;font-weight:800;font-size:.88rem;cursor:pointer;font-family:inherit;}
+    .summary-pills{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;}
+    .pill{background:#fff;border-radius:10px;padding:12px 16px;box-shadow:0 2px 8px rgba(0,0,0,.06);min-width:110px;}
+    .pill-label{font-size:.72rem;font-weight:800;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;}
+    .pill-value{font-size:1.3rem;font-weight:900;}
+    .pill-value.red{color:#dc2626;}
+    .pill-value.orange{color:#d97706;}
+    table{width:100%;border-collapse:collapse;}
+    th{text-align:left;font-size:.75rem;font-weight:800;color:#888;text-transform:uppercase;letter-spacing:.05em;padding:6px 10px;border-bottom:2px solid #f3f4f6;}
+    td{padding:10px;border-bottom:1px solid #f3f4f6;font-size:.95rem;vertical-align:middle;}
+    tr:last-child td{border-bottom:none;}
+    tr:hover td{background:#fafafa;}
+    .stock-val{font-weight:900;font-size:1rem;}
+    .stock-empty{color:#dc2626;}
+    .stock-low{color:#d97706;}
+    .cat-badge{display:inline-block;background:#f3f4f6;color:#555;border-radius:6px;padding:2px 8px;font-size:.78rem;font-weight:700;}
+    .empty{color:#888;text-align:center;padding:32px;font-size:.95rem;}
+    .add-stock-btn{display:inline-block;padding:4px 10px;border-radius:6px;background:#fff;border:1px solid #ccc;color:#111;text-decoration:none;font-size:.78rem;font-weight:700;}
+    .add-stock-btn:hover{background:bisque;}
+{% endblock %}
+{% block content %}
+<h1>⚠️ Estoque Baixo</h1>
     <p class="subtitle">Produtos com quantidade disponível menor que <strong>{{ threshold }}</strong> unidade(s).</p>
 
     <!-- Filtro de threshold -->
@@ -136,8 +91,8 @@
       <div class="empty">✅ Nenhum produto com estoque abaixo de {{ threshold }}.</div>
       {% endif %}
     </div>
-  </main>
-</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
 
-</body>
-</html>
+{% endblock %}

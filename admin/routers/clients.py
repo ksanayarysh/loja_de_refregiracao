@@ -206,11 +206,10 @@ async def client_sale(
         price_d = money2(Decimal(unit_price.replace(",", ".")) if unit_price.strip() else Decimal(str(p["sale_price"] or 0)))
         total_d = money2(Decimal(total.replace(",", ".")) if total.strip() else qty_d * price_d)
 
-        # Проверяем баланс
         bal_res = await conn.execute(text("SELECT balance, name FROM clients WHERE id=:id"), {"id": client_id})
         client = bal_res.mappings().first()
-        if not client or client["balance"] < total_d:
-            return RedirectResponse(url=f"/clients/{client_id}?err=saldo+insuficiente", status_code=303)
+        if not client:
+            return RedirectResponse(url=f"/clients/{client_id}?err=cliente+nao+encontrado", status_code=303)
 
         sold_at_date = _parse_date(sold_at)
 
@@ -240,6 +239,103 @@ async def client_sale(
         f"Saldo restante: R$ {float(client['balance']) - float(total_d):.2f}"
     )
     return RedirectResponse(url=f"/clients/{client_id}?ok=venda", status_code=303)
+
+
+# ── CART ORDER FROM CLIENT ───────────────────────────────────────────────────
+
+@router.post("/clients/{client_id}/cart")
+async def client_cart(
+    client_id: int,
+    sold_at: str = Form(...),
+    items_json: str = Form(...),
+    diff_payment: str = Form("saldo"),
+    _=Depends(basic_auth),
+):
+    import json as _json
+    try:
+        items = _json.loads(items_json)
+    except Exception:
+        return RedirectResponse(url=f"/clients/{client_id}?err=dados+invalidos", status_code=303)
+
+    sold_at_date = _parse_date(sold_at)
+    grand_total = sum(money2(i["total"]) for i in items)
+
+    async with engine.begin() as conn:
+        bal_res = await conn.execute(text("SELECT balance, name FROM clients WHERE id=:id"), {"id": client_id})
+        client = bal_res.mappings().first()
+        if not client:
+            return RedirectResponse(url=f"/clients/{client_id}?err=cliente+nao+encontrado", status_code=303)
+
+        balance = money2(client["balance"])
+        diff = grand_total - balance
+
+        for item in items:
+            qty_d = money2(item["qty"])
+            price_d = money2(item["price"])
+            total_d = money2(item["total"])
+            pid = int(item["id"])
+
+            # Determina payment_type
+            if diff <= 0:
+                payment = "saldo"
+            elif diff_payment == "fiado":
+                payment = "saldo"  # vai ficar negativo
+            else:
+                payment = diff_payment
+
+            await conn.exec_driver_sql(
+                "INSERT INTO sales (sold_at, product_id, qty, unit_price, total, payment_type, client_id) VALUES ($1,$2,$3,$4,$5,$6,$7)",
+                (sold_at_date, pid, qty_d, price_d, total_d, payment, client_id)
+            )
+            sale_res = await conn.execute(text("SELECT lastval()"))
+            sale_id = sale_res.scalar()
+            await conn.execute(text("""
+                INSERT INTO stock_movements (product_id, qty, movement_type, note, sale_id, moved_at)
+                VALUES (:pid, :qty, 'venda', 'Venda automática', :sid, :dt)
+            """), {"pid": pid, "qty": -qty_d, "sid": sale_id, "dt": sold_at_date})
+
+        # Atualiza balance — debita tudo do saldo (pode ficar negativo)
+        await conn.execute(
+            text("UPDATE clients SET balance = balance - :a WHERE id = :id"),
+            {"a": grand_total, "id": client_id}
+        )
+
+    items_summary = ", ".join(f"{i['name']} ×{i['qty']}" for i in items)
+    tg_msg = (
+        f"🛒 <b>Pedido de cliente</b>\n"
+        f"Cliente: <b>{client['name']}</b>\n"
+        f"Itens: {items_summary}\n"
+        f"Total: R$ {grand_total:.2f}\n"
+        f"Pagamento: {diff_payment if diff > 0 else 'saldo'}"
+    )
+    await _tg(tg_msg)
+    return RedirectResponse(url=f"/clients/{client_id}?ok=venda", status_code=303)
+
+
+# ── DELETE SALE FROM CLIENT ──────────────────────────────────────────────────
+
+@router.post("/clients/{client_id}/sale/{sale_id}/delete")
+async def client_sale_delete(client_id: int, sale_id: int, _=Depends(basic_auth)):
+    async with engine.begin() as conn:
+        # Получаем сумму продажи чтобы вернуть на баланс
+        res = await conn.execute(
+            text("SELECT total FROM sales WHERE id=:id AND client_id=:cid"),
+            {"id": sale_id, "cid": client_id}
+        )
+        row = res.first()
+        if row:
+            await conn.execute(
+                text("DELETE FROM stock_movements WHERE sale_id=:id"), {"id": sale_id}
+            )
+            await conn.execute(
+                text("DELETE FROM sales WHERE id=:id"), {"id": sale_id}
+            )
+            # Возвращаем сумму на баланс
+            await conn.execute(
+                text("UPDATE clients SET balance = balance + :a WHERE id=:id"),
+                {"a": row[0], "id": client_id}
+            )
+    return RedirectResponse(url=f"/clients/{client_id}?ok=excluido", status_code=303)
 
 
 # ── EDIT ──────────────────────────────────────────────────────────────────────

@@ -98,6 +98,7 @@ async def sales_create(
     total: str = Form(""),
     note: str = Form(""),
     payment_type: str = Form("dinheiro"),
+    client_id: str = Form(""),
     _=Depends(basic_auth),
 ):
     error = None
@@ -149,8 +150,8 @@ async def sales_create(
                     total_d = money2(total_d)
                     sold_at_date = _parse_date(sold_at)
                     await conn.exec_driver_sql(
-                        "INSERT INTO sales (sold_at, product_id, qty, unit_price, total, note, payment_type) VALUES ($1,$2,$3,$4,$5,$6,$7)",
-                        (sold_at_date, product_id, qty_d, price_d, total_d, note.strip() or None, payment_type)
+                        "INSERT INTO sales (sold_at, product_id, qty, unit_price, total, note, payment_type, client_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)",
+                        (sold_at_date, product_id, qty_d, price_d, total_d, note.strip() or None, payment_type, int(client_id.strip()) if client_id.strip() else None)
                     )
                     # Автосписание стока
                     sale_res = await conn.execute(text("SELECT lastval()"))
@@ -162,6 +163,16 @@ async def sales_create(
                          "sid": sale_id, "dt": sold_at_date}
                     )
                     success = "Venda registrada."
+                    # Списать баланс клиента если saldo
+                    if payment_type == "saldo" and client_id.strip():
+                        try:
+                            cid = int(client_id.strip())
+                            await conn.execute(
+                                text("UPDATE clients SET balance = balance - :a WHERE id = :id"),
+                                {"a": total_d, "id": cid}
+                            )
+                        except Exception:
+                            pass
                     # Получаем имя продукта для уведомления
                     pname_res = await conn.execute(
                         text("SELECT name FROM products WHERE id = :pid"), {"pid": product_id}
@@ -196,6 +207,7 @@ async def sales_checkout(
     sold_at: str = Form(...),
     payment_type: str = Form("dinheiro"),
     items_json: str = Form(...),
+    client_id: str = Form(""),
     _=Depends(basic_auth),
 ):
     sold_at_date = _parse_date(sold_at)
@@ -221,8 +233,8 @@ async def sales_checkout(
             price_d = money2(Decimal(str(item["unit_price"])))
             total_d = money2(qty_d * price_d)
             await conn.exec_driver_sql(
-                "INSERT INTO sales (sold_at, product_id, qty, unit_price, total, payment_type) VALUES ($1,$2,$3,$4,$5,$6)",
-                (sold_at_date, int(item["product_id"]), qty_d, price_d, total_d, payment_type)
+                "INSERT INTO sales (sold_at, product_id, qty, unit_price, total, payment_type, client_id) VALUES ($1,$2,$3,$4,$5,$6,$7)",
+                (sold_at_date, int(item["product_id"]), qty_d, price_d, total_d, payment_type, int(client_id.strip()) if client_id.strip() else None)
             )
             # Автосписание стока
             sale_res = await conn.execute(text("SELECT lastval()"))
@@ -233,6 +245,18 @@ async def sales_checkout(
                 {"pid": int(item["product_id"]), "qty": -qty_d, "sid": sale_id, "dt": sold_at_date}
             )
 
+    # Списать баланс клиента если saldo
+    if payment_type == "saldo" and client_id.strip():
+        try:
+            cid = int(client_id.strip())
+            grand_total = sum(Decimal(str(i["qty"])) * Decimal(str(i["unit_price"])) for i in items)
+            async with engine.begin() as conn2:
+                await conn2.execute(
+                    text("UPDATE clients SET balance = balance - :a WHERE id = :id"),
+                    {"a": money2(grand_total), "id": cid}
+                )
+        except Exception:
+            pass
     await _tg_notify_checkout(items, payment_type)
     return RedirectResponse(url="/sales?checkout=1", status_code=303)
 

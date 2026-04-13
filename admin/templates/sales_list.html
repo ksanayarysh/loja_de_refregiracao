@@ -1,164 +1,55 @@
-<!doctype html>
-<html lang="pt-BR">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Vendas — M.T.F</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: Arial, Helvetica, sans-serif; background: bisque; min-height: 100vh; font-size: 15px; }
+{% extends '_base_admin.html' %}
+{% block title %}Vendas — M.T.F{% endblock %}
 
-    .navbar {
-      background: bisque; padding: 10px 16px;
-      display: flex; align-items: center; border-bottom: 1px solid #ccc;
-      gap: 20px; flex-wrap: wrap;
-    }
-    .nav-brand { font-weight: 900; font-size: 1.1rem; color: #111; text-decoration: none; }
-    .navbar a { color: #E2144A; text-decoration: none; font-weight: 700; font-size: .95rem; }
-    .navbar a:hover { text-decoration: underline; }
-    .navbar a.active { color: #111; font-weight: 900; }
+{% block extra_styles %}
+    .card{background:#fff;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.08);padding:20px;}
+    h1{font-size:1.4rem;margin-bottom:14px;color:#111;}
+    .summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+    .sum-card{background:bisque;border-radius:10px;padding:12px 14px;border:1px solid #ccc;}
+    .sum-label{font-size:.72rem;font-weight:800;color:#555;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;}
+    .sum-value{font-size:1.2rem;font-weight:900;color:#111;}
+    .filters{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px;}
+    .filters label{font-weight:800;color:#111;font-size:.9rem;}
+    select,input[type="date"]{padding:8px 10px;border-radius:8px;border:1px solid #ccc;font-size:.9rem;font-family:inherit;background:#fff;}
+    .btn{display:inline-block;padding:8px 14px;border-radius:8px;background:#111827;color:#fff;text-decoration:none;font-weight:800;border:none;cursor:pointer;font-size:.9rem;font-family:inherit;}
+    .btn.secondary{background:#fff;color:#E2144A;border:1px solid #ccc;}
+    .btn.secondary:hover{background:#ccc;}
+    .btn:hover{background:#374151;}
+    .topbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px;}
+    .pill{padding:8px 12px;border-radius:8px;background:bisque;border:1px solid #ccc;color:#111;font-weight:700;font-size:.88rem;}
+    .ok-banner{background:#ecfdf5;border:1px solid #bbf7d0;color:#065f46;padding:10px 14px;border-radius:8px;margin-bottom:14px;font-weight:800;}
+    .action-cell{display:flex;gap:5px;align-items:center;}
+    .edit-btn{display:inline-block;padding:4px 10px;border-radius:6px;background:#fff;border:1px solid #ccc;color:#111;text-decoration:none;font-size:.78rem;font-weight:700;white-space:nowrap;}
+    .edit-btn:hover{background:bisque;}
+    .del-btn{padding:4px 8px;border-radius:6px;background:#fff;border:1px solid #fca5a5;color:#dc2626;font-size:.78rem;font-weight:700;cursor:pointer;font-family:inherit;}
+    .del-btn:hover{background:#dc2626;color:#fff;}
+    .pager{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-top:14px;}
+    .pages{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+    .pagebtn{padding:8px 11px;border-radius:8px;background:bisque;border:1px solid #ccc;text-decoration:none;color:#111;font-weight:800;font-size:.85rem;}
+    .pagebtn.active{background:#111827;color:#fff;border-color:#111827;}
+    .pagebtn.disabled{opacity:.4;pointer-events:none;}
+    .pay-badge{display:inline-block;padding:3px 8px;border-radius:6px;font-size:.78rem;font-weight:800;white-space:nowrap;}
+    .pay-dinheiro{background:#dcfce7;color:#166534;}
+    .pay-pix{background:#dbeafe;color:#1e40af;}
+    .pay-cartao_credito{background:#fef3c7;color:#92400e;}
+    .pay-cartao_debito{background:#f3e8ff;color:#6b21a8;}
+    .pay-saldo{background:#f0fdf4;color:#166534;}
+    .day-group{margin-bottom:20px;}
+    .day-header{display:flex;justify-content:space-between;align-items:center;background:#111827;color:#fff;padding:10px 14px;border-radius:8px 8px 0 0;font-weight:900;font-size:1rem;}
+    .day-table{width:100%;border-collapse:collapse;table-layout:fixed;border:1px solid #e7e9ee;border-top:none;}
+    .day-table th,.day-table td{padding:10px 12px;border-bottom:1px solid #e7e9ee;text-align:left;font-size:.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .day-table tr:last-child td{border-bottom:none;}
+    .day-table th{background:bisque;font-weight:900;font-size:.82rem;text-transform:uppercase;letter-spacing:.03em;}
+    .day-table td.td-name{white-space:normal;word-break:break-word;}
+    .col-name{width:24%;}.col-qty{width:9%;}.col-price{width:14%;}.col-total{width:14%;}.col-pay{width:16%;}.col-obs{width:15%;}.col-act{width:8%;}
+    .empty{padding:14px;background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;color:#7c2d12;}
+    @media(max-width:600px){.summary{grid-template-columns:1fr;}}
+{% endblock %}
 
-    .layout { display: flex; min-height: calc(100vh - 50px); }
-
-    .sidebar { width: 160px; flex-shrink: 0; border-right: 1px solid #ccc; padding: 16px 0; background: bisque; }
-    .sidebar ul { list-style: none; }
-    .sidebar ul li { position: relative; }
-    .sidebar ul li a { display: block; text-decoration: none; color: #E2144A; background: #fff; padding: 7px 10px; border: 1px solid #ccc; border-left: none; font-size: .9rem; }
-    .sidebar ul li a:hover { background: #ccc; font-weight: bold; }
-    .sidebar .submenu { display: none; position: absolute; left: 149px; top: 0; width: 150px; z-index: 10; }
-    .sidebar ul li:hover .submenu { display: block; }
-
-    .content { flex: 1; padding: 24px; overflow-x: auto; }
-
-    .card { background: #fff; border-radius: 14px; box-shadow: 0 4px 14px rgba(0,0,0,.08); padding: 20px; }
-
-    h1 { font-size: 1.4rem; margin-bottom: 14px; color: #111; }
-
-    /* SUMMARY */
-    .summary { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 16px; }
-    .sum-card { background: bisque; border-radius: 10px; padding: 12px 14px; border: 1px solid #ccc; }
-    .sum-label { font-size: .72rem; font-weight: 800; color: #555; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 3px; }
-    .sum-value { font-size: 1.2rem; font-weight: 900; color: #111; }
-
-    /* FILTERS */
-    .filters { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
-    .filters label { font-weight: 800; color: #111; font-size: .9rem; }
-    select, input[type="date"] { padding: 8px 10px; border-radius: 8px; border: 1px solid #ccc; font-size: .9rem; font-family: inherit; background: #fff; }
-    .btn { display: inline-block; padding: 8px 14px; border-radius: 8px; background: #111827; color: #fff; text-decoration: none; font-weight: 800; border: none; cursor: pointer; font-size: .9rem; font-family: inherit; }
-    .btn.secondary { background: #fff; color: #E2144A; border: 1px solid #ccc; }
-    .btn.secondary:hover { background: #ccc; }
-    .btn:hover { background: #374151; }
-
-    /* TOPBAR */
-    .topbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
-    .pill { padding: 8px 12px; border-radius: 8px; background: bisque; border: 1px solid #ccc; color: #111; font-weight: 700; font-size: .88rem; }
-
-    /* TABLE */
-    table { width: 100%; border-collapse: collapse; min-width: 680px; }
-    th, td { padding: 11px 10px; border-bottom: 1px solid #e7e9ee; text-align: left; font-size: .9rem; }
-    th { background: bisque; font-weight: 900; position: sticky; top: 0; }
-    th a { color: #111; text-decoration: none; }
-    th a:hover { text-decoration: underline; }
-    .price { white-space: nowrap; font-weight: 900; }
-    .empty { padding: 14px; background: #fff7ed; border: 1px solid #fed7aa; border-radius: 10px; color: #7c2d12; }
-
-    /* PAYMENT BADGE */
-    .pay-badge {
-      display: inline-block; padding: 3px 8px; border-radius: 6px;
-      font-size: .78rem; font-weight: 800; white-space: nowrap;
-    }
-    .pay-dinheiro   { background: #dcfce7; color: #166534; }
-    .pay-pix        { background: #dbeafe; color: #1e40af; }
-    .pay-cartao_credito { background: #fef3c7; color: #92400e; }
-    .pay-cartao_debito  { background: #f3e8ff; color: #6b21a8; }
-
-    .ok-banner { background: #ecfdf5; border: 1px solid #bbf7d0; color: #065f46; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px; font-weight: 800; }
-    .action-cell { display: flex; gap: 5px; align-items: center; }
-    .edit-btn { display: inline-block; padding: 4px 10px; border-radius: 6px; background: #fff; border: 1px solid #ccc; color: #111; text-decoration: none; font-size: .78rem; font-weight: 700; white-space: nowrap; }
-    .edit-btn:hover { background: bisque; }
-    .del-btn { padding: 4px 8px; border-radius: 6px; background: #fff; border: 1px solid #fca5a5; color: #dc2626; font-size: .78rem; font-weight: 700; cursor: pointer; font-family: inherit; }
-    .del-btn:hover { background: #dc2626; color: #fff; }
-
-    /* PAGER */
-    .pager { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: space-between; margin-top: 14px; }
-    .pages { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
-    .pagebtn { padding: 8px 11px; border-radius: 8px; background: bisque; border: 1px solid #ccc; text-decoration: none; color: #111; font-weight: 800; font-size: .85rem; }
-    .pagebtn.active { background: #111827; color: #fff; border-color: #111827; }
-    .pagebtn.disabled { opacity: .4; pointer-events: none; }
-
-    /* DAY GROUP */
-    .day-group { margin-bottom: 20px; }
-    .day-header { display: flex; justify-content: space-between; align-items: center;
-      background: #111827; color: #fff; padding: 10px 14px; border-radius: 8px 8px 0 0;
-      font-weight: 900; font-size: 1rem; }
-    .day-header .day-date { font-size: 1rem; }
-    .day-header .day-total { font-size: 1rem; }
-    .day-header .day-count { font-size: .82rem; opacity: .7; margin-left: 8px; }
-    .day-table { width: 100%; border-collapse: collapse; table-layout: fixed; border: 1px solid #e7e9ee; border-top: none; }
-    .day-table th, .day-table td { padding: 10px 12px; border-bottom: 1px solid #e7e9ee; text-align: left; font-size: .9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .day-table tr:last-child td { border-bottom: none; }
-    .day-table th { background: bisque; font-weight: 900; font-size: .82rem; text-transform: uppercase; letter-spacing: .03em; }
-    .day-table td.td-name { white-space: normal; word-break: break-word; }
-    .col-name  { width: 24%; }
-    .col-qty   { width: 9%; }
-    .col-price { width: 14%; }
-    .col-total { width: 14%; }
-    .col-pay   { width: 16%; }
-    .col-obs   { width: 15%; }
-    .col-act   { width: 8%; }
-
-    @media (max-width: 600px) {
-      .layout { flex-direction: column; }
-      .sidebar { width: 100%; border-right: none; border-bottom: 1px solid #ccc; }
-      .summary { grid-template-columns: 1fr; }
-    }
-  </style>
-</head>
-<body>
-
-<header class="navbar">
-  <a href="/" class="nav-brand">🛍 M.T.F</a>
-  <a href="/">Início</a>
-  <a href="/products">Produtos</a>
-  <a href="/products/new">+ Cadastrar produto</a>
-  <a href="/sales" class="active">Vendas</a>
-  <a href="/sales/new">+ Nova venda</a>
-  <a href="/stock">Estoque</a>
-  <a href="/reports">Relatórios</a>
-</header>
-
-<div class="layout">
-  <nav class="sidebar">
-    <ul>
-      <li><a href="/">Início</a></li>
-      <li>
-        <a href="#">Produtos ▸</a>
-        <ul class="submenu">
-          <li><a href="/products">Lista</a></li>
-          <li><a href="/products/new">+ Cadastrar</a></li>
-        </ul>
-      </li>
-      <li>
-        <a href="#">Vendas ▸</a>
-        <ul class="submenu">
-          <li><a href="/sales">Lista</a></li>
-          <li><a href="/sales/new">+ Nova</a></li>
-        </ul>
-      </li>
-      <li>
-        <a href="#">Estoque ▸</a>
-        <ul class="submenu">
-          <li><a href="/stock">Saldo</a></li>
-          <li><a href="/stock/new">+ Entrada</a></li>
-        </ul>
-      </li>
-      <li><a href="/reports">Relatórios</a></li>
-    </ul>
-  </nav>
-
-  <main class="content">
-    <div class="card">
-      <h1>Vendas</h1>
+{% block content %}
+<div class="card">
+  <h1>Vendas</h1>
+<h1>Vendas</h1>
 
       {% if deleted %}
       <div class="ok-banner">🗑 Venda excluída com sucesso.</div>
@@ -379,9 +270,9 @@
           <div class="pill">Página {{ page }} / {{ total_pages }}</div>
         </div>
       {% endif %}
-
-    </div>
-  </main>
 </div>
-</body>
-</html>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{% endblock %}

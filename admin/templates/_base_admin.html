@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}M.T.F Refrigeração{% endblock %}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, Helvetica, sans-serif; background: bisque; min-height: 100vh; }
+
+    /* NAVBAR */
+    .navbar { background: bisque; padding: 10px 16px; display: flex; align-items: center; border-bottom: 1px solid #ccc; gap: 16px; flex-wrap: wrap; }
+    .nav-brand { font-weight: 900; font-size: 1.1rem; color: #111; text-decoration: none; }
+    .nav-links { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+    .nav-links a { color: #E2144A; text-decoration: none; font-weight: 700; font-size: .95rem; }
+    .nav-links a:hover { text-decoration: underline; }
+    .nav-links a.active { color: #111; font-weight: 900; }
+    .nav-cart-btn { background: #111827; color: #fff !important; padding: 7px 14px; border-radius: 8px; font-size: .88rem; white-space: nowrap; position: relative; }
+    .nav-cart-btn:hover { background: #374151; text-decoration: none !important; }
+    .nav-cart-count { background: #E2144A; color: #fff; border-radius: 50%; padding: 1px 5px; font-size: .75rem; margin-left: 4px; display: none; }
+
+    /* LAYOUT */
+    .layout { display: flex; min-height: calc(100vh - 50px); }
+
+    /* SIDEBAR */
+    .sidebar { width: 160px; flex-shrink: 0; border-right: 1px solid #ccc; padding: 16px 0; background: bisque; }
+    .sidebar ul { list-style: none; }
+    .sidebar ul li { position: relative; }
+    .sidebar ul li a { display: block; text-decoration: none; color: #E2144A; background: #fff; padding: 7px 10px; border: 1px solid #ccc; border-left: none; font-size: .9rem; }
+    .sidebar ul li a:hover { background: #ccc; font-weight: bold; }
+    .sidebar ul li a.active { color: #111; font-weight: 900; background: #f5f5f5; }
+    .sidebar .submenu { display: none; position: absolute; left: 149px; top: 0; width: 150px; z-index: 10; }
+    .sidebar ul li:hover .submenu { display: block; }
+
+    /* CONTENT */
+    .content { flex: 1; padding: 24px; overflow-x: auto; }
+
+    /* COMMON ELEMENTS */
+    .card { background: #fff; border-radius: 14px; box-shadow: 0 4px 14px rgba(0,0,0,.08); padding: 24px; }
+    label { display: block; font-weight: 900; margin: 14px 0 6px; color: #111; }
+    input, select, textarea { width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid #d6d9e0; font-size: 1rem; font-family: inherit; background: #fff; }
+    textarea { min-height: 80px; resize: vertical; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: #007bff; }
+    .hint { color: #6b7280; font-size: .88rem; margin-top: 5px; }
+    .btns { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 20px; align-items: center; }
+    .btn-primary { padding: 12px 20px; border-radius: 10px; border: none; background: #111827; color: #fff; font-weight: 900; font-size: 1rem; cursor: pointer; font-family: inherit; text-decoration: none; display: inline-block; }
+    .btn-primary:hover { background: #374151; }
+    .btn-secondary { padding: 12px 20px; border-radius: 10px; border: 1px solid #ccc; background: #fff; color: #E2144A; font-weight: 900; font-size: 1rem; text-decoration: none; display: inline-block; font-family: inherit; cursor: pointer; }
+    .btn-secondary:hover { background: #ccc; }
+    .btn-danger { padding: 12px 20px; border-radius: 10px; border: 1px solid #dc2626; background: #fff; color: #dc2626; font-weight: 900; font-size: 1rem; cursor: pointer; font-family: inherit; }
+    .btn-danger:hover { background: #dc2626; color: #fff; }
+    .btn-green { padding: 12px 20px; border-radius: 10px; border: none; background: #16a34a; color: #fff; font-weight: 900; font-size: 1rem; cursor: pointer; font-family: inherit; }
+    .btn-green:hover { background: #15803d; }
+    .msg-ok  { background: #ecfdf5; border: 1px solid #bbf7d0; color: #065f46; padding: 12px 14px; border-radius: 10px; margin-bottom: 16px; font-weight: 800; }
+    .msg-err { background: #fef2f2; border: 1px solid #fecaca; color: #7f1d1d; padding: 12px 14px; border-radius: 10px; margin-bottom: 16px; font-weight: 800; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+    {% block extra_styles %}{% endblock %}
+
+    @media (max-width: 600px) {
+      .layout { flex-direction: column; }
+      .sidebar { width: 100%; border-right: none; border-bottom: 1px solid #ccc; }
+      .sidebar .submenu { left: 0; top: 100%; }
+      .row { grid-template-columns: 1fr; }
+      .nav-links { gap: 10px; }
+    }
+  </style>
+  {% block head %}{% endblock %}
+</head>
+<body>
+
+<header class="navbar">
+  <a href="/" class="nav-brand">🛍 M.T.F</a>
+  <div class="nav-links">
+    <a href="/products" {% if active_page == 'products' %}class="active"{% endif %}>Produtos</a>
+    <a href="/sales" {% if active_page == 'sales' %}class="active"{% endif %}>Vendas</a>
+    <a href="/stock" {% if active_page == 'stock' %}class="active"{% endif %}>Estoque</a>
+    <a href="/reports" {% if active_page == 'reports' %}class="active"{% endif %}>Relatórios</a>
+    <a href="/clients" {% if active_page == 'clients' %}class="active"{% endif %}>Clientes</a>
+    <a href="/calc" {% if active_page == 'calc' %}class="active"{% endif %}>Calculadora</a>
+  </div>
+  <a href="/checkout" class="nav-cart-btn" id="nav-cart-btn" style="margin-left:auto">🛒 Carrinho <span class="nav-cart-count" id="nav-cart-count">0</span></a>
+</header>
+
+<div class="layout">
+  <nav class="sidebar">
+    <ul>
+      <li><a href="/" {% if active_page == 'home' %}class="active"{% endif %}>Início</a></li>
+      <li>
+        <a href="#">Produtos ▸</a>
+        <ul class="submenu">
+          <li><a href="/products">Lista</a></li>
+          <li><a href="/products/new">+ Cadastrar</a></li>
+        </ul>
+      </li>
+      <li>
+        <a href="#">Vendas ▸</a>
+        <ul class="submenu">
+          <li><a href="/sales">Lista</a></li>
+          <li><a href="/sales/new">+ Nova venda</a></li>
+          <li><a href="/checkout">Carrinho</a></li>
+        </ul>
+      </li>
+      <li>
+        <a href="#">Estoque ▸</a>
+        <ul class="submenu">
+          <li><a href="/stock">Saldo</a></li>
+          <li><a href="/stock/history">Histórico</a></li>
+          <li><a href="/stock/new">+ Entrada</a></li>
+        </ul>
+      </li>
+      <li><a href="/reports" {% if active_page == 'reports' %}class="active"{% endif %}>Relatórios</a></li>
+      <li>
+        <a href="#">Clientes ▸</a>
+        <ul class="submenu">
+          <li><a href="/clients">Lista</a></li>
+          <li><a href="/clients/new">+ Novo</a></li>
+        </ul>
+      </li>
+      <li><a href="/calc" {% if active_page == 'calc' %}class="active"{% endif %}>Calculadora</a></li>
+    </ul>
+  </nav>
+
+  <main class="content">
+    {% block content %}{% endblock %}
+  </main>
+</div>
+
+{% block scripts %}
+<script>
+  // Carrinho badge
+  (function() {
+    const cart = JSON.parse(localStorage.getItem('mtf_cart') || '[]');
+    const count = document.getElementById('nav-cart-count');
+    if (cart.length > 0) {
+      count.textContent = cart.length;
+      count.style.display = 'inline';
+    }
+  })();
+</script>
+{% endblock %}
+
+</body>
+</html>
