@@ -201,9 +201,7 @@
     <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
         <div class="section-title" style="margin-bottom:0;border-bottom:none">📋 Histórico de operações</div>
-        {% if client.phone %}
         <a class="btn-wa" href="#" onclick="sendWA(); return false;">📤 Enviar extrato no WhatsApp</a>
-        {% endif %}
       </div>
       <table>
         <thead><tr><th>Data</th><th>Tipo</th><th>Descrição</th><th>Valor</th><th></th></tr></thead>
@@ -378,7 +376,13 @@ function submitClientCart() {
 function sendWA() {
   const name = {{ client.name | tojson }};
   const balance = {{ client.balance }};
-  const phone = '55' + {{ (client.phone or '') | tojson }}.replace(/\D/g,'');
+  let rawPhone = {{ (client.phone or '') | tojson }}.replace(/\D/g,'');
+  if (!rawPhone) {
+    rawPhone = prompt('Telefone do cliente (apenas números):');
+    if (!rawPhone) return;
+    rawPhone = rawPhone.replace(/\D/g,'');
+  }
+  const phone = '55' + rawPhone;
   let lines = [`*Extrato — ${name}*`, `Saldo atual: R$ ${balance.toFixed(2).replace('.',',')}`, ''];
 
   {% for d in deposits %}
