@@ -570,7 +570,7 @@ async function searchProducts() {
       return;
     }
     list.innerHTML = data.map(p => {
-      const stock = p.stock != null ? p.stock : null;
+      const stock = p.current_stock != null ? p.current_stock : null;
       const stockColor = stock === null ? '#aaa' : stock <= 0 ? '#dc2626' : stock <= 3 ? '#d97706' : '#16a34a';
       const stockText = stock === null ? '' : ` · <span style="color:${stockColor};font-weight:700;">${stock} ${p.unit}</span>`;
       return `
