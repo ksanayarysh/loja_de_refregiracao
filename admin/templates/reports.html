@@ -12,17 +12,17 @@
 
     h1 { font-size: 1.4rem; color: #111; margin-bottom: 4px; }
 
-    .period-bar { background: #fff; border-radius: 12px; padding: 14px 16px; box-shadow: 0 2px 8px rgba(0,0,0,.06); display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-    .period-btn { padding: 8px 16px; border-radius: 8px; border: 1px solid #ccc; background: #fff; color: #111; font-weight: 700; font-size: .88rem; cursor: pointer; text-decoration: none; font-family: inherit; }
+    .period-bar { background: #fff; border-radius: 12px; padding: 12px 16px; box-shadow: 0 2px 8px rgba(0,0,0,.06); display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+    .period-btn { padding: 7px 13px; border-radius: 8px; border: 1px solid #ccc; background: #fff; color: #111; font-weight: 700; font-size: .85rem; cursor: pointer; text-decoration: none; font-family: inherit; white-space: nowrap; }
     .period-btn:hover { background: bisque; }
     .period-btn.active { background: #111827; color: #fff; border-color: #111827; }
-    .period-sep { color: #ccc; }
-    .custom-dates { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
-    .custom-dates input { padding: 7px 10px; border-radius: 8px; border: 1px solid #ccc; font-size: .85rem; font-family: inherit; }
-    .custom-dates button { padding: 7px 14px; border-radius: 8px; border: none; background: #111827; color: #fff; font-weight: 700; font-size: .85rem; cursor: pointer; font-family: inherit; }
+    .period-sep { color: #ddd; }
+    .custom-dates { display: flex; gap: 6px; align-items: center; }
+    .custom-dates input { padding: 0 10px; border-radius: 8px; border: 1px solid #ccc; font-size: .85rem; font-family: inherit; height: 36px; width: 148px; }
+    .custom-dates button { padding: 0 14px; border-radius: 8px; border: none; background: #111827; color: #fff; font-weight: 700; font-size: .85rem; cursor: pointer; font-family: inherit; height: 36px; white-space: nowrap; }
 
     .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-    .avg-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+    .avg-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 12px; }
     .avg-card { background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,.06); border-left: 4px solid #6366f1; }
     .avg-card .sum-label { font-size: .75rem; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px; }
     .avg-card .sum-value { font-size: 1.4rem; font-weight: 900; color: #6366f1; }
@@ -125,7 +125,7 @@
       </form>
     </div>
 
-    <div class="avg-grid">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px;">
       <div class="avg-card">
         <div class="sum-label">📅 Hoje</div>
         <div class="sum-value">R$ {{ "%.2f"|format((avg_data.today_revenue or 0)|float) }}</div>
@@ -141,6 +141,8 @@
         <div class="sum-value">R$ {{ "%.2f"|format((avg_data.avg_day_month or 0)|float) }}</div>
         <div class="sum-sub">mês atual, só dias úteis ({{ avg_data.month_workdays or 0 }})</div>
       </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
       <div class="avg-card" style="border-left-color:#10b981;">
         <div class="sum-label">🗓 Semana atual</div>
         <div class="sum-value" style="color:#10b981;">R$ {{ "%.2f"|format((avg_data.this_week or 0)|float) }}</div>

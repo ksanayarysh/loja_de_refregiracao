@@ -569,11 +569,15 @@ async function searchProducts() {
       list.innerHTML = '<div class="result-item" style="color:#888">Nenhum produto encontrado.</div>';
       return;
     }
-    list.innerHTML = data.map(p => `
+    list.innerHTML = data.map(p => {
+      const stock = p.stock != null ? p.stock : null;
+      const stockColor = stock === null ? '#aaa' : stock <= 0 ? '#dc2626' : stock <= 3 ? '#d97706' : '#16a34a';
+      const stockText = stock === null ? '' : ` · <span style="color:${stockColor};font-weight:700;">${stock} ${p.unit}</span>`;
+      return `
       <div class="result-item">
         <div class="result-info">
           <span>${p.name}</span>
-          <span style="color:#aaa;font-size:.8rem"> (${p.unit})</span>
+          <span style="color:#aaa;font-size:.8rem"> (${p.unit})</span>${stockText}
         </div>
         <span class="result-price">R$ ${parseFloat(p.sale_price).toFixed(2)}</span>
         <div class="result-actions">
@@ -581,7 +585,7 @@ async function searchProducts() {
           <button class="btn-buy" onclick="buyNow(${p.id}, '${p.name}', ${parseFloat(p.sale_price) || 0}, '${p.unit}')">⚡ Comprar agora</button>
         </div>
       </div>
-    `).join('');
+    `}).join('');
   } catch {
     list.innerHTML = '<div class="result-item" style="color:red">Erro ao buscar.</div>';
   }

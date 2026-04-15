@@ -25,6 +25,7 @@
     .btn-ai{padding:7px 14px;border-radius:8px;border:none;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-weight:900;font-size:.82rem;cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:opacity .15s;}
     .btn-ai:hover{opacity:.85;}
     .btn-ai:disabled{opacity:.5;cursor:not-allowed;}
+    .ok{background:#ecfdf5;border:1px solid #bbf7d0;color:#065f46;padding:12px 16px;border-radius:10px;margin-bottom:16px;font-weight:800;}
 {% endblock %}
 
 {% block content %}
@@ -119,29 +120,7 @@
       <div class="delete-confirm" id="delete-confirm">
         <p>⚠️ Tem certeza que deseja excluir "{{ product.name }}"? Esta ação não pode ser desfeita.</p>
         <form method="post" action="/products/{{ product.id }}/delete">
-  
-        <label>Foto do produto</label>
-        <div class="img-upload-area">
-          <div id="previewWrap">
-            {% if product.image %}
-            <img id="imgPreview" class="img-preview" src="{{ product.image }}" alt="{{ product.name }}">
-            {% else %}
-            <div class="img-placeholder" id="imgPlaceholder" onclick="document.getElementById('imgInput').click()">
-              <span class="icon">📷</span>
-              <span>Adicionar foto</span>
-            </div>
-            <img id="imgPreview" class="img-preview" style="display:none;" src="" alt="preview">
-            {% endif %}
-          </div>
-          <div class="img-actions">
-            <button type="button" class="img-change-btn" onclick="document.getElementById('imgInput').click()">🔄 {% if product.image %}Trocar{% else %}Adicionar{% endif %}</button>
-            {% if product.image %}<button type="button" class="img-remove-btn" onclick="removeImage()">🗑 Remover</button>{% endif %}
-          </div>
-          <input type="file" id="imgInput" name="image" class="img-file-input" accept="image/*" onchange="previewImage(this)">
-          <input type="hidden" id="removeImageInput" name="remove_image" value="">
-        </div>
-
-        <div class="btns">
+          <div class="btns">
             <button class="btn-primary" type="submit" style="background:#dc2626;">Sim, excluir</button>
             <button type="button" class="btn-secondary" onclick="document.getElementById('delete-confirm').style.display='none'">Cancelar</button>
           </div>
@@ -250,21 +229,5 @@ async function gerarDescricao() {
 }
 
 
-async function gerarDescricao() {
-  const name = document.getElementById('name').value.trim();
-  const catSel = document.getElementById('category_id');
-  const cat = catSel.options[catSel.selectedIndex]?.text || '';
-  if (!name) { alert('Preencha o nome do produto primeiro.'); return; }
-  const btn = document.getElementById('btnAi');
-  const textarea = document.getElementById('description');
-  btn.disabled = true; btn.textContent = '⏳ Gerando...';
-  try {
-    const resp = await fetch('/api/generate-description', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name, category: cat})});
-    const data = await resp.json();
-    if (data.description) { textarea.value = data.description.trim(); textarea.style.borderColor='#6366f1'; setTimeout(()=>textarea.style.borderColor='',2000); }
-    else alert('Erro ao gerar descrição.');
-  } catch { alert('Erro de conexão.'); }
-  finally { btn.disabled=false; btn.innerHTML='✨ Gerar com IA'; }
-}
 </script>
 {% endblock %}
