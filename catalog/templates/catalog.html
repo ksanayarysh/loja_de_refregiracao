@@ -267,8 +267,8 @@
 <div class="search-bar-row">
   <div class="search-bar-inner">
     <div class="header-search">
-      <input type="text" id="quickSearch" placeholder="O que você está procurando hoje?" oninput="quickSearchHandler(this.value)" autocomplete="off">
-      <button class="header-search-btn" onclick="document.getElementById('quickSearch').focus()">
+      <input type="text" id="quickSearch" placeholder="O que você está procurando hoje?" oninput="quickSearchHandler(this.value)" onkeydown="if(event.key==='Enter')triggerFixedSearch()" autocomplete="off">
+      <button class="header-search-btn" onclick="triggerFixedSearch()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
       </button>
       <div class="header-search-results" id="quickResults"></div>
@@ -280,6 +280,15 @@
       Não achou? Envie uma foto
     </a>
   </div>
+</div>
+
+<!-- FIXED SEARCH RESULTS (shown on search submit) -->
+<div id="fixedSearchResults" style="display:none;max-width:1100px;margin:0 auto;padding:0 20px 24px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0 10px;">
+    <span id="fixedSearchCount" style="font-size:.88rem;color:var(--muted);font-weight:500;"></span>
+    <button onclick="closeFixedSearch()" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:.85rem;font-weight:600;padding:4px 8px;border-radius:6px;transition:background .1s;" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background='none'">✕ Fechar</button>
+  </div>
+  <div id="fixedSearchList" style="background:var(--surface);border:1.5px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.06);"></div>
 </div>
 
 <!-- HERO -->
@@ -614,6 +623,55 @@ function cartClose() {
 }
 
 cartUpdateUI();
+
+// ===== FIXED SEARCH RESULTS =====
+async function triggerFixedSearch() {
+  const q = document.getElementById('quickSearch').value.trim();
+  const box = document.getElementById('fixedSearchResults');
+  const list = document.getElementById('fixedSearchList');
+  const count = document.getElementById('fixedSearchCount');
+  const dropdown = document.getElementById('quickResults');
+  dropdown.style.display = 'none';
+  if (!q || q.length < 2) { box.style.display = 'none'; return; }
+  try {
+    const res = await fetch('/api/catalog');
+    const products = await res.json();
+    const filtered = products.filter(p => p.name.toLowerCase().includes(q.toLowerCase()));
+    if (!filtered.length) {
+      count.textContent = 'Nenhum produto encontrado';
+      list.innerHTML = `<div style="padding:20px 16px;color:var(--muted);font-size:.9rem;text-align:center;">Não encontramos "<b>${q}</b>". <a href="https://wa.me/${WA_NUMBER}?text=Olá! Procuro: ${encodeURIComponent(q)}" style="color:var(--accent);font-weight:700;" target="_blank">Pergunte no WhatsApp →</a></div>`;
+      box.style.display = 'block';
+      box.scrollIntoView({behavior:'smooth', block:'start'});
+      return;
+    }
+    count.textContent = `${filtered.length} resultado${filtered.length !== 1 ? 's' : ''} para "${q}"`;
+    list.innerHTML = filtered.map(p => {
+      const slug = p.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\w\s-]/g,' ').replace(/[\s_]+/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');
+      const price = p.sale_price ? `<span style="font-family:'DM Mono',monospace;font-weight:700;color:var(--accent);font-size:.95rem;white-space:nowrap;">R$ ${p.sale_price.toFixed(2).replace('.',',')}</span>` : `<span style="color:var(--muted);font-size:.85rem;">Consulte</span>`;
+      const img = p.image ? `<img src="${p.image}" style="width:44px;height:44px;object-fit:contain;border-radius:8px;border:1px solid var(--border);background:var(--bg);flex-shrink:0;">` : `<div style="width:44px;height:44px;border-radius:8px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">📦</div>`;
+      const cartBtn = p.sale_price ? `<button class="search-item-cart" data-id="${p.id}" data-name="${p.name.replace(/"/g,'&quot;')}" data-price="${p.sale_price}" data-image="${(p.image||'').replace(/"/g,'&quot;')}" style="margin-left:8px;">🛒</button>` : '';
+      const avail = p.available !== false ? `<span style="font-size:.72rem;color:#16a34a;font-weight:600;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:2px 8px;">Disponível</span>` : '';
+      return `<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);">
+        <a href="/product/${slug}" style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;text-decoration:none;color:inherit;">
+          ${img}
+          <div style="flex:1;min-width:0;">
+            <div style="font-weight:600;font-size:.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</div>
+            <div style="font-size:.76rem;color:var(--muted);margin-top:2px;display:flex;gap:6px;align-items:center;">${p.category} · ${p.unit} ${avail}</div>
+          </div>
+          ${price}
+        </a>${cartBtn}
+      </div>`;
+    }).join('') + `<a href="/catalogo?q=${encodeURIComponent(q)}" style="display:block;padding:12px 16px;text-align:center;font-size:.85rem;color:var(--accent);font-weight:700;text-decoration:none;border-top:1px solid var(--border);">Ver no catálogo completo →</a>`;
+    box.style.display = 'block';
+    box.scrollIntoView({behavior:'smooth', block:'start'});
+  } catch(e) { box.style.display = 'none'; }
+}
+
+function closeFixedSearch() {
+  document.getElementById('fixedSearchResults').style.display = 'none';
+  document.getElementById('quickSearch').value = '';
+  document.getElementById('quickResults').style.display = 'none';
+}
 
 // ===== SEARCH =====
 let _searchTrackTimer = null;

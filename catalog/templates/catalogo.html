@@ -858,6 +858,9 @@ function filterProducts() {
       fetch('/api/track/search', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({query: q, page: 'catalogo'})}).catch(()=>{});
     }, 1500);
   }
+  // скрываем/показываем баннеры при поиске
+  const promoWrap = document.querySelector('.promo-wrap');
+  if (promoWrap) promoWrap.style.display = q.length >= 2 ? 'none' : '';
   let visible = 0;
 
   document.querySelectorAll('.cat-group').forEach(group => {
