@@ -112,8 +112,8 @@ ARTICLES = [
         "category": "maquina-de-lavar",
         "icon": "🔌",
         "tags": ["máquina de lavar", "elétrica", "timer", "tampa"],
-        "template": None,
-        "published": False,
+        "template": "blog/maquina-de-lavar-nao-liga.html",
+        "published": True,
     },
 
 ]

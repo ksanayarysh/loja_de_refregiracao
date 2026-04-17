@@ -577,7 +577,7 @@
     {% if p.id not in seen_ids.ids %}
     {% set seen_ids.ids = seen_ids.ids + [p.id] %}
     {% set wa_msg = "Ol%C3%A1%21%20Tenho%20interesse%20no%20produto%3A%20" + p.name|urlencode + "%20%28" + p.unit|urlencode + "%29.%20Est%C3%A1%20dispon%C3%ADvel%3F" %}
-    <div class="product-row" data-name="{{ p.name | lower }}" data-cat="{{ cat }}">
+    <div class="product-row" data-name="{{ p.name | lower }}" data-cat="{{ cat }}" data-cat2="{{ p.category2_name or '' }}">
       {% if p.image %}
       <img class="prod-img" src="{{ p.image }}" alt="{{ p.name }}" loading="lazy">
       {% else %}
@@ -870,7 +870,8 @@ function filterProducts() {
       const name = row.dataset.name || '';
       const rowCat = row.dataset.cat || '';
       const matchSearch = !q || name.includes(q);
-      const matchFilter = currentFilter === 'all' || currentFilter === rowCat;
+      const rowCat2 = row.dataset.cat2 || '';
+      const matchFilter = currentFilter === 'all' || currentFilter === rowCat || currentFilter === rowCat2;
       const show = matchSearch && matchFilter;
       row.style.display = show ? '' : 'none';
       if (show) { groupVisible++; visible++; }

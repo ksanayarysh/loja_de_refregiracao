@@ -1,7 +1,8 @@
 import os
 import json as _json
 import httpx
-from datetime import datetime
+from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, PlainTextResponse, JSONResponse
 from sqlalchemy import text
@@ -10,6 +11,8 @@ from dependencies import engine, templates
 from articles import ARTICLES, ARTICLES_BY_SLUG
 
 router = APIRouter()
+
+BRT = ZoneInfo("America/Sao_Paulo")
 
 # ── КЭШКЭШ ПРОДУКТОВ (5 минут) ───────────────────────────────────────────────
 import time as _time
@@ -379,7 +382,6 @@ async def blog_index(request: Request):
         "ar-condicionado":  "❄️",
         "maquina-de-lavar": "🫧",
     }
-    # группируем все статьи по категории (включая неопубликованные)
     groups: dict = {}
     for a in ARTICLES:
         cat = a["category"]
@@ -444,7 +446,7 @@ async def track_search(request: Request):
         page  = (body.get("page") or "").strip()[:30]
         if not query:
             return JSONResponse({"ok": False})
-        now_str = datetime.now().strftime('%d/%m %H:%M')
+        now_str = datetime.now(BRT).strftime('%d/%m %H:%M')
         page_label = "🏠 Início" if page == "inicio" else "📋 Catálogo"
         await _send_tg(f"🔍 <b>Busca no site</b>\nPágina: {page_label}\nBusca: <b>{query}</b>\nHorário: {now_str}")
         return JSONResponse({"ok": True})
@@ -464,11 +466,11 @@ async def track_whatsapp_click(request: Request):
                 INSERT INTO catalog_clicks (product_name, ip, user_agent, clicked_at)
                 VALUES (:product, :ip, :ua, :now)
             """), {"product": product, "ip": ip, "ua": user_agent, "now": datetime.utcnow()})
+        now_str = datetime.now(BRT).strftime('%d/%m %H:%M')
         if WA_NOTIFY_NUMBER:
-            msg = f"🛍 Novo interesse no catálogo!\nProduto: *{product}*\nHorário: {datetime.now().strftime('%d/%m %H:%M')}"
+            msg = f"🛍 Novo interesse no catálogo!\nProduto: *{product}*\nHorário: {now_str}"
             await _send_wa_notification(msg)
         # Telegram — дублируем все WA клики
-        now_str = datetime.now().strftime('%d/%m %H:%M')
         if product == "Telefone":
             await _send_tg(f"📞 <b>Alguém clicou em ligar!</b>\nHorário: {now_str}\nIP: {ip}")
         else:
@@ -523,7 +525,6 @@ async def catalog_stats():
         return {"total_clicks": 0, "today_clicks": 0, "top_products": []}
 
 
-from datetime import datetime, timezone
 from xml.sax.saxutils import escape
 
 @router.get("/sitemap.xml", response_class=PlainTextResponse)
