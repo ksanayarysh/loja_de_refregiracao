@@ -343,17 +343,18 @@ async def sale_edit_save(
 @router.post("/sales/{sale_id}/delete")
 async def sale_delete(sale_id: int, _=Depends(basic_auth)):
     async with engine.begin() as conn:
-        # Восстанавливаем сток перед удалением
-        # sale_res = await conn.execute(
-        #     text("SELECT product_id, qty FROM sales WHERE id = :id"), {"id": sale_id}
-        # )
-        # sale = sale_res.mappings().first()
-        # if sale:
-        #     await conn.execute(
-        #         text("""INSERT INTO stock_movements (product_id, qty, movement_type, note, moved_at)
-        #                 VALUES (:pid, :qty, 'estorno', 'Estorno por exclusão de venda', CURRENT_DATE)"""),
-        #         {"pid": sale["product_id"], "qty": sale["qty"]}
-        #     )
+        # Восстанавливаем баланс клиента если оплата была через saldo
+        sale_res = await conn.execute(
+            text("SELECT total, payment_type, client_id FROM sales WHERE id = :id"),
+            {"id": sale_id}
+        )
+        sale = sale_res.mappings().first()
+        if sale and sale["payment_type"] == "saldo" and sale["client_id"]:
+            await conn.execute(
+                text("UPDATE clients SET balance = balance + :a WHERE id = :id"),
+                {"a": sale["total"], "id": sale["client_id"]}
+            )
+        # Удаление stock_movement автоматически возвращает сток
         await conn.execute(
             text("DELETE FROM stock_movements WHERE sale_id = :id"), {"id": sale_id}
         )
