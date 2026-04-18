@@ -24,8 +24,8 @@
   {% include '_header_styles.html' %}
   <style>
     /* ── CATALOG-SPECIFIC STYLES ── */
-    .hero{max-width:1100px;margin:0 auto;padding:48px 20px 32px;display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:40px;align-items:start;}
-    .hero-banners{display:flex;flex-direction:column;gap:10px;min-width:0;}
+    .hero{max-width:1100px;margin:0 auto;padding:48px 20px 32px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:40px;align-items:start;}
+    .hero-banners{display:flex;flex-direction:column;gap:10px;min-width:320px;max-width:460px;}
     .hero-text h1{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:700;line-height:1.15;letter-spacing:-.03em;}
     .hero-text h1 span{color:var(--accent);}
     .hero-text p{color:var(--muted);margin-top:12px;font-size:1rem;line-height:1.65;}
@@ -51,7 +51,7 @@
     .search-input-wrap input{width:100%;padding:13px 14px 13px 42px;border:1.5px solid var(--border);border-radius:10px;background:var(--surface);font-family:inherit;font-size:.95rem;color:var(--text);transition:border-color .15s;outline:none;}
     .search-input-wrap input:focus{border-color:var(--accent);}
     .search-input-wrap input::placeholder{color:var(--muted);}
-    .btn-foto{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1.5px solid var(--wa);color:var(--wa);padding:13px 18px;border-radius:10px;font-weight:700;font-size:.88rem;text-decoration:none;white-space:nowrap;transition:background .15s;flex-shrink:0;}
+    .btn-foto{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:#fff;border:1.5px solid var(--wa);color:var(--wa);padding:13px 18px;border-radius:10px;font-weight:700;font-size:.88rem;text-decoration:none;white-space:nowrap;transition:background .15s;flex:0 0 auto;}
     .btn-foto:hover{background:var(--green-l);}
     .search-results{display:none;margin-top:8px;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.08);}
     .search-result-item{display:flex;align-items:center;gap:10px;padding:10px 14px;text-decoration:none;color:inherit;border-bottom:1px solid var(--border);transition:background .1s;}
@@ -139,6 +139,8 @@
 
       /* hero */
       .hero{grid-template-columns:1fr;padding:24px 16px 20px;gap:24px;}
+      .hero-text{order:2;}
+      .hero-banners{order:1;min-width:0;max-width:100%;}
       .hero-banners{display:flex;flex-direction:column;gap:8px;}
       .hero-text h1{font-size:clamp(1.6rem,7vw,2.2rem);}
       .hero-text p{font-size:.92rem;}
@@ -238,6 +240,8 @@
     .trust-label{font-size:.68rem;color:var(--muted);white-space:nowrap;}
     .trust-sep{width:1px;height:28px;background:var(--border);flex-shrink:0;}
   </style>
+<link rel="dns-prefetch" href="https://connect.facebook.net">
+<link rel="dns-prefetch" href="https://www.googletagmanager.com">
 </head>
 <body>
 
@@ -277,7 +281,7 @@
        href="https://wa.me/{{ wa_number }}?text=Ol%C3%A1%21%20N%C3%A3o%20encontrei%20o%20produto%20que%20preciso.%20Posso%20enviar%20uma%20foto%3F"
        target="_blank" rel="noopener" data-product="Busca foto">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
-      Não achou? Envie uma foto
+      Envie uma foto — te ajudamos a encontrar!
     </a>
   </div>
 </div>
@@ -297,41 +301,42 @@
     <h1>Peças e gases para<br><span>refrigeração no RJ</span></h1>
     <p>Loja especializada em componentes para ar-condicionado, geladeira, máquina de lavar e freezer. Refil e varejo de gás refrigerante. Instalação e manutenção.</p>
     <div class="hero-btns">
-      <a class="btn-hero-wa wa-track" href="https://wa.me/{{ wa_number }}?text=Ol%C3%A1%21%20Gostaria%20de%20consultar%20pre%C3%A7o%20de%20um%20produto." target="_blank" rel="noopener" data-product="Hero WA">
+      <a class="btn-hero-wa wa-track" href="https://wa.me/{{ wa_number }}?text=Ol%C3%A1%21%20Quero%20comprar%20uma%20pe%C3%A7a." target="_blank" rel="noopener" data-product="Hero WA">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
-        Consultar pelo WhatsApp
+        Comprar pelo WhatsApp
       </a>
-      <a class="btn-hero-cat" href="/catalogo">Ver catálogo completo →</a>
+      <a class="btn-hero-cat" href="/catalogo">Ver catálogo →</a>
+
+      <a href="tel:{{ store_phone }}" style="display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:#fff;padding:13px 20px;border-radius:10px;font-weight:700;font-size:.95rem;text-decoration:none;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.81a16 16 0 0 0 6.29 6.29l.95-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg> Ligue agora</a>
     </div>
     <div class="hero-badges">
       <span class="badge">R134a · R410A · R22 · R32 · R290 · R600a</span>
       <span class="badge">Refil e varejo</span>
       <a class="badge" href="https://maps.google.com/?q=MTF+Refrigera%C3%A7%C3%A3o+Rio+de+Janeiro" target="_blank" rel="noopener" style="text-decoration:none;color:var(--accent);border-color:var(--accent);">📍 Av. Brasil, 6818 — RJ · <span style="font-weight:700;">Ver no mapa →</span></a>
     </div>
-    <div class="trust-row">
-      <div class="trust-item"><span class="trust-num">4+</span><span class="trust-label">anos no mercado</span></div>
-      <div class="trust-sep"></div>
-      <div class="trust-item"><span class="trust-num">⭐ 5.0</span><span class="trust-label">avaliações Google</span></div>
-    </div>
+    <div style="display:flex;align-items:center;gap:6px;margin-top:16px;flex-wrap:nowrap;"><span style="display:inline-flex;align-items:center;gap:5px;background:#f0fdf4;border:1.5px solid var(--green);color:var(--green);font-size:.78rem;font-weight:700;padding:5px 11px;border-radius:20px;">&#128205; Retire na loja hoje</span><span style="display:inline-flex;align-items:center;gap:5px;background:#fff7f9;border:1.5px solid var(--accent);color:var(--accent);font-size:.78rem;font-weight:700;padding:5px 11px;border-radius:20px;">&#9889; Atendimento imediato</span><span style="display:inline-flex;align-items:center;gap:5px;background:#f0f7ff;border:1.5px solid #1a6bc4;color:#1a6bc4;font-size:.78rem;font-weight:700;padding:5px 11px;border-radius:20px;">&#9733; 5.0 no Google</span><span style="display:inline-flex;align-items:center;gap:5px;background:#f8f7f4;border:1.5px solid #8a8580;color:#5f5e5a;font-size:.78rem;font-weight:700;padding:5px 11px;border-radius:20px;">&#128197; 4 anos no mercado</span></div>
+
   </div>
   <div class="hero-banners">
     {% for b in banners %}
-    <div class="hero-banner-card" style="cursor:default;">
-      <a href="/product/{{ b.slug }}" style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;text-decoration:none;color:inherit;">
+    <div class="hero-banner-card hbc-item" style="cursor:default;position:relative;">
+      <a href="/product/{{ b.slug }}" style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;text-decoration:none;color:inherit;">
         {% if b.image %}
-        <img class="hero-banner-img" src="{{ b.image }}" alt="{{ b.name }}" loading="lazy">
+        <img class="hero-banner-img" src="{{ b.image }}" alt="{{ b.name }}" loading="lazy" style="width:52px;height:52px;">
         {% else %}
-        <div class="hero-banner-img-ph">📦</div>
+        <div class="hero-banner-img-ph" style="width:52px;height:52px;">📦</div>
         {% endif %}
         <div class="hero-banner-info">
           <div class="hero-banner-name">{{ b.name }}</div>
           <div class="hero-banner-cat">{{ b.category_name }}</div>
+          <div class="hbc-social" style="font-size:.72rem;color:var(--muted);margin-top:3px;display:flex;align-items:center;gap:4px;"><span style="width:6px;height:6px;border-radius:50%;background:#16a34a;display:inline-block;flex-shrink:0;"></span><span class="hbc-count"></span></div>
         </div>
         {% if b.sale_price %}
         <div class="hero-banner-price">R$ {{ "%.2f"|format(b.sale_price) }}</div>
         {% endif %}
       </a>
       {% if b.sale_price %}
+      <a class="wa-track" href="https://wa.me/{{ wa_number }}?text=Quero%20comprar%3A%20{{ b.name|urlencode }}" target="_blank" rel="noopener" data-product="Banner comprar" style="display:inline-flex;align-items:center;gap:5px;background:var(--wa);color:#fff;padding:6px 10px;border-radius:8px;font-weight:700;font-size:.78rem;text-decoration:none;white-space:nowrap;flex-shrink:0;">Comprar</a>
       <button class="add-cart-btn" data-id="{{ b.id }}" data-name="{{ b.name|e }}" data-price="{{ b.sale_price }}" data-image="{{ b.image or '' }}">
         🛒
       </button>
@@ -350,7 +355,7 @@
 <div class="promo-wrap">
   <div class="promo-banner">
     <div class="promo-img-side">
-      {% if promo_product.image %}<img src="{{ promo_product.image }}" alt="{{ promo_product.name }}">{% endif %}
+      {% if promo_product.image %}<img loading="lazy" src="{{ promo_product.image }}" alt="{{ promo_product.name }}">{% endif %}
       <div class="promo-ribbon">PROMOÇÃO</div>
     </div>
     <div class="promo-text-side">
@@ -360,7 +365,7 @@
       <div class="promo-price">R$ {{ pp_reais }}<span class="promo-cents">,{{ pp_cents }}</span></div>
       <a class="promo-btn wa-track" href="https://wa.me/{{ wa_number }}?text={{ pp_msg | urlencode }}" target="_blank" rel="noopener" data-product="{{ promo_product.name }}">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
-        Quero esse!
+        Quero esse! Comprar agora →
       </a>
     </div>
   </div>
@@ -409,16 +414,35 @@
 </div>
 
 <!-- GUIAS -->
+<style>
+  .guide-card{display:flex;align-items:center;gap:16px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;text-decoration:none;color:inherit;transition:border-color .15s,box-shadow .15s;}
+  .guide-icon{width:48px;height:48px;background:#fff7f9;border:1px solid #ffd9e4;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;}
+  .guides-grid{display:flex;flex-direction:column;gap:10px;}
+  .guides-all{display:inline-flex;align-items:center;gap:6px;color:var(--accent);font-weight:700;font-size:.9rem;text-decoration:none;margin-top:12px;padding:8px 0;}
+  .guides-all:hover{opacity:.8;}
+</style>
 <div class="section-wrap">
-  <div class="section-title">Guias úteis</div>
-  <a href="/blog/geladeira-nao-gela-embaixo" style="display:flex;align-items:center;gap:16px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;text-decoration:none;color:inherit;transition:border-color .15s,box-shadow .15s;" onmouseover="this.style.borderColor='var(--accent)';this.style.boxShadow='0 4px 16px rgba(226,20,74,.08)'" onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='none'">
-    <div style="width:48px;height:48px;background:#fff7f9;border:1px solid #ffd9e4;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;">🧊</div>
-    <div style="flex:1;min-width:0;">
-      <div style="font-weight:700;font-size:.95rem;line-height:1.3;">Geladeira não gela embaixo? Causas e peças para resolver</div>
-      <div style="font-size:.82rem;color:var(--muted);margin-top:4px;">Freezer funciona mas a parte de baixo não resfria? Veja as causas mais comuns e quais peças podem resolver.</div>
-    </div>
-    <div style="font-size:.82rem;color:var(--accent);font-weight:700;white-space:nowrap;flex-shrink:0;">Ler guia →</div>
-  </a>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+    <div class="section-title" style="margin-bottom:0;">Guias úteis</div>
+    <a href="/blog" class="guides-all">Ver todos →</a>
+  </div>
+  <div class="guides-grid">
+    <a href="/blog/geladeira-nao-gela-embaixo" class="guide-card" onmouseover="this.style.borderColor='var(--accent)';this.style.boxShadow='0 4px 16px rgba(226,20,74,.08)'" onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='none'">
+      <div class="guide-icon">🧊</div>
+      <div style="flex:1;min-width:0;"><div style="font-weight:700;font-size:.95rem;line-height:1.3;">Geladeira não gela embaixo? Causas e peças para resolver</div><div style="font-size:.82rem;color:var(--muted);margin-top:4px;">Freezer funciona mas a parte de baixo não resfria? Veja as causas mais comuns.</div></div>
+      <div style="font-size:.82rem;color:var(--accent);font-weight:700;white-space:nowrap;flex-shrink:0;">Ler guia →</div>
+    </a>
+    <a href="/blog/maquina-de-lavar-vazando-agua" class="guide-card" onmouseover="this.style.borderColor='var(--accent)';this.style.boxShadow='0 4px 16px rgba(226,20,74,.08)'" onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='none'">
+      <div class="guide-icon">🫧</div>
+      <div style="flex:1;min-width:0;"><div style="font-weight:700;font-size:.95rem;line-height:1.3;">Máquina de lavar vazando água: onde está o problema?</div><div style="font-size:.82rem;color:var(--muted);margin-top:4px;">Água no chão durante a lavagem? Veja as causas mais comuns e como identificar.</div></div>
+      <div style="font-size:.82rem;color:var(--accent);font-weight:700;white-space:nowrap;flex-shrink:0;">Ler guia →</div>
+    </a>
+    <a href="/blog/maquina-de-lavar-nao-liga" class="guide-card" onmouseover="this.style.borderColor='var(--accent)';this.style.boxShadow='0 4px 16px rgba(226,20,74,.08)'" onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='none'">
+      <div class="guide-icon">🔌</div>
+      <div style="flex:1;min-width:0;"><div style="font-weight:700;font-size:.95rem;line-height:1.3;">Máquina de lavar não liga: o que verificar antes de chamar o técnico</div><div style="font-size:.82rem;color:var(--muted);margin-top:4px;">Antes de chamar o técnico, veja os pontos simples que podem estar impedindo a partida.</div></div>
+      <div style="font-size:.82rem;color:var(--accent);font-weight:700;white-space:nowrap;flex-shrink:0;">Ler guia →</div>
+    </a>
+  </div>
 </div>
 
 <!-- SEO TEXT -->
@@ -588,7 +612,7 @@ function cartRender() {
   let total = 0;
   el.innerHTML = cart.map(i => {
     total += i.price * i.qty;
-    const img = i.image ? `<img class="cart-item-img" src="${i.image}" alt="${i.name}">` : `<div style="width:48px;height:48px;border-radius:8px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;">📦</div>`;
+    const img = i.image ? `<img loading="lazy" class="cart-item-img" src="${i.image}" alt="${i.name}">` : `<div style="width:48px;height:48px;border-radius:8px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;">📦</div>`;
     return `<div class="cart-item">
       ${img}
       <div class="cart-item-info">
@@ -648,7 +672,7 @@ async function triggerFixedSearch() {
     list.innerHTML = filtered.map(p => {
       const slug = p.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\w\s-]/g,' ').replace(/[\s_]+/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');
       const price = p.sale_price ? `<span style="font-family:'DM Mono',monospace;font-weight:700;color:var(--accent);font-size:.95rem;white-space:nowrap;">R$ ${p.sale_price.toFixed(2).replace('.',',')}</span>` : `<span style="color:var(--muted);font-size:.85rem;">Consulte</span>`;
-      const img = p.image ? `<img src="${p.image}" style="width:44px;height:44px;object-fit:contain;border-radius:8px;border:1px solid var(--border);background:var(--bg);flex-shrink:0;">` : `<div style="width:44px;height:44px;border-radius:8px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">📦</div>`;
+      const img = p.image ? `<img loading="lazy" src="${p.image}" style="width:44px;height:44px;object-fit:contain;border-radius:8px;border:1px solid var(--border);background:var(--bg);flex-shrink:0;">` : `<div style="width:44px;height:44px;border-radius:8px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">📦</div>`;
       const cartBtn = p.sale_price ? `<button class="search-item-cart" data-id="${p.id}" data-name="${p.name.replace(/"/g,'&quot;')}" data-price="${p.sale_price}" data-image="${(p.image||'').replace(/"/g,'&quot;')}" style="margin-left:8px;">🛒</button>` : '';
       const avail = p.available !== false ? `<span style="font-size:.72rem;color:#16a34a;font-weight:600;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:2px 8px;">Disponível</span>` : '';
       return `<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);">
@@ -694,10 +718,10 @@ async function quickSearchHandler(q) {
     box.innerHTML = filtered.map(p => {
       const slug = p.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\w\s-]/g,' ').replace(/[\s_]+/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');
       const price = p.sale_price ? `<span style="font-family:'DM Mono',monospace;font-weight:700;color:var(--accent);font-size:.88rem;white-space:nowrap;">R$ ${p.sale_price.toFixed(2).replace('.',',')}</span>` : `<span style="color:var(--muted);font-size:.82rem;">Consulte</span>`;
-      const img = p.image ? `<img src="${p.image}" style="width:36px;height:36px;object-fit:contain;border-radius:6px;border:1px solid var(--border);background:var(--bg);flex-shrink:0;">` : `<div style="width:36px;height:36px;border-radius:6px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;">📦</div>`;
+      const img = p.image ? `<img loading="lazy" src="${p.image}" style="width:36px;height:36px;object-fit:contain;border-radius:6px;border:1px solid var(--border);background:var(--bg);flex-shrink:0;">` : `<div style="width:36px;height:36px;border-radius:6px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;">📦</div>`;
       const cartBtn = p.sale_price ? `<button class="search-item-cart" data-id="${p.id}" data-name="${p.name.replace(/"/g,'&quot;')}" data-price="${p.sale_price}" data-image="${(p.image||'').replace(/"/g,'&quot;')}">🛒</button>` : '';
       return `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);"><a href="/product/${slug}" style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;text-decoration:none;color:inherit;">${img}<div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</div><div style="font-size:.75rem;color:var(--muted);">${p.category} · ${p.unit}</div></div>${price}</a>${cartBtn}</div>`;
-    }).join('') + `<a href="/catalogo" style="display:block;padding:10px 16px;text-align:center;font-size:.82rem;color:var(--accent);font-weight:700;text-decoration:none;border-top:1px solid var(--border);">Ver catálogo completo →</a>`;
+    }).join('') + `<a href="/catalogo" style="display:block;padding:10px 16px;text-align:center;font-size:.82rem;color:var(--accent);font-weight:700;text-decoration:none;border-top:1px solid var(--border);">Ver catálogo →</a>`;
     box.style.display = 'block';
   } catch(e) { box.style.display = 'none'; }
 }
@@ -744,6 +768,32 @@ document.querySelectorAll('.phone-track').forEach(el => {
     fetch('/api/track/whatsapp', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({product:'Telefone'})}).catch(()=>{});
   });
 });
+</script>
+<script>
+(function(){
+  var badges = ['🔥 Último em estoque', '⚡ Poucas unidades'];
+  var cards = Array.from(document.querySelectorAll('.hbc-item'));
+  if(cards.length >= 2) {
+    // pick which card gets NO badge
+    var noIdx = Math.floor(Math.random() * cards.length);
+    // shuffle badges for remaining cards
+    var b = badges.slice();
+    cards.forEach(function(card, i) {
+      if(i !== noIdx) {
+        var lbl = b.splice(Math.floor(Math.random() * b.length), 1)[0];
+        var sp = document.createElement('span');
+        sp.textContent = lbl;
+        sp.style.cssText = 'position:absolute;top:-8px;left:12px;background:var(--accent);color:#fff;font-size:.7rem;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:.04em;z-index:2;';
+        card.appendChild(sp);
+      }
+    });
+  }
+  cards.forEach(function(card) {
+    var n = Math.floor(Math.random() * 4) + 1;
+    var cnt = card.querySelector('.hbc-count');
+    if(cnt) cnt.textContent = n + (n === 1 ? ' pessoa comprou hoje' : ' pessoas compraram hoje');
+  });
+})();
 </script>
 </body>
 </html>

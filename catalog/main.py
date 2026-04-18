@@ -1,7 +1,10 @@
 from fastapi import FastAPI
+from fastapi.middleware.gzip import GZipMiddleware
 from router import router as catalog_router
 
 app = FastAPI(title="M.T.F Refrigeração — Catálogo")
+
+app.add_middleware(GZipMiddleware, minimum_size=500)
 
 app.include_router(catalog_router)
 
