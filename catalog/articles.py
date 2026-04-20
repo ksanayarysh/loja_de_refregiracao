@@ -76,12 +76,22 @@ ARTICLES = [
     {
         "slug": "capacitor-ar-condicionado",
         "title": "Capacitor de ar-condicionado: sintomas de defeito e como trocar",
-        "description": "O capacitor é uma das peças que mais falha em splits. Veja os sintomas e como identificar se é ele o problema.",
+        "description": "O capacitor é uma das peças que mais falha em splits. Veja os sintomas, como identificar o valor certo e onde comprar no RJ.",
         "category": "ar-condicionado",
         "icon": "⚡",
         "tags": ["ar-condicionado", "capacitor", "elétrica", "peças"],
-        "template": None,
-        "published": False,
+        "template": "blog/capacitor-ar-condicionado.html",
+        "published": True,
+    },
+    {
+        "slug": "gas-refrigerante-rj",
+        "title": "Gás refrigerante no RJ: tipos, preços e quando recarregar",
+        "description": "R32, R410A, R22, R134a — qual é o gás do seu equipamento? Como saber quando está faltando e onde comprar no Rio de Janeiro.",
+        "category": "ar-condicionado",
+        "icon": "🧪",
+        "tags": ["gás", "r32", "r410a", "r22", "r134a", "recarga"],
+        "template": "blog/gas-refrigerante-rj.html",
+        "published": True,
     },
 
     # ── MÁQUINA DE LAVAR ──────────────────────────────────────────────────────
