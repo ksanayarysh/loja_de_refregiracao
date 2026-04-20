@@ -265,6 +265,8 @@ async def category_page(request: Request, cat_slug: str):
                 rd["slug"] = slugify(rd["name"])
                 products.append(rd)
 
+    products.sort(key=lambda x: x["name"].lower())
+
     all_cats = list(dict.fromkeys(r["category_name"] for r in rows))
     cat_slugs_map = {cat: slugify(cat) for cat in all_cats}
 
