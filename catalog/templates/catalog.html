@@ -21,6 +21,9 @@
   <script async src="https://www.googletagmanager.com/gtag/js?id={{ ga_id }}"></script>
   <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','{{ ga_id }}');</script>
   {% endif %}
+  <!-- Google Ads Tag -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-18038713780"></script>
+  <script>gtag('config','AW-18038713780');</script>
   {% include '_header_styles.html' %}
   <style>
     /* ── CATALOG-SPECIFIC STYLES ── */
@@ -794,6 +797,19 @@ document.querySelectorAll('.phone-track').forEach(el => {
     if(cnt) cnt.textContent = n + (n === 1 ? ' pessoa comprou hoje' : ' pessoas compraram hoje');
   });
 })();
+</script>
+<!-- Google Ads WhatsApp conversion tracking -->
+<script>
+document.addEventListener('click', function(e) {
+  var el = e.target.closest('a[href*="wa.me"], a[href*="whatsapp"]');
+  if (el) {
+    gtag('event', 'conversion', {
+      'send_to': 'AW-18038713780',
+      'event_category': 'whatsapp',
+      'event_label': 'whatsapp_click'
+    });
+  }
+});
 </script>
 </body>
 </html>
