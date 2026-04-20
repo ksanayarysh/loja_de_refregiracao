@@ -39,13 +39,15 @@
     .btn-hero-cat:hover{border-color:var(--accent);color:var(--accent);}
     .hero-badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px;}
     .badge{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:.78rem;color:var(--muted);font-weight:500;}
-    .hero-banner-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;display:flex;gap:12px;align-items:center;text-decoration:none;color:inherit;transition:box-shadow .15s,border-color .15s;min-height:92px;}
+    .hero-banner-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;text-decoration:none;color:inherit;transition:box-shadow .15s,border-color .15s;}
     .hero-banner-card:hover{border-color:var(--accent);box-shadow:0 4px 16px rgba(226,20,74,.08);}
-    .hero-banner-img{width:64px;height:64px;object-fit:contain;border-radius:8px;border:1px solid var(--border);background:var(--bg);flex-shrink:0;display:block;}
-    .hero-banner-img-ph{width:64px;height:64px;border-radius:8px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;}
+    .hero-banner-top{display:flex;align-items:center;gap:10px;min-width:0;}
+    .hero-banner-img{width:48px;height:48px;object-fit:contain;border-radius:8px;border:1px solid var(--border);background:var(--bg);flex-shrink:0;display:block;}
+    .hero-banner-img-ph{width:48px;height:48px;border-radius:8px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;}
     .hero-banner-info{flex:1;min-width:0;}
-    .hero-banner-name{font-weight:600;font-size:.92rem;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.3;}
-    .hero-banner-cat{font-size:.75rem;color:var(--muted);margin-top:2px;}
+    .hero-banner-name{font-weight:600;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;}
+    .hero-banner-cat{font-size:.73rem;color:var(--muted);margin-top:2px;}
+    .hero-banner-bottom{display:flex;align-items:center;justify-content:space-between;gap:8px;}
     .hero-banner-price{font-family:'DM Mono',monospace;font-weight:700;font-size:.95rem;color:var(--accent);white-space:nowrap;}
     .search-wrap{max-width:1000px;margin:0 auto;padding:0 20px 28px;}
     .search-row{display:flex;gap:12px;align-items:stretch;flex-wrap:wrap;}
@@ -322,27 +324,34 @@
   </div>
   <div class="hero-banners">
     {% for b in banners %}
-    <div class="hero-banner-card hbc-item" style="cursor:default;position:relative;">
-      <a href="/product/{{ b.slug }}" style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;text-decoration:none;color:inherit;">
-        {% if b.image %}
-        <img class="hero-banner-img" src="{{ b.image }}" alt="{{ b.name }}" loading="lazy" style="width:52px;height:52px;">
-        {% else %}
-        <div class="hero-banner-img-ph" style="width:52px;height:52px;">📦</div>
-        {% endif %}
+    <div class="hero-banner-card hbc-item" style="position:relative;">
+      <div class="hero-banner-top">
+        <a href="/product/{{ b.slug }}" style="display:contents;text-decoration:none;color:inherit;">
+          {% if b.image %}
+          <img class="hero-banner-img" src="{{ b.image }}" alt="{{ b.name }}" loading="lazy">
+          {% else %}
+          <div class="hero-banner-img-ph">📦</div>
+          {% endif %}
+        </a>
         <div class="hero-banner-info">
-          <div class="hero-banner-name">{{ b.name }}</div>
-          <div class="hero-banner-cat">{{ b.category_name }}</div>
-          <div class="hbc-social" style="font-size:.72rem;color:var(--muted);margin-top:3px;display:flex;align-items:center;gap:4px;"><span style="width:6px;height:6px;border-radius:50%;background:#16a34a;display:inline-block;flex-shrink:0;"></span><span class="hbc-count"></span></div>
+          <a href="/product/{{ b.slug }}" style="text-decoration:none;color:inherit;">
+            <div class="hero-banner-name">{{ b.name }}</div>
+            <div class="hero-banner-cat">{{ b.category_name }}</div>
+          </a>
         </div>
-        {% if b.sale_price %}
-        <div class="hero-banner-price">R$ {{ "%.2f"|format(b.sale_price) }}</div>
-        {% endif %}
-      </a>
+      </div>
       {% if b.sale_price %}
-      <a class="wa-track" href="https://wa.me/{{ wa_number }}?text=Quero%20comprar%3A%20{{ b.name|urlencode }}" target="_blank" rel="noopener" data-product="Banner comprar" style="display:inline-flex;align-items:center;gap:5px;background:var(--wa);color:#fff;padding:6px 10px;border-radius:8px;font-weight:700;font-size:.78rem;text-decoration:none;white-space:nowrap;flex-shrink:0;">Comprar</a>
-      <button class="add-cart-btn" data-id="{{ b.id }}" data-name="{{ b.name|e }}" data-price="{{ b.sale_price }}" data-image="{{ b.image or '' }}">
-        🛒
-      </button>
+      <div class="hero-banner-bottom">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="width:6px;height:6px;border-radius:50%;background:#16a34a;display:inline-block;flex-shrink:0;"></span>
+          <span class="hbc-count" style="font-size:.72rem;color:var(--muted);"></span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div class="hero-banner-price">R$ {{ "%.2f"|format(b.sale_price) }}</div>
+          <a class="wa-track" href="https://wa.me/{{ wa_number }}?text=Quero%20comprar%3A%20{{ b.name|urlencode }}" target="_blank" rel="noopener" data-product="Banner comprar" style="display:inline-flex;align-items:center;gap:5px;background:var(--wa);color:#fff;padding:6px 10px;border-radius:8px;font-weight:700;font-size:.78rem;text-decoration:none;white-space:nowrap;flex-shrink:0;">Comprar</a>
+          <button class="add-cart-btn" data-id="{{ b.id }}" data-name="{{ b.name|e }}" data-price="{{ b.sale_price }}" data-image="{{ b.image or '' }}">🛒</button>
+        </div>
+      </div>
       {% endif %}
     </div>
     {% endfor %}
