@@ -232,6 +232,7 @@ async def product_page(request: Request, slug: str):
         "product":       product,
         "related":       related,
         "cat_slug":      slugify(product["category_name"]),
+        "cat2_slug":     slugify(product["category2_name"]) if product.get("category2_name") else "",
         "ga_id":         GA_ID,
         "site_url":      SITE_URL,
         "wa_number":     WA_OWNER_NUMBER,
