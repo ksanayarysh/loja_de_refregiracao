@@ -856,6 +856,7 @@ function filterProducts() {
     clearTimeout(_catalogTrackTimer);
     _catalogTrackTimer = setTimeout(() => {
       fetch('/api/track/search', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({query: q, page: 'catalogo'})}).catch(()=>{});
+      if (typeof gtag !== 'undefined') gtag('event', 'search', {search_term: q});
     }, 1500);
   }
   // скрываем/показываем баннеры при поиске

@@ -668,6 +668,7 @@ async function triggerFixedSearch() {
   const dropdown = document.getElementById('quickResults');
   dropdown.style.display = 'none';
   if (!q || q.length < 2) { box.style.display = 'none'; return; }
+  if (typeof gtag !== 'undefined') gtag('event', 'search', {search_term: q});
   try {
     const res = await fetch('/api/catalog');
     const products = await res.json();
@@ -716,6 +717,7 @@ async function quickSearchHandler(q) {
   clearTimeout(_searchTrackTimer);
   _searchTrackTimer = setTimeout(() => {
     fetch('/api/track/search', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({query: q, page: 'inicio'})}).catch(()=>{});
+    if (typeof gtag !== 'undefined') gtag('event', 'search', {search_term: q});
   }, 1500);
   try {
     const res = await fetch('/api/catalog');
