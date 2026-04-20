@@ -18,12 +18,10 @@
   {"@context":"https://schema.org","@type":"Store","@id":"{{ site_url }}/#store","name":"M.T.F Refrigeração","url":"{{ site_url }}/","telephone":"{{ store_phone if store_phone else '' }}","address":{"@type":"PostalAddress","streetAddress":"{{ store_address }}","addressLocality":"Rio de Janeiro","addressRegion":"RJ","addressCountry":"BR"},"geo":{"@type":"GeoCoordinates","latitude":-22.8658,"longitude":-43.2533},"openingHours":"Mo-Sa 08:30-18:00"}
   </script>
   {% if ga_id %}
+  <!-- Google Analytics + Ads Tag (single load) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id={{ ga_id }}"></script>
-  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','{{ ga_id }}');</script>
+  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','{{ ga_id }}');gtag('config','AW-18038713780');</script>
   {% endif %}
-  <!-- Google Ads Tag -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-18038713780"></script>
-  <script>gtag('config','AW-18038713780');</script>
   {% include '_header_styles.html' %}
   <style>
     /* ── CATALOG-SPECIFIC STYLES ── */

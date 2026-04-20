@@ -23,4 +23,18 @@ async def force_domain(request: Request, call_next):
         new_url = str(request.url).replace(host, "www.mtfrefrigeracao.com.br", 1)
         return RedirectResponse(new_url, status_code=301)
 
-    return await call_next(request)
+    response = await call_next(request)
+
+    # Cache for static files (30 days)
+    if request.url.path.startswith("/static/"):
+        response.headers["Cache-Control"] = "public, max-age=2592000, immutable"
+
+    # Block Kaspersky and other injected third-party scripts
+    response.headers["Content-Security-Policy"] = (
+        "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com "
+        "https://connect.facebook.net https://www.google-analytics.com "
+        "https://www.gstatic.com https://cdn.jsdelivr.net; "
+        "object-src 'none';"
+    )
+
+    return response
