@@ -39,6 +39,7 @@
     function gtag(){dataLayer.push(arguments);}
     gtag("js", new Date());
     gtag("config", "{{ ga_id }}");
+    gtag("config", "AW-18038713780");
   </script>
   {% endif %}
 
@@ -745,6 +746,58 @@
     </a>
   </div>
 </div>
+
+{% set cat = cat_slug | default('') %}
+{% if cat in ['geladeira', 'freezer', 'maquina-de-lavar', 'ar-condicionado'] %}
+<div style="max-width:900px;margin:0 auto;padding:0 20px 40px;">
+  <div style="font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding-bottom:12px;border-bottom:1px solid var(--border);margin-bottom:16px;">Guias relacionados</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;">
+
+    {% if cat in ['geladeira', 'freezer'] %}
+    <a href="/blog/geladeira-nao-gela-embaixo" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:6px;transition:border-color .15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+      <div style="font-size:1.1rem;">🧊</div>
+      <div style="font-weight:700;font-size:.88rem;line-height:1.3;">Geladeira não gela embaixo</div>
+      <div style="font-size:.8rem;color:var(--muted);flex:1;">Causas e peças para resolver.</div>
+      <div style="font-size:.8rem;color:var(--accent);font-weight:700;">Ler guia →</div>
+    </a>
+    <a href="/blog/geladeira-fazendo-barulho" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:6px;transition:border-color .15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+      <div style="font-size:1.1rem;">🔊</div>
+      <div style="font-weight:700;font-size:.88rem;line-height:1.3;">Geladeira fazendo barulho</div>
+      <div style="font-size:.8rem;color:var(--muted);flex:1;">O que cada som significa.</div>
+      <div style="font-size:.8rem;color:var(--accent);font-weight:700;">Ler guia →</div>
+    </a>
+    <a href="/blog/geladeira-frost-free-acumula-gelo" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:6px;transition:border-color .15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+      <div style="font-size:1.1rem;">❄️</div>
+      <div style="font-weight:700;font-size:.88rem;line-height:1.3;">Frost free acumula gelo</div>
+      <div style="font-size:.8rem;color:var(--muted);flex:1;">Por que acontece e como resolver.</div>
+      <div style="font-size:.8rem;color:var(--accent);font-weight:700;">Ler guia →</div>
+    </a>
+    {% endif %}
+
+    {% if cat == 'maquina-de-lavar' %}
+    <a href="/blog/maquina-de-lavar-nao-centrifuga" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:6px;transition:border-color .15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+      <div style="font-size:1.1rem;">🌀</div>
+      <div style="font-weight:700;font-size:.88rem;line-height:1.3;">Máquina não centrifuga</div>
+      <div style="font-size:.8rem;color:var(--muted);flex:1;">Causas e peças para resolver.</div>
+      <div style="font-size:.8rem;color:var(--accent);font-weight:700;">Ler guia →</div>
+    </a>
+    <a href="/blog/maquina-de-lavar-nao-liga" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:6px;transition:border-color .15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+      <div style="font-size:1.1rem;">⚡</div>
+      <div style="font-weight:700;font-size:.88rem;line-height:1.3;">Máquina não liga</div>
+      <div style="font-size:.8rem;color:var(--muted);flex:1;">O que verificar primeiro.</div>
+      <div style="font-size:.8rem;color:var(--accent);font-weight:700;">Ler guia →</div>
+    </a>
+    <a href="/blog/maquina-de-lavar-vazando-agua" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:6px;transition:border-color .15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+      <div style="font-size:1.1rem;">💧</div>
+      <div style="font-weight:700;font-size:.88rem;line-height:1.3;">Máquina vazando água</div>
+      <div style="font-size:.8rem;color:var(--muted);flex:1;">De onde vem o vazamento.</div>
+      <div style="font-size:.8rem;color:var(--accent);font-weight:700;">Ler guia →</div>
+    </a>
+    {% endif %}
+
+  </div>
+</div>
+{% endif %}
 
 <footer>
   <div style="max-width:900px;margin:0 auto;padding:32px 20px 20px;display:grid;grid-template-columns:1fr 1fr;gap:32px;">
