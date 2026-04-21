@@ -577,20 +577,6 @@
       <div class="product-unit">Unidade: {{ product.unit }}</div>
     </div>
 
-    <a class="wa-track" href="https://wa.me/{{ wa_number }}?text={{ wa_msg | urlencode }}"
-       target="_blank" rel="noopener" data-product="{{ product.name }}"
-       style="display:flex;align-items:center;justify-content:center;gap:8px;background:var(--accent);color:#fff;padding:12px 20px;border-radius:10px;font-weight:700;font-size:.95rem;text-decoration:none;transition:opacity .15s;" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
-      ⚡ Comprar agora
-    </a>
-
-    {% if product.description %}
-    <p style="font-size:.95rem;line-height:1.6;color:var(--muted);">{{ product.description }}</p>
-    {% else %}
-    <p style="font-size:.95rem;line-height:1.6;color:var(--muted);">
-      Produto disponível na M.T.F Refrigeração para atendimento no Rio de Janeiro. Consulte via WhatsApp para preço, disponibilidade e detalhes de aplicação.
-    </p>
-    {% endif %}
-
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
       <div class="stock-pill">
         <svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor"><circle cx="4" cy="4" r="4"/></svg>
@@ -604,7 +590,7 @@
     <div class="price-block" style="border:2px solid var(--accent);background:linear-gradient(135deg,#fff5f7 0%,#fff 100%);">
       <div class="price-label">Preço</div>
       {% if product.sale_price %}
-      <div class="price-value" style="font-size:2.4rem;color:var(--accent);">R$ {{ "%.2f"|format(product.sale_price) }}</div>
+      <div class="price-value" style="font-size:2.4rem;color:var(--accent);">R$ {{ "%.2f"|format(product.sale_price) }}{% if product.unit == 'kg' %}<span style="font-size:1.1rem;font-weight:400;color:var(--muted);">/kg</span>{% endif %}</div>
       <div style="font-size:.8rem;color:var(--muted);margin-top:2px;">por {{ product.unit }} · Rio de Janeiro</div>
       {% else %}
       <div class="price-consult">Consulte disponibilidade</div>
@@ -616,6 +602,14 @@
         <span class="pay-chip">Parcelamos</span>
       </div>
     </div>
+
+    {% if product.description %}
+    <p style="font-size:.95rem;line-height:1.6;color:var(--muted);">{{ product.description }}</p>
+    {% else %}
+    <p style="font-size:.95rem;line-height:1.6;color:var(--muted);">
+      Produto disponível na M.T.F Refrigeração para atendimento no Rio de Janeiro. Consulte via WhatsApp para preço, disponibilidade e detalhes de aplicação.
+    </p>
+    {% endif %}
 
     <a class="wa-cta wa-track"
        href="https://wa.me/{{ wa_number }}?text={{ wa_msg | urlencode }}"
@@ -928,6 +922,7 @@ function clearCart() {
 function updateBadge() {
   const total = cart.reduce((s, i) => s + i.qty, 0);
   const badge = document.getElementById('cart-badge');
+  if (!badge) return;
   badge.textContent = total;
   badge.classList.toggle('show', total > 0);
 }
