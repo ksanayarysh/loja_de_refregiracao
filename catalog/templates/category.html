@@ -423,12 +423,14 @@ function clearCart() { cart = []; saveCart(); updateBadge(); renderCart(); }
 function updateBadge() {
   const total = cart.reduce((s, i) => s + i.qty, 0);
   const badge = document.getElementById('cart-badge');
+  if (!badge) return;
   badge.textContent = total;
   badge.classList.toggle('show', total > 0);
 }
 function renderCart() {
   const body = document.getElementById('cart-body');
   const foot = document.getElementById('cart-foot');
+  if (!body || !foot) return;
   if (!cart.length) {
     body.innerHTML = '<div class="cart-empty">Nenhum produto adicionado ainda.</div>';
     foot.style.display = 'none'; return;
