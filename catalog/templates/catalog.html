@@ -56,6 +56,8 @@
     .search-input-wrap input::placeholder{color:var(--muted);}
     .btn-foto{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:#fff;border:1.5px solid var(--wa);color:var(--wa);padding:13px 18px;border-radius:10px;font-weight:700;font-size:.88rem;text-decoration:none;white-space:nowrap;transition:background .15s;flex:0 0 auto;}
     .btn-foto:hover{background:var(--green-l);}
+    .btn-ligue{display:none;align-items:center;justify-content:center;gap:8px;background:#fff;border:1.5px solid var(--accent);color:var(--accent);padding:13px 18px;border-radius:10px;font-weight:700;font-size:.88rem;text-decoration:none;white-space:nowrap;transition:background .15s;flex:0 0 auto;}
+    .btn-ligue:hover{background:#fff5f7;}
     .search-results{display:none;margin-top:8px;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.08);}
     .search-result-item{display:flex;align-items:center;gap:10px;padding:10px 14px;text-decoration:none;color:inherit;border-bottom:1px solid var(--border);transition:background .1s;}
     .search-result-item:last-child{border-bottom:none;}
@@ -140,6 +142,7 @@
       .search-bar-inner{padding:0 16px;gap:8px;flex-wrap:wrap;}
       .search-bar-inner .header-search{flex:1 1 100%;}
       .btn-foto{width:100%;justify-content:center;}
+      .btn-ligue{display:flex;width:100%;justify-content:center;}
 
       /* hero */
       .hero{grid-template-columns:1fr;padding:24px 16px 20px;gap:24px;}
@@ -287,6 +290,12 @@
       <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
       Envie uma foto — te ajudamos a encontrar!
     </a>
+    {% if store_phone %}
+    <a class="btn-ligue phone-track" href="tel:{{ store_phone }}">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.81a16 16 0 0 0 6.29 6.29l.95-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+      Ligue agora!
+    </a>
+    {% endif %}
   </div>
 </div>
 
@@ -311,14 +320,13 @@
       </a>
       <a class="btn-hero-cat" href="/catalogo">Ver catálogo →</a>
 
-      <a href="tel:{{ store_phone }}" style="display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:#fff;padding:13px 20px;border-radius:10px;font-weight:700;font-size:.95rem;text-decoration:none;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.81a16 16 0 0 0 6.29 6.29l.95-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg> Ligue agora</a>
+      <a href="tel:{{ store_phone }}" class="phone-track" style="display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:#fff;padding:13px 20px;border-radius:10px;font-weight:700;font-size:.95rem;text-decoration:none;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.81a16 16 0 0 0 6.29 6.29l.95-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg> Ligue agora</a>
     </div>
     <div class="hero-badges">
       <span class="badge">R134a · R410A · R22 · R32 · R290 · R600a</span>
       <span class="badge">Refil e varejo</span>
       <a class="badge" href="https://maps.google.com/?q=MTF+Refrigera%C3%A7%C3%A3o+Rio+de+Janeiro" target="_blank" rel="noopener" style="text-decoration:none;color:var(--accent);border-color:var(--accent);">📍 Av. Brasil, 6818 — RJ · <span style="font-weight:700;">Ver no mapa →</span></a>
     </div>
-    <div style="display:flex;align-items:center;gap:6px;margin-top:16px;flex-wrap:nowrap;"><span style="display:inline-flex;align-items:center;gap:5px;background:#f0fdf4;border:1.5px solid var(--green);color:var(--green);font-size:.78rem;font-weight:700;padding:5px 11px;border-radius:20px;">&#128205; Retire na loja hoje</span><span style="display:inline-flex;align-items:center;gap:5px;background:#fff7f9;border:1.5px solid var(--accent);color:var(--accent);font-size:.78rem;font-weight:700;padding:5px 11px;border-radius:20px;">&#9889; Atendimento imediato</span><span style="display:inline-flex;align-items:center;gap:5px;background:#f0f7ff;border:1.5px solid #1a6bc4;color:#1a6bc4;font-size:.78rem;font-weight:700;padding:5px 11px;border-radius:20px;">&#9733; 5.0 no Google</span><span style="display:inline-flex;align-items:center;gap:5px;background:#f8f7f4;border:1.5px solid #8a8580;color:#5f5e5a;font-size:.78rem;font-weight:700;padding:5px 11px;border-radius:20px;">&#128197; 4 anos no mercado</span></div>
 
   </div>
   <div class="hero-banners">
@@ -341,8 +349,8 @@
       </div>
       {% if b.sale_price %}
       <div class="hero-banner-bottom">
-        <div style="display:flex;align-items:center;gap:8px;">
-          <div class="hero-banner-price">R$ {{ "%.2f"|format(b.sale_price) }}</div>
+        <div class="hero-banner-price">R$ {{ "%.2f"|format(b.sale_price) }}</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-left:auto;">
           <a class="wa-track" href="https://wa.me/{{ wa_number }}?text=Quero%20comprar%3A%20{{ b.name|urlencode }}" target="_blank" rel="noopener" data-product="Banner comprar" style="display:inline-flex;align-items:center;gap:5px;background:var(--wa);color:#fff;padding:6px 10px;border-radius:8px;font-weight:700;font-size:.78rem;text-decoration:none;white-space:nowrap;flex-shrink:0;">Comprar</a>
           <button class="add-cart-btn" data-id="{{ b.id }}" data-name="{{ b.name|e }}" data-price="{{ b.sale_price }}" data-image="{{ b.image or '' }}">🛒</button>
         </div>
@@ -487,6 +495,10 @@
       Enviar pedido no WhatsApp
     </a>
   </div>
+</div>
+
+<div style="max-width:900px;margin:0 auto;padding:0 20px 32px;">
+  <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;"><span style="display:inline-flex;align-items:center;gap:5px;background:#f0fdf4;border:1.5px solid var(--green);color:var(--green);font-size:.78rem;font-weight:700;padding:5px 11px;border-radius:20px;">&#128205; Retire na loja hoje</span><span style="display:inline-flex;align-items:center;gap:5px;background:#fff7f9;border:1.5px solid var(--accent);color:var(--accent);font-size:.78rem;font-weight:700;padding:5px 11px;border-radius:20px;">&#9889; Atendimento imediato</span><span style="display:inline-flex;align-items:center;gap:5px;background:#f0f7ff;border:1.5px solid #1a6bc4;color:#1a6bc4;font-size:.78rem;font-weight:700;padding:5px 11px;border-radius:20px;">&#9733; 5.0 no Google</span><span style="display:inline-flex;align-items:center;gap:5px;background:#f8f7f4;border:1.5px solid #8a8580;color:#5f5e5a;font-size:.78rem;font-weight:700;padding:5px 11px;border-radius:20px;">&#128197; 4 anos no mercado</span></div>
 </div>
 
 <footer>
@@ -774,6 +786,9 @@ document.querySelectorAll('.wa-track').forEach(el => {
 });
 document.querySelectorAll('.phone-track').forEach(el => {
   el.addEventListener('click', function() {
+    if (typeof gtag !== 'undefined') {
+      gtag('event', 'phone_call_click', { event_category: 'contact', event_label: 'Ligue agora' });
+    }
     fetch('/api/track/whatsapp', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({product:'Telefone'})}).catch(()=>{});
   });
 });
