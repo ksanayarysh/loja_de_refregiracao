@@ -372,15 +372,70 @@
 </div>
 
 <div style="max-width:900px;margin:0 auto;padding:0 20px 40px;">
-  <div style="font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding-bottom:12px;border-bottom:1px solid var(--border);margin-bottom:16px;">Leia também</div>
-  <a href="/blog/geladeira-nao-gela-embaixo" style="display:flex;align-items:center;gap:16px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;text-decoration:none;color:inherit;transition:border-color .15s,box-shadow .15s;" onmouseover="this.style.borderColor='var(--accent)';this.style.boxShadow='0 4px 16px rgba(226,20,74,.08)'" onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='none'">
-    <div style="width:44px;height:44px;background:#fff7f9;border:1px solid #ffd9e4;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;">🧊</div>
-    <div style="flex:1;min-width:0;">
-      <div style="font-weight:700;font-size:.92rem;line-height:1.3;">Geladeira não gela embaixo? Causas e peças para resolver</div>
-      <div style="font-size:.8rem;color:var(--muted);margin-top:3px;">Sensor, termostato, resistência de degelo — veja o que pode estar causando o problema.</div>
-    </div>
-    <div style="font-size:.82rem;color:var(--accent);font-weight:700;white-space:nowrap;flex-shrink:0;">Ler →</div>
-  </a>
+  <div style="font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding-bottom:12px;border-bottom:1px solid var(--border);margin-bottom:16px;">Guias relacionados</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;">
+
+  {% if cat_slug in ['geladeira', 'freezer'] %}
+    <a href="/blog/geladeira-nao-gela-embaixo" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:6px;transition:border-color .15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+      <div style="font-size:1.1rem;">🧊</div>
+      <div style="font-weight:700;font-size:.88rem;line-height:1.3;">Geladeira não gela embaixo</div>
+      <div style="font-size:.8rem;color:var(--muted);flex:1;">Causas e peças para resolver.</div>
+      <div style="font-size:.8rem;color:var(--accent);font-weight:700;">Ler guia →</div>
+    </a>
+    <a href="/blog/geladeira-fazendo-barulho" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:6px;transition:border-color .15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+      <div style="font-size:1.1rem;">🔊</div>
+      <div style="font-weight:700;font-size:.88rem;line-height:1.3;">Geladeira fazendo barulho</div>
+      <div style="font-size:.8rem;color:var(--muted);flex:1;">O que cada som significa.</div>
+      <div style="font-size:.8rem;color:var(--accent);font-weight:700;">Ler guia →</div>
+    </a>
+    <a href="/blog/geladeira-frost-free-acumula-gelo" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:6px;transition:border-color .15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+      <div style="font-size:1.1rem;">❄️</div>
+      <div style="font-weight:700;font-size:.88rem;line-height:1.3;">Frost free acumula gelo</div>
+      <div style="font-size:.8rem;color:var(--muted);flex:1;">Por que acontece e como resolver.</div>
+      <div style="font-size:.8rem;color:var(--accent);font-weight:700;">Ler guia →</div>
+    </a>
+  {% elif cat_slug == 'maquina-de-lavar' %}
+    <a href="/blog/maquina-de-lavar-nao-centrifuga" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:6px;transition:border-color .15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+      <div style="font-size:1.1rem;">🌀</div>
+      <div style="font-weight:700;font-size:.88rem;line-height:1.3;">Máquina não centrifuga</div>
+      <div style="font-size:.8rem;color:var(--muted);flex:1;">Causas e peças para resolver.</div>
+      <div style="font-size:.8rem;color:var(--accent);font-weight:700;">Ler guia →</div>
+    </a>
+    <a href="/blog/maquina-de-lavar-nao-liga" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:6px;transition:border-color .15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+      <div style="font-size:1.1rem;">⚡</div>
+      <div style="font-weight:700;font-size:.88rem;line-height:1.3;">Máquina não liga</div>
+      <div style="font-size:.8rem;color:var(--muted);flex:1;">O que verificar primeiro.</div>
+      <div style="font-size:.8rem;color:var(--accent);font-weight:700;">Ler guia →</div>
+    </a>
+    <a href="/blog/maquina-de-lavar-vazando-agua" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:6px;transition:border-color .15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+      <div style="font-size:1.1rem;">💧</div>
+      <div style="font-weight:700;font-size:.88rem;line-height:1.3;">Máquina vazando água</div>
+      <div style="font-size:.8rem;color:var(--muted);flex:1;">De onde vem o vazamento.</div>
+      <div style="font-size:.8rem;color:var(--accent);font-weight:700;">Ler guia →</div>
+    </a>
+  {% elif cat_slug == 'ar-condicionado' %}
+    <a href="/blog/capacitor-ar-condicionado" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:6px;transition:border-color .15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+      <div style="font-size:1.1rem;">⚡</div>
+      <div style="font-weight:700;font-size:.88rem;line-height:1.3;">Capacitor de ar-condicionado</div>
+      <div style="font-size:.8rem;color:var(--muted);flex:1;">Sintomas e como identificar o valor certo.</div>
+      <div style="font-size:.8rem;color:var(--accent);font-weight:700;">Ler guia →</div>
+    </a>
+    <a href="/blog/gas-refrigerante-rj" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:6px;transition:border-color .15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+      <div style="font-size:1.1rem;">🧪</div>
+      <div style="font-weight:700;font-size:.88rem;line-height:1.3;">Gás refrigerante no RJ</div>
+      <div style="font-size:.8rem;color:var(--muted);flex:1;">Tipos, quando recarregar e onde comprar.</div>
+      <div style="font-size:.8rem;color:var(--accent);font-weight:700;">Ler guia →</div>
+    </a>
+  {% elif cat_slug == 'gases-refrigerantes' %}
+    <a href="/blog/gas-refrigerante-rj" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:6px;transition:border-color .15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+      <div style="font-size:1.1rem;">🧪</div>
+      <div style="font-weight:700;font-size:.88rem;line-height:1.3;">Gás refrigerante no RJ</div>
+      <div style="font-size:.8rem;color:var(--muted);flex:1;">R32, R410A, R22, R134a — diferenças e quando recarregar.</div>
+      <div style="font-size:.8rem;color:var(--accent);font-weight:700;">Ler guia →</div>
+    </a>
+  {% endif %}
+
+  </div>
 </div>
 
 <footer>
