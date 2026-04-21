@@ -67,6 +67,15 @@ async def create_category(data: dict, _=Depends(basic_auth)):
 from fastapi.staticfiles import StaticFiles
 app.mount("/static", StaticFiles(directory="/app/static"), name="static")
 
+from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
+
+@app.middleware("http")
+async def add_cache_headers(request: Request, call_next):
+    response = await call_next(request)
+    if request.url.path.startswith("/static/"):
+        response.headers["Cache-Control"] = "public, max-age=2592000, immutable"
+    return response
+
 
 @app.get("/debug/static")
 async def debug_static():
