@@ -246,6 +246,37 @@
   <b id="visibleCount">{{ total }}</b> produtos encontrados
 </div>
 
+{% if cat_slug == 'maquina-de-lavar' %}
+<div style="max-width:900px;margin:0 auto 20px;padding:0 20px;">
+  <div style="font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">Qual é o problema?</div>
+  <div style="display:flex;flex-wrap:wrap;gap:8px;">
+    <a href="/blog/maquina-de-lavar-nao-centrifuga" style="display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:9px 16px;text-decoration:none;color:var(--text);font-size:.88rem;font-weight:600;transition:border-color .15s,color .15s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)'">🌀 Não centrifuga</a>
+    <a href="/blog/maquina-de-lavar-nao-liga" style="display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:9px 16px;text-decoration:none;color:var(--text);font-size:.88rem;font-weight:600;transition:border-color .15s,color .15s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)'">⚡ Não liga</a>
+    <a href="/blog/maquina-de-lavar-vazando-agua" style="display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:9px 16px;text-decoration:none;color:var(--text);font-size:.88rem;font-weight:600;transition:border-color .15s,color .15s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)'">💧 Vazando água</a>
+    <a href="https://wa.me/{{ wa_number }}?text=Minha%20m%C3%A1quina%20de%20lavar%20est%C3%A1%20com%20problema.%20Pode%20me%20ajudar%20a%20encontrar%20a%20pe%C3%A7a%20certa%3F" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:9px 16px;text-decoration:none;color:var(--text);font-size:.88rem;font-weight:600;transition:border-color .15s,color .15s;" onmouseover="this.style.borderColor='var(--wa)';this.style.color='var(--wa)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)'">💬 Outro problema</a>
+  </div>
+</div>
+{% elif cat_slug in ['geladeira', 'freezer'] %}
+<div style="max-width:900px;margin:0 auto 20px;padding:0 20px;">
+  <div style="font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">Qual é o problema?</div>
+  <div style="display:flex;flex-wrap:wrap;gap:8px;">
+    <a href="/blog/geladeira-nao-gela-embaixo" style="display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:9px 16px;text-decoration:none;color:var(--text);font-size:.88rem;font-weight:600;transition:border-color .15s,color .15s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)'">🧊 Não gela embaixo</a>
+    <a href="/blog/geladeira-fazendo-barulho" style="display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:9px 16px;text-decoration:none;color:var(--text);font-size:.88rem;font-weight:600;transition:border-color .15s,color .15s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)'">🔊 Fazendo barulho</a>
+    <a href="/blog/geladeira-frost-free-acumula-gelo" style="display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:9px 16px;text-decoration:none;color:var(--text);font-size:.88rem;font-weight:600;transition:border-color .15s,color .15s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)'">❄️ Acumulando gelo</a>
+    <a href="https://wa.me/{{ wa_number }}?text=Minha%20geladeira%20est%C3%A1%20com%20problema.%20Pode%20me%20ajudar%20a%20encontrar%20a%20pe%C3%A7a%20certa%3F" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:9px 16px;text-decoration:none;color:var(--text);font-size:.88rem;font-weight:600;transition:border-color .15s,color .15s;" onmouseover="this.style.borderColor='var(--wa)';this.style.color='var(--wa)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)'">💬 Outro problema</a>
+  </div>
+</div>
+{% elif cat_slug == 'ar-condicionado' %}
+<div style="max-width:900px;margin:0 auto 20px;padding:0 20px;">
+  <div style="font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">Qual é o problema?</div>
+  <div style="display:flex;flex-wrap:wrap;gap:8px;">
+    <a href="/blog/capacitor-ar-condicionado" style="display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:9px 16px;text-decoration:none;color:var(--text);font-size:.88rem;font-weight:600;transition:border-color .15s,color .15s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)'">⚡ Não esfria</a>
+    <a href="/blog/gas-refrigerante-rj" style="display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:9px 16px;text-decoration:none;color:var(--text);font-size:.88rem;font-weight:600;transition:border-color .15s,color .15s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)'">🧪 Falta de gás</a>
+    <a href="https://wa.me/{{ wa_number }}?text=Meu%20ar-condicionado%20est%C3%A1%20com%20problema.%20Pode%20me%20ajudar%3F" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:9px 16px;text-decoration:none;color:var(--text);font-size:.88rem;font-weight:600;transition:border-color .15s,color .15s;" onmouseover="this.style.borderColor='var(--wa)';this.style.color='var(--wa)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)'">💬 Outro problema</a>
+  </div>
+</div>
+{% endif %}
+
 {% if cat_slug == 'gases-refrigerantes' %}
 <div style="max-width:900px;margin:0 auto 20px;padding:0 20px;">
   <a href="/calculadora-gas" style="display:flex;align-items:center;gap:16px;background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:16px 20px;text-decoration:none;color:inherit;transition:border-color .15s,box-shadow .15s;" onmouseover="this.style.borderColor='var(--accent)';this.style.boxShadow='0 4px 16px rgba(226,20,74,.08)'" onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='none'">
