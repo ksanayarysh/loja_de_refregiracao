@@ -311,7 +311,15 @@ async def catalogo_page(request: Request):
         "request":        request,
         "groups":         clean["groups"],
         "total":          total,
-        "categories":     list(clean["groups"].keys()),
+        "categories":     sorted(
+            clean["groups"].keys(),
+            key=lambda c: (
+                0 if c.lower() == "ar condicionado" else
+                1 if c.lower() == "geladeira" else
+                2 if "lavar" in c.lower() else
+                3
+            )
+        ),
         "cat_slugs":      clean["cat_slugs"],
         "ga_id":          GA_ID,
         "site_url":       SITE_URL,

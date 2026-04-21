@@ -263,6 +263,18 @@
       padding-bottom: 4px;
     }
     .filter-row::-webkit-scrollbar { display: none; }
+    .filter-row-wrap {
+      position: relative;
+      width: 100%;
+    }
+    .filter-row-wrap::after {
+      content: '';
+      position: absolute;
+      right: 0; top: 0; bottom: 4px;
+      width: 40px;
+      background: linear-gradient(to right, transparent, var(--bg));
+      pointer-events: none;
+    }
     .filter-chip {
       padding: 7px 14px;
       border-radius: 20px;
@@ -520,11 +532,13 @@
       <input type="text" id="searchInput" placeholder="O que você está procurando hoje?" oninput="filterProducts()">
     </div>
 
-    <div class="filter-row" id="filterRow">
-      <button class="filter-chip active" data-filter="all" onclick="setFilter(this, 'all')">Todas as categorias</button>
-      {% for cat in categories %}
-      <button class="filter-chip" data-filter="{{ cat }}" onclick="setFilter(this, '{{ cat }}')">{{ cat }}</button>
-      {% endfor %}
+    <div class="filter-row-wrap">
+      <div class="filter-row" id="filterRow">
+        <button class="filter-chip active" data-filter="all" onclick="setFilter(this, 'all')">Todas as categorias</button>
+        {% for cat in categories %}
+        <button class="filter-chip" data-filter="{{ cat }}" onclick="setFilter(this, '{{ cat }}')">{{ cat }}</button>
+        {% endfor %}
+      </div>
     </div>
   </div>
 </div>

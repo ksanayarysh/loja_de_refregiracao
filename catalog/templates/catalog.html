@@ -341,10 +341,6 @@
       </div>
       {% if b.sale_price %}
       <div class="hero-banner-bottom">
-        <div style="display:flex;align-items:center;gap:6px;">
-          <span style="width:6px;height:6px;border-radius:50%;background:#16a34a;display:inline-block;flex-shrink:0;"></span>
-          <span class="hbc-count" style="font-size:.72rem;color:var(--muted);"></span>
-        </div>
         <div style="display:flex;align-items:center;gap:8px;">
           <div class="hero-banner-price">R$ {{ "%.2f"|format(b.sale_price) }}</div>
           <a class="wa-track" href="https://wa.me/{{ wa_number }}?text=Quero%20comprar%3A%20{{ b.name|urlencode }}" target="_blank" rel="noopener" data-product="Banner comprar" style="display:inline-flex;align-items:center;gap:5px;background:var(--wa);color:#fff;padding:6px 10px;border-radius:8px;font-weight:700;font-size:.78rem;text-decoration:none;white-space:nowrap;flex-shrink:0;">Comprar</a>
@@ -802,9 +798,7 @@ document.querySelectorAll('.phone-track').forEach(el => {
     });
   }
   cards.forEach(function(card) {
-    var n = Math.floor(Math.random() * 4) + 1;
-    var cnt = card.querySelector('.hbc-count');
-    if(cnt) cnt.textContent = n + (n === 1 ? ' pessoa comprou hoje' : ' pessoas compraram hoje');
+    // social proof removed
   });
 })();
 </script>
