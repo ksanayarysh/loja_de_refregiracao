@@ -352,6 +352,22 @@ async def _get_promo_product(conn):
     return r
 
 
+# ── 301 РЕДИРЕКТЫ для старых URL ──────────────────────────────────────────────
+from fastapi.responses import RedirectResponse as _Redirect
+
+@router.get("/category/refrigeracao")
+async def redirect_category_refrigeracao():
+    return _Redirect("/category/gases-refrigerantes", status_code=301)
+
+@router.get("/product/protetor-termico-embraco")
+async def redirect_protetor_termico():
+    return _Redirect("/product/protetor-termico-ptc", status_code=301)
+
+@router.get("/product/gas-r32-3kg")
+async def redirect_gas_r32():
+    return _Redirect("/product/gas-r32-3kg-hulter", status_code=301)
+
+
 @router.get("/", response_class=HTMLResponse)
 async def catalog_page(request: Request):
     async with engine.connect() as conn:
