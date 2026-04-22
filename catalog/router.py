@@ -239,7 +239,9 @@ async def _send_daily_digest():
             pass
 
 # Запускаем дайджест при старте
-asyncio.ensure_future(_send_daily_digest())
+@router.on_event("startup")
+async def _start_digest():
+    asyncio.ensure_future(_send_daily_digest())
 
 
 async def _get_products(conn):
