@@ -43,7 +43,8 @@ window.addEventListener('load', function() {
   }).catch(function(){});
 });
 </script>
-<link rel="stylesheet" href="/static/fonts/fonts.css">
+<link rel="preload" as="style" href="/static/fonts/fonts.css" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="/static/fonts/fonts.css"></noscript>
 <style>
   @font-face { font-family: 'DM Sans'; font-display: swap; }
   @font-face { font-family: 'DM Mono'; font-display: swap; }
