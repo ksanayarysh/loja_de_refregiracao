@@ -555,15 +555,19 @@
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
       <input type="text" id="searchInput" placeholder="O que você está procurando hoje?" oninput="filterProducts()">
     </div>
-
-    <div class="filter-row-wrap">
-      <div class="filter-row" id="filterRow">
-        <button class="filter-chip active" data-filter="all" onclick="setFilter(this, 'all')">Todas as categorias</button>
-        {% for cat in categories %}
-        <button class="filter-chip" data-filter="{{ cat }}" onclick="setFilter(this, '{{ cat }}')">{{ cat }}</button>
-        {% endfor %}
-      </div>
+    <div id="filterRow" style="display:none;">
+      <button class="filter-chip active" data-filter="all" onclick="setFilter(this, 'all')">Todas as categorias</button>
+      {% for cat in categories %}
+      <button class="filter-chip" data-filter="{{ cat }}" onclick="setFilter(this, '{{ cat }}')">{{ cat }}</button>
+      {% endfor %}
     </div>
+  </div>
+
+  <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;">
+    <a href="/category/ar-condicionado" style="display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:9px 16px;font-size:.88rem;font-weight:600;color:var(--text);text-decoration:none;transition:border-color .15s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)'">❄️ Ar condicionado</a>
+    <a href="/category/geladeira" style="display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:9px 16px;font-size:.88rem;font-weight:600;color:var(--text);text-decoration:none;transition:border-color .15s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)'">🧊 Geladeira</a>
+    <a href="/category/maquina-de-lavar" style="display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:9px 16px;font-size:.88rem;font-weight:600;color:var(--text);text-decoration:none;transition:border-color .15s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)'">🫧 Máquina de lavar</a>
+    <a href="/categories" style="display:inline-flex;align-items:center;gap:6px;background:transparent;border:1.5px solid var(--accent);border-radius:10px;padding:9px 16px;font-size:.88rem;font-weight:700;color:var(--accent);text-decoration:none;transition:background .15s;" onmouseover="this.style.background='#fff5f7'" onmouseout="this.style.background='transparent'">Ver todas →</a>
   </div>
 </div>
 
@@ -750,7 +754,7 @@
           <div style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;flex-shrink:0;background:#f0f7ff;color:#1a6bc4;border:1.5px solid #c6dfff;">DO</div>
           <div>
             <div style="font-size:.88rem;font-weight:700;">Douglas</div>
-            <div style="font-size:.72rem;color:var(--muted);">Técnico · Instalação e manutenção</div>
+            <div style="font-size:.72rem;color:var(--muted);">Técnico associado · Instalação e manutenção</div>
             <a href="https://wa.me/5521965832950" target="_blank" style="font-size:.72rem;color:var(--wa);text-decoration:none;font-weight:600;display:block;margin-top:4px;">(21) 96583-2950</a>
           </div>
         </div>
