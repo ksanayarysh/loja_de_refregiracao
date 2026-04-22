@@ -398,7 +398,7 @@
 <div class="section-wrap">
   <div class="section-title">Categorias</div>
   <div class="cats-grid">
-    {% for cat in categories %}
+    {% for cat in categories[:3] %}
     <a class="cat-card" href="/category/{{ cat.slug }}">
       <div class="cat-card-name">{{ cat.name }}</div>
       <div class="cat-card-count">{{ cat.total }} produto{% if cat.total != 1 %}s{% endif %}</div>
@@ -406,6 +406,9 @@
     </a>
     {% endfor %}
   </div>
+  <a href="/categories" style="display:inline-flex;align-items:center;gap:6px;margin-top:14px;font-size:.88rem;font-weight:700;color:var(--accent);text-decoration:none;border:1.5px solid var(--accent);border-radius:10px;padding:9px 18px;transition:background .15s;" onmouseover="this.style.background='#fff5f7'" onmouseout="this.style.background='transparent'">
+    Ver todas as categorias →
+  </a>
 </div>
 
 <!-- SERVIÇOS -->

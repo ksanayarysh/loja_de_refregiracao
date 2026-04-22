@@ -513,6 +513,44 @@ async def category_page(request: Request, cat_slug: str):
     })
 
 
+@router.get("/categories", response_class=HTMLResponse)
+async def categories_page(request: Request):
+    async with engine.connect() as conn:
+        cats_res = await conn.execute(text("""
+            SELECT COALESCE(c.name, 'Outro') AS name, COUNT(p.id) AS total,
+                   MIN(p.image) AS image
+            FROM products p
+            LEFT JOIN categories c ON c.id = p.category_id
+            WHERE p.active = TRUE
+            GROUP BY c.name
+            ORDER BY
+                CASE WHEN c.name ILIKE '%gas%' OR c.name ILIKE '%gás%' THEN 0 ELSE 1 END,
+                c.name NULLS LAST
+        """))
+        categories_raw = []
+        for row in cats_res.mappings().all():
+            r = dict(row)
+            if r.get("image") and r["image"].startswith("/static/images/"):
+                r["image"] = ADMIN_URL + r["image"]
+            categories_raw.append(r)
+
+    categories = [
+        {"name": c["name"], "total": c["total"],
+         "slug": slugify(c["name"]), "image": c.get("image")}
+        for c in categories_raw
+    ]
+
+    return templates.TemplateResponse("categories.html", {
+        "request":       request,
+        "categories":    categories,
+        "ga_id":         GA_ID,
+        "site_url":      SITE_URL,
+        "store_address": STORE_ADDRESS,
+        "store_phone":   STORE_PHONE,
+        "wa_number":     WA_OWNER_NUMBER,
+    })
+
+
 @router.get("/catalogo", response_class=HTMLResponse)
 async def catalogo_page(request: Request):
     async with engine.connect() as conn:
