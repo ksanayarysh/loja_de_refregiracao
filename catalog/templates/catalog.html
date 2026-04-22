@@ -335,7 +335,7 @@
       <div class="hero-banner-top">
         <a href="/product/{{ b.slug }}" style="display:contents;text-decoration:none;color:inherit;">
           {% if b.image %}
-          <img class="hero-banner-img" src="{{ b.image }}" alt="{{ b.name }}" loading="lazy">
+          <img class="hero-banner-img" src="{{ b.image | imgurl(96) }}" alt="{{ b.name }}" loading="lazy">
           {% else %}
           <div class="hero-banner-img-ph">📦</div>
           {% endif %}
@@ -370,7 +370,7 @@
 <div class="promo-wrap">
   <div class="promo-banner">
     <div class="promo-img-side">
-      {% if promo_product.image %}<img loading="lazy" src="{{ promo_product.image }}" alt="{{ promo_product.name }}">{% endif %}
+      {% if promo_product.image %}<img loading="lazy" src="{{ promo_product.image | imgurl(320) }}" alt="{{ promo_product.name }}">{% endif %}
       <div class="promo-ribbon">PROMOÇÃO</div>
     </div>
     <div class="promo-text-side">
@@ -597,6 +597,11 @@ let cart = JSON.parse(localStorage.getItem('mtf_cart') || '[]');
 
 function cartSave() { localStorage.setItem('mtf_cart', JSON.stringify(cart)); }
 
+function imgProxy(src, w) {
+  if (!src) return '';
+  return `/img-proxy?src=${encodeURIComponent(src)}&w=${w}`;
+}
+
 function cartUpdateUI() {
   const total = cart.reduce((s, i) => s + i.qty, 0);
   const countEl = document.getElementById('cartCount');
@@ -631,7 +636,7 @@ function cartRender() {
   let total = 0;
   el.innerHTML = cart.map(i => {
     total += i.price * i.qty;
-    const img = i.image ? `<img loading="lazy" class="cart-item-img" src="${i.image}" alt="${i.name}">` : `<div style="width:48px;height:48px;border-radius:8px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;">📦</div>`;
+    const img = i.image ? `<img loading="lazy" class="cart-item-img" src="${imgProxy(i.image,96)}" alt="${i.name}">` : `<div style="width:48px;height:48px;border-radius:8px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;">📦</div>`;
     return `<div class="cart-item">
       ${img}
       <div class="cart-item-info">
@@ -692,7 +697,7 @@ async function triggerFixedSearch() {
     list.innerHTML = filtered.map(p => {
       const slug = p.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\w\s-]/g,' ').replace(/[\s_]+/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');
       const price = p.sale_price ? `<span style="font-family:'DM Mono',monospace;font-weight:700;color:var(--accent);font-size:.95rem;white-space:nowrap;">R$ ${p.sale_price.toFixed(2).replace('.',',')}</span>` : `<span style="color:var(--muted);font-size:.85rem;">Consulte</span>`;
-      const img = p.image ? `<img loading="lazy" src="${p.image}" style="width:44px;height:44px;object-fit:contain;border-radius:8px;border:1px solid var(--border);background:var(--bg);flex-shrink:0;">` : `<div style="width:44px;height:44px;border-radius:8px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">📦</div>`;
+      const img = p.image ? `<img loading="lazy" src="${imgProxy(p.image,88)}" style="width:44px;height:44px;object-fit:contain;border-radius:8px;border:1px solid var(--border);background:var(--bg);flex-shrink:0;">` : `<div style="width:44px;height:44px;border-radius:8px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">📦</div>`;
       const cartBtn = p.sale_price ? `<button class="search-item-cart" data-id="${p.id}" data-name="${p.name.replace(/"/g,'&quot;')}" data-price="${p.sale_price}" data-image="${(p.image||'').replace(/"/g,'&quot;')}" style="margin-left:8px;">🛒</button>` : '';
       const avail = p.available !== false ? `<span style="font-size:.72rem;color:#16a34a;font-weight:600;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:2px 8px;">Disponível</span>` : '';
       return `<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);">
@@ -739,7 +744,7 @@ async function quickSearchHandler(q) {
     box.innerHTML = filtered.map(p => {
       const slug = p.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\w\s-]/g,' ').replace(/[\s_]+/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');
       const price = p.sale_price ? `<span style="font-family:'DM Mono',monospace;font-weight:700;color:var(--accent);font-size:.88rem;white-space:nowrap;">R$ ${p.sale_price.toFixed(2).replace('.',',')}</span>` : `<span style="color:var(--muted);font-size:.82rem;">Consulte</span>`;
-      const img = p.image ? `<img loading="lazy" src="${p.image}" style="width:36px;height:36px;object-fit:contain;border-radius:6px;border:1px solid var(--border);background:var(--bg);flex-shrink:0;">` : `<div style="width:36px;height:36px;border-radius:6px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;">📦</div>`;
+      const img = p.image ? `<img loading="lazy" src="${imgProxy(p.image,72)}" style="width:36px;height:36px;object-fit:contain;border-radius:6px;border:1px solid var(--border);background:var(--bg);flex-shrink:0;">` : `<div style="width:36px;height:36px;border-radius:6px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;">📦</div>`;
       const cartBtn = p.sale_price ? `<button class="search-item-cart" data-id="${p.id}" data-name="${p.name.replace(/"/g,'&quot;')}" data-price="${p.sale_price}" data-image="${(p.image||'').replace(/"/g,'&quot;')}">🛒</button>` : '';
       return `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);"><a href="/product/${slug}" style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;text-decoration:none;color:inherit;">${img}<div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</div><div style="font-size:.75rem;color:var(--muted);">${p.category} · ${p.unit}</div></div>${price}</a>${cartBtn}</div>`;
     }).join('') + `<a href="/catalogo" style="display:block;padding:10px 16px;text-align:center;font-size:.82rem;color:var(--accent);font-weight:700;text-decoration:none;border-top:1px solid var(--border);">Ver catálogo →</a>`;

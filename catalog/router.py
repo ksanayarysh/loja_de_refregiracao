@@ -4,7 +4,7 @@ import httpx
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse, PlainTextResponse, JSONResponse
+from fastapi.responses import HTMLResponse, PlainTextResponse, JSONResponse, Response
 from sqlalchemy import text
 
 from dependencies import engine, templates
@@ -13,6 +13,65 @@ from articles import ARTICLES, ARTICLES_BY_SLUG
 router = APIRouter()
 
 BRT = ZoneInfo("America/Sao_Paulo")
+
+# ── Jinja2 фильтр для ресайза изображений ─────────────────────────────────────
+ADMIN_URL = os.environ.get("ADMIN_URL", "").rstrip("/")
+
+def _imgurl(path: str, w: int = 0) -> str:
+    """Возвращает URL с параметром ресайза если задана ширина."""
+    if not path:
+        return ""
+    if w:
+        return f"/img-proxy?src={path}&w={w}"
+    return path
+
+templates.env.filters["imgurl"] = _imgurl
+
+# ── Endpoint ресайза изображений ──────────────────────────────────────────────
+@router.get("/img-proxy")
+async def img_proxy(src: str, w: int = 0):
+    """Проксирует и ресайзит изображение с admin сервиса."""
+    try:
+        # Строим полный URL
+        if src.startswith("/static/"):
+            url = f"{ADMIN_URL}{src}"
+        else:
+            url = src
+
+        async with httpx.AsyncClient(timeout=10) as client:
+            resp = await client.get(url)
+            if resp.status_code != 200:
+                return Response(status_code=404)
+
+        content = resp.content
+
+        # Ресайз через Pillow если задана ширина
+        if w > 0:
+            try:
+                from PIL import Image
+                import io
+                img = Image.open(io.BytesIO(content))
+                # Пропорциональный ресайз
+                ratio = w / img.width
+                h = int(img.height * ratio)
+                img = img.resize((w, h), Image.LANCZOS)
+                buf = io.BytesIO()
+                fmt = "WEBP" if src.endswith(".webp") else "JPEG"
+                img.save(buf, fmt, quality=82, optimize=True)
+                content = buf.getvalue()
+                media_type = "image/webp" if fmt == "WEBP" else "image/jpeg"
+            except Exception:
+                media_type = resp.headers.get("content-type", "image/jpeg")
+        else:
+            media_type = resp.headers.get("content-type", "image/jpeg")
+
+        return Response(
+            content=content,
+            media_type=media_type,
+            headers={"Cache-Control": "public, max-age=2592000, immutable"}
+        )
+    except Exception:
+        return Response(status_code=500)
 
 # ── КЭШКЭШ ПРОДУКТОВ (5 минут) ───────────────────────────────────────────────
 import time as _time
@@ -311,15 +370,7 @@ async def catalogo_page(request: Request):
         "request":        request,
         "groups":         clean["groups"],
         "total":          total,
-        "categories":     sorted(
-            clean["groups"].keys(),
-            key=lambda c: (
-                0 if c.lower() == "ar condicionado" else
-                1 if c.lower() == "geladeira" else
-                2 if "lavar" in c.lower() else
-                3
-            )
-        ),
+        "categories":     list(clean["groups"].keys()),
         "cat_slugs":      clean["cat_slugs"],
         "ga_id":          GA_ID,
         "site_url":       SITE_URL,
