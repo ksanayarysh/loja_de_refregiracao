@@ -35,7 +35,7 @@ async def force_domain(request: Request, call_next):
         "https://connect.facebook.net https://www.google-analytics.com "
         "https://www.gstatic.com https://cdn.jsdelivr.net "
         "https://googleads.g.doubleclick.net https://www.googleadservices.com "
-        "https://www.clarity.ms; "
+        "https://www.clarity.ms https://scripts.clarity.ms; "
         "object-src 'none';"
     )
 
