@@ -34,7 +34,8 @@ async def force_domain(request: Request, call_next):
         "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com "
         "https://connect.facebook.net https://www.google-analytics.com "
         "https://www.gstatic.com https://cdn.jsdelivr.net "
-        "https://googleads.g.doubleclick.net https://www.googleadservices.com; "
+        "https://googleads.g.doubleclick.net https://www.googleadservices.com "
+        "https://www.clarity.ms; "
         "object-src 'none';"
     )
 
