@@ -335,7 +335,11 @@
       <div class="hero-banner-top">
         <a href="/product/{{ b.slug }}" style="display:contents;text-decoration:none;color:inherit;">
           {% if b.image %}
+          {% if loop.first %}
+          <img class="hero-banner-img" src="{{ b.image }}" alt="{{ b.name }}" loading="eager" fetchpriority="high">
+          {% else %}
           <img class="hero-banner-img" src="{{ b.image | imgurl(96) }}" alt="{{ b.name }}" loading="lazy">
+          {% endif %}
           {% else %}
           <div class="hero-banner-img-ph">📦</div>
           {% endif %}
@@ -370,7 +374,7 @@
 <div class="promo-wrap">
   <div class="promo-banner">
     <div class="promo-img-side">
-      {% if promo_product.image %}<img loading="lazy" src="{{ promo_product.image | imgurl(320) }}" alt="{{ promo_product.name }}">{% endif %}
+      {% if promo_product.image %}<img loading="eager" fetchpriority="high" src="{{ promo_product.image }}" alt="{{ promo_product.name }}">{% endif %}
       <div class="promo-ribbon">PROMOÇÃO</div>
     </div>
     <div class="promo-text-side">

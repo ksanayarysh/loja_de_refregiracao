@@ -29,11 +29,38 @@ window.addEventListener('load', function() {
 });
 </script>
 <!-- End Clarity -->
+
+<!-- Visit tracking -->
+<script>
+window.addEventListener('load', function() {
+  fetch('/api/track/visit', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      page: window.location.pathname,
+      referrer: document.referrer || ''
+    })
+  }).catch(function(){});
+});
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
-<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap"></noscript>
+<!-- Предзагрузка woff2 — убирает CLS от прыжка шрифтов -->
+<link rel="preload" as="font" type="font/woff2" crossorigin
+  href="https://fonts.gstatic.com/s/dmsans/v15/rP2Yp2ywxg089UriASitCBimQ2T8.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin
+  href="https://fonts.gstatic.com/s/dmmono/v14/aFTR7PB1QTsUX8KYvrumhKimQ2T8.woff2">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap">
 <style>
+  /* font-display swap — текст виден сразу, шрифт подменяется без смещения */
+  @font-face {
+    font-family: 'DM Sans';
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'DM Mono';
+    font-display: swap;
+  }
   :root{--bg:#f8f7f4;--surface:#fff;--border:#e8e5df;--text:#1a1816;--muted:#8a8580;--accent:#e2144a;--green:#16a34a;--green-l:#f0fdf4;--wa:#25d366;}
   *{box-sizing:border-box;margin:0;padding:0;}html{scroll-behavior:smooth;}
   body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}

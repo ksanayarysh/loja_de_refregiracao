@@ -1,4 +1,5 @@
 import os
+import asyncio
 import json as _json
 import httpx
 from datetime import datetime, timezone
@@ -116,6 +117,129 @@ async def _send_tg(message: str):
             )
     except Exception:
         pass
+
+
+# ── VISIT TRACKING ─────────────────────────────────────────────────────────────
+_visit_cache: dict = {}  # ip -> timestamp, чтобы не спамить с одного IP
+
+async def _ensure_visits_table():
+    """Создаёт таблицу site_visits если не существует."""
+    async with engine.begin() as conn:
+        await conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS site_visits (
+                id SERIAL PRIMARY KEY,
+                ip VARCHAR(64),
+                page VARCHAR(200),
+                referrer VARCHAR(500),
+                user_agent VARCHAR(200),
+                visited_at TIMESTAMPTZ DEFAULT NOW()
+            )
+        """))
+
+@router.post("/api/track/visit")
+async def track_visit(request: Request):
+    try:
+        body = await request.json()
+        page = body.get("page", "/")
+        referrer = body.get("referrer", "")[:500]
+        ip = request.client.host
+        ua = request.headers.get("user-agent", "")[:200]
+        now = datetime.now(BRT)
+        now_str = now.strftime("%d/%m %H:%M")
+
+        # Антиспам — один визит с IP раз в 10 минут
+        last = _visit_cache.get(ip, 0)
+        import time
+        if time.time() - last < 600:
+            return JSONResponse({"ok": True, "skip": True})
+        _visit_cache[ip] = time.time()
+
+        # Сохраняем в БД
+        await _ensure_visits_table()
+        async with engine.begin() as conn:
+            await conn.execute(text("""
+                INSERT INTO site_visits (ip, page, referrer, user_agent, visited_at)
+                VALUES (:ip, :page, :referrer, :ua, :now)
+            """), {"ip": ip, "page": page, "referrer": referrer,
+                   "ua": ua, "now": now})
+
+        # Определяем источник
+        source = "direto"
+        if referrer:
+            if "google" in referrer: source = "🔍 Google"
+            elif "facebook" in referrer or "instagram" in referrer: source = "📘 Facebook/IG"
+            elif "whatsapp" in referrer: source = "💬 WhatsApp"
+            else: source = f"🔗 {referrer[:40]}"
+
+        # Уведомление в Telegram
+        device = "📱 mobile" if any(m in ua.lower() for m in ["mobile", "android", "iphone"]) else "🖥 desktop"
+        await _send_tg(
+            f"👀 <b>Novo visitante!</b>\n"
+            f"Página: <b>{page}</b>\n"
+            f"Fonte: {source}\n"
+            f"Dispositivo: {device}\n"
+            f"Horário: {now_str}"
+        )
+        return JSONResponse({"ok": True})
+    except Exception as e:
+        return JSONResponse({"ok": False})
+
+
+# ── DАЙДЖЕСТ DIÁRIO 20:00 BRT ──────────────────────────────────────────────────
+async def _send_daily_digest():
+    """Envia resumo diário às 20h BRT."""
+    while True:
+        now = datetime.now(BRT)
+        # Calcula segundos até próximas 20:00
+        target = now.replace(hour=20, minute=0, second=0, microsecond=0)
+        if now >= target:
+            from datetime import timedelta
+            target = target + timedelta(days=1)
+        wait = (target - now).total_seconds()
+        await asyncio.sleep(wait)
+
+        try:
+            await _ensure_visits_table()
+            async with engine.connect() as conn:
+                visits_today = await conn.execute(text(
+                    "SELECT COUNT(*) FROM site_visits WHERE visited_at::date = CURRENT_DATE"
+                ))
+                wa_today = await conn.execute(text(
+                    "SELECT COUNT(*) FROM catalog_clicks "
+                    "WHERE clicked_at::date = CURRENT_DATE AND product_name != 'Telefone'"
+                ))
+                calls_today = await conn.execute(text(
+                    "SELECT COUNT(*) FROM catalog_clicks "
+                    "WHERE clicked_at::date = CURRENT_DATE AND product_name = 'Telefone'"
+                ))
+                top_products = await conn.execute(text("""
+                    SELECT product_name, COUNT(*) as n
+                    FROM catalog_clicks
+                    WHERE clicked_at::date = CURRENT_DATE
+                      AND product_name NOT IN ('Telefone', 'Geral', 'Banner comprar', 'Busca foto')
+                    GROUP BY product_name ORDER BY n DESC LIMIT 5
+                """))
+
+                v = visits_today.scalar() or 0
+                w = wa_today.scalar() or 0
+                c = calls_today.scalar() or 0
+                top = top_products.fetchall()
+
+            today_str = datetime.now(BRT).strftime("%d/%m/%Y")
+            top_txt = "\n".join([f"  • {r[0]} ({r[1]}x)" for r in top]) if top else "  —"
+
+            await _send_tg(
+                f"📊 <b>Resumo do dia — {today_str}</b>\n\n"
+                f"👀 Visitantes: <b>{v}</b>\n"
+                f"💬 Cliques WhatsApp: <b>{w}</b>\n"
+                f"📞 Ligações: <b>{c}</b>\n\n"
+                f"🏆 Produtos mais consultados:\n{top_txt}"
+            )
+        except Exception:
+            pass
+
+# Запускаем дайджест при старте
+asyncio.ensure_future(_send_daily_digest())
 
 
 async def _get_products(conn):
