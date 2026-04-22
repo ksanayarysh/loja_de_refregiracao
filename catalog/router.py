@@ -142,6 +142,7 @@ async def _send_tg(message: str):
 
 # ── VISIT TRACKING ─────────────────────────────────────────────────────────────
 _visit_cache: dict = {}  # ip -> timestamp, чтобы не спамить с одного IP
+_EXCLUDED_IPS = {"177.192.23.188"}  # свои IP — не трекать
 
 async def _ensure_visits_table():
     """Создаёт таблицу site_visits если не существует."""
@@ -168,10 +169,15 @@ async def track_visit(request: Request):
         now = datetime.now(BRT)
         now_str = now.strftime("%d/%m %H:%M")
 
-        # Антиспам — один визит с IP раз в 10 минут
-        last = _visit_cache.get(ip, 0)
+        # Исключаем свои IP
+        if ip in _EXCLUDED_IPS:
+            return JSONResponse({"ok": True, "skip": True})
+
+        # Один визит с IP раз в 24 часа (уникальные посетители в день)
         import time
-        if time.time() - last < 600:
+        last = _visit_cache.get(ip, 0)
+        is_new_today = time.time() - last > 86400
+        if not is_new_today:
             return JSONResponse({"ok": True, "skip": True})
         _visit_cache[ip] = time.time()
 
@@ -192,7 +198,6 @@ async def track_visit(request: Request):
             elif "whatsapp" in referrer: source = "💬 WhatsApp"
             else: source = f"🔗 {referrer[:40]}"
 
-        # Уведомление в Telegram
         device = "📱 mobile" if any(m in ua.lower() for m in ["mobile", "android", "iphone"]) else "🖥 desktop"
         await _send_tg(
             f"👀 <b>Novo visitante!</b>\n"
@@ -223,7 +228,7 @@ async def _send_daily_digest():
             await _ensure_visits_table()
             async with engine.connect() as conn:
                 visits_today = await conn.execute(text(
-                    "SELECT COUNT(*) FROM site_visits WHERE visited_at::date = CURRENT_DATE"
+                    "SELECT COUNT(DISTINCT ip) FROM site_visits WHERE visited_at::date = CURRENT_DATE"
                 ))
                 wa_today = await conn.execute(text(
                     "SELECT COUNT(*) FROM catalog_clicks "
