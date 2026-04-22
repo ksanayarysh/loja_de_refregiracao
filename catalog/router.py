@@ -29,11 +29,27 @@ def _imgurl(path: str, w: int = 0) -> str:
 templates.env.filters["imgurl"] = _imgurl
 
 # ── Endpoint ресайза изображений ──────────────────────────────────────────────
+# ── In-memory кеш для img-proxy ───────────────────────────────────────────────
+_img_cache: dict = {}  # key -> (content, media_type, timestamp)
+_IMG_CACHE_TTL = 3600  # 1 час
+
 @router.get("/img-proxy")
 async def img_proxy(src: str, w: int = 0):
     """Проксирует и ресайзит изображение с admin сервиса."""
+    import time
+    cache_key = f"{src}:{w}"
+
+    # Проверяем кеш
+    if cache_key in _img_cache:
+        content, media_type, ts = _img_cache[cache_key]
+        if time.time() - ts < _IMG_CACHE_TTL:
+            return Response(
+                content=content,
+                media_type=media_type,
+                headers={"Cache-Control": "public, max-age=2592000, immutable"}
+            )
+
     try:
-        # Строим полный URL
         if src.startswith("/static/"):
             url = f"{ADMIN_URL}{src}"
         else:
@@ -46,13 +62,11 @@ async def img_proxy(src: str, w: int = 0):
 
         content = resp.content
 
-        # Ресайз через Pillow если задана ширина
         if w > 0:
             try:
                 from PIL import Image
                 import io
                 img = Image.open(io.BytesIO(content))
-                # Пропорциональный ресайз
                 ratio = w / img.width
                 h = int(img.height * ratio)
                 img = img.resize((w, h), Image.LANCZOS)
@@ -65,6 +79,13 @@ async def img_proxy(src: str, w: int = 0):
                 media_type = resp.headers.get("content-type", "image/jpeg")
         else:
             media_type = resp.headers.get("content-type", "image/jpeg")
+
+        # Сохраняем в кеш
+        _img_cache[cache_key] = (content, media_type, time.time())
+        # Ограничиваем размер кеша
+        if len(_img_cache) > 500:
+            oldest = min(_img_cache.keys(), key=lambda k: _img_cache[k][2])
+            del _img_cache[oldest]
 
         return Response(
             content=content,

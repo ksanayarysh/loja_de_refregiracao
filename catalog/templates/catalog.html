@@ -337,7 +337,7 @@
         <a href="/product/{{ b.slug }}" style="display:contents;text-decoration:none;color:inherit;">
           {% if b.image %}
           {% if loop.first %}
-          <img class="hero-banner-img" src="{{ b.image }}" alt="{{ b.name }}" loading="eager" fetchpriority="high">
+          <img class="hero-banner-img" src="{{ b.image | imgurl(162) }}" alt="{{ b.name }}" loading="eager" fetchpriority="high">
           {% else %}
           <img class="hero-banner-img" src="{{ b.image | imgurl(96) }}" alt="{{ b.name }}" loading="lazy">
           {% endif %}
