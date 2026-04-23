@@ -305,7 +305,11 @@
     <a href="/product/{{ p.slug }}" style="display:contents;text-decoration:none;">
       <div class="prod-img-wrap">
         {% if p.image %}
+        {% if loop.index <= 2 %}
+        <img class="prod-img" src="{{ p.image | imgurl(320) }}" alt="{{ p.name }}" fetchpriority="high">
+        {% else %}
         <img class="prod-img" src="{{ p.image | imgurl(320) }}" alt="{{ p.name }}" loading="lazy">
+        {% endif %}
         {% else %}
         <div class="prod-img-placeholder">📦</div>
         {% endif %}
