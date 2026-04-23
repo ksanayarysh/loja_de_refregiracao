@@ -94,6 +94,18 @@ ARTICLES = [
         "published": True,
     },
 
+    # ── COMPONENTES ELÉTRICOS ─────────────────────────────────────────────────
+    {
+        "slug": "rele-refrigeracao",
+        "title": "Relé de refrigeração: tipos, funções e como escolher o certo",
+        "description": "Relé de indução, conjugado Embraco ou relé de placa — entenda as diferenças, como identificar defeito e qual substituir.",
+        "category": "geladeira",
+        "icon": "⚡",
+        "tags": ["relé", "embraco", "compressor", "geladeira", "ar-condicionado"],
+        "template": "blog/rele-refrigeracao.html",
+        "published": True,
+    },
+
     # ── MÁQUINA DE LAVAR ──────────────────────────────────────────────────────
     {
         "slug": "maquina-de-lavar-nao-centrifuga",
