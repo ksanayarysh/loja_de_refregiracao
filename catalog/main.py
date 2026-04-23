@@ -40,3 +40,10 @@ async def force_domain(request: Request, call_next):
     )
 
     return response
+
+from gsc_cron import router as gsc_router, start_gsc_scheduler
+app.include_router(gsc_router)
+
+@app.on_event("startup")
+async def startup():
+    start_gsc_scheduler()
