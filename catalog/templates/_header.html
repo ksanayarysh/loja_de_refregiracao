@@ -1,8 +1,8 @@
 <div class="address-bar">
-  <a href="https://maps.google.com/?q=MTF+Refrigera%C3%A7%C3%A3o+Rio+de+Janeiro" target="_blank" rel="noopener">📍 {{ store_address }} · <span style="text-decoration:underline;opacity:.7;">Ver no mapa →</span></a>
+  <a href="https://maps.google.com/?q=Av.+Brasil,+6818,+Rio+de+Janeiro" target="_blank" rel="noopener">📍 {{ store_address }} · <span style="text-decoration:underline;opacity:.7;">Ver no mapa →</span></a>
   {% if store_phone %}
   <span>·</span>
-  <a href="tel:+{{ wa_number }}" class="phone-track">📞 {{ store_phone }}</a>
+  <a href="tel:+55{{ store_phone | replace('(','') | replace(')','') | replace(' ','') | replace('-','') }}" class="phone-track">📞 {{ store_phone }}</a>
   <span>·</span>
   <a href="https://wa.me/{{ wa_number }}" class="wa-track" data-product="Geral">💬 WhatsApp</a>
   {% endif %}
