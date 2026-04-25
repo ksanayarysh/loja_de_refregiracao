@@ -38,8 +38,8 @@ ARTICLES = [
         "category": "geladeira",
         "icon": "💨",
         "tags": ["gás", "r134a", "r600a", "geladeira"],
-        "template": None,
-        "published": False,
+        "template": "blog/tipos-de-gas-refrigerante-geladeira.html",
+        "published": True,
     },
 
     # ── AR-CONDICIONADO ───────────────────────────────────────────────────────
