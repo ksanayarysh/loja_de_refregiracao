@@ -191,7 +191,7 @@
     <div class="search-container">
       <input type="text" id="search-input" placeholder="pesquisar produto..." class="search-input"
              style="border-radius:4px; width:260px;"
-             oninput="debouncedSearch()" onkeydown="if(event.key==='Escape') clearSearch()">
+             oninput="debouncedSearch()" onkeydown="if(event.key==='Escape') clearSearch(); if(event.key==='Enter') searchProducts()">
     </div>
   </div>
   <button class="cart-icon-btn" onclick="openCart()">
@@ -592,12 +592,14 @@ let _searchTimer = null;
 function debouncedSearch() {
   clearTimeout(_searchTimer);
   const q = document.getElementById('search-input').value.trim();
+  sessionStorage.setItem('mtf_search', q);
   if (!q) { clearSearch(); return; }
   _searchTimer = setTimeout(searchProducts, 280);
 }
 function clearSearch() {
   document.getElementById('search-results').classList.remove('show');
   document.getElementById('results-list').innerHTML = '';
+  sessionStorage.removeItem('mtf_search');
 }
 
 async function searchProducts() {
@@ -636,6 +638,13 @@ async function searchProducts() {
   }
 }
 
+// Restore search query if user navigated back
+const _savedSearch = sessionStorage.getItem('mtf_search');
+if (_savedSearch) {
+  const inp = document.getElementById('search-input');
+  inp.value = _savedSearch;
+  searchProducts();
+}
 </script>
 </body>
 </html>

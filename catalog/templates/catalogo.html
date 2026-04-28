@@ -317,6 +317,18 @@
       border-bottom: 1px solid var(--border);
       margin-bottom: 14px;
     }
+    .mais-btn {
+      display: inline-block;
+      padding: 9px 22px;
+      border-radius: 20px;
+      border: 2px solid #E2144A;
+      color: #E2144A;
+      font-weight: 700;
+      font-size: .9rem;
+      text-decoration: none;
+      transition: background .15s, color .15s;
+    }
+    .mais-btn:hover { background: #E2144A; color: #fff; }
 
     /* Grid карточки */
     .cat-products {
@@ -447,6 +459,7 @@
       .cat-products { grid-template-columns: repeat(2, 1fr); gap: 10px; }
       .prod-name { font-size: .82rem; }
       .prod-price { font-size: .92rem; }
+      .cat-products .product-card:nth-child(n+4) { display: none; }
     }
 
     .wa-float {
@@ -587,15 +600,12 @@
 </div>
 
 <div class="catalog" id="catalog">
-  {% set seen_ids = namespace(ids=[]) %}
   {% for cat, products in groups.items() %}
   <div class="cat-group" data-cat="{{ cat }}">
     <div class="cat-title"><a href="/category/{{ cat_slugs[cat] }}" style="color:inherit;text-decoration:none;">{{ cat }}</a></div>
 
   <div class="cat-products">
-    {% for p in products %}
-    {% if p.id not in seen_ids.ids %}
-    {% set seen_ids.ids = seen_ids.ids + [p.id] %}
+    {% for p in products[:5] %}
     {% set wa_msg = "Ol%C3%A1%21%20Tenho%20interesse%20no%20produto%3A%20" + p.name|urlencode + "%20%28" + p.unit|urlencode + "%29.%20Est%C3%A1%20dispon%C3%ADvel%3F" %}
     <div class="product-card" data-name="{{ p.name | lower }}" data-cat="{{ cat }}" data-cat2="{{ p.category2_name or '' }}">
       <a href="/product/{{ p.slug }}" style="display:contents;text-decoration:none;">
@@ -634,9 +644,15 @@
         {% endif %}
       </div>
     </div>
-    {% endif %}
     {% endfor %}
   </div>
+  {% if products|length > 5 %}
+  <div style="text-align:center;margin:12px 0 4px;">
+    <a href="/category/{{ cat_slugs[cat] }}" class="mais-btn">
+      Ver todos ({{ products|length }}) →
+    </a>
+  </div>
+  {% endif %}
   </div>
   {% endfor %}
 </div>
