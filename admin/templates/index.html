@@ -60,7 +60,16 @@
     .quick-links a.primary:hover { background: #0056b3; }
 
     /* SEARCH RESULTS */
-    #search-results { display: none; background: #fff; border: 1px solid #ccc; border-radius: 8px; padding: 16px; max-width: 900px; }
+    /* Search results global position */
+    #search-results {
+      display: none;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 16px;
+      max-width: 900px;
+      margin: 8px 16px;
+    }
     #search-results.show { display: block; }
     #search-results h3 { font-size: .95rem; color: #555; margin-bottom: 10px; }
     .result-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; font-size: 1rem; gap: 12px; }
@@ -124,8 +133,8 @@
     .cart-checkout:hover { background: #374151; }
     .cart-clear { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #E2144A; background: #fff; color: #E2144A; font-weight: 800; font-size: 1rem; cursor: pointer; margin-top: 10px; font-family: inherit; }
     .cart-clear:hover { background: #fef2f2; }
-    .cart-wa { width: 100%; padding: 13px; border-radius: 10px; border: none; background: #25d366; color: #fff; font-weight: 900; font-size: 1rem; cursor: pointer; margin-top: 10px; font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 8px; }
-    .cart-wa:hover { background: #1ebe5d; }
+    .cart-wa { width: 100%; padding: 13px; border-radius: 10px; border: none; background: #111827; color: #fff; font-weight: 900; font-size: 1rem; cursor: pointer; margin-top: 10px; font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .cart-wa:hover { background: #374151; }
 
     /* QTY input in cart */
     .cart-qty { width: 95px; padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; text-align: center; font-family: inherit; }
@@ -191,6 +200,12 @@
   </button>
 </header>
 
+<!-- Search results (global, below navbar) -->
+<div id="search-results">
+  <h3>Resultados:</h3>
+  <div id="results-list"></div>
+</div>
+
 <div class="layout">
   <!-- SIDEBAR -->
   <nav class="sidebar">
@@ -237,12 +252,6 @@
       <a href="/sales">Lista de vendas</a>
     </div>
 
-
-    <!-- Search results -->
-    <div id="search-results">
-      <h3>Resultados:</h3>
-      <div id="results-list"></div>
-    </div>
 
     <!-- Calculator -->
     <div class="calc-section">
@@ -413,7 +422,10 @@ function shareOrcamento() {
   );
   const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
   const msg = `Olá! Segue o orçamento:\n\n${lines.join('\n')}\n\n*Total: R$ ${total.toFixed(2).replace('.', ',')}*\n\nPodemos confirmar?`;
-  window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
+  const url = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`;
+  const a = document.createElement('a');
+  a.href = url; a.target = '_blank'; a.rel = 'noopener';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
 }
 
 updateBadge();
