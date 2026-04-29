@@ -50,8 +50,8 @@ ARTICLES = [
         "category": "ar-condicionado",
         "icon": "🌡️",
         "tags": ["ar-condicionado", "split", "gás", "filtro"],
-        "template": None,
-        "published": False,
+        "template": "blog/ar-condicionado-nao-gela.html",
+        "published": True,
     },
     {
         "slug": "gas-ar-condicionado-r410a-r32-r22",
