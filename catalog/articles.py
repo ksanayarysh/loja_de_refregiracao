@@ -60,8 +60,8 @@ ARTICLES = [
         "category": "ar-condicionado",
         "icon": "💨",
         "tags": ["gás", "r410a", "r32", "r22", "ar-condicionado"],
-        "template": None,
-        "published": False,
+        "template": "blog/gas-r410a-r32-r22-ar-condicionado.html",
+        "published": True,
     },
     {
         "slug": "ar-condicionado-pingando-agua",
