@@ -43,7 +43,26 @@
     .day-table td.td-name{white-space:normal;word-break:break-word;}
     .col-name{width:24%;}.col-qty{width:9%;}.col-price{width:14%;}.col-total{width:14%;}.col-pay{width:16%;}.col-obs{width:15%;}.col-act{width:8%;}
     .empty{padding:14px;background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;color:#7c2d12;}
-    @media(max-width:600px){.summary{grid-template-columns:1fr;}}
+    @media(max-width:600px){
+      .summary{grid-template-columns:1fr 1fr;}
+      .filters{flex-direction:column;align-items:stretch;}
+      .filters input[type="date"]{width:100%;}
+      .filters select{max-width:100%!important;}
+      .day-table{display:none;}
+      .mobile-sales{display:block;}
+      .pager{flex-direction:column;gap:8px;}
+    }
+    @media(min-width:601px){
+      .mobile-sales{display:none;}
+    }
+    .mobile-sales{display:none;}
+    .sale-card{border:1px solid #e7e9ee;border-radius:8px;padding:10px 12px;margin-bottom:8px;background:#fff;}
+    .sale-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;}
+    .sale-card-name{font-weight:800;font-size:.95rem;color:#111;}
+    .sale-card-unit{font-size:.75rem;color:#888;}
+    .sale-card-total{font-size:1rem;font-weight:900;color:#111;white-space:nowrap;}
+    .sale-card-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:.82rem;color:#555;}
+    .sale-card-actions{display:flex;gap:6px;margin-top:8px;}
 {% endblock %}
 
 {% block content %}
@@ -131,6 +150,36 @@
         <div class="empty">Nenhuma venda encontrada para o período selecionado.</div>
       {% else %}
         {% set pt_labels = {'dinheiro':'💵 Dinheiro','pix':'📱 Pix','cartao_credito':'💳 Crédito','cartao_debito':'💳 Débito'} %}
+        {% macro mobile_cards(day_rows) %}
+        <div class="mobile-sales">
+          {% for dr in day_rows %}
+            {% set pt = dr.payment_type or 'dinheiro' %}
+            <div class="sale-card">
+              <div class="sale-card-top">
+                <div>
+                  <div class="sale-card-name">{{ dr.product_name }}</div>
+                  <div class="sale-card-unit">{{ dr.unit }}</div>
+                </div>
+                <div class="sale-card-total">R$ {{ "%.2f"|format(dr.total or 0) }}</div>
+              </div>
+              <div class="sale-card-row">
+                <span>Qtd: <b>{{ dr.qty }}</b></span>
+                <span>Unit: <b>R$ {{ "%.2f"|format((dr.unit_price if dr.unit_price == dr.unit_price else 0) or 0) }}</b></span>
+                <span class="pay-badge pay-{{ pt }}">{{ pt_labels.get(pt, pt) }}</span>
+              </div>
+              {% if dr.note %}
+              <div style="font-size:.8rem;color:#777;margin-top:4px;">📝 {{ dr.note }}</div>
+              {% endif %}
+              <div class="sale-card-actions">
+                <a class="edit-btn" href="/sales/{{ dr.id }}/edit">✏️ Editar</a>
+                <form method="post" action="/sales/{{ dr.id }}/delete" onsubmit="return confirm('Excluir esta venda?')">
+                  <button class="del-btn" type="submit">🗑</button>
+                </form>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+        {% endmacro %}
         {% set ns = namespace(current_day=None, day_total=0, day_count=0, day_rows=[]) %}
 
         {% for r in rows %}
@@ -176,6 +225,7 @@
                 {% endfor %}
                 </tbody>
               </table>
+              {{ mobile_cards(ns.day_rows) }}
             </div>
           {% endif %}
 
@@ -231,6 +281,7 @@
               {% endfor %}
               </tbody>
             </table>
+            {{ mobile_cards(ns.day_rows) }}
           </div>
         {% endif %}
 
