@@ -351,7 +351,7 @@ async def api_products(search: str = Query(""), unit: str = Query(""), category:
             where += " AND LOWER(COALESCE(c.name, '')) LIKE LOWER(:cat)"
             params["cat"] = f"%{category}%"
         res = await conn.execute(
-            text(f"""SELECT p.id, p.name, p.sale_price, p.unit, p.image,
+            text(f"""SELECT p.id, p.name, p.sale_price, p.cost_price, p.unit, p.image,
                            GREATEST(0, COALESCE(SUM(sm.qty), 0)) as current_stock
                     FROM products p
                     LEFT JOIN categories c ON c.id = p.category_id
@@ -363,6 +363,7 @@ async def api_products(search: str = Query(""), unit: str = Query(""), category:
         rows = res.mappings().all()
     return [
         {"id": r["id"], "name": r["name"], "sale_price": float(r["sale_price"] or 0),
+         "cost_price": float(r["cost_price"]) if r["cost_price"] else None,
          "unit": r["unit"] or "un", "image": r["image"],
          "current_stock": float(r["current_stock"])}
         for r in rows

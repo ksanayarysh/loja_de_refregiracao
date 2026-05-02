@@ -15,9 +15,10 @@
       background-color: bisque; padding: 10px 16px;
       display: flex; justify-content: space-between; align-items: center;
       border-bottom: 1px solid #ccc; gap: 16px; flex-wrap: wrap;
+      position: relative; z-index: 100;
     }
-    .navbar-left { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-    .search-container { display: flex; align-items: center; }
+    .navbar-left { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; position: relative; }
+    .search-container { display: flex; align-items: center; position: relative; }
     .search-input { padding: 8px; border: 1px solid #ccc; border-radius: 4px 0 0 4px; outline: none; font-size: .95rem; width: 220px; }
     .search-button { padding: 8px 12px; border: none; background-color: #007bff; color: white; border-radius: 0 4px 4px 0; cursor: pointer; font-size: .95rem; }
     .search-button:hover { background-color: #0056b3; }
@@ -67,8 +68,14 @@
       border: 1px solid #ccc;
       border-radius: 8px;
       padding: 16px;
-      max-width: 900px;
-      margin: 8px 16px;
+      max-width: 600px;
+      margin: 0;
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      z-index: 200;
+      box-shadow: 0 8px 24px rgba(0,0,0,.15);
+      min-width: 400px;
     }
     #search-results.show { display: block; }
     #search-results h3 { font-size: .95rem; color: #555; margin-bottom: 10px; }
@@ -150,6 +157,17 @@
       .navbar-left { width: 100%; }
       .search-container { width: 100%; }
 
+      /* На мобильном — не абсолютный, а нормальный поток */
+      #search-results {
+        position: static;
+        min-width: 0;
+        width: 100%;
+        max-width: 100%;
+        box-shadow: none;
+        border-radius: 0 0 8px 8px;
+        margin-top: 4px;
+      }
+
       /* Результаты поиска — карточки */
       .result-item {
         flex-direction: column;
@@ -192,6 +210,11 @@
       <input type="text" id="search-input" placeholder="pesquisar produto..." class="search-input"
              style="border-radius:4px; width:260px;"
              oninput="debouncedSearch()" onkeydown="if(event.key==='Escape') clearSearch(); if(event.key==='Enter') searchProducts()">
+      <!-- Search results dropdown -->
+      <div id="search-results">
+        <h3>Resultados:</h3>
+        <div id="results-list"></div>
+      </div>
     </div>
   </div>
   <button class="cart-icon-btn" onclick="openCart()">
@@ -199,12 +222,6 @@
     <span class="cart-badge hidden" id="cart-badge">0</span>
   </button>
 </header>
-
-<!-- Search results (global, below navbar) -->
-<div id="search-results">
-  <h3>Resultados:</h3>
-  <div id="results-list"></div>
-</div>
 
 <div class="layout">
   <!-- SIDEBAR -->
@@ -600,7 +617,17 @@ function clearSearch() {
   document.getElementById('search-results').classList.remove('show');
   document.getElementById('results-list').innerHTML = '';
   sessionStorage.removeItem('mtf_search');
+  document.getElementById('search-input').value = '';
 }
+
+// Закрыть при клике вне поиска
+document.addEventListener('click', function(e) {
+  const container = document.getElementById('search-results');
+  const input = document.getElementById('search-input');
+  if (!container.contains(e.target) && e.target !== input) {
+    container.classList.remove('show');
+  }
+});
 
 async function searchProducts() {
   const q = document.getElementById('search-input').value.trim();
@@ -616,23 +643,50 @@ async function searchProducts() {
       list.innerHTML = '<div class="result-item" style="color:#888">Nenhum produto encontrado.</div>';
       return;
     }
-    list.innerHTML = data.map(p => {
+    const fragment = document.createDocumentFragment();
+    data.forEach(p => {
       const stock = p.current_stock != null ? p.current_stock : null;
       const stockColor = stock === null ? '#aaa' : stock <= 0 ? '#dc2626' : stock <= 3 ? '#d97706' : '#16a34a';
-      const stockText = stock === null ? '' : ` · <span style="color:${stockColor};font-weight:700;">${stock} ${p.unit}</span>`;
-      return `
-      <div class="result-item">
-        <div class="result-info">
-          <span>${p.name}</span>
-          <span style="color:#aaa;font-size:.8rem"> (${p.unit})</span>${stockText}
-        </div>
-        <span class="result-price">R$ ${parseFloat(p.sale_price).toFixed(2)}</span>
-        <div class="result-actions">
-          <button class="btn-cart" onclick="addToCart(${p.id}, '${p.name.replace(/'/g,"\\'")}', ${parseFloat(p.sale_price) || 0}, '${p.unit}', 1)">🛒 Carrinho</button>
-          <button class="btn-buy" onclick="buyNow(${p.id}, '${p.name}', ${parseFloat(p.sale_price) || 0}, '${p.unit}')">⚡ Comprar agora</button>
-        </div>
-      </div>
-    `}).join('');
+
+      const item = document.createElement('div');
+      item.className = 'result-item';
+
+      const info = document.createElement('div');
+      info.className = 'result-info';
+      info.innerHTML = `<span>${p.name}</span><span style="color:#aaa;font-size:.8rem"> (${p.unit})</span>`;
+      if (stock !== null) {
+        const s = document.createElement('span');
+        s.style.cssText = `color:${stockColor};font-weight:700`;
+        s.textContent = ` · ${stock} ${p.unit}`;
+        info.appendChild(s);
+      }
+
+      const price = document.createElement('span');
+      price.className = 'result-price';
+      price.textContent = `R$ ${parseFloat(p.sale_price).toFixed(2)}`;
+
+      const actions = document.createElement('div');
+      actions.className = 'result-actions';
+
+      const btnCart = document.createElement('button');
+      btnCart.className = 'btn-cart';
+      btnCart.textContent = '🛒 Carrinho';
+      btnCart.addEventListener('click', () => addToCart(p.id, p.name, parseFloat(p.sale_price) || 0, p.unit, 1));
+
+      const btnBuy = document.createElement('button');
+      btnBuy.className = 'btn-buy';
+      btnBuy.textContent = '⚡ Comprar agora';
+      btnBuy.addEventListener('click', () => buyNow(p.id, p.name, parseFloat(p.sale_price) || 0, p.unit));
+
+      actions.appendChild(btnCart);
+      actions.appendChild(btnBuy);
+      item.appendChild(info);
+      item.appendChild(price);
+      item.appendChild(actions);
+      fragment.appendChild(item);
+    });
+    list.innerHTML = '';
+    list.appendChild(fragment);
   } catch {
     list.innerHTML = '<div class="result-item" style="color:red">Erro ao buscar.</div>';
   }
