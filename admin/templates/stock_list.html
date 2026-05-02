@@ -70,9 +70,9 @@
 
       <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;">
         <a class="btn" href="/stock/new">+ Entrada de mercadoria</a>
+        <a class="btn secondary" href="/shopping-list">🛒 Lista de compras</a>
         <span class="pill">{{ total_count }} registros</span>
       </div>
-
       {% if request.query_params.get('deleted') == '1' %}
         <div style="background:#ecfdf5;border:1px solid #bbf7d0;color:#065f46;padding:10px 14px;border-radius:8px;font-weight:800;margin-bottom:12px;">🗑 Movimento excluído.</div>
       {% endif %}

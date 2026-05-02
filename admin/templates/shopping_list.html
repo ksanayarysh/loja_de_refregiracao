@@ -1,0 +1,200 @@
+{% extends '_base_admin.html' %}
+{% block title %}Lista de compras — M.T.F{% endblock %}
+{% block extra_styles %}
+    .card{background:#fff;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.08);padding:20px;}
+    h1{font-size:1.4rem;margin-bottom:4px;color:#111;}
+    .subtitle{font-size:.88rem;color:#888;margin-bottom:18px;}
+    .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;background:#111827;color:#fff;text-decoration:none;font-weight:800;border:none;cursor:pointer;font-size:.88rem;font-family:inherit;}
+    .btn:hover{background:#374151;}
+    .btn.danger{background:#fff;color:#dc2626;border:1px solid #fca5a5;}
+    .btn.danger:hover{background:#dc2626;color:#fff;}
+    .btn.secondary{background:#fff;color:#E2144A;border:1px solid #ccc;}
+    .btn.secondary:hover{background:#f9fafb;}
+    .btn.wa{background:#25D366;color:#fff;border:none;}
+    .btn.wa:hover{background:#1ebe5d;}
+    .ok-banner{background:#ecfdf5;border:1px solid #bbf7d0;color:#065f46;padding:10px 14px;border-radius:8px;font-weight:800;margin-bottom:14px;}
+
+    /* Add form */
+    .add-form{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;background:bisque;padding:14px;border-radius:10px;margin-bottom:20px;}
+    .add-form select,.add-form input{padding:8px 10px;border-radius:8px;border:1px solid #ccc;font-size:.88rem;font-family:inherit;background:#fff;height:36px;box-sizing:border-box;}
+    .add-form select{flex:2;min-width:160px;}
+    .add-form .qty-input{width:90px;}
+    .add-form .note-input{flex:1;min-width:120px;}
+    .add-form label{font-size:.78rem;font-weight:800;color:#555;display:block;margin-bottom:3px;}
+    .add-form .field{display:flex;flex-direction:column;}
+
+    /* List */
+    .section-title{font-size:.78rem;font-weight:900;text-transform:uppercase;letter-spacing:.07em;color:#888;margin:16px 0 8px;}
+    .item-row{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid #f0f0f0;}
+    .item-row:last-child{border-bottom:none;}
+    .item-check{width:22px;height:22px;border-radius:6px;border:2px solid #ccc;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s,border-color .15s;}
+    .item-check.checked{background:#16a34a;border-color:#16a34a;color:#fff;}
+    .item-info{flex:1;min-width:0;}
+    .item-name{font-weight:800;font-size:.95rem;color:#111;}
+    .item-name.done{text-decoration:line-through;color:#aaa;}
+    .item-meta{font-size:.8rem;color:#888;margin-top:2px;}
+    .item-stock{font-size:.78rem;font-weight:700;}
+    .stock-ok{color:#16a34a;}.stock-low{color:#d97706;}.stock-zero{color:#dc2626;}
+    .item-edit{display:flex;align-items:center;gap:6px;}
+    .inline-qty{width:70px;padding:5px 7px;border-radius:6px;border:1px solid #ccc;font-size:.85rem;font-family:inherit;text-align:center;}
+    .inline-note{width:130px;padding:5px 7px;border-radius:6px;border:1px solid #ccc;font-size:.82rem;font-family:inherit;}
+    .save-btn{padding:5px 10px;border-radius:6px;background:#111827;color:#fff;border:none;cursor:pointer;font-size:.8rem;font-weight:800;font-family:inherit;}
+    .save-btn:hover{background:#374151;}
+    .del-btn{padding:5px 8px;border-radius:6px;background:#fff;border:1px solid #fca5a5;color:#dc2626;font-size:.8rem;cursor:pointer;font-family:inherit;}
+    .del-btn:hover{background:#dc2626;color:#fff;}
+    .empty{padding:30px;text-align:center;color:#aaa;font-size:.95rem;}
+    .actions-top{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px;}
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <h1>🛒 Lista de compras</h1>
+  <p class="subtitle">Produtos para repor no estoque</p>
+
+  {% if added %}<div class="ok-banner">✅ Produto adicionado à lista.</div>{% endif %}
+  {% if saved %}<div class="ok-banner">💾 Alterações salvas.</div>{% endif %}
+
+  <!-- ADD FORM -->
+  <form method="post" action="/shopping-list/add">
+    <div class="add-form">
+      <div class="field" style="flex:2;min-width:160px;">
+        <label>Produto</label>
+        <select name="product_id" required>
+          <option value="">Selecionar produto…</option>
+          {% for p in all_products %}
+            <option value="{{ p.id }}">{{ p.name }} ({{ p.unit }})</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="field">
+        <label>Qtd</label>
+        <input class="qty-input" type="text" name="qty_needed" value="1" placeholder="Qtd">
+      </div>
+      <div class="field" style="flex:1;min-width:120px;">
+        <label>Obs.</label>
+        <input class="note-input" type="text" name="note" placeholder="Opcional…">
+      </div>
+      <button type="submit" class="btn" style="margin-top:18px;">+ Adicionar</button>
+    </div>
+  </form>
+
+  <!-- TOP ACTIONS -->
+  <div class="actions-top">
+    <button class="btn wa" id="btn-wa" onclick="sendWhatsApp()">📲 Enviar no WhatsApp</button>
+    {% set bought_count = items | selectattr('bought') | list | length %}
+    {% if bought_count > 0 %}
+    <form method="post" action="/shopping-list/clear-bought" onsubmit="return confirm('Remover {{ bought_count }} item(s) comprado(s)?')">
+      <button type="submit" class="btn danger">🗑 Limpar comprados ({{ bought_count }})</button>
+    </form>
+    {% endif %}
+  </div>
+
+  <!-- LIST -->
+  {% set pending = items | rejectattr('bought') | list %}
+  {% set done    = items | selectattr('bought') | list %}
+
+  {% if not items %}
+    <div class="empty">Lista vazia — adicione produtos acima 👆</div>
+  {% else %}
+
+    {% if pending %}
+      <div class="section-title">⏳ Para comprar ({{ pending|length }})</div>
+      {% for item in pending %}
+        <div class="item-row" id="row-{{ item.id }}">
+          <!-- toggle bought -->
+          <form method="post" action="/shopping-list/{{ item.id }}/toggle" style="margin:0">
+            <button type="submit" class="item-check" title="Marcar como comprado">✓</button>
+          </form>
+
+          <div class="item-info">
+            <div class="item-name">{{ item.product_name }}</div>
+            <div class="item-meta">
+              {% set cs = item.current_stock | float %}
+              {% set ms = item.min_stock | float if item.min_stock else 0 %}
+              Estoque atual:
+              {% if cs <= 0 %}
+                <span class="item-stock stock-zero">{{ cs | int }} {{ item.unit }}</span>
+              {% elif cs <= ms %}
+                <span class="item-stock stock-low">{{ cs | round(3) }} {{ item.unit }}</span>
+              {% else %}
+                <span class="item-stock stock-ok">{{ cs | round(3) }} {{ item.unit }}</span>
+              {% endif %}
+              {% if item.note %} · <em>{{ item.note }}</em>{% endif %}
+            </div>
+          </div>
+
+          <!-- inline edit -->
+          <form method="post" action="/shopping-list/{{ item.id }}/edit" class="item-edit">
+            <input class="inline-qty" type="text" name="qty_needed"
+                   value="{{ item.qty_needed | float | round(3) }}" title="Qtd necessária">
+            <span style="font-size:.78rem;color:#888;">{{ item.unit }}</span>
+            <input class="inline-note" type="text" name="note"
+                   value="{{ item.note or '' }}" placeholder="Obs…">
+            <button class="save-btn" type="submit">💾</button>
+          </form>
+
+          <!-- delete -->
+          <form method="post" action="/shopping-list/{{ item.id }}/delete"
+                onsubmit="return confirm('Remover da lista?')" style="margin:0">
+            <button class="del-btn" type="submit">🗑</button>
+          </form>
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    {% if done %}
+      <div class="section-title" style="margin-top:20px;">✅ Comprados ({{ done|length }})</div>
+      {% for item in done %}
+        <div class="item-row" style="opacity:.55;" id="row-{{ item.id }}">
+          <form method="post" action="/shopping-list/{{ item.id }}/toggle" style="margin:0">
+            <button type="submit" class="item-check checked" title="Desmarcar">✓</button>
+          </form>
+          <div class="item-info">
+            <div class="item-name done">{{ item.product_name }}</div>
+            <div class="item-meta">
+              {{ item.qty_needed | float | round(3) }} {{ item.unit }}
+              {% if item.bought_at %} · comprado {{ item.bought_at.strftime('%d/%m %H:%M') }}{% endif %}
+              {% if item.note %} · <em>{{ item.note }}</em>{% endif %}
+            </div>
+          </div>
+          <form method="post" action="/shopping-list/{{ item.id }}/delete"
+                onsubmit="return confirm('Remover da lista?')" style="margin:0;margin-left:auto">
+            <button class="del-btn" type="submit">🗑</button>
+          </form>
+        </div>
+      {% endfor %}
+    {% endif %}
+
+  {% endif %}
+</div>
+
+<script>
+function sendWhatsApp() {
+  const rows = document.querySelectorAll('#\\31 , .item-row');
+  // collect pending items from DOM
+  const lines = [];
+  document.querySelectorAll('.item-row').forEach(row => {
+    // skip bought rows (opacity .55)
+    if (row.style.opacity === '0.55') return;
+    const name = row.querySelector('.item-name')?.textContent?.trim();
+    const qtyInput = row.querySelector('.inline-qty');
+    const noteInput = row.querySelector('.inline-note');
+    if (!name) return;
+    const qty = qtyInput ? qtyInput.value.trim() : '';
+    const note = noteInput ? noteInput.value.trim() : '';
+    const unit = row.querySelector('.item-meta .item-stock')
+                    ? (row.querySelector('.item-meta').textContent.match(/\d[\d.,]* (\w+)/)?.[1] || '') : '';
+    lines.push(`• ${name}${qty ? ' — ' + qty : ''}${note ? ' (' + note + ')' : ''}`);
+  });
+
+  if (!lines.length) { alert('Nenhum item pendente na lista.'); return; }
+
+  const today = new Date().toLocaleDateString('pt-BR');
+  const msg = `🛒 *Lista de compras MTF* (${today})\n\n` + lines.join('\n');
+  const phone = '5521997982467'; // Douglas
+  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+}
+</script>
+{% endblock %}
+
+{% block scripts %}{{ super() }}{% endblock %}

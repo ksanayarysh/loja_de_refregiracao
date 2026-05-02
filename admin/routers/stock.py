@@ -400,8 +400,133 @@ async def stock_levels(_=Depends(basic_auth)):
         rows = res.mappings().all()
     return [dict(r) for r in rows]
 
+# ── SHOPPING LIST ──
 
-# ── PUBLIC CATALOG API (sem autenticação) ──
+async def _ensure_shopping_list_table(conn):
+    await conn.execute(text("""
+        CREATE TABLE IF NOT EXISTS shopping_list (
+            id SERIAL PRIMARY KEY,
+            product_id INTEGER REFERENCES products(id) ON DELETE CASCADE,
+            qty_needed NUMERIC(10,3) NOT NULL DEFAULT 1,
+            note TEXT,
+            bought BOOLEAN NOT NULL DEFAULT FALSE,
+            created_at TIMESTAMP DEFAULT NOW(),
+            bought_at TIMESTAMP
+        )
+    """))
+
+
+@router.get("/shopping-list", response_class=HTMLResponse)
+async def shopping_list_page(request: Request, _=Depends(basic_auth)):
+    async with engine.begin() as conn:
+        await _ensure_shopping_list_table(conn)
+    async with engine.connect() as conn:
+        rows_res = await conn.execute(text("""
+            SELECT sl.id, sl.qty_needed, sl.note, sl.bought, sl.created_at, sl.bought_at,
+                   p.name AS product_name, p.unit,
+                   GREATEST(0, COALESCE(SUM(sm.qty), 0)) AS current_stock,
+                   p.min_stock
+            FROM shopping_list sl
+            JOIN products p ON p.id = sl.product_id
+            LEFT JOIN stock_movements sm ON sm.product_id = p.id
+            GROUP BY sl.id, sl.qty_needed, sl.note, sl.bought, sl.created_at, sl.bought_at,
+                     p.name, p.unit, p.min_stock
+            ORDER BY sl.bought ASC, sl.created_at DESC
+        """))
+        items = rows_res.mappings().all()
+        prods_res = await conn.execute(text("SELECT id, name, unit FROM products WHERE active=TRUE ORDER BY name"))
+        all_products = prods_res.mappings().all()
+    return templates.TemplateResponse("shopping_list.html", {
+        "request": request,
+        "items": items,
+        "all_products": all_products,
+        "added": request.query_params.get("added") == "1",
+        "saved": request.query_params.get("saved") == "1",
+    })
+
+
+@router.post("/shopping-list/add")
+async def shopping_list_add(
+    request: Request,
+    product_id: int = Form(...),
+    qty_needed: str = Form("1"),
+    note: str = Form(""),
+    _=Depends(basic_auth),
+):
+    try:
+        qty = Decimal(qty_needed.replace(",", "."))
+        if qty <= 0:
+            qty = Decimal("1")
+    except Exception:
+        qty = Decimal("1")
+
+    async with engine.begin() as conn:
+        await _ensure_shopping_list_table(conn)
+        existing = await conn.execute(
+            text("SELECT id FROM shopping_list WHERE product_id=:pid AND bought=FALSE"),
+            {"pid": product_id}
+        )
+        row = existing.first()
+        if row:
+            await conn.execute(
+                text("UPDATE shopping_list SET qty_needed=:qty, note=:note WHERE id=:id"),
+                {"qty": qty, "note": note.strip() or None, "id": row[0]}
+            )
+        else:
+            await conn.execute(
+                text("INSERT INTO shopping_list (product_id, qty_needed, note) VALUES (:pid, :qty, :note)"),
+                {"pid": product_id, "qty": qty, "note": note.strip() or None}
+            )
+    return RedirectResponse("/shopping-list?added=1", status_code=303)
+
+
+@router.post("/shopping-list/{item_id}/toggle")
+async def shopping_list_toggle(item_id: int, _=Depends(basic_auth)):
+    async with engine.begin() as conn:
+        await conn.execute(text("""
+            UPDATE shopping_list
+            SET bought = NOT bought,
+                bought_at = CASE WHEN NOT bought THEN NOW() ELSE NULL END
+            WHERE id = :id
+        """), {"id": item_id})
+    return RedirectResponse("/shopping-list", status_code=303)
+
+
+@router.post("/shopping-list/{item_id}/delete")
+async def shopping_list_delete(item_id: int, _=Depends(basic_auth)):
+    async with engine.begin() as conn:
+        await conn.execute(text("DELETE FROM shopping_list WHERE id=:id"), {"id": item_id})
+    return RedirectResponse("/shopping-list", status_code=303)
+
+
+@router.post("/shopping-list/{item_id}/edit")
+async def shopping_list_edit(
+    item_id: int,
+    qty_needed: str = Form(...),
+    note: str = Form(""),
+    _=Depends(basic_auth),
+):
+    try:
+        qty = Decimal(qty_needed.replace(",", "."))
+        if qty <= 0:
+            qty = Decimal("1")
+    except Exception:
+        qty = Decimal("1")
+    async with engine.begin() as conn:
+        await conn.execute(
+            text("UPDATE shopping_list SET qty_needed=:qty, note=:note WHERE id=:id"),
+            {"qty": qty, "note": note.strip() or None, "id": item_id}
+        )
+    return RedirectResponse("/shopping-list?saved=1", status_code=303)
+
+
+@router.post("/shopping-list/clear-bought")
+async def shopping_list_clear_bought(_=Depends(basic_auth)):
+    async with engine.begin() as conn:
+        await conn.execute(text("DELETE FROM shopping_list WHERE bought=TRUE"))
+    return RedirectResponse("/shopping-list", status_code=303)
+
+
 
 @router.get("/api/catalog")
 async def catalog_public():

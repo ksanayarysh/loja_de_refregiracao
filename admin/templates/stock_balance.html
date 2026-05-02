@@ -51,6 +51,7 @@
 <div class="topbar">
       <h1>📦 Saldo de Estoque</h1>
       <a class="btn outline" href="/stock/history">📋 Histórico</a>
+      <a class="btn outline" href="/shopping-list">🛒 Lista de compras</a>
       <a class="btn" href="/stock/new">+ Entrada</a>
     </div>
 
@@ -109,6 +110,10 @@
           <div class="sc-actions">
             <a class="sc-btn" href="/stock/new?product_id={{ s.id }}">+ Entrada</a>
             <a class="sc-btn" href="/stock/history?product_id={{ s.id }}">📋</a>
+            <form method="post" action="/shopping-list/add" style="margin:0;flex:1">
+              <input type="hidden" name="product_id" value="{{ s.id }}">
+              <button type="submit" class="sc-btn" style="width:100%" title="Adicionar à lista de compras">🛒</button>
+            </form>
           </div>
         </div>
       {% endfor %}
