@@ -70,8 +70,8 @@ ARTICLES = [
         "category": "ar-condicionado",
         "icon": "💧",
         "tags": ["ar-condicionado", "dreno", "água", "limpeza"],
-        "template": None,
-        "published": False,
+        "template": "blog/ar-condicionado-pingando-agua.html",
+        "published": True,
     },
     {
         "slug": "capacitor-ar-condicionado",
