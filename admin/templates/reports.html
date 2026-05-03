@@ -598,8 +598,164 @@
         {% endif %}
       </div>
     </div>
+
+    <!-- VENDAS DIÁRIAS POR MÊS -->
+    {% if monthly_daily %}
+    {% set month_colors = ['#8b5cf6', '#3b82f6', '#f59e0b', '#E2144A'] %}
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px;">
+        <h2 style="margin:0;">📅 Vendas diárias — últimos 3 meses</h2>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;">
+          {% for m in monthly_daily %}
+          {% set color = month_colors[loop.index0] %}
+          <div style="display:flex;align-items:center;gap:6px;font-size:.85rem;font-weight:700;">
+            <div style="width:24px;height:3px;background:{{ color }};border-radius:2px;flex-shrink:0;"></div>
+            {{ m.month.strftime('%b/%Y') }}
+            <span style="color:#888;font-weight:400;">R$ {{ "%.0f"|format(m.total) }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      <canvas id="monthly-canvas" style="width:100%;height:220px;display:block;"></canvas>
+      <script>
+      (function(){
+        var allMonths = [
+          {% for m in monthly_daily %}
+          {{ m.days | tojson }}{% if not loop.last %},{% endif %}
+          {% endfor %}
+        ];
+        var colors = {{ month_colors | tojson }};
+
+        var canvas = document.getElementById('monthly-canvas');
+        var dpr = window.devicePixelRatio || 1;
+        var W = canvas.offsetWidth || canvas.parentElement.offsetWidth;
+        var H = 220;
+        canvas.width  = W * dpr;
+        canvas.height = H * dpr;
+        canvas.style.height = H + 'px';
+        var ctx = canvas.getContext('2d');
+        ctx.scale(dpr, dpr);
+
+        var PAD_L = 48, PAD_R = 12, PAD_T = 16, PAD_B = 32;
+        var cW = W - PAD_L - PAD_R;
+        var cH = H - PAD_T - PAD_B;
+
+        // global max — all months share Y axis
+        var maxV = 0;
+        allMonths.forEach(function(days){
+          days.forEach(function(d){ if(d.revenue > maxV) maxV = d.revenue; });
+        });
+        if(!maxV) maxV = 1;
+
+        // X scale: always 31 slots so months align on same grid
+        var SLOTS = 31;
+        var slotW = cW / (SLOTS - 1);
+
+        function xOf(day) { return PAD_L + (day - 1) * slotW; }
+        function yOf(v)   { return PAD_T + cH - (v / maxV * cH); }
+
+        // grid lines + Y labels
+        ctx.font = '10px Arial';
+        ctx.textAlign = 'right';
+        var gridSteps = 4;
+        for(var g = 0; g <= gridSteps; g++){
+          var gv = maxV * g / gridSteps;
+          var gy = yOf(gv);
+          ctx.beginPath();
+          ctx.strokeStyle = g === 0 ? '#e5e7eb' : '#f3f4f6';
+          ctx.lineWidth = g === 0 ? 1.5 : 1;
+          ctx.moveTo(PAD_L, gy); ctx.lineTo(W - PAD_R, gy);
+          ctx.stroke();
+          ctx.fillStyle = '#bbb';
+          ctx.fillText('R$' + (gv >= 1000 ? (gv/1000).toFixed(1)+'k' : gv.toFixed(0)), PAD_L - 4, gy + 3);
+        }
+
+        // X labels: 1, 5, 10, 15, 20, 25, 30
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#bbb';
+        [1,5,10,15,20,25,30].forEach(function(d){
+          ctx.fillText(d, xOf(d), H - PAD_B + 14);
+        });
+
+        // draw each month
+        allMonths.forEach(function(days, mi){
+          var color = colors[mi];
+
+          // area fill
+          ctx.beginPath();
+          days.forEach(function(d, i){
+            var x = xOf(d.day), y = yOf(d.revenue);
+            i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+          });
+          // close area
+          ctx.lineTo(xOf(days[days.length-1].day), yOf(0));
+          ctx.lineTo(xOf(1), yOf(0));
+          ctx.closePath();
+          ctx.fillStyle = color + '22';
+          ctx.fill();
+
+          // line
+          ctx.beginPath();
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 2.5;
+          ctx.lineJoin = 'round';
+          ctx.lineCap = 'round';
+          days.forEach(function(d, i){
+            var x = xOf(d.day), y = yOf(d.revenue);
+            i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+          });
+          ctx.stroke();
+
+          // dots on days with sales
+          days.forEach(function(d){
+            if(d.revenue <= 0) return;
+            ctx.beginPath();
+            ctx.arc(xOf(d.day), yOf(d.revenue), 3.5, 0, Math.PI*2);
+            ctx.fillStyle = color;
+            ctx.fill();
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+          });
+        });
+
+        // tooltip on hover
+        var tooltip = document.createElement('div');
+        tooltip.style.cssText = 'position:fixed;background:#111;color:#fff;padding:6px 10px;border-radius:8px;font-size:.8rem;pointer-events:none;display:none;z-index:999;line-height:1.5;';
+        document.body.appendChild(tooltip);
+
+        var monthLabels = [
+          {% for m in monthly_daily %}"{{ m.month.strftime('%b/%Y') }}"{% if not loop.last %},{% endif %}{% endfor %}
+        ];
+
+        canvas.addEventListener('mousemove', function(e){
+          var rect = canvas.getBoundingClientRect();
+          var mx = e.clientX - rect.left;
+          var my = e.clientY - rect.top;
+          var day = Math.round((mx - PAD_L) / slotW) + 1;
+          if(day < 1 || day > SLOTS){ tooltip.style.display='none'; return; }
+          var lines = [];
+          allMonths.forEach(function(days, mi){
+            var d = days[day-1];
+            if(!d) return;
+            var dot_y = yOf(d.revenue);
+            if(Math.abs(my - dot_y) < 20 || d.revenue > 0){
+              lines.push('<span style="color:'+colors[mi]+'">●</span> '+monthLabels[mi]+' dia '+day+': <b>R$ '+d.revenue.toFixed(2)+'</b> ('+d.cnt+'x)');
+            }
+          });
+          if(!lines.length){ tooltip.style.display='none'; return; }
+          tooltip.innerHTML = lines.join('<br>');
+          tooltip.style.display = 'block';
+          tooltip.style.left = (e.clientX + 12) + 'px';
+          tooltip.style.top  = (e.clientY - 10) + 'px';
+        });
+        canvas.addEventListener('mouseleave', function(){ tooltip.style.display='none'; });
+      })();
+      </script>
+    </div>
+    {% endif %}
+
 {% endblock %}
 {% block scripts %}
 {{ super() }}
-
 {% endblock %}

@@ -517,7 +517,63 @@ async def reports(
                 "cnt": month_map.get(key, {}).get("cnt", 0),
             })
 
-        # 8. SAZONALIDADE DE GASES (últimos 12 meses)
+        # 8b. VENDAS DIÁRIAS POR MÊS (últimos 3 meses)
+        three_months_ago = today.replace(day=1)
+        m = three_months_ago.month - 3
+        y = three_months_ago.year
+        while m <= 0:
+            m += 12
+            y -= 1
+        three_months_start = _date(y, m, 1)
+
+        daily_by_month_res = await conn.execute(text("""
+            SELECT
+                DATE_TRUNC('month', s.sold_at::date)::date AS month,
+                s.sold_at::date AS day,
+                COALESCE(SUM(s.total), 0) AS revenue,
+                COUNT(*) AS cnt
+            FROM sales s
+            WHERE s.sold_at::date >= :since
+            GROUP BY DATE_TRUNC('month', s.sold_at::date), s.sold_at::date
+            ORDER BY month ASC, day ASC
+        """), {"since": three_months_start})
+        daily_by_month_raw = daily_by_month_res.mappings().all()
+
+        # Строим структуру: список месяцев, каждый с массивом дней
+        import calendar
+        from collections import defaultdict as _defaultdict
+        months_daily = {}
+        for r in daily_by_month_raw:
+            mk = r["month"]
+            if mk not in months_daily:
+                months_daily[mk] = {}
+            months_daily[mk][r["day"]] = {"revenue": float(r["revenue"]), "cnt": int(r["cnt"])}
+
+        monthly_daily = []
+        for i in range(3, -1, -1):
+            ref = today.replace(day=1)
+            mo = ref.month - i
+            yr = ref.year
+            while mo <= 0:
+                mo += 12
+                yr -= 1
+            first = _date(yr, mo, 1)
+            last_day = calendar.monthrange(yr, mo)[1]
+            last = _date(yr, mo, last_day)
+            days_data = months_daily.get(first, {})
+            days_list = []
+            for d in range(1, last_day + 1):
+                dk = _date(yr, mo, d)
+                entry = days_data.get(dk, {"revenue": 0, "cnt": 0})
+                days_list.append({"day": d, "date": dk.isoformat(), "revenue": entry["revenue"], "cnt": entry["cnt"]})
+            monthly_daily.append({
+                "month": first,
+                "label": first.strftime('%B %Y'),
+                "days": days_list,
+                "total": sum(d["revenue"] for d in days_list),
+            })
+
+
         gas_res = await conn.execute(text("""
             SELECT
                 DATE_TRUNC('month', s.sold_at::date)::date AS month,
@@ -597,4 +653,5 @@ async def reports(
         "avg_data": avg_data,
         "monthly": monthly,
         "gas_seasonality": gas_seasonality,
+        "monthly_daily": monthly_daily,
     })
