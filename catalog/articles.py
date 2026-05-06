@@ -138,6 +138,17 @@ ARTICLES = [
         "published": True,
     },
 
+    # ── COMPONENTES / PEÇAS ──────────────────────────────────────────────────
+    {
+        "slug": "termostato-refrigeracao",
+        "title": "Termostato com defeito: como identificar e qual comprar no RJ",
+        "description": "Geladeira gelando demais, ar-condicionado que não para ou bebedouro fora da temperatura? Saiba como identificar termostato com defeito e qual comprar no Rio de Janeiro.",
+        "category": "componentes",
+        "icon": "🌡️",
+        "tags": ["termostato", "geladeira", "ar-condicionado", "bebedouro", "springer"],
+        "template": "blog/termostato-refrigeracao.html",
+        "published": True,
+    },
     {
         "slug": "sensor-de-temperatura-geladeira",
         "title": "Sensor de temperatura da geladeira: o que é e quando trocar",
@@ -190,4 +201,5 @@ CATEGORY_LABELS = {
     "geladeira":        "Geladeiras e refrigeração",
     "ar-condicionado":  "Ar-condicionado",
     "maquina-de-lavar": "Máquina de lavar",
+    "componentes":      "Componentes e peças",
 }
