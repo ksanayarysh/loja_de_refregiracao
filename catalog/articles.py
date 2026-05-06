@@ -138,15 +138,14 @@ ARTICLES = [
         "published": True,
     },
 
-    # ── COMPONENTES / PEÇAS ──────────────────────────────────────────────────
     {
-        "slug": "termostato-refrigeracao",
-        "title": "Termostato com defeito: como identificar e qual comprar no RJ",
-        "description": "Geladeira gelando demais, ar-condicionado que não para ou bebedouro fora da temperatura? Saiba como identificar termostato com defeito e qual comprar no Rio de Janeiro.",
-        "category": "componentes",
-        "icon": "🌡️",
-        "tags": ["termostato", "geladeira", "ar-condicionado", "bebedouro", "springer"],
-        "template": "blog/termostato-refrigeracao.html",
+        "slug": "gases-limpeza-ar-condicionado",
+        "title": "Gases e fluidos de limpeza para ar-condicionado: o que são e quando usar",
+        "description": "Nitrogênio, Air Flush e Air Repair: entenda para que serve cada produto de limpeza e manutenção de sistemas de ar-condicionado e onde comprar no RJ.",
+        "category": "ar-condicionado",
+        "icon": "🧪",
+        "tags": ["limpeza", "nitrogênio", "air flush", "air repair", "manutenção", "ar-condicionado"],
+        "template": "blog/gases-limpeza-ar-condicionado.html",
         "published": True,
     },
     {
@@ -201,5 +200,4 @@ CATEGORY_LABELS = {
     "geladeira":        "Geladeiras e refrigeração",
     "ar-condicionado":  "Ar-condicionado",
     "maquina-de-lavar": "Máquina de lavar",
-    "componentes":      "Componentes e peças",
 }
