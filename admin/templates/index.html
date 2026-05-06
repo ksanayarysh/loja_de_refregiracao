@@ -61,36 +61,22 @@
     .quick-links a.primary:hover { background: #0056b3; }
 
     /* SEARCH RESULTS */
-    #search-results {
-      display: none;
-      background: #fff;
-      border: 1px solid #ddd;
-      border-radius: 12px;
-      padding: 12px 0;
-      margin: 0;
-      position: absolute;
-      top: calc(100% + 6px);
-      left: 0;
-      z-index: 200;
-      box-shadow: 0 12px 32px rgba(0,0,0,.18);
-      min-width: 620px;
-      max-height: 420px;
-      overflow-y: auto;
-    }
-    #search-results.show { display: block; }
-    #search-results h3 { font-size: .85rem; color: #999; margin: 0 16px 8px; text-transform: uppercase; letter-spacing: .05em; }
-    .result-item { display: grid; grid-template-columns: 1fr auto auto; align-items: center; padding: 10px 16px; gap: 16px; transition: background .15s; }
+    #search-results { display: none; }
+    .result-item { display: grid; grid-template-columns: 40px 1fr auto auto auto; align-items: center; padding: 8px 0; gap: 12px; border-bottom: 1px solid #eee; }
+    .result-item:last-child { border-bottom: none; }
     .result-item:hover { background: #fafafa; }
-    .result-item + .result-item { border-top: 1px solid #f0f0f0; }
+    .result-thumb { width: 36px; height: 36px; object-fit: contain; border-radius: 4px; background: #f5f5f5; }
     .result-info { min-width: 0; }
-    .result-name { font-size: .95rem; color: #222; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .result-stock { font-size: .78rem; color: #888; margin-top: 2px; }
-    .result-price { font-weight: 800; color: #E2144A; white-space: nowrap; font-size: 1.05rem; text-align: right; }
+    .result-name { font-size: .92rem; color: #222; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .result-stock { font-size: .75rem; color: #888; margin-top: 2px; }
+    .result-price { font-weight: 800; color: #E2144A; white-space: nowrap; font-size: 1rem; min-width: 80px; text-align: right; }
     .result-actions { display: flex; gap: 6px; flex-shrink: 0; }
-    .btn-cart { padding: 7px 14px; border-radius: 6px; background: #fff; border: 1.5px solid #E2144A; color: #E2144A; font-size: .85rem; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; transition: all .15s; }
+    .btn-cart { padding: 6px 12px; border-radius: 4px; background: #fff; border: 1.5px solid #E2144A; color: #E2144A; font-size: .82rem; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; transition: all .15s; }
     .btn-cart:hover { background: #E2144A; color: #fff; }
-    .btn-buy { padding: 7px 14px; border-radius: 6px; background: #111827; border: none; color: #fff; font-size: .85rem; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; transition: background .15s; }
+    .btn-buy { padding: 6px 12px; border-radius: 4px; background: #111827; border: none; color: #fff; font-size: .82rem; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; transition: background .15s; text-decoration: none; }
     .btn-buy:hover { background: #374151; }
+    .btn-edit { padding: 6px 10px; border-radius: 4px; background: #fff; border: 1px solid #ccc; color: #555; font-size: .82rem; cursor: pointer; text-decoration: none; }
+    .btn-edit:hover { background: #f0f0f0; }
 
     /* CALCULATOR */
     .calc-section h3 { font-size: 1rem; margin-bottom: 14px; color: black; }
@@ -161,42 +147,7 @@
       .search-container { width: 100%; }
 
       /* На мобильном — не абсолютный, а нормальный поток */
-      #search-results {
-        position: static;
-        min-width: 0;
-        width: 100%;
-        max-width: 100%;
-        box-shadow: none;
-        border-radius: 0 0 8px 8px;
-        margin-top: 4px;
-      }
 
-      /* Результаты поиска — карточки */
-      .result-item {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-        padding: 14px 0;
-      }
-      .result-info {
-        font-size: 1.05rem;
-        font-weight: 700;
-        white-space: normal;
-        color: #111;
-      }
-      .result-price {
-        font-size: 1.1rem;
-      }
-      .result-actions {
-        width: 100%;
-        gap: 8px;
-      }
-      .btn-cart, .btn-buy {
-        flex: 1;
-        padding: 10px 8px;
-        font-size: 1rem;
-        text-align: center;
-      }
     }
 
 
@@ -213,11 +164,7 @@
       <input type="text" id="search-input" placeholder="pesquisar produto..." class="search-input"
              style="border-radius:4px; width:260px;"
              oninput="debouncedSearch()" onkeydown="if(event.key==='Escape') clearSearch(); if(event.key==='Enter') searchProducts()">
-      <!-- Search results dropdown -->
-      <div id="search-results">
-        <h3>Resultados:</h3>
-        <div id="results-list"></div>
-      </div>
+
     </div>
   </div>
   <button class="cart-icon-btn" onclick="openCart()">
@@ -265,6 +212,10 @@
 
   <!-- CONTENT -->
   <main class="content">
+    <div id="search-results" style="display:none;margin:-24px -24px 0;padding:16px 24px;background:#fff;border-bottom:1px solid #ddd;">
+      <div style="font-size:.75rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#999;margin-bottom:10px;">Resultados:</div>
+      <div id="results-list"></div>
+    </div>
     <div class="quick-links">
       <a href="/products/new" class="primary">+ Cadastrar produto</a>
       <a href="/sales/new" class="primary">+ Nova venda</a>
@@ -617,20 +568,13 @@ function debouncedSearch() {
   _searchTimer = setTimeout(searchProducts, 280);
 }
 function clearSearch() {
-  document.getElementById('search-results').classList.remove('show');
+  document.getElementById('search-results').style.display = 'none';
   document.getElementById('results-list').innerHTML = '';
   sessionStorage.removeItem('mtf_search');
   document.getElementById('search-input').value = '';
 }
 
-// Закрыть при клике вне поиска
-document.addEventListener('click', function(e) {
-  const container = document.getElementById('search-results');
-  const input = document.getElementById('search-input');
-  if (!container.contains(e.target) && e.target !== input) {
-    container.classList.remove('show');
-  }
-});
+
 
 async function searchProducts() {
   const q = document.getElementById('search-input').value.trim();
@@ -638,7 +582,7 @@ async function searchProducts() {
   const container = document.getElementById('search-results');
   const list = document.getElementById('results-list');
   list.innerHTML = '<div class="result-item" style="color:#888">Buscando...</div>';
-  container.classList.add('show');
+  container.style.display = 'block';
   try {
     const res = await fetch(`/api/products?search=${encodeURIComponent(q)}`);
     const data = await res.json();
@@ -653,6 +597,12 @@ async function searchProducts() {
 
       const item = document.createElement('div');
       item.className = 'result-item';
+
+      const thumb = document.createElement('img');
+      thumb.className = 'result-thumb';
+      thumb.src = p.image_url || '';
+      thumb.onerror = function(){ this.style.visibility='hidden'; };
+      item.appendChild(thumb);
 
       const info = document.createElement('div');
       info.className = 'result-info';
@@ -684,8 +634,14 @@ async function searchProducts() {
       btnBuy.textContent = '⚡ Comprar agora';
       btnBuy.addEventListener('click', () => buyNow(p.id, p.name, parseFloat(p.sale_price) || 0, p.unit));
 
+      const btnEdit = document.createElement('a');
+      btnEdit.className = 'btn-edit';
+      btnEdit.href = '/products/' + p.id + '/edit';
+      btnEdit.textContent = '✏️';
+      btnEdit.title = 'Editar';
       actions.appendChild(btnCart);
       actions.appendChild(btnBuy);
+      actions.appendChild(btnEdit);
       item.appendChild(info);
       item.appendChild(price);
       item.appendChild(actions);
