@@ -1,0 +1,347 @@
+{% extends "catalog/_base_public.html" %}
+
+{% block title %}Termostato para Geladeira e Ar-condicionado: Sintomas, Tipos e Onde Comprar no RJ | MTF{% endblock %}
+
+{% block meta %}
+<meta name="description" content="Termostato com defeito? Geladeira gelando demais ou não gelando? Ar-condicionado não para? Veja os sintomas, os tipos de termostato e onde comprar no Rio de Janeiro.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://www.mtfrefrigeracao.com.br/blog/termostato-refrigeracao">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Termostato para Geladeira e Ar-condicionado | MTF Refrigeração RJ">
+<meta property="og:description" content="Saiba identificar termostato com defeito, qual tipo comprar e onde encontrar no Rio de Janeiro.">
+<meta property="og:image" content="https://www.mtfrefrigeracao.com.br/static/og-catalog.jpg">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Termostato para Geladeira e Ar-condicionado: Sintomas, Tipos e Onde Comprar no RJ",
+  "description": "Termostato com defeito? Saiba identificar, qual tipo comprar e onde encontrar no Rio de Janeiro.",
+  "author": {"@type": "Organization", "name": "M.T.F Refrigeração"},
+  "publisher": {"@type": "Organization", "name": "M.T.F Refrigeração", "url": "https://www.mtfrefrigeracao.com.br"},
+  "datePublished": "2026-05-06",
+  "url": "https://www.mtfrefrigeracao.com.br/blog/termostato-refrigeracao"
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<style>
+  .article-wrap { max-width: 760px; margin: 0 auto; padding: 0 20px 80px; }
+  .article-hero { padding: 32px 0 24px; }
+  .article-hero h1 { font-size: clamp(1.4rem, 4vw, 2rem); font-weight: 800; line-height: 1.2; letter-spacing: -.02em; margin-bottom: 10px; }
+  .article-hero .lead { font-size: 1.05rem; color: var(--muted); line-height: 1.6; }
+  .article-meta { font-size: .78rem; color: var(--muted); margin-top: 12px; display: flex; gap: 16px; flex-wrap: wrap; }
+  .breadcrumb { font-size: .8rem; color: var(--muted); display: flex; gap: 6px; align-items: center; padding: 16px 0 0; flex-wrap: wrap; }
+  .breadcrumb a { color: var(--muted); text-decoration: none; } .breadcrumb a:hover { color: var(--accent); }
+
+  .article-body h2 { font-size: 1.25rem; font-weight: 800; margin: 36px 0 12px; letter-spacing: -.01em; }
+  .article-body h3 { font-size: 1.05rem; font-weight: 700; margin: 24px 0 8px; }
+  .article-body p { font-size: .97rem; line-height: 1.75; color: #2a2825; margin-bottom: 14px; }
+  .article-body ul { padding-left: 20px; margin-bottom: 14px; }
+  .article-body li { font-size: .97rem; line-height: 1.75; color: #2a2825; margin-bottom: 6px; }
+
+  .symptom-box { background: #fff8f0; border-left: 4px solid var(--accent); border-radius: 0 10px 10px 0; padding: 16px 20px; margin: 20px 0; }
+  .symptom-box .symptom-title { font-weight: 800; color: var(--accent); margin-bottom: 8px; font-size: .95rem; }
+  .symptom-box ul { margin: 0; padding-left: 18px; }
+  .symptom-box li { font-size: .9rem; line-height: 1.6; color: #444; margin-bottom: 4px; }
+
+  .product-link-card { display: flex; align-items: center; gap: 14px; background: var(--surface); border: 1.5px solid var(--border); border-radius: 12px; padding: 14px 16px; text-decoration: none; color: inherit; margin: 12px 0; transition: border-color .15s, box-shadow .15s; }
+  .product-link-card:hover { border-color: var(--accent); box-shadow: 0 2px 12px rgba(226,20,74,.08); }
+  .product-link-icon { font-size: 1.6rem; flex-shrink: 0; }
+  .product-link-name { font-weight: 700; font-size: .95rem; color: var(--text); }
+  .product-link-price { font-size: .88rem; color: var(--accent); font-weight: 800; margin-top: 2px; font-family: 'DM Mono', monospace; }
+  .product-link-arrow { margin-left: auto; color: var(--muted); font-size: 1.1rem; flex-shrink: 0; }
+
+  .product-grid-mini { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; margin: 16px 0; }
+
+  .info-box { background: #f0f7ff; border: 1.5px solid #c6dfff; border-radius: 10px; padding: 16px 20px; margin: 20px 0; }
+  .info-box-title { font-weight: 800; color: #1a6bc4; margin-bottom: 8px; font-size: .95rem; }
+  .info-box p, .info-box li { font-size: .9rem; color: #1a3a6b; line-height: 1.6; }
+
+  .cta-block { background: var(--accent); border-radius: 14px; padding: 28px 32px; text-align: center; margin: 40px 0 20px; }
+  .cta-block h3 { font-size: 1.2rem; font-weight: 800; color: #fff; margin-bottom: 8px; }
+  .cta-block p { color: rgba(255,255,255,.85); font-size: .95rem; margin-bottom: 20px; }
+  .cta-wa { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: var(--accent); padding: 13px 28px; border-radius: 8px; font-weight: 800; font-size: 1rem; text-decoration: none; }
+  .cta-wa:hover { opacity: .92; }
+
+  .related-articles { margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--border); }
+  .related-title { font-size: .7rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+  .related-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+  .related-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px; text-decoration: none; color: inherit; transition: border-color .15s; }
+  .related-card:hover { border-color: var(--accent); }
+  .related-card-icon { font-size: 1.1rem; margin-bottom: 6px; }
+  .related-card-title { font-size: .88rem; font-weight: 700; line-height: 1.3; }
+  .related-card-cta { font-size: .78rem; color: var(--accent); font-weight: 700; margin-top: 8px; }
+</style>
+
+<div class="article-wrap">
+
+  <nav class="breadcrumb">
+    <a href="/">Catálogo</a> <span>›</span>
+    <a href="/blog">Guias</a> <span>›</span>
+    <span>Termostato</span>
+  </nav>
+
+  <div class="article-hero">
+    <h1>Termostato com defeito: como identificar e qual comprar no RJ</h1>
+    <p class="lead">Geladeira gelando demais, ar-condicionado que não para ou bebedouro fora da temperatura certa — em muitos casos o problema é o termostato. Veja como identificar, qual tipo comprar e onde encontrar no Rio de Janeiro.</p>
+    <div class="article-meta">
+      <span>📍 Rio de Janeiro</span>
+      <span>🕐 5 min de leitura</span>
+      <span>🔧 M.T.F Refrigeração</span>
+    </div>
+  </div>
+
+  <div class="article-body">
+
+    <h2>O que é o termostato e para que serve?</h2>
+    <p>O termostato é o componente responsável por controlar a temperatura de um equipamento de refrigeração. Ele funciona como um interruptor inteligente: quando a temperatura sobe além do limite definido, ele liga o compressor ou o sistema de resfriamento; quando a temperatura cai ao nível desejado, ele desliga.</p>
+    <p>Sem o termostato funcionando corretamente, o equipamento não consegue manter a temperatura estável — o que pode arruinar alimentos, aumentar o consumo de energia ou danificar o próprio compressor pelo excesso de trabalho.</p>
+
+    <h2>Sintomas de termostato com defeito</h2>
+    <p>Os sintomas variam dependendo do tipo de equipamento, mas existem padrões comuns que indicam problema no termostato:</p>
+
+    <div class="symptom-box">
+      <div class="symptom-title">🧊 Geladeira</div>
+      <ul>
+        <li>Geladeira não gela ou está gelando muito menos que o normal</li>
+        <li>Geladeira gelando demais — congelando alimentos da parte de baixo</li>
+        <li>Compressor ligado o tempo todo, nunca para</li>
+        <li>Compressor nunca liga, equipamento morno</li>
+        <li>Temperatura inconsistente — ora fria, ora morna</li>
+      </ul>
+    </div>
+
+    <div class="symptom-box">
+      <div class="symptom-title">❄️ Ar-condicionado</div>
+      <ul>
+        <li>Ar-condicionado não para mesmo quando atinge a temperatura definida</li>
+        <li>Não resfria — liga mas não produz frio</li>
+        <li>Desliga antes de atingir a temperatura desejada</li>
+        <li>Temperatura do ambiente oscila muito</li>
+      </ul>
+    </div>
+
+    <div class="symptom-box">
+      <div class="symptom-title">💧 Bebedouro e freezer</div>
+      <ul>
+        <li>Água do bebedouro saindo quente ou muito fria</li>
+        <li>Freezer acumulando gelo excessivo</li>
+        <li>Freezer não congela o suficiente</li>
+      </ul>
+    </div>
+
+    <div class="info-box">
+      <div class="info-box-title">⚠️ Antes de trocar o termostato</div>
+      <p>Verifique se o problema não é simples: limpe o condensador da geladeira, verifique se a borracha da porta veda bem e se o equipamento não está com sobrecarga (muito cheio ou mal posicionado). Se o problema persistir após essas verificações, o termostato é o principal suspeito.</p>
+    </div>
+
+    <h2>Tipos de termostato: qual serve para o seu equipamento?</h2>
+    <p>Existem vários modelos de termostato, cada um desenvolvido para um tipo específico de equipamento e marca. Usar o modelo errado pode não resolver o problema ou até danificar o equipamento.</p>
+
+    <h3>Termostatos para geladeira</h3>
+    <p>Os termostatos de geladeira controlam quando o compressor liga e desliga. Cada marca costuma ter modelos específicos:</p>
+
+    <div class="product-grid-mini">
+      <a class="product-link-card" href="/product/termostato-de-geladeira-wdf20">
+        <span class="product-link-icon">🌡️</span>
+        <div>
+          <div class="product-link-name">Termostato de Geladeira WDF20</div>
+          <div class="product-link-price">R$ 43,00</div>
+        </div>
+        <span class="product-link-arrow">→</span>
+      </a>
+      <a class="product-link-card" href="/product/termostato-geladeira-consul-w11082462-original">
+        <span class="product-link-icon">🌡️</span>
+        <div>
+          <div class="product-link-name">Termostato Geladeira Consul</div>
+          <div class="product-link-price">R$ 63,00</div>
+        </div>
+        <span class="product-link-arrow">→</span>
+      </a>
+      <a class="product-link-card" href="/product/termostato-geladeira-electrolux-dc34a-dc33a-dc35a-wdf30a">
+        <span class="product-link-icon">🌡️</span>
+        <div>
+          <div class="product-link-name">Termostato Geladeira Electrolux DC34A</div>
+          <div class="product-link-price">R$ 69,00</div>
+        </div>
+        <span class="product-link-arrow">→</span>
+      </a>
+      <a class="product-link-card" href="/product/termostato-electrolux-dc49a">
+        <span class="product-link-icon">🌡️</span>
+        <div>
+          <div class="product-link-name">Termostato Electrolux DC49A</div>
+          <div class="product-link-price">R$ 76,50</div>
+        </div>
+        <span class="product-link-arrow">→</span>
+      </a>
+      <a class="product-link-card" href="/product/termostato-freezer-vertical-electrolux-haste-longa">
+        <span class="product-link-icon">❄️</span>
+        <div>
+          <div class="product-link-name">Termostato Freezer Vertical Electrolux</div>
+          <div class="product-link-price">R$ 76,50</div>
+        </div>
+        <span class="product-link-arrow">→</span>
+      </a>
+    </div>
+
+    <h3>Termostatos para ar-condicionado</h3>
+    <p>Os ar-condicionados mais antigos (janela e modelos sem inverter) usam termostatos mecânicos capilares. A Springer é uma das marcas mais comuns no Rio de Janeiro e tem vários modelos disponíveis:</p>
+
+    <div class="product-grid-mini">
+      <a class="product-link-card" href="/product/termostato-ar-condicionado-brastemp-7500-30000-btus-rcv1601-4p">
+        <span class="product-link-icon">❄️</span>
+        <div>
+          <div class="product-link-name">Termostato Ar Cond. Brastemp 7500-30000</div>
+          <div class="product-link-price">R$ 90,00</div>
+        </div>
+        <span class="product-link-arrow">→</span>
+      </a>
+      <a class="product-link-card" href="/product/termostato-para-ar-condicionado-janela-consul-w11089932">
+        <span class="product-link-icon">❄️</span>
+        <div>
+          <div class="product-link-name">Termostato Ar Cond. Janela Consul</div>
+          <div class="product-link-price">R$ 72,00</div>
+        </div>
+        <span class="product-link-arrow">→</span>
+      </a>
+      <a class="product-link-card" href="/product/termostato-para-ar-condicionado-janela-consul-w11089932">
+        <span class="product-link-icon">❄️</span>
+        <div>
+          <div class="product-link-name">Termostato Para Ar Condicionado</div>
+          <div class="product-link-price">R$ 72,00</div>
+        </div>
+        <span class="product-link-arrow">→</span>
+      </a>
+      <a class="product-link-card" href="/product/termostato-springer-agt-gw48">
+        <span class="product-link-icon">❄️</span>
+        <div>
+          <div class="product-link-name">Termostato Springer AGT-GW48</div>
+          <div class="product-link-price">R$ 71,00</div>
+        </div>
+        <span class="product-link-arrow">→</span>
+      </a>
+      <a class="product-link-card" href="/product/termostato-springer-18000-24000-agt-gw50">
+        <span class="product-link-icon">❄️</span>
+        <div>
+          <div class="product-link-name">Termostato Springer 18000-24000 BTUs</div>
+          <div class="product-link-price">R$ 71,50</div>
+        </div>
+        <span class="product-link-arrow">→</span>
+      </a>
+      <a class="product-link-card" href="/product/termostato-springer-agt-r1601-brastemp-consul-de-7000-a-30000">
+        <span class="product-link-icon">❄️</span>
+        <div>
+          <div class="product-link-name">Termostato Springer AGT-R1601</div>
+          <div class="product-link-price">R$ 62,00</div>
+        </div>
+        <span class="product-link-arrow">→</span>
+      </a>
+      <a class="product-link-card" href="/product/termostato-springer-duo-gw42303048-7500-10000">
+        <span class="product-link-icon">❄️</span>
+        <div>
+          <div class="product-link-name">Termostato Springer Duo GW42303048</div>
+          <div class="product-link-price">R$ 92,50</div>
+        </div>
+        <span class="product-link-arrow">→</span>
+      </a>
+      <a class="product-link-card" href="/product/termostato-springer-gw42303050">
+        <span class="product-link-icon">❄️</span>
+        <div>
+          <div class="product-link-name">Termostato Springer GW42303050</div>
+          <div class="product-link-price">R$ 105,00</div>
+        </div>
+        <span class="product-link-arrow">→</span>
+      </a>
+    </div>
+
+    <h3>Termostatos universais e para bebedouro</h3>
+    <p>Alguns modelos são mais universais e servem para diferentes equipamentos. Já os termostatos de bebedouro têm especificações próprias para manter a água na temperatura certa:</p>
+
+    <div class="product-grid-mini">
+      <a class="product-link-card" href="/product/termostato-wpf22">
+        <span class="product-link-icon">🌡️</span>
+        <div>
+          <div class="product-link-name">Termostato WPF22</div>
+          <div class="product-link-price">R$ 39,00</div>
+        </div>
+        <span class="product-link-arrow">→</span>
+      </a>
+      <a class="product-link-card" href="/product/termostato-wpf22g-220v-universal-2-pinos">
+        <span class="product-link-icon">🌡️</span>
+        <div>
+          <div class="product-link-name">Termostato WPF22g 220V Universal</div>
+          <div class="product-link-price">R$ 59,00</div>
+        </div>
+        <span class="product-link-arrow">→</span>
+      </a>
+      <a class="product-link-card" href="/product/termostato-para-bebedouro-rc72640">
+        <span class="product-link-icon">💧</span>
+        <div>
+          <div class="product-link-name">Termostato para Bebedouro RC72640</div>
+          <div class="product-link-price">R$ 58,50</div>
+        </div>
+        <span class="product-link-arrow">→</span>
+      </a>
+      <a class="product-link-card" href="/product/termostato-eletronico-tvc-pi1">
+        <span class="product-link-icon">💻</span>
+        <div>
+          <div class="product-link-name">Termostato Eletrônico TVC Pi1</div>
+          <div class="product-link-price">R$ 400,00</div>
+        </div>
+        <span class="product-link-arrow">→</span>
+      </a>
+      <a class="product-link-card" href="/product/timer-de-degelo-eletrolux-220v">
+        <span class="product-link-icon">⏱️</span>
+        <div>
+          <div class="product-link-name">Timer de Degelo Electrolux 220V</div>
+          <div class="product-link-price">R$ 93,00</div>
+        </div>
+        <span class="product-link-arrow">→</span>
+      </a>
+    </div>
+
+    <h2>Como identificar qual termostato comprar?</h2>
+    <p>Para acertar na compra, siga esses passos:</p>
+    <ul>
+      <li><strong>Anote a marca e o modelo</strong> do equipamento — está na etiqueta na parte traseira ou dentro da porta</li>
+      <li><strong>Fotografe o termostato atual</strong> — retire a tampa ou acesse o painel e tire uma foto mostrando os conectores e o capilar</li>
+      <li><strong>Anote o código</strong> que aparece no próprio termostato — costuma estar gravado ou em uma etiqueta</li>
+      <li><strong>Verifique a tensão</strong> — 127V ou 220V. Nunca instale o tensão errada</li>
+    </ul>
+
+    <p>Com essas informações em mãos, entre em contato pelo WhatsApp antes de comprar — nossa equipe pode confirmar a compatibilidade e evitar uma compra errada.</p>
+
+    <div class="cta-block">
+      <h3>Não sabe qual termostato comprar?</h3>
+      <p>Mande a foto e o modelo do equipamento pelo WhatsApp. A gente identifica a peça certa antes de você comprar.</p>
+      <a class="cta-wa" href="https://wa.me/5521971538839?text=Ol%C3%A1%21%20Preciso%20de%20ajuda%20para%20identificar%20o%20termostato%20certo%20para%20meu%20equipamento." target="_blank" rel="noopener">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+        Falar pelo WhatsApp
+      </a>
+    </div>
+
+    <div class="related-articles">
+      <div class="related-title">Guias relacionados</div>
+      <div class="related-grid">
+        <a class="related-card" href="/blog/geladeira-nao-gela-embaixo">
+          <div class="related-card-icon">🧊</div>
+          <div class="related-card-title">Geladeira não gela embaixo</div>
+          <div class="related-card-cta">Ler guia →</div>
+        </a>
+        <a class="related-card" href="/blog/maquina-de-lavar-nao-centrifuga">
+          <div class="related-card-icon">🌀</div>
+          <div class="related-card-title">Máquina não centrifuga</div>
+          <div class="related-card-cta">Ler guia →</div>
+        </a>
+        <a class="related-card" href="/category/termostato">
+          <div class="related-card-icon">🌡️</div>
+          <div class="related-card-title">Ver todos os termostatos</div>
+          <div class="related-card-cta">Ver categoria →</div>
+        </a>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
