@@ -426,6 +426,24 @@ async def sales_list(
         )
         rows = rows_res.mappings().all()
 
+        # Итоги по дням за весь период (без пагинации)
+        day_params = {k: v for k, v in params.items() if k not in ("limit", "offset")}
+        day_res = await conn.execute(
+            text(f"""
+                SELECT s.sold_at::date AS day,
+                       COUNT(*) AS cnt,
+                       COALESCE(SUM(s.total), 0) AS total
+                FROM sales s
+                WHERE {where_sql}
+                GROUP BY s.sold_at::date
+            """),
+            day_params,
+        )
+        day_totals = {
+            str(r["day"]): {"total": float(r["total"]), "cnt": int(r["cnt"])}
+            for r in day_res.mappings().all()
+        }
+
     total_pages = max(1, ceil(total_count / per_page))
     page = min(page, total_pages)
 
@@ -444,4 +462,5 @@ async def sales_list(
         "date_to": date_to,
         "product_id_filter": product_id,
         "deleted": request.query_params.get("deleted") == "1",
+        "day_totals": day_totals,
     })

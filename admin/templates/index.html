@@ -61,32 +61,35 @@
     .quick-links a.primary:hover { background: #0056b3; }
 
     /* SEARCH RESULTS */
-    /* Search results global position */
     #search-results {
       display: none;
       background: #fff;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      padding: 16px;
-      max-width: 600px;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      padding: 12px 0;
       margin: 0;
       position: absolute;
-      top: calc(100% + 4px);
+      top: calc(100% + 6px);
       left: 0;
       z-index: 200;
-      box-shadow: 0 8px 24px rgba(0,0,0,.15);
-      min-width: 400px;
+      box-shadow: 0 12px 32px rgba(0,0,0,.18);
+      min-width: 620px;
+      max-height: 420px;
+      overflow-y: auto;
     }
     #search-results.show { display: block; }
-    #search-results h3 { font-size: .95rem; color: #555; margin-bottom: 10px; }
-    .result-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; font-size: 1rem; gap: 12px; }
-    .result-item:last-child { border-bottom: none; }
-    .result-info { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .result-price { font-weight: bold; color: #E2144A; white-space: nowrap; font-size: 1rem; }
+    #search-results h3 { font-size: .85rem; color: #999; margin: 0 16px 8px; text-transform: uppercase; letter-spacing: .05em; }
+    .result-item { display: grid; grid-template-columns: 1fr auto auto; align-items: center; padding: 10px 16px; gap: 16px; transition: background .15s; }
+    .result-item:hover { background: #fafafa; }
+    .result-item + .result-item { border-top: 1px solid #f0f0f0; }
+    .result-info { min-width: 0; }
+    .result-name { font-size: .95rem; color: #222; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .result-stock { font-size: .78rem; color: #888; margin-top: 2px; }
+    .result-price { font-weight: 800; color: #E2144A; white-space: nowrap; font-size: 1.05rem; text-align: right; }
     .result-actions { display: flex; gap: 6px; flex-shrink: 0; }
-    .btn-cart { padding: 6px 12px; border-radius: 6px; background: #fff; border: 1px solid #E2144A; color: #E2144A; font-size: .88rem; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; }
+    .btn-cart { padding: 7px 14px; border-radius: 6px; background: #fff; border: 1.5px solid #E2144A; color: #E2144A; font-size: .85rem; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; transition: all .15s; }
     .btn-cart:hover { background: #E2144A; color: #fff; }
-    .btn-buy { padding: 6px 12px; border-radius: 6px; background: #111827; border: none; color: #fff; font-size: .88rem; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; text-decoration: none; display: inline-block; }
+    .btn-buy { padding: 7px 14px; border-radius: 6px; background: #111827; border: none; color: #fff; font-size: .85rem; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; transition: background .15s; }
     .btn-buy:hover { background: #374151; }
 
     /* CALCULATOR */
@@ -653,12 +656,15 @@ async function searchProducts() {
 
       const info = document.createElement('div');
       info.className = 'result-info';
-      info.innerHTML = `<span>${p.name}</span><span style="color:#aaa;font-size:.8rem"> (${p.unit})</span>`;
+      const nameEl = document.createElement('div');
+      nameEl.className = 'result-name';
+      nameEl.textContent = p.name;
+      info.appendChild(nameEl);
       if (stock !== null) {
-        const s = document.createElement('span');
-        s.style.cssText = `color:${stockColor};font-weight:700`;
-        s.textContent = ` · ${stock} ${p.unit}`;
-        info.appendChild(s);
+        const stockEl = document.createElement('div');
+        stockEl.className = 'result-stock';
+        stockEl.innerHTML = `<span style="color:${stockColor};font-weight:700">${stock} ${p.unit} em estoque</span>`;
+        info.appendChild(stockEl);
       }
 
       const price = document.createElement('span');

@@ -187,11 +187,14 @@
           {% if day != ns.current_day and ns.current_day is not none %}
             {# Закрываем предыдущий день #}
             <div class="day-group">
+              {%- set _dkey = ns.current_day.split('/') -%}
+              {%- set _iso = _dkey[2] + '-' + _dkey[1] + '-' + _dkey[0] -%}
+              {%- set _dt = day_totals.get(_iso, {'total': ns.day_total, 'cnt': ns.day_count}) -%}
               <div class="day-header">
                 <span class="day-date">📅 {{ ns.current_day }}</span>
                 <span>
-                  <span class="day-count">{{ ns.day_count }} venda{{ 's' if ns.day_count != 1 else '' }}</span>
-                  <span class="day-total">R$ {{ "%.2f"|format(ns.day_total) }}</span>
+                  <span class="day-count">{{ _dt.cnt }} venda{{ 's' if _dt.cnt != 1 else '' }}</span>
+                  <span class="day-total">R$ {{ "%.2f"|format(_dt.total) }}</span>
                 </span>
               </div>
               <table class="day-table">
@@ -243,11 +246,14 @@
         {# Последний день #}
         {% if ns.current_day is not none %}
           <div class="day-group">
+            {%- set _dkey2 = ns.current_day.split('/') -%}
+            {%- set _iso2 = _dkey2[2] + '-' + _dkey2[1] + '-' + _dkey2[0] -%}
+            {%- set _dt2 = day_totals.get(_iso2, {'total': ns.day_total, 'cnt': ns.day_count}) -%}
             <div class="day-header">
               <span class="day-date">📅 {{ ns.current_day }}</span>
               <span>
-                <span class="day-count">{{ ns.day_count }} venda{{ 's' if ns.day_count != 1 else '' }}</span>
-                <span class="day-total">R$ {{ "%.2f"|format(ns.day_total) }}</span>
+                <span class="day-count">{{ _dt2.cnt }} venda{{ 's' if _dt2.cnt != 1 else '' }}</span>
+                <span class="day-total">R$ {{ "%.2f"|format(_dt2.total) }}</span>
               </span>
             </div>
             <table class="day-table">
