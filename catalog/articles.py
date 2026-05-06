@@ -138,6 +138,37 @@ ARTICLES = [
         "published": True,
     },
 
+    {
+        "slug": "sensor-de-temperatura-geladeira",
+        "title": "Sensor de temperatura da geladeira: o que é e quando trocar",
+        "description": "O sensor NTC monitora a temperatura interna e comanda o degelo. Quando falha, a geladeira gela demais ou para de gelar. Saiba identificar.",
+        "category": "componentes",
+        "icon": "📡",
+        "tags": ["sensor", "NTC", "geladeira", "frost free"],
+        "template": None,
+        "published": False,
+    },
+    {
+        "slug": "capacitor-de-partida-geladeira",
+        "title": "Capacitor de geladeira: sintomas de defeito e como escolher",
+        "description": "Compressor tentando ligar mas travando? Pode ser o capacitor. Veja os sintomas, os tipos e como comprar o certo para a sua geladeira.",
+        "category": "componentes",
+        "icon": "⚡",
+        "tags": ["capacitor", "compressor", "geladeira", "ar-condicionado"],
+        "template": None,
+        "published": False,
+    },
+    {
+        "slug": "timer-de-degelo-refrigeracao",
+        "title": "Timer de degelo: função, defeitos e como substituir",
+        "description": "O timer controla os ciclos de degelo automático. Quando falha, a geladeira acumula gelo ou o compressor nunca para. Veja como identificar e trocar.",
+        "category": "componentes",
+        "icon": "⏱️",
+        "tags": ["timer", "degelo", "frost free", "geladeira", "Electrolux"],
+        "template": None,
+        "published": False,
+    },
+
 ]
 
 # apenas publicados

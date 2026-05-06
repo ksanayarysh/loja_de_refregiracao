@@ -657,6 +657,7 @@ async def blog_index(request: Request):
         "geladeira":        "🧊",
         "ar-condicionado":  "❄️",
         "maquina-de-lavar": "🫧",
+        "componentes":      "🌡️",
     }
     groups: dict = {}
     for a in ARTICLES:
