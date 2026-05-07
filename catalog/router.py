@@ -198,6 +198,10 @@ async def track_visit(request: Request):
             elif "whatsapp" in referrer: source = "💬 WhatsApp"
             else: source = f"🔗 {referrer[:40]}"
 
+        # Não notificar visitas diretas (podem ser bots ou a própria equipe)
+        if source == "direto":
+            return JSONResponse({"ok": True, "skip": "direct"})
+
         device = "📱 mobile" if any(m in ua.lower() for m in ["mobile", "android", "iphone"]) else "🖥 desktop"
         await _send_tg(
             f"👀 <b>Novo visitante!</b>\n"
@@ -228,7 +232,7 @@ async def _send_daily_digest():
             await _ensure_visits_table()
             async with engine.connect() as conn:
                 visits_today = await conn.execute(text(
-                    "SELECT COUNT(DISTINCT ip) FROM site_visits WHERE visited_at::date = CURRENT_DATE"
+                    "SELECT COUNT(DISTINCT ip) FROM site_visits WHERE visited_at::date = CURRENT_DATE AND referrer != ''"
                 ))
                 wa_today = await conn.execute(text(
                     "SELECT COUNT(*) FROM catalog_clicks "
@@ -264,9 +268,14 @@ async def _send_daily_digest():
         except Exception:
             pass
 
-# Запускаем дайджест при старте
+# Запускаем дайджест при старте (защита от двойного запуска)
+_digest_started = False
 @router.on_event("startup")
 async def _start_digest():
+    global _digest_started
+    if _digest_started:
+        return
+    _digest_started = True
     asyncio.ensure_future(_send_daily_digest())
 
 
