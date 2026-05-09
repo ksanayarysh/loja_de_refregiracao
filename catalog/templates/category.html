@@ -285,13 +285,17 @@
 
 {% if cat_slug == 'gases-refrigerantes' %}
 <div style="max-width:900px;margin:0 auto 20px;padding:0 20px;">
-  <a href="/calculadora-gas" style="display:flex;align-items:center;gap:16px;background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:16px 20px;text-decoration:none;color:inherit;transition:border-color .15s,box-shadow .15s;" onmouseover="this.style.borderColor='var(--accent)';this.style.boxShadow='0 4px 16px rgba(226,20,74,.08)'" onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='none'">
-    <div style="width:44px;height:44px;background:#fff7f9;border:1px solid #ffd9e4;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;">🧮</div>
+  <a href="/calculadora-gas" style="display:flex;align-items:center;gap:18px;background:linear-gradient(135deg,#fff7f9 0%,#fff 60%);border:1.5px solid #ffd9e4;border-radius:16px;padding:18px 22px;text-decoration:none;color:inherit;transition:border-color .15s,box-shadow .15s,transform .15s;position:relative;overflow:hidden;" onmouseover="this.style.borderColor='var(--accent)';this.style.boxShadow='0 6px 24px rgba(226,20,74,.12)';this.style.transform='translateY(-1px)'" onmouseout="this.style.borderColor='#ffd9e4';this.style.boxShadow='none';this.style.transform='none'">
+    <div style="position:absolute;right:-10px;top:-10px;font-size:5rem;opacity:.06;pointer-events:none;line-height:1;">🧮</div>
+    <div style="width:48px;height:48px;background:var(--accent);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;box-shadow:0 4px 12px rgba(226,20,74,.25);">🧮</div>
     <div style="flex:1;min-width:0;">
-      <div style="font-weight:700;font-size:.95rem;">Não sabe quanto gás precisa?</div>
-      <div style="font-size:.82rem;color:var(--muted);margin-top:3px;">Use nossa calculadora — selecione o equipamento e descubra a quantidade certa de R134a, R410A, R32 e outros.</div>
+      <div style="font-size:.65rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:4px;">Ferramenta gratuita</div>
+      <div style="font-weight:800;font-size:1rem;margin-bottom:3px;">Não sabe quanto gás precisa?</div>
+      <div style="font-size:.82rem;color:var(--muted);">R134a, R410A, R32, R22, R600a — selecione o equipamento e descubra na hora.</div>
     </div>
-    <div style="font-size:.82rem;color:var(--accent);font-weight:700;white-space:nowrap;flex-shrink:0;">Calcular →</div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0;">
+      <div style="background:var(--accent);color:#fff;font-size:.82rem;font-weight:700;padding:8px 16px;border-radius:8px;white-space:nowrap;">Calcular →</div>
+    </div>
   </a>
 </div>
 {% endif %}

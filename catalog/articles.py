@@ -105,6 +105,16 @@ ARTICLES = [
         "template": "blog/rele-refrigeracao.html",
         "published": True,
     },
+    {
+        "slug": "termostato-refrigeracao",
+        "title": "Termostato de refrigeração: tipos, defeitos e como trocar",
+        "description": "Geladeira não para de gelar ou não gela nada? O termostato pode ser o culpado. Veja os tipos, como testar e qual comprar.",
+        "category": "componentes",
+        "icon": "🌡️",
+        "tags": ["termostato", "geladeira", "frost free", "temperatura"],
+        "template": "blog/termostato-refrigeracao.html",
+        "published": True,
+    },
 
     # ── MÁQUINA DE LAVAR ──────────────────────────────────────────────────────
     {
@@ -200,4 +210,5 @@ CATEGORY_LABELS = {
     "geladeira":        "Geladeiras e refrigeração",
     "ar-condicionado":  "Ar-condicionado",
     "maquina-de-lavar": "Máquina de lavar",
+    "componentes":      "Componentes",
 }
