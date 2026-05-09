@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <link rel="icon" type="image/png" href="/static/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Douglas — Técnico de Refrigeração RJ | M.T.F Refrigeração</title>
+  <meta name="description" content="Douglas, técnico associado da M.T.F Refrigeração. Especialista em instalação e manutenção de ar-condicionado e geladeira no Rio de Janeiro.">
+  {% if ga_id %}
+  <script async src="https://www.googletagmanager.com/gtag/js?id={{ ga_id }}"></script>
+  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","{{ ga_id }}");</script>
+  {% endif %}
+  {% include '_header_styles.html' %}
+  <style>
+    .page-wrap{max-width:640px;margin:0 auto;padding:48px 20px 80px;}
+    .back-link{display:inline-flex;align-items:center;gap:6px;color:var(--muted);text-decoration:none;font-size:.88rem;font-weight:500;margin-bottom:32px;}
+    .back-link:hover{color:var(--accent);}
+    .profile-head{display:flex;align-items:center;gap:20px;margin-bottom:32px;}
+    .profile-head img{width:96px;height:96px;border-radius:50%;object-fit:cover;flex-shrink:0;}
+    .profile-name{font-size:1.6rem;font-weight:700;letter-spacing:-.02em;}
+    .profile-role{color:var(--muted);font-size:.9rem;margin-top:4px;}
+    .section-label{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+    .coming-soon{background:var(--surface);border:1.5px dashed var(--border);border-radius:14px;padding:40px 24px;text-align:center;color:var(--muted);font-size:.92rem;}
+    .form-card{background:var(--surface);border:1.5px solid var(--border);border-radius:16px;padding:28px 24px;}
+    .form-card h3{font-size:1.1rem;font-weight:700;margin-bottom:6px;}
+    .form-card p{color:var(--muted);font-size:.88rem;margin-bottom:20px;line-height:1.5;}
+    .form-group{margin-bottom:16px;}
+    .form-group label{display:block;font-weight:700;font-size:.85rem;margin-bottom:6px;}
+    .form-group input,.form-group textarea,.form-group select{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:inherit;font-size:.95rem;color:var(--text);background:var(--bg);transition:border-color .15s;}
+    .form-group input:focus,.form-group textarea:focus,.form-group select:focus{outline:none;border-color:var(--accent);}
+    .form-group textarea{resize:vertical;min-height:100px;}
+    .form-submit{display:flex;align-items:center;gap:8px;background:var(--wa);color:#fff;border:none;padding:14px 24px;border-radius:10px;font-family:inherit;font-size:1rem;font-weight:700;cursor:pointer;transition:opacity .15s;width:100%;justify-content:center;}
+    .form-submit:hover{opacity:.88;}
+    .form-note{font-size:.78rem;color:var(--muted);margin-top:10px;text-align:center;}
+    footer{border-top:1px solid var(--border);padding:24px 20px;text-align:center;font-size:.8rem;color:var(--muted);}
+  </style>
+</head>
+<body>
+{% include '_header.html' %}
+<div class="page-wrap">
+  <a class="back-link" href="/servicos">← Voltar aos serviços</a>
+
+  <div class="profile-head">
+    <img src="/static/images/douglas.png" alt="Douglas">
+    <div>
+      <div class="profile-name">Douglas</div>
+      <div class="profile-role">Técnico associado · Refrigeração</div>
+    </div>
+  </div>
+
+  <div style="margin-bottom:32px;">
+    <div class="section-label">Sobre</div>
+    <p style="font-size:.95rem;line-height:1.7;color:var(--text);">Associado em instalação, manutenção corretiva (detecção de vazamento, reposição de gás e limpeza) e manutenção preventiva (lavagem para garantir maior rendimento e desempenho da máquina).</p>
+    <p style="font-size:.95rem;line-height:1.7;color:var(--text);margin-top:10px;">O problema é na geladeira? Ele também resolve para você.</p>
+    <p style="font-size:.95rem;line-height:1.7;font-weight:700;color:var(--text);margin-top:10px;">Sem enrolação — atende todo Rio e Grande Rio.</p>
+  </div>
+
+  <div style="margin-bottom:32px;">
+    <div class="section-label">Solicitar serviço</div>
+    <div class="form-card">
+      <h3>Descreva o problema</h3>
+      <p>Preencha abaixo e envie direto para o WhatsApp do técnico. Resposta rápida!</p>
+      <div class="form-group">
+        <label for="equipamento">Equipamento</label>
+        <select id="equipamento">
+          <option value="">Selecione...</option>
+          <option>Ar-condicionado</option>
+          <option>Geladeira</option>
+          <option>Freezer</option>
+          <option>Bebedouro</option>
+          <option>Câmara fria</option>
+          <option>Outro</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="problema">Descrição do problema</label>
+        <textarea id="problema" placeholder="Ex: o ar-condicionado está fazendo barulho e não está gelando bem..."></textarea>
+      </div>
+      <div class="form-group">
+        <label for="bairro">Bairro / Região</label>
+        <input type="text" id="bairro" placeholder="Ex: Bonsucesso, Ramos, Olaria...">
+      </div>
+      <button class="form-submit" onclick="enviarParaDouglas()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+        Enviar para o técnico pelo WhatsApp
+      </button>
+      <p class="form-note">Ao clicar, você será redirecionado para o WhatsApp do Douglas.</p>
+    </div>
+  </div>
+</div>
+<footer><p>M.T.F Refrigeração · {{ store_address }}</p></footer>
+<script>
+function enviarParaDouglas() {
+  const eq = document.getElementById('equipamento').value;
+  const prob = document.getElementById('problema').value.trim();
+  const bairro = document.getElementById('bairro').value.trim();
+  if (!eq) { alert('Selecione o equipamento!'); return; }
+  if (!prob) { alert('Descreva o problema!'); return; }
+  let msg = `Olá Douglas! Preciso de assistência técnica.\n\n`;
+  msg += `🔧 *Equipamento:* ${eq}\n`;
+  msg += `❗ *Problema:* ${prob}\n`;
+  if (bairro) msg += `📍 *Bairro:* ${bairro}\n`;
+  fetch('/api/track/whatsapp', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({product:`Serviço: ${eq}`})}).catch(()=>{});
+  window.open(`https://wa.me/5521965832950?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+document.querySelectorAll('.wa-track').forEach(el => {
+  el.addEventListener('click', function() {
+    fetch('/api/track/whatsapp', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({product: this.dataset.product || 'Geral'})}).catch(()=>{});
+  });
+});
+</script>
+</body>
+</html>

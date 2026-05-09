@@ -629,6 +629,40 @@ async def servicos_page(request: Request):
     })
 
 
+@router.get("/parceiros/douglas", response_class=HTMLResponse)
+async def parceiro_douglas(request: Request):
+    return templates.TemplateResponse("parceiro-douglas.html", {
+        "request":       request,
+        "ga_id":         GA_ID,
+        "site_url":      SITE_URL,
+        "store_address": STORE_ADDRESS,
+        "store_phone":   STORE_PHONE,
+        "wa_number":     WA_OWNER_NUMBER,
+    })
+
+@router.get("/parceiros/ksenia", response_class=HTMLResponse)
+async def parceiro_ksenia(request: Request):
+    return templates.TemplateResponse("parceiro-ksenia.html", {
+        "request":       request,
+        "ga_id":         GA_ID,
+        "site_url":      SITE_URL,
+        "store_address": STORE_ADDRESS,
+        "store_phone":   STORE_PHONE,
+        "wa_number":     WA_OWNER_NUMBER,
+    })
+
+@router.get("/parceiros/fagal", response_class=HTMLResponse)
+async def parceiro_fagal(request: Request):
+    return templates.TemplateResponse("parceiro-fagal.html", {
+        "request":       request,
+        "ga_id":         GA_ID,
+        "site_url":      SITE_URL,
+        "store_address": STORE_ADDRESS,
+        "store_phone":   STORE_PHONE,
+        "wa_number":     WA_OWNER_NUMBER,
+    })
+
+
 @router.get("/ajuda", response_class=HTMLResponse)
 async def ajuda_page(request: Request):
     return templates.TemplateResponse("ajuda.html", {
