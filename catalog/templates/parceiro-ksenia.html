@@ -112,7 +112,7 @@ function enviarParaTK() {
   msg += `📝 *Descrição:* ${prob}\n`;
   if (bairro) msg += `📍 *Bairro:* ${bairro}\n`;
   fetch('/api/track/whatsapp', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({product:`Serviço TK: ${eq}`})}).catch(()=>{});
-  window.open(`https://wa.me/5521998972467?text=${encodeURIComponent(msg)}`, '_blank');
+  window.open(`https://wa.me/5521997982467?text=${encodeURIComponent(msg)}`, '_blank');
 }
 
 document.querySelectorAll('.wa-track').forEach(el => {
