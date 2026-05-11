@@ -1,0 +1,179 @@
+{% extends '_base_admin.html' %}
+{% block title %}Calculadora — FAGAL{% endblock %}
+{% block extra_styles %}
+  .content { max-width: 760px; }
+  .topbar { display:flex; align-items:center; gap:12px; margin-bottom:24px; }
+  .topbar h1 { font-size:1.3rem; color:#111; flex:1; }
+  .card { background:#fff; border-radius:14px; box-shadow:0 4px 14px rgba(0,0,0,.08); overflow:hidden; margin-bottom:24px; }
+  table { width:100%; border-collapse:collapse; }
+  thead th { background:bisque; padding:11px 16px; font-weight:900; font-size:.8rem; text-transform:uppercase; letter-spacing:.05em; color:#555; border-bottom:2px solid #e5e7eb; }
+  thead th.right { text-align:right; }
+  thead th.center { text-align:center; }
+  tbody tr { border-bottom:1px solid #f0f0f0; }
+  tbody tr:last-child { border-bottom:none; }
+  tbody tr:hover { background:#fafafa; }
+  td { padding:12px 16px; font-size:.95rem; vertical-align:middle; }
+  td.name { font-weight:800; color:#111; }
+  td.right { text-align:right; }
+  td.center { text-align:center; }
+  td.muted { color:#999; font-size:.88rem; }
+  .qty-input {
+    width:72px; padding:6px 8px; border:1.5px solid #ddd; border-radius:8px;
+    font-size:1rem; text-align:center; font-family:inherit;
+    transition:border-color .15s;
+  }
+  .qty-input:focus { outline:none; border-color:#e2144a; }
+  .row-price { font-weight:900; color:#e2144a; }
+  .row-price.zero { color:#ccc; font-weight:400; }
+  .summary { padding:20px 24px; border-top:2px solid #f0f0f0; background:#fafafa; }
+  .summary-totals { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+  .summary-totals .label { font-size:.8rem; color:#888; margin-bottom:2px; }
+  .summary-totals .value { font-weight:900; font-size:1rem; color:#111; }
+  .summary-totals .grand { font-size:1.6rem; color:#e2144a; }
+  .btn-row { display:flex; gap:10px; flex-wrap:wrap; }
+  .btn { display:inline-flex; align-items:center; gap:8px; padding:11px 20px; border-radius:10px; font-family:inherit; font-size:.9rem; font-weight:800; cursor:pointer; border:none; transition:opacity .15s; text-decoration:none; }
+  .btn:hover { opacity:.88; }
+  .btn-copy { background:#fff; border:1.5px solid #ddd; color:#111; }
+  .btn-wa { background:#25D366; color:#fff; flex:1; justify-content:center; }
+  .btn-wa:disabled, .btn-copy:disabled { opacity:.35; cursor:default; }
+  .toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#111; color:#fff; padding:10px 20px; border-radius:10px; font-size:.88rem; font-weight:700; opacity:0; transition:opacity .2s; pointer-events:none; z-index:999; }
+  .toast.show { opacity:1; }
+{% endblock %}
+{% block content %}
+<div class="topbar">
+  <h1>🔩 Calculadora FAGAL</h1>
+</div>
+
+<div class="card">
+  <table>
+    <thead>
+      <tr>
+        <th>Material</th>
+        <th class="center">Qtd</th>
+        <th class="right">Peso unit. (kg)</th>
+        <th class="right">Peso total</th>
+        <th class="right">Total</th>
+      </tr>
+    </thead>
+    <tbody id="calc-body"></tbody>
+  </table>
+
+  <div class="summary" id="calc-summary" style="display:none;">
+    <div class="summary-totals">
+      <div>
+        <div class="label">Peso total</div>
+        <div class="value" id="total-kg">—</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="label">Total estimado</div>
+        <div class="value grand" id="total-price">R$ 0,00</div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-copy" id="btn-copy" onclick="calcCopy()">📋 Copiar orçamento</button>
+      <button class="btn btn-wa" id="btn-wa" onclick="calcWA()">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+        Enviar pelo WhatsApp
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+const MAT = [
+  {name:'Quadrado 3"',        kgUnit:10.1,  priceUnit:382.79},
+  {name:'Quadrado 2"',        kgUnit:5.5,   priceUnit:208.45},
+  {name:'T 1"',               kgUnit:1.5,   priceUnit:56.85},
+  {name:'Cantoneira 3/4',     kgUnit:1.0,   priceUnit:37.90},
+  {name:'Cantoneira 2×1.1/4', kgUnit:2.8,   priceUnit:106.12},
+  {name:'Lambri liso',        kgUnit:4.8,   priceUnit:181.92},
+];
+
+const fmt   = n => n.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+const fmtKg = n => n.toFixed(2).replace('.', ',') + ' kg';
+
+const tbody = document.getElementById('calc-body');
+MAT.forEach((m, i) => {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td class="name">${m.name}</td>
+    <td class="center">
+      <input class="qty-input" type="number" min="0" step="1" value="0"
+             id="qty-${i}" oninput="recalc()">
+    </td>
+    <td class="right muted">${fmtKg(m.kgUnit)}</td>
+    <td class="right muted" id="kg-${i}">—</td>
+    <td class="right row-price zero" id="price-${i}">—</td>
+  `;
+  tbody.appendChild(tr);
+});
+
+function recalc() {
+  let grandKg = 0, grandPrice = 0;
+  let hasAny = false;
+
+  MAT.forEach((m, i) => {
+    const qty = Math.max(0, parseInt(document.getElementById('qty-' + i).value) || 0);
+    const kg    = qty * m.kgUnit;
+    const price = qty * m.priceUnit;
+
+    const kgEl    = document.getElementById('kg-' + i);
+    const priceEl = document.getElementById('price-' + i);
+
+    if (qty > 0) {
+      kgEl.textContent    = fmtKg(kg);
+      priceEl.textContent = fmt(price);
+      priceEl.className   = 'right row-price';
+      grandKg    += kg;
+      grandPrice += price;
+      hasAny = true;
+    } else {
+      kgEl.textContent    = '—';
+      priceEl.textContent = '—';
+      priceEl.className   = 'right row-price zero';
+    }
+  });
+
+  const summary = document.getElementById('calc-summary');
+  summary.style.display = hasAny ? '' : 'none';
+  document.getElementById('total-kg').textContent    = fmtKg(grandKg);
+  document.getElementById('total-price').textContent = fmt(grandPrice);
+}
+
+function buildText() {
+  const lines = [];
+  let grandKg = 0, grandPrice = 0;
+  MAT.forEach((m, i) => {
+    const qty = Math.max(0, parseInt(document.getElementById('qty-' + i).value) || 0);
+    if (qty > 0) {
+      const kg = qty * m.kgUnit, price = qty * m.priceUnit;
+      lines.push(`• ${m.name}: ${qty} un — ${fmtKg(kg)} — ${fmt(price)}`);
+      grandKg += kg; grandPrice += price;
+    }
+  });
+  const d = new Date().toLocaleDateString('pt-BR');
+  return `*Orçamento FAGAL* — ${d}\n\n${lines.join('\n')}\n\n_Peso total: ${fmtKg(grandKg)}_\n*Total: ${fmt(grandPrice)}*`;
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+function calcCopy() {
+  navigator.clipboard.writeText(buildText())
+    .then(() => showToast('Orçamento copiado!'))
+    .catch(() => showToast('Erro ao copiar'));
+}
+
+function calcWA() {
+  window.open('https://wa.me/5521920061573?text=' + encodeURIComponent(buildText()), '_blank');
+}
+</script>
+{% endblock %}

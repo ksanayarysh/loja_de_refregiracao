@@ -46,6 +46,30 @@
     .act-btn{padding:5px 12px;border-radius:6px;border:1px solid #ccc;background:#fff;font-size:.82rem;font-weight:700;cursor:pointer;text-decoration:none;color:#111;font-family:inherit;white-space:nowrap;}
     .act-btn:hover{background:bisque;}
     .cat-header td{padding:8px 14px;color:#fff;font-weight:900;font-size:.82rem;text-transform:uppercase;letter-spacing:.06em;background:#111827;}
+
+    @media (max-width: 640px) {
+      .card { box-shadow: none; border-radius: 0; }
+      table, thead, tbody, th, td, tr { display: block; }
+      thead { display: none; }
+      .cat-header { display: block; }
+      .cat-header td { display: block; border-radius: 0; }
+      tbody tr.cat-header { border-bottom: none; }
+      tbody tr[data-status] {
+        display: flex; flex-wrap: wrap; align-items: center;
+        gap: 6px; padding: 12px 14px;
+        border-bottom: 1px solid #f0f0f0;
+        background: #fff;
+      }
+      tbody tr[data-status]:hover { background: #fafafa; }
+      td { padding: 0; border: none; overflow: visible; white-space: normal; }
+      .td-name { flex: 1 1 100%; font-size: .95rem; font-weight: 800; color: #111; }
+      td:nth-child(2) { display: none; } /* unit — скрываем, будет в stock-val */
+      td:nth-child(3) { margin-left: auto; }
+      .stock-val { font-size: 1rem; }
+      td:nth-child(4) { }
+      .td-actions { flex: 1 1 100%; margin-top: 2px; }
+      .act-btn { padding: 6px 14px; font-size: .82rem; }
+    }
 {% endblock %}
 {% block content %}
 <div class="topbar">
