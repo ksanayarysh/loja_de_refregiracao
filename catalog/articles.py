@@ -165,8 +165,8 @@ ARTICLES = [
         "category": "componentes",
         "icon": "📡",
         "tags": ["sensor", "NTC", "geladeira", "frost free"],
-        "template": None,
-        "published": False,
+        "template": "/blog/sensor-ntc-geladeira",
+        "published": True,
     },
     {
         "slug": "capacitor-de-partida-geladeira",
