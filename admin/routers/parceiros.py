@@ -2,9 +2,11 @@ import os
 import base64
 from fastapi import APIRouter, Depends, Request, HTTPException
 from fastapi.responses import HTMLResponse
-from dependencies import templates
+from fastapi.templating import Jinja2Templates
 
 router = APIRouter(prefix="/parceiros")
+
+templates = Jinja2Templates(directory="app/templates")
 
 FAGAL_USER = os.environ.get("FAGAL_USER", "fagal")
 FAGAL_PASS = os.environ.get("FAGAL_PASS", "change-me")
