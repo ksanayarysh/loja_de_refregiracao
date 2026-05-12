@@ -1,12 +1,9 @@
 import os
 import base64
 from fastapi import APIRouter, Depends, Request, HTTPException
-from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse, FileResponse
 
 router = APIRouter(prefix="/parceiros")
-
-templates = Jinja2Templates(directory="app/templates")
 
 FAGAL_USER = os.environ.get("FAGAL_USER", "fagal")
 FAGAL_PASS = os.environ.get("FAGAL_PASS", "change-me")
@@ -38,6 +35,6 @@ def fagal_auth(request: Request):
     return True
 
 
-@router.get("/fagal", response_class=HTMLResponse)
-async def fagal_calculator(request: Request, _=Depends(fagal_auth)):
-    return templates.TemplateResponse("parceiros_fagal.html", {"request": request})
+@router.get("/fagal")
+async def fagal_calculator(_=Depends(fagal_auth)):
+    return FileResponse("app/templates/parceiros_fagal.html", media_type="text/html")
