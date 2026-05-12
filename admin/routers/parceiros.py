@@ -37,4 +37,4 @@ def fagal_auth(request: Request):
 
 @router.get("/fagal")
 async def fagal_calculator(_=Depends(fagal_auth)):
-    return FileResponse("app/templates/parceiros_fagal.html", media_type="text/html")
+    return FileResponse("templates/parceiros_fagal.html", media_type="text/html")
