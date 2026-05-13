@@ -165,7 +165,7 @@ ARTICLES = [
         "category": "componentes",
         "icon": "📡",
         "tags": ["sensor", "NTC", "geladeira", "frost free"],
-        "template": "/blog/sensor-ntc-geladeira",
+        "template": "/blog/sensor-ntc-geladeira.html",
         "published": True,
     },
     {
