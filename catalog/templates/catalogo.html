@@ -566,7 +566,7 @@
   <div class="controls" style="margin-top:20px;">
     <div class="search-wrap">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-      <input type="text" id="searchInput" placeholder="O que você está procurando hoje?" oninput="filterProducts()">
+      <input type="text" id="searchInput" placeholder="O que você está procurando hoje?" oninput="filterProducts()" autocomplete="off">
     </div>
     <div id="filterRow" style="display:none;">
       <button class="filter-chip active" data-filter="all" onclick="setFilter(this, 'all')">Todas as categorias</button>
@@ -584,6 +584,10 @@
   </div>
 </div>
 
+
+<div id="search-results-block" style="display:none; max-width:900px; margin:0 auto; padding:0 20px 24px;">
+  <div id="search-results-list"></div>
+</div>
 
 <div class="stats-bar">
   <b>{{ total }}</b> produtos disponíveis
@@ -784,6 +788,11 @@
 
 // ── CARRINHO ──
 const WA_NUMBER = '{{ wa_number }}';
+
+function imgProxy(src, w) {
+  if (!src) return '';
+  return `/img-proxy?src=${encodeURIComponent(src)}&w=${w}`;
+}
 let cart = JSON.parse(localStorage.getItem('mtf_cart') || '[]');
 
 function saveCart() { localStorage.setItem('mtf_cart', JSON.stringify(cart)); }
@@ -887,40 +896,98 @@ function setFilter(btn, filter) {
 }
 
 let _catalogTrackTimer = null;
-function filterProducts() {
-  const q = document.getElementById('searchInput').value.toLowerCase().trim();
-  if (q.length >= 2) {
-    clearTimeout(_catalogTrackTimer);
-    _catalogTrackTimer = setTimeout(() => {
-      fetch('/api/track/search', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({query: q, page: 'catalogo'})}).catch(()=>{});
-      if (typeof gtag !== 'undefined') gtag('event', 'search', {search_term: q});
-    }, 1500);
-  }
-  // скрываем/показываем баннеры при поиске
-  const promoWrap = document.querySelector('.promo-wrap');
-  if (promoWrap) promoWrap.style.display = q.length >= 2 ? 'none' : '';
-  let visible = 0;
+let _catalogApiCache = null;
 
-  document.querySelectorAll('.cat-group').forEach(group => {
-    let groupVisible = 0;
-
-    group.querySelectorAll('.product-card').forEach(row => {
-      const name = row.dataset.name || '';
-      const rowCat = row.dataset.cat || '';
-      const matchSearch = !q || name.includes(q);
-      const rowCat2 = row.dataset.cat2 || '';
-      const matchFilter = currentFilter === 'all' || currentFilter === rowCat || currentFilter === rowCat2;
-      const show = matchSearch && matchFilter;
-      row.style.display = show ? '' : 'none';
-      if (show) { groupVisible++; visible++; }
-    });
-
-    group.style.display = groupVisible > 0 ? '' : 'none';
-  });
-
-  document.querySelector('.stats-bar').innerHTML =
-    `<b>${visible}</b> produtos encontrados`;
+async function _getCatalogData() {
+  if (_catalogApiCache) return _catalogApiCache;
+  const res = await fetch('/api/catalog');
+  _catalogApiCache = await res.json();
+  return _catalogApiCache;
 }
+
+async function filterProducts() {
+  const q = document.getElementById('searchInput').value.toLowerCase().trim();
+  const catalogEl = document.getElementById('catalog');
+  const searchBlock = document.getElementById('search-results-block');
+  const searchList = document.getElementById('search-results-list');
+  const statsBar = document.querySelector('.stats-bar');
+  const promoWrap = document.querySelector('.promo-wrap');
+
+  if (q.length < 2) {
+    // режим: показать обычный каталог
+    searchBlock.style.display = 'none';
+    catalogEl.style.display = '';
+    if (promoWrap) promoWrap.style.display = '';
+    statsBar.innerHTML = `<b>{{ total }}</b> produtos disponíveis`;
+    // сбросить фильтр категорий
+    document.querySelectorAll('.cat-group').forEach(g => g.style.display = '');
+    document.querySelectorAll('.product-card').forEach(r => r.style.display = '');
+    return;
+  }
+
+  // трекинг
+  clearTimeout(_catalogTrackTimer);
+  _catalogTrackTimer = setTimeout(() => {
+    fetch('/api/track/search', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({query: q, page: 'catalogo'})}).catch(()=>{});
+    if (typeof gtag !== 'undefined') gtag('event', 'search', {search_term: q});
+  }, 1500);
+
+  try {
+    const products = await _getCatalogData();
+    const filtered = products.filter(p => p.name.toLowerCase().includes(q));
+
+    // скрыть обычный каталог, показать результаты
+    catalogEl.style.display = 'none';
+    if (promoWrap) promoWrap.style.display = 'none';
+    searchBlock.style.display = '';
+
+    if (!filtered.length) {
+      statsBar.innerHTML = `<b>0</b> produtos encontrados`;
+      searchList.innerHTML = `<div style="padding:20px 0;color:var(--muted);font-size:.9rem;text-align:center;">
+        Nenhum produto encontrado para "<b>${q}</b>".<br>
+        <a href="https://wa.me/${WA_NUMBER}?text=${encodeURIComponent('Olá! Procuro: ' + q)}" style="color:var(--accent);font-weight:700;" target="_blank">Pergunte no WhatsApp →</a>
+      </div>`;
+      return;
+    }
+
+    statsBar.innerHTML = `<b>${filtered.length}</b> produto${filtered.length !== 1 ? 's' : ''} encontrado${filtered.length !== 1 ? 's' : ''}`;
+
+    searchList.innerHTML = filtered.map(p => {
+      const slug = p.name.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^\w\s-]/g,' ').replace(/[\s_]+/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');
+      const price = p.sale_price
+        ? `<span style="font-family:'DM Mono',monospace;font-weight:700;color:var(--accent);font-size:.95rem;white-space:nowrap;">R$ ${p.sale_price.toFixed(2).replace('.',',')}</span>`
+        : `<span style="color:var(--muted);font-size:.85rem;">Consulte</span>`;
+      const img = p.image
+        ? `<img loading="lazy" src="${imgProxy(p.image,88)}" style="width:48px;height:48px;object-fit:contain;border-radius:8px;border:1px solid var(--border);background:var(--bg);flex-shrink:0;">`
+        : `<div style="width:48px;height:48px;border-radius:8px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">📦</div>`;
+      const cartBtn = p.sale_price
+        ? `<button class="add-cart-btn" onclick="addToCart(${p.id}, ${JSON.stringify(p.name)}, ${p.sale_price}, ${JSON.stringify(p.unit)}, this)" title="Adicionar ao carrinho">🛒</button>`
+        : '';
+      return `<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--surface);">
+        <a href="/product/${slug}" style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;text-decoration:none;color:inherit;">
+          ${img}
+          <div style="flex:1;min-width:0;">
+            <div style="font-weight:600;font-size:.92rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.name}</div>
+            <div style="font-size:.76rem;color:var(--muted);margin-top:2px;">${p.category} · ${p.unit}</div>
+          </div>
+          ${price}
+        </a>${cartBtn}
+      </div>`;
+    }).join('');
+  } catch(e) {
+    console.error('Search error:', e);
+  }
+}
+
+// читаем ?q= из URL при загрузке
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  const q = params.get('q');
+  if (q) {
+    const input = document.getElementById('searchInput');
+    if (input) { input.value = q; filterProducts(); }
+  }
+})();
 
 document.querySelectorAll('.wa-track').forEach(el => {
   el.addEventListener('click', function() {
