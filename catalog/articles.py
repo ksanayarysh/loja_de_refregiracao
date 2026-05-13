@@ -185,8 +185,8 @@ ARTICLES = [
         "category": "componentes",
         "icon": "⏱️",
         "tags": ["timer", "degelo", "frost free", "geladeira", "Electrolux"],
-        "template": None,
-        "published": False,
+        "template": "/blog/timer-degelo.html",
+        "published": True,
     },
 
 ]

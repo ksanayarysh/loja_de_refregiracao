@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <link rel="icon" type="image/png" href="/static/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Timer de degelo: função, defeitos e como substituir | M.T.F Refrigeração</title>
+  <meta name="description" content="Tudo sobre o timer de degelo de geladeiras Frost Free: o que faz, como identificar defeito, como testar e onde comprar no RJ. Electrolux 110V e 220V.">
+  <meta name="keywords" content="timer de degelo, timer degelo geladeira, timer degelo electrolux, timer degelo frost free, geladeira acumula gelo, compressor não para, onde comprar timer degelo RJ">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="{{ site_url }}/blog/timer-degelo">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Timer de degelo: função, defeitos e como substituir">
+  <meta property="og:description" content="Guia completo sobre o timer de degelo: o que é, sintomas de defeito, como testar e como escolher o substituto certo para sua geladeira Frost Free.">
+  <meta property="og:url" content="{{ site_url }}/blog/timer-degelo">
+  <meta property="og:image" content="{{ site_url }}/static/og-catalog.jpg">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Timer de degelo: função, defeitos e como substituir",
+    "description": "Guia completo sobre o timer de degelo em geladeiras Frost Free: sintomas de defeito, como testar e como escolher o substituto certo.",
+    "mainEntityOfPage": {"@type": "WebPage", "@id": "{{ site_url }}/blog/timer-degelo"},
+    "author": {"@type": "Organization", "name": "M.T.F Refrigeração", "url": "{{ site_url }}"},
+    "publisher": {"@type": "Organization", "name": "M.T.F Refrigeração", "url": "{{ site_url }}", "logo": {"@type": "ImageObject", "url": "{{ site_url }}/static/og-catalog.jpg"}},
+    "keywords": "timer de degelo, timer degelo electrolux, geladeira acumula gelo, compressor não para, frost free"
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {"@type": "Question", "name": "Como saber se o timer de degelo está com defeito?", "acceptedAnswer": {"@type": "Answer", "text": "Os principais sintomas são: acúmulo excessivo de gelo dentro da geladeira (especialmente no freezer), compressor que nunca para de funcionar, e geladeira que não gela adequadamente apesar do compressor ligar."}},
+      {"@type": "Question", "name": "Como testar o timer de degelo?", "acceptedAnswer": {"@type": "Answer", "text": "Com a geladeira desligada, retire o timer e use um multímetro para medir a continuidade entre os terminais. Um timer com defeito pode estar aberto (sem continuidade) ou travado numa posição. Você também pode girar manualmente o eixo do timer para forçar o ciclo de degelo e ver se a resistência aquece."}},
+      {"@type": "Question", "name": "Qual timer de degelo serve para geladeira Electrolux?", "acceptedAnswer": {"@type": "Answer", "text": "Para geladeiras Electrolux Frost Free, o timer mais utilizado é o TMDJ812ZB9 (110V) para aparelhos de 127V, e o modelo 220V para aparelhos bivolt ou 220V. Sempre confira a tensão e o modelo da sua geladeira antes de comprar."}},
+      {"@type": "Question", "name": "Onde comprar timer de degelo no RJ?", "acceptedAnswer": {"@type": "Answer", "text": "A M.T.F Refrigeração na Av. Brasil, 6818, Rio de Janeiro, vende timer de degelo Electrolux 110V e 220V. Atendimento também pelo WhatsApp."}}
+    ]
+  }
+  </script>
+  {% if ga_id %}
+  <script async src="https://www.googletagmanager.com/gtag/js?id={{ ga_id }}"></script>
+  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","{{ ga_id }}");gtag("config","AW-18038713780");</script>
+  {% endif %}
+  {% include '_header_styles.html' %}
+  <style>
+    .article-wrap{max-width:720px;margin:0 auto;padding:40px 20px 80px;}
+    .breadcrumb-bar{max-width:720px;margin:0 auto;padding:16px 20px 0;display:flex;align-items:center;gap:6px;font-size:.82rem;color:var(--muted);flex-wrap:wrap;}
+    .breadcrumb-bar a{color:var(--muted);text-decoration:none;}.breadcrumb-bar a:hover{color:var(--accent);}
+    .article-header{margin-bottom:36px;}
+    .article-tag{display:inline-block;background:#fff7f0;border:1px solid #ffd9b3;border-radius:20px;padding:4px 12px;font-size:.75rem;font-weight:700;color:#c45c00;margin-bottom:14px;letter-spacing:.04em;text-transform:uppercase;}
+    .article-header h1{font-size:clamp(1.6rem,4vw,2.2rem);font-weight:700;letter-spacing:-.02em;line-height:1.25;margin-bottom:14px;}
+    .article-lead{font-size:1.05rem;color:var(--muted);line-height:1.7;padding-bottom:24px;border-bottom:1px solid var(--border);}
+    .article-section{margin-bottom:32px;}
+    .article-section h2{font-size:1.15rem;font-weight:700;margin-bottom:12px;margin-top:32px;color:var(--text);}
+    .article-section h3{font-size:.98rem;font-weight:700;margin-bottom:8px;margin-top:20px;color:var(--text);}
+    .article-section p{font-size:.95rem;line-height:1.75;color:var(--text);margin-bottom:12px;}
+    .article-section ul,.article-section ol{padding-left:20px;margin-bottom:12px;}
+    .article-section li{font-size:.95rem;line-height:1.75;color:var(--text);margin-bottom:4px;}
+    .product-row{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;margin:4px 0;}
+    .product-name-link{color:var(--accent);font-weight:600;text-decoration:none;font-size:.9rem;}
+    .product-name-link:hover{text-decoration:underline;}
+    .product-wa-btn{display:inline-flex;align-items:center;gap:5px;background:var(--wa);color:#fff;font-weight:700;font-size:.78rem;padding:5px 12px;border-radius:7px;text-decoration:none;transition:opacity .15s;white-space:nowrap;}
+    .product-wa-btn:hover{opacity:.88;}
+    .info-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin:16px 0;}
+    .info-box-title{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+    .info-box ul{padding-left:16px;margin:0;}
+    .info-box li{font-size:.88rem;color:var(--text);line-height:1.65;margin-bottom:3px;}
+    .warn-box{background:#fff7f9;border:1px solid #ffd9e4;border-radius:12px;padding:16px 18px;margin:16px 0;}
+    .warn-box p{font-size:.88rem;color:var(--text);margin:0;line-height:1.6;}
+    .tip-box{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px 18px;margin:16px 0;}
+    .tip-box p{font-size:.88rem;color:var(--text);margin:0;line-height:1.6;}
+    .rele-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:.88rem;}
+    .rele-table th{background:var(--bg);padding:8px 12px;text-align:left;font-weight:700;border:1px solid var(--border);}
+    .rele-table td{padding:8px 12px;border:1px solid var(--border);color:var(--text);}
+    .rele-table tr:nth-child(even){background:var(--bg);}
+    .cta-block{background:var(--surface);border:1.5px solid var(--border);border-radius:16px;padding:24px;margin-top:40px;text-align:center;}
+    .cta-block h3{font-size:1.1rem;font-weight:700;margin-bottom:8px;}
+    .cta-block p{color:var(--muted);font-size:.9rem;margin-bottom:20px;line-height:1.55;}
+    .cta-wa{display:inline-flex;align-items:center;gap:8px;background:var(--wa);color:#fff;padding:13px 24px;border-radius:10px;font-weight:700;font-size:.95rem;text-decoration:none;transition:opacity .15s;}
+    .cta-wa:hover{opacity:.88;}
+    .cta-tecnico{display:inline-flex;align-items:center;gap:8px;background:#f0f7ff;color:#1a6bc4;border:1.5px solid #c6dfff;padding:12px 20px;border-radius:10px;font-weight:700;font-size:.92rem;text-decoration:none;margin-top:10px;transition:background .15s;}
+    .cta-tecnico:hover{background:#dbeeff;}
+    .related-articles{margin-top:40px;padding-top:24px;border-top:1px solid var(--border);}
+    .related-title{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:16px;}
+    .related-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+    .related-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;text-decoration:none;color:inherit;transition:border-color .15s;}
+    .related-card:hover{border-color:var(--accent);}
+    .related-card-icon{font-size:1.3rem;margin-bottom:8px;}
+    .related-card-title{font-weight:700;font-size:.88rem;line-height:1.3;color:var(--text);}
+    .related-card-cta{font-size:.78rem;color:var(--accent);font-weight:700;margin-top:6px;}
+    footer{border-top:1px solid var(--border);padding:20px;text-align:center;font-size:.8rem;color:var(--muted);}
+    .wa-float{position:fixed;bottom:24px;right:24px;z-index:200;display:flex;align-items:center;gap:8px;background:var(--wa);color:#fff;padding:12px 20px;border-radius:50px;text-decoration:none;font-weight:700;font-size:.92rem;box-shadow:0 4px 20px rgba(37,211,102,.35);transition:transform .2s;}
+    .wa-float:hover{transform:translateY(-2px);}
+    @media(max-width:500px){
+      .article-wrap{padding:24px 16px 60px;}
+      .related-grid{grid-template-columns:1fr;}
+      .cta-wa,.cta-tecnico{width:100%;justify-content:center;}
+      .wa-float span{display:none;}
+      .wa-float{padding:14px;border-radius:50%;bottom:16px;right:16px;}
+    }
+  </style>
+</head>
+<body>
+
+{% set active_page = 'blog' %}
+{% include '_header.html' %}
+
+<div class="breadcrumb-bar">
+  <a href="/">Início</a><span>›</span>
+  <a href="/blog">Guias</a><span>›</span>
+  <span>Timer de degelo</span>
+</div>
+
+<div class="article-wrap">
+
+{% set msg_timer_110 = "Olá! Tenho interesse no timer de degelo Electrolux 110V (TMDJ812ZB9). Qual o preço e disponibilidade?" %}
+{% set msg_timer_220 = "Olá! Tenho interesse no timer de degelo Electrolux 220V. Qual o preço e disponibilidade?" %}
+
+  <div class="article-header">
+    <div class="article-tag">❄️ Peças para geladeira</div>
+    <h1>Timer de degelo: função, defeitos e como substituir</h1>
+    <p class="article-lead">O timer de degelo é uma peça pequena que controla um ciclo essencial em toda geladeira Frost Free. Quando falha, o resultado é gelo acumulando dentro do freezer ou um compressor que nunca para. Neste guia explicamos como funciona, como identificar o defeito e como escolher o substituto certo.</p>
+  </div>
+
+  <div class="article-section">
+    <h2>O que é o timer de degelo e qual é a função dele</h2>
+    <p>Em toda geladeira Frost Free existe um ciclo automático de degelo. A cada intervalo fixo de tempo — geralmente entre 6 e 12 horas de funcionamento do compressor — o sistema interrompe o resfriamento e aciona uma resistência elétrica que derrete o gelo acumulado no evaporador. Depois, o ciclo reinicia normalmente.</p>
+    <p>O timer de degelo é o componente que controla esse ciclo. É um relógio eletromecânico com um eixo giratório: quando atinge o tempo programado, ele comuta os contatos internos, desliga o compressor e o ventilador, e liga a resistência de degelo. Após alguns minutos, comuta novamente e o sistema volta ao modo de refrigeração.</p>
+
+    <div class="info-box">
+      <div class="info-box-title">Componentes do sistema de degelo</div>
+      <ul>
+        <li><strong>Timer de degelo</strong> — controla o tempo e comuta os ciclos</li>
+        <li><strong>Resistência de degelo</strong> — aquece o evaporador para derreter o gelo</li>
+        <li><strong>Termostato de degelo (fusível térmico)</strong> — proteção contra superaquecimento</li>
+        <li><strong>Sensor de temperatura</strong> — em modelos mais modernos, substitui o timer eletromecânico</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="article-section">
+    <h2>Sintomas de timer de degelo com defeito</h2>
+    <p>O timer pode falhar de duas formas: travado na posição de refrigeração ou travado na posição de degelo. Cada uma produz sintomas opostos.</p>
+
+    <h3>Timer travado em refrigeração (não aciona o degelo)</h3>
+    <ul>
+      <li>Gelo acumulando progressivamente no fundo do freezer ou atrás do painel interno</li>
+      <li>Geladeira deixa de gelar na parte de baixo — o gelo bloqueia a circulação de ar</li>
+      <li>Barulho de ventilador abafado ou ausente (hélice travada pelo gelo)</li>
+      <li>Água acumulando na gaveta de legumes ou escorrendo pelo chão</li>
+    </ul>
+
+    <h3>Timer travado em degelo (não volta para refrigeração)</h3>
+    <ul>
+      <li>Geladeira completamente quente — compressor e ventilador desligados</li>
+      <li>Resistência de degelo ligada continuamente (risco de superaquecimento)</li>
+    </ul>
+
+    <div class="warn-box">
+      <p>⚠️ Gelo acumulado no freezer é o sintoma mais frequente de timer com defeito, mas não é o único possível. Resistência de degelo queimada ou termostato de degelo aberto produzem o mesmo sintoma. Sempre teste o timer antes de descartá-lo.</p>
+    </div>
+  </div>
+
+  <div class="article-section">
+    <h2>Como testar o timer de degelo</h2>
+    <p>O teste mais simples não exige multímetro: localize o timer (geralmente atrás do painel interno do freezer ou na parte traseira inferior da geladeira) e gire manualmente o eixo no sentido horário com uma chave de fenda. Quando ouvir um "clique", o timer comutou para o ciclo de degelo.</p>
+    <p>Se após o clique a resistência esquentar e o compressor parar, o timer está funcionando — o problema pode estar em outro componente. Se nada acontecer, o timer tem defeito.</p>
+
+    <div class="tip-box">
+      <p>💡 Para testar com multímetro: com o timer fora da geladeira, meça a continuidade entre os terminais C (comum) e DEF (degelo). Com o eixo na posição de degelo, deve haver continuidade. Na posição de refrigeração, continuidade entre C e COOL. Se não houver continuidade em nenhuma posição, o timer está aberto e precisa ser trocado.</p>
+    </div>
+
+    <div class="info-box">
+      <div class="info-box-title">Onde fica o timer de degelo</div>
+      <ul>
+        <li><strong>Electrolux DF/DC/DFN</strong> — atrás do painel interno do freezer, no topo</li>
+        <li><strong>Brastemp/Consul BRM/CRM</strong> — na parte traseira inferior, próximo ao compressor</li>
+        <li><strong>Modelos mais antigos</strong> — dentro de uma caixa plástica no interior do freezer</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="article-section">
+    <h2>Como escolher o timer de degelo certo</h2>
+    <p>O timer é específico por fabricante e tensão. Antes de comprar, verifique:</p>
+
+    <table class="rele-table">
+      <tr><th>O que verificar</th><th>Onde encontrar</th></tr>
+      <tr><td>Marca e modelo da geladeira</td><td>Etiqueta na lateral ou atrás da geladeira</td></tr>
+      <tr><td>Tensão (127V ou 220V)</td><td>Mesma etiqueta — campo "Tensão"</td></tr>
+      <tr><td>Código do timer original</td><td>Impresso no corpo do próprio timer</td></tr>
+    </table>
+
+    <p>Para geladeiras <strong>Electrolux Frost Free</strong> — as mais comuns no Brasil — os dois timers que cobrimos em estoque são:</p>
+
+    <p>
+      <span class="product-row">
+        <a class="product-name-link" href="/product/timer-degelo-electrolux-tmdj812zb9-110v-original">Timer de degelo Electrolux TMDJ812ZB9 — 110V</a>
+        <a class="product-wa-btn wa-track" href="https://wa.me/{{ wa_number }}?text={{ msg_timer_110 | urlencode }}" target="_blank" rel="noopener" data-product="Timer degelo Electrolux 110V">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+          Consultar preço
+        </a>
+      </span>
+    </p>
+
+    <p>
+      <span class="product-row">
+        <a class="product-name-link" href="/product/timer-de-degelo-eletrolux-220v">Timer de degelo Electrolux — 220V</a>
+        <a class="product-wa-btn wa-track" href="https://wa.me/{{ wa_number }}?text={{ msg_timer_220 | urlencode }}" target="_blank" rel="noopener" data-product="Timer degelo Electrolux 220V">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+          Consultar preço
+        </a>
+      </span>
+    </p>
+
+    <div class="warn-box">
+      <p>⚠️ Não compre pelo tamanho físico — timers de tensões diferentes podem ter a mesma carcaça mas são incompatíveis. Sempre confira a tensão da geladeira antes de comprar.</p>
+    </div>
+  </div>
+
+  <div class="article-section">
+    <h2>Posso trocar o timer de degelo eu mesmo?</h2>
+    <p>Sim — a troca do timer é uma das manutenções mais simples numa geladeira Frost Free. O componente é fixado por um ou dois parafusos, e o conector elétrico encaixa e desencaixa sem solda. O processo inteiro leva menos de 15 minutos com a geladeira desligada.</p>
+
+    <ol>
+      <li>Desligue a geladeira da tomada</li>
+      <li>Retire o painel interno do freezer (normalmente 2 a 4 parafusos)</li>
+      <li>Localize o timer — caixa plástica com eixo giratório e conector de 4 fios</li>
+      <li>Fotografe o conector antes de desencaixar (para referência na hora de reconectar)</li>
+      <li>Retire o timer antigo e encaixe o novo</li>
+      <li>Antes de fechar o painel, gire o eixo do timer novo até ouvir o clique de degelo — confirma que está funcionando</li>
+    </ol>
+
+    <div class="tip-box">
+      <p>💡 Aproveite a abertura do painel para remover todo o gelo acumulado com água morna. Se deixar o gelo, ele pode demorar dias para derreter e mascarar se o problema foi realmente resolvido.</p>
+    </div>
+
+    <p>Se a substituição do timer não resolver — ou se não tiver prática com desmontagem — o técnico pode identificar se o problema está no timer, na resistência ou no termostato de degelo.</p>
+
+    <div class="info-box">
+      <div class="info-box-title">Ferramentas para essa manutenção</div>
+      <ul>
+        <li>
+          <span class="product-row">
+            <a class="product-name-link" href="/product/multimetro-digital-bside">Multímetro digital Bside</a>
+            — para testar continuidade do timer e dos terminais
+          </span>
+        </li>
+        <li>
+          <span class="product-row">
+            <a class="product-name-link" href="/product/alicate-de-corte">Alicate de corte</a>
+            — útil para retirar abraçadeiras e ajustar fiação
+          </span>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="cta-block">
+    <h3>Precisa de timer de degelo para sua geladeira Electrolux no RJ?</h3>
+    <p>Temos timer TMDJ812ZB9 110V e timer 220V em estoque. Retirada na Av. Brasil, 6818 ou consulte pelo WhatsApp.</p>
+    <a class="cta-wa wa-track" href="https://wa.me/{{ wa_number }}?text=Ol%C3%A1%21%20Preciso%20de%20timer%20de%20degelo%20para%20geladeira.%20Qual%20o%20pre%C3%A7o%20e%20disponibilidade%3F" target="_blank" rel="noopener" data-product="Artigo timer degelo">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+      Consultar preço e disponibilidade
+    </a>
+    <br>
+    <a class="cta-tecnico" href="https://wa.me/5521965832950?text=Ol%C3%A1%20Douglas%21%20Preciso%20de%20ajuda%20com%20o%20degelo%20da%20minha%20geladeira." target="_blank" rel="noopener">
+      🔧 Falar com o técnico Douglas
+    </a>
+  </div>
+
+  <div class="related-articles">
+    <div class="related-title">Outros guias</div>
+    <div class="related-grid">
+      <a class="related-card" href="/blog/rele-refrigeracao">
+        <div class="related-card-icon">⚡</div>
+        <div class="related-card-title">Relé de refrigeração: tipos e como escolher</div>
+        <div class="related-card-cta">Ler guia →</div>
+      </a>
+      <a class="related-card" href="/blog/geladeira-nao-gela">
+        <div class="related-card-icon">🌡️</div>
+        <div class="related-card-title">Geladeira não gela embaixo: causas e soluções</div>
+        <div class="related-card-cta">Ler guia →</div>
+      </a>
+    </div>
+  </div>
+
+</div>
+
+<a class="wa-float wa-track" href="https://wa.me/{{ wa_number }}?text=Ol%C3%A1%21%20Tenho%20uma%20d%C3%BAvida%20sobre%20refrigera%C3%A7%C3%A3o." target="_blank" rel="noopener" data-product="Blog WA float">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+  <span>Falar no WhatsApp</span>
+</a>
+
+<footer>M.T.F Refrigeração · Rio de Janeiro</footer>
+
+<script>
+document.querySelectorAll('.wa-track').forEach(el=>{
+  el.addEventListener('click',function(){
+    const product=this.dataset.product||'Geral';
+    if(typeof gtag!=='undefined')gtag('event','whatsapp_click',{product_name:product});
+    fetch('/api/track/whatsapp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({product})}).catch(()=>{});
+  });
+});
+</script>
+</body>
+</html>
