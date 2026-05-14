@@ -195,7 +195,7 @@ ARTICLES = [
         "category": "maquina-de-lavar",
         "icon": "👕",
         "tags": ["máquina de lavar", "mancha", "válvula", "mecanismo", "óleo"],
-        "template": "blog/roupa-saindo-manchada-lavadora.html",
+        "template": "blog/roupa-manchada-lavadora.html",
         "published": True,
     },
 
