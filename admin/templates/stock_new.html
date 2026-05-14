@@ -18,6 +18,12 @@
     .msg{padding:12px 14px;border-radius:10px;margin-bottom:14px;font-weight:800;}
     .err{background:#fef2f2;border:1px solid #fecaca;color:#7f1d1d;}
     .ok{background:#ecfdf5;border:1px solid #bbf7d0;color:#065f46;}
+    .autocomplete-wrap{position:relative;}
+    .autocomplete-wrap input{width:100%;}
+    .ac-dropdown{position:absolute;z-index:999;left:0;right:0;background:#fff;border:1px solid #d1d5db;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.1);max-height:240px;overflow-y:auto;display:none;}
+    .ac-item{padding:10px 14px;cursor:pointer;font-size:.95rem;font-weight:700;}
+    .ac-item:hover,.ac-item.active{background:#f0f9ff;}
+    .ac-item .ac-unit{color:#9ca3af;font-weight:600;font-size:.85rem;margin-left:6px;}
 {% endblock %}
 {% block content %}
 <div class="card">
@@ -35,14 +41,23 @@
           <button type="button" id="btn-saida"   class="type-btn" onclick="setType('saida')">📤 Saída manual</button>
         </div>
 
-        <label for="product_id">Produto</label>
-        <select id="product_id" name="product_id" required onchange="onProductChange()">
-          <option value="" disabled selected>Selecione...</option>
-          {% for p in products %}
-            <option value="{{ p.id }}" data-cost="{{ p.cost_price or '' }}" data-unit="{{ p.unit or '' }}">{{ p.name }} ({{ p.unit }})</option>
-          {% endfor %}
-        </select>
+        <label for="product_search">Produto</label>
+        <input type="hidden" name="product_id" id="product_id" required>
+        <div class="autocomplete-wrap">
+          <input type="text" id="product_search" placeholder="Digite para buscar..." autocomplete="off" required
+                 oninput="acFilter()" onkeydown="acKey(event)" onfocus="acFilter()">
+          <div class="ac-dropdown" id="ac-dropdown"></div>
+        </div>
         <div class="hint" id="cost-hint"></div>
+
+        {# dados dos produtos em JS #}
+        <script>
+        const AC_PRODUCTS = [
+          {% for p in products %}
+          {id: {{ p.id }}, name: {{ p.name | tojson }}, unit: {{ (p.unit or 'un') | tojson }}, cost: {{ p.cost_price or 'null' }}},
+          {% endfor %}
+        ];
+        </script>
 
         <label for="qty">Quantidade</label>
         <input id="qty" name="qty" inputmode="decimal" placeholder="Ex: 10 ou 1,5" required>
@@ -88,6 +103,67 @@
 {{ super() }}
 <script>
 
+// ── Autocomplete ──
+let acIndex = -1;
+
+function acFilter() {
+  const q = document.getElementById('product_search').value.trim().toLowerCase();
+  const dd = document.getElementById('ac-dropdown');
+  const matches = q.length === 0
+    ? AC_PRODUCTS
+    : AC_PRODUCTS.filter(p => p.name.toLowerCase().includes(q));
+
+  if (matches.length === 0) { dd.style.display = 'none'; return; }
+
+  dd.innerHTML = matches.map((p, i) =>
+    `<div class="ac-item" data-id="${p.id}" data-name="${p.name}" data-unit="${p.unit}" data-cost="${p.cost ?? ''}"
+          onmousedown="acSelect(this)">${p.name}<span class="ac-unit">(${p.unit})</span></div>`
+  ).join('');
+  acIndex = -1;
+  dd.style.display = 'block';
+}
+
+function acSelect(el) {
+  document.getElementById('product_search').value = el.dataset.name;
+  document.getElementById('product_id').value = el.dataset.id;
+  document.getElementById('ac-dropdown').style.display = 'none';
+  // синтетический вызов onProductChange с данными элемента
+  const unit = el.dataset.unit || 'un';
+  const cost = el.dataset.cost;
+  document.getElementById('unit_span').textContent = unit;
+  const hint = document.getElementById('cost-hint');
+  if (cost) {
+    hint.innerHTML = `Custo atual cadastrado: <strong>R$ ${parseFloat(cost).toFixed(2)}</strong>`;
+    document.getElementById('cost_input').placeholder = parseFloat(cost).toFixed(2);
+  } else {
+    hint.textContent = 'Sem custo cadastrado para este produto.';
+    document.getElementById('cost_input').placeholder = 'Ex: 45,00';
+  }
+  computeAndSyncCost();
+}
+
+function acKey(e) {
+  const dd = document.getElementById('ac-dropdown');
+  const items = dd.querySelectorAll('.ac-item');
+  if (e.key === 'ArrowDown') {
+    acIndex = Math.min(acIndex + 1, items.length - 1);
+  } else if (e.key === 'ArrowUp') {
+    acIndex = Math.max(acIndex - 1, 0);
+  } else if (e.key === 'Enter' && acIndex >= 0) {
+    e.preventDefault();
+    acSelect(items[acIndex]);
+    return;
+  } else if (e.key === 'Escape') {
+    dd.style.display = 'none'; return;
+  } else { return; }
+  items.forEach((el, i) => el.classList.toggle('active', i === acIndex));
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.autocomplete-wrap'))
+    document.getElementById('ac-dropdown').style.display = 'none';
+});
+
 function parseNum(v) {
   if (!v) return null;
   const n = Number(String(v).trim().replace(',', '.'));
@@ -96,13 +172,8 @@ function parseNum(v) {
 function fmt2(n) {
   return (Math.round(n * 100) / 100).toFixed(2);
 }
-function selectedOpt() {
-  const sel = document.getElementById('product_id');
-  return sel.options[sel.selectedIndex] || null;
-}
 function selectedUnit() {
-  const opt = selectedOpt();
-  return (opt && opt.dataset.unit ? opt.dataset.unit : 'un') || 'un';
+  return document.getElementById('unit_span').textContent || 'un';
 }
 function getCostMode() {
   const el = document.querySelector('input[name="cost_mode"]:checked');
@@ -183,27 +254,7 @@ function computeAndSyncCost() {
   calc.innerHTML = `<span class="muted">Total R$ ${fmt2(raw)}</span> ÷ <span class="muted">${qty}</span> = <span class="good">R$ ${fmt2(perUnit)}</span> <span class="muted">por ${unit}</span>`;
 }
 
-function onProductChange() {
-  const sel = document.getElementById('product_id');
-  const opt = sel.options[sel.selectedIndex];
-  const cost = opt.dataset.cost;
-  const hint = document.getElementById('cost-hint');
-
-  // unit label
-  document.getElementById('unit_span').textContent = selectedUnit();
-
-  if (cost) {
-    hint.innerHTML = `Custo atual cadastrado: <strong>R$ ${parseFloat(cost).toFixed(2)}</strong>`;
-    document.getElementById('cost_input').placeholder = parseFloat(cost).toFixed(2);
-  } else {
-    hint.textContent = 'Sem custo cadastrado para este produto.';
-    document.getElementById('cost_input').placeholder = 'Ex: 45,00';
-  }
-
-  computeAndSyncCost();
-}
-
-// listeners (минимально)
+// listeners
 document.getElementById('qty').addEventListener('input', computeAndSyncCost);
 document.getElementById('cost_input').addEventListener('input', computeAndSyncCost);
 document.querySelectorAll('input[name="cost_mode"]').forEach(r => r.addEventListener('change', computeAndSyncCost));
@@ -215,14 +266,17 @@ document.getElementById('unit_span').textContent = selectedUnit();
 (function() {
   const pid = new URLSearchParams(window.location.search).get('product_id');
   if (!pid) return;
-  const sel = document.getElementById('product_id');
-  for (const opt of sel.options) {
-    if (opt.value === pid) {
-      opt.selected = true;
-      onProductChange();
-      break;
-    }
+  const p = AC_PRODUCTS.find(x => String(x.id) === pid);
+  if (!p) return;
+  document.getElementById('product_search').value = p.name;
+  document.getElementById('product_id').value = p.id;
+  document.getElementById('unit_span').textContent = p.unit || 'un';
+  const hint = document.getElementById('cost-hint');
+  if (p.cost) {
+    hint.innerHTML = `Custo atual cadastrado: <strong>R$ ${parseFloat(p.cost).toFixed(2)}</strong>`;
+    document.getElementById('cost_input').placeholder = parseFloat(p.cost).toFixed(2);
   }
+  computeAndSyncCost();
 })();
 
 </script>
