@@ -188,6 +188,16 @@ ARTICLES = [
         "template": "/blog/timer-degelo.html",
         "published": True,
     },
+    {
+        "slug": "roupa-saindo-manchada-lavadora",
+        "title": "Roupa saindo manchada da máquina de lavar? Veja as causas",
+        "description": "Manchas de óleo, ferrugem ou sabão nas roupas? Saiba o que causa cada tipo de mancha e quais peças precisam de troca. Brastemp, Consul, Cargo e Mare.",
+        "category": "maquina-de-lavar",
+        "icon": "👕",
+        "tags": ["máquina de lavar", "mancha", "válvula", "mecanismo", "óleo"],
+        "template": "blog/roupa-saindo-manchada-lavadora.html",
+        "published": True,
+    },
 
 ]
 
