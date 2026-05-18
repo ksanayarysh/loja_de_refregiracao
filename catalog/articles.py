@@ -189,6 +189,16 @@ ARTICLES = [
         "published": True,
     },
     {
+        "slug": "como-limpar-maquina-de-lavar-por-dentro",
+        "title": "Como limpar máquina de lavar por dentro: agitador, coágulo e filtro",
+        "description": "Guia passo a passo para limpar a máquina de lavar vertical por dentro: como remover o agitador, limpar o coágulo de sabão e desentupir o filtro. Brastemp, Consul, Electrolux.",
+        "category": "maquina-de-lavar",
+        "icon": "🧽",
+        "tags": ["máquina de lavar", "limpeza", "agitador", "filtro", "manutenção"],
+        "template": "blog/como-limpar-maquina-de-lavar-por-dentro.html",
+        "published": True,
+    },
+    {
         "slug": "roupa-saindo-manchada-lavadora",
         "title": "Roupa saindo manchada da máquina de lavar? Veja as causas",
         "description": "Manchas de óleo, ferrugem ou sabão nas roupas? Saiba o que causa cada tipo de mancha e quais peças precisam de troca. Brastemp, Consul, Cargo e Mare.",
