@@ -1,257 +1,317 @@
-{% extends 'blog/_base_article.html' %}
-
-{% block meta %}
-<title>Como limpar máquina de lavar por dentro (agitador, coágulo e filtro) | MTF Refrigeração</title>
-<meta name="description" content="Guia passo a passo para limpar a máquina de lavar verticalmente por dentro: como remover o agitador, limpar o coágulo de sabão e desentupir o filtro. Brastemp, Consul, Electrolux.">
-<link rel="canonical" href="https://mtfrefrigeracao.com.br/blog/como-limpar-maquina-de-lavar-por-dentro">
-<meta property="og:title" content="Como limpar máquina de lavar por dentro (agitador, coágulo e filtro)">
-<meta property="og:description" content="Guia passo a passo para limpar a máquina de lavar vertical por dentro sem chamar técnico.">
-<meta property="og:url" content="https://mtfrefrigeracao.com.br/blog/como-limpar-maquina-de-lavar-por-dentro">
-<meta property="og:type" content="article">
-
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "Article",
-  "headline": "Como limpar máquina de lavar por dentro: agitador, coágulo e filtro",
-  "description": "Guia passo a passo para limpar a máquina de lavar vertical por dentro sem chamar técnico.",
-  "image": "https://mtfrefrigeracao.com.br/static/img/blog/limpar-maquina-lavar.jpg",
-  "author": { "@type": "Organization", "name": "MTF Refrigeração" },
-  "publisher": {
-    "@type": "Organization",
-    "name": "MTF Refrigeração",
-    "logo": { "@type": "ImageObject", "url": "https://mtfrefrigeracao.com.br/static/img/logo.png" }
-  },
-  "datePublished": "2026-05-18",
-  "dateModified": "2026-05-18",
-  "mainEntityOfPage": { "@type": "WebPage", "@id": "https://mtfrefrigeracao.com.br/blog/como-limpar-maquina-de-lavar-por-dentro" }
-}
-</script>
-
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  "mainEntity": [
-    {
-      "@type": "Question",
-      "name": "Com que frequência devo limpar a máquina de lavar por dentro?",
-      "acceptedAnswer": { "@type": "Answer", "text": "O ideal é fazer uma limpeza completa a cada 1 a 3 meses, dependendo da frequência de uso. Famílias que lavam roupa todos os dias devem fazer mensalmente." }
-    },
-    {
-      "@type": "Question",
-      "name": "Posso usar vinagre para limpar a máquina de lavar?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Sim. Vinagre branco é eficaz para desinfetar e remover resíduos de sabão. Use 2 xícaras no ciclo de limpeza sem roupa. Não misture com água sanitária." }
-    },
-    {
-      "@type": "Question",
-      "name": "Preciso de ferramenta para tirar o agitador?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Na maioria das lavadoras verticais brasileiras (Brastemp, Consul, Electrolux) o agitador é removido com as mãos ou com uma chave de fenda simples. Não é preciso técnico." }
-    },
-    {
-      "@type": "Question",
-      "name": "A máquina ficou com mau cheiro depois da limpeza, o que fazer?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Faça um ciclo completo com 2 xícaras de vinagre branco e água quente. Depois deixe a tampa aberta por algumas horas para secar por dentro. Se o cheiro persistir, o filtro pode estar com fungos e precisa de substituição." }
-    },
-    {
-      "@type": "Question",
-      "name": "Roupas saindo com manchas pretas após a limpeza são normais?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Não. Fragmentos pretos são resíduos de borracha velha ou lodo acumulado que se soltaram durante a limpeza. Faça mais um ciclo vazio com vinagre. Se persistir, pode ser a borracha do agitador que precisou de troca." }
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <link rel="icon" type="image/png" href="/static/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Como limpar máquina de lavar por dentro: agitador, acúmulo de sabão e filtro | M.T.F Refrigeração</title>
+  <meta name="description" content="Guia passo a passo para limpar máquina de lavar por dentro: ciclo de limpeza, agitador, acúmulo de sabão, filtro de fiapos e mangueiras.">
+  <meta name="keywords" content="como limpar máquina de lavar, limpar máquina de lavar por dentro, limpar agitador lavadora, filtro de fiapos lavadora, máquina de lavar com mau cheiro, peças para máquina de lavar RJ">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="{{ site_url }}/blog/como-limpar-maquina-de-lavar-por-dentro">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Como limpar máquina de lavar por dentro: agitador, acúmulo de sabão e filtro">
+  <meta property="og:description" content="Veja como limpar lavadora vertical por dentro, remover sujeira do agitador, limpar filtro e evitar mau cheiro nas roupas.">
+  <meta property="og:url" content="{{ site_url }}/blog/como-limpar-maquina-de-lavar-por-dentro">
+  <meta property="og:image" content="{{ site_url }}/static/og-catalog.jpg">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Como limpar máquina de lavar por dentro: agitador, acúmulo de sabão e filtro",
+    "description": "Guia passo a passo para limpar máquina de lavar vertical por dentro, higienizar o agitador, limpar filtro de fiapos e verificar mangueiras.",
+    "mainEntityOfPage": {"@type": "WebPage", "@id": "{{ site_url }}/blog/como-limpar-maquina-de-lavar-por-dentro"},
+    "author": {"@type": "Organization", "name": "M.T.F Refrigeração", "url": "{{ site_url }}"},
+    "publisher": {"@type": "Organization", "name": "M.T.F Refrigeração", "url": "{{ site_url }}", "logo": {"@type": "ImageObject", "url": "{{ site_url }}/static/og-catalog.jpg"}},
+    "keywords": "como limpar máquina de lavar, limpar lavadora por dentro, agitador lavadora, filtro de fiapos, máquina de lavar com mau cheiro",
+    "datePublished": "2026-05-18",
+    "dateModified": "2026-05-18"
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {"@type": "Question", "name": "Com que frequência devo limpar a máquina de lavar por dentro?", "acceptedAnswer": {"@type": "Answer", "text": "O ideal é fazer uma limpeza completa a cada 1 a 3 meses, dependendo da frequência de uso. Quem lava roupa todos os dias deve fazer a limpeza com mais frequência."}},
+      {"@type": "Question", "name": "Posso usar vinagre para limpar a máquina de lavar?", "acceptedAnswer": {"@type": "Answer", "text": "Sim. Vinagre branco pode ajudar a remover resíduos de sabão e mau cheiro. Use no ciclo vazio e nunca misture com água sanitária."}},
+      {"@type": "Question", "name": "Preciso de ferramenta para tirar o agitador?", "acceptedAnswer": {"@type": "Answer", "text": "Em muitas lavadoras verticais, o agitador é removido com uma chave simples ou chave T 5/16, dependendo do modelo. Sempre verifique o encaixe antes de forçar."}},
+      {"@type": "Question", "name": "O que fazer se a máquina continuar com mau cheiro depois da limpeza?", "acceptedAnswer": {"@type": "Answer", "text": "Faça mais um ciclo vazio de limpeza e deixe a tampa aberta para secar. Se o cheiro persistir, verifique o filtro, o agitador e as mangueiras."}},
+      {"@type": "Question", "name": "Manchas pretas nas roupas depois da lavagem são normais?", "acceptedAnswer": {"@type": "Answer", "text": "Não. Manchas pretas podem indicar sujeira acumulada, lodo ou desgaste em alguma peça. Limpe novamente e avalie se filtro, agitador ou mangueiras precisam de troca."}}
+    ]
+  }
+  </script>
+  {% if ga_id %}
+  <script async src="https://www.googletagmanager.com/gtag/js?id={{ ga_id }}"></script>
+  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","{{ ga_id }}");gtag("config","AW-18038713780");</script>
+  {% endif %}
+  {% include '_header_styles.html' %}
+  <style>
+    .article-wrap{max-width:720px;margin:0 auto;padding:40px 20px 80px;}
+    .back-link{display:inline-flex;align-items:center;gap:6px;color:var(--muted);text-decoration:none;font-size:.88rem;font-weight:500;margin-bottom:28px;}
+    .back-link:hover{color:var(--accent);}
+    .breadcrumb-bar{max-width:720px;margin:0 auto;padding:16px 20px 0;display:flex;align-items:center;gap:6px;font-size:.82rem;color:var(--muted);flex-wrap:wrap;}
+    .breadcrumb-bar a{color:var(--muted);text-decoration:none;}.breadcrumb-bar a:hover{color:var(--accent);}
+    .article-header{margin-bottom:36px;}
+    .article-tag{display:inline-block;background:#f0f7ff;border:1px solid #c6dfff;border-radius:20px;padding:4px 12px;font-size:.75rem;font-weight:700;color:#1a6bc4;margin-bottom:14px;letter-spacing:.04em;text-transform:uppercase;}
+    .article-header h1{font-size:clamp(1.6rem,4vw,2.2rem);font-weight:700;letter-spacing:-.02em;line-height:1.25;margin-bottom:14px;}
+    .article-lead{font-size:1.05rem;color:var(--muted);line-height:1.7;padding-bottom:24px;border-bottom:1px solid var(--border);}
+    .article-section{margin-bottom:32px;}
+    .article-section h2{font-size:1.15rem;font-weight:700;margin-bottom:12px;margin-top:32px;color:var(--text);}
+    .article-section h3{font-size:.98rem;font-weight:700;margin-bottom:8px;margin-top:20px;color:var(--text);}
+    .article-section p{font-size:.95rem;line-height:1.75;color:var(--text);margin-bottom:12px;}
+    .article-section ul,.article-section ol{padding-left:20px;margin-bottom:12px;}
+    .article-section li{font-size:.95rem;line-height:1.75;color:var(--text);margin-bottom:4px;}
+    .product-row{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;margin:4px 0;}
+    .product-name-link{color:var(--accent);font-weight:600;text-decoration:none;font-size:.9rem;}
+    .product-name-link:hover{text-decoration:underline;}
+    .product-wa-btn{display:inline-flex;align-items:center;gap:5px;background:var(--wa);color:#fff;font-weight:700;font-size:.78rem;padding:5px 12px;border-radius:7px;text-decoration:none;transition:opacity .15s;white-space:nowrap;}
+    .product-wa-btn:hover{opacity:.88;}
+    .info-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin:16px 0;}
+    .info-box-title{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+    .info-box ul{padding-left:16px;margin:0;}
+    .info-box li{font-size:.88rem;color:var(--text);line-height:1.65;margin-bottom:3px;}
+    .warn-box{background:#fff7f9;border:1px solid #ffd9e4;border-radius:12px;padding:16px 18px;margin:16px 0;}
+    .warn-box p{font-size:.88rem;color:var(--text);margin:0;line-height:1.6;}
+    .tip-box{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px 18px;margin:16px 0;}
+    .tip-box p{font-size:.88rem;color:var(--text);margin:0;line-height:1.6;}
+    .cta-block{background:var(--surface);border:1.5px solid var(--border);border-radius:16px;padding:24px;margin-top:40px;text-align:center;}
+    .cta-block h3{font-size:1.1rem;font-weight:700;margin-bottom:8px;}
+    .cta-block p{color:var(--muted);font-size:.9rem;margin-bottom:20px;line-height:1.55;}
+    .cta-wa{display:inline-flex;align-items:center;gap:8px;background:var(--wa);color:#fff;padding:13px 24px;border-radius:10px;font-weight:700;font-size:.95rem;text-decoration:none;transition:opacity .15s;}
+    .cta-wa:hover{opacity:.88;}
+    .cta-tecnico{display:inline-flex;align-items:center;gap:8px;background:#f0f7ff;color:#1a6bc4;border:1.5px solid #c6dfff;padding:12px 20px;border-radius:10px;font-weight:700;font-size:.92rem;text-decoration:none;margin-top:10px;transition:background .15s;}
+    .cta-tecnico:hover{background:#dbeeff;}
+    .related-articles{margin-top:40px;padding-top:24px;border-top:1px solid var(--border);}
+    .related-title{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:16px;}
+    .related-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+    .related-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;text-decoration:none;color:inherit;transition:border-color .15s;}
+    .related-card:hover{border-color:var(--accent);}
+    .related-card-icon{font-size:1.3rem;margin-bottom:8px;}
+    .related-card-title{font-weight:700;font-size:.88rem;line-height:1.3;color:var(--text);}
+    .related-card-cta{font-size:.78rem;color:var(--accent);font-weight:700;margin-top:6px;}
+    .cap-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:.88rem;}
+    .cap-table th{background:var(--bg);padding:8px 12px;text-align:left;font-weight:700;border:1px solid var(--border);}
+    .cap-table td{padding:8px 12px;border:1px solid var(--border);color:var(--text);}
+    .cap-table tr:nth-child(even){background:var(--bg);}
+    footer{border-top:1px solid var(--border);padding:20px;text-align:center;font-size:.8rem;color:var(--muted);}
+    .wa-float{position:fixed;bottom:24px;right:24px;z-index:200;display:flex;align-items:center;gap:8px;background:var(--wa);color:#fff;padding:12px 20px;border-radius:50px;text-decoration:none;font-weight:700;font-size:.92rem;box-shadow:0 4px 20px rgba(37,211,102,.35);transition:transform .2s;}
+    .wa-float:hover{transform:translateY(-2px);}
+    @media(max-width:500px){
+      .article-wrap{padding:24px 16px 60px;}
+      .related-grid{grid-template-columns:1fr;}
+      .cta-wa,.cta-tecnico{width:100%;justify-content:center;}
+      .wa-float span{display:none;}
+      .wa-float{padding:14px;border-radius:50%;bottom:16px;right:16px;}
     }
-  ]
-}
-</script>
-{% endblock %}
+  </style>
+</head>
+<body>
 
-{% block content %}
+{% set active_page = 'blog' %}
+{% include '_header.html' %}
+
+<div class="breadcrumb-bar">
+  <a href="/">Início</a><span>›</span>
+  <a href="/blog">Guias</a><span>›</span>
+  <span>Como limpar máquina de lavar</span>
+</div>
+
 <div class="article-wrap">
 
+{% set msg_limpeza = "Olá! Limpei minha máquina de lavar e ainda está com problema. Pode me ajudar?" %}
+{% set msg_chave_t = "Olá! Tenho interesse em: chave T 5/16 para parafuso do agitador de lavadora. Está disponível?" %}
+{% set msg_agitador = "Olá! Tenho interesse em: agitador Consul/Brastemp para lavadora. Está disponível?" %}
+{% set msg_mangueira_entrada = "Olá! Tenho interesse em: mangueira de entrada para lavadora 2m. Está disponível?" %}
+{% set msg_mangueira_saida = "Olá! Tenho interesse em: mangueira de saída para lavadora. Está disponível?" %}
+{% set msg_mangueira_dreno = "Olá! Tenho interesse em: mangueira do dreno para lavadora. Está disponível?" %}
+{% set msg_kit_mangueira = "Olá! Tenho interesse em: kit mangueira de lavadora. Está disponível?" %}
+
   <div class="article-header">
-    <div class="article-breadcrumb">
-      <a href="/">Início</a> › <a href="/blog">Blog</a> › <a href="/blog?category=maquina-de-lavar">Máquina de lavar</a>
-    </div>
-    <h1 class="article-title">Como limpar máquina de lavar por dentro: agitador, coágulo e filtro</h1>
-    <p class="article-lead">
-      Máquina com cheiro ruim, roupas saindo com manchas escuras ou resíduos de sabão? O problema quase sempre está dentro do tambor — e a solução é mais simples do que parece.
-      Este guia mostra como limpar a <strong>máquina de lavar vertical</strong> por dentro, passo a passo, sem precisar de técnico.
-    </p>
+    <div class="article-tag">🌀 Máquina de lavar</div>
+    <h1>Como limpar máquina de lavar por dentro: agitador, acúmulo de sabão e filtro</h1>
+    <p class="article-lead">Máquina com cheiro ruim, roupas saindo com manchas escuras ou resíduos de sabão? O problema quase sempre está dentro do tambor — e a solução costuma ser mais simples do que parece.</p>
   </div>
 
-  <div class="article-toc">
-    <div class="toc-title">Neste guia</div>
-    <ol>
-      <li><a href="#antes-de-comecar">Antes de começar: o que você vai precisar</a></li>
-      <li><a href="#ciclo-limpeza">Passo 1 — Ciclo de limpeza com vinagre ou produto</a></li>
-      <li><a href="#remover-agitador">Passo 2 — Como remover e limpar o agitador</a></li>
-      <li><a href="#tambor-e-coagulo">Passo 3 — Limpar o tambor e o coágulo de sabão</a></li>
-      <li><a href="#filtro">Passo 4 — Limpar o filtro de fiapos</a></li>
-      <li><a href="#mangueiras">Passo 5 — Verificar as mangueiras</a></li>
-      <li><a href="#frequencia">Com que frequência fazer</a></li>
-      <li><a href="#faq">Perguntas frequentes</a></li>
-    </ol>
-  </div>
-
-  <div class="article-body">
-
-    <div class="article-alert">
-      ⚠️ <strong>Antes de qualquer coisa:</strong> desligue a máquina da tomada e feche o registro de água. Nunca trabalhe com a máquina ligada à rede elétrica.
-    </div>
-
-    <!-- 1 -->
-    <h2 id="antes-de-comecar">Antes de começar: o que você vai precisar</h2>
-    <p>Você não precisa de ferramentas especiais. Para a maioria das lavadoras verticais brasileiras (Brastemp, Consul, Electrolux, Samsung), basta ter em mãos:</p>
+  <div class="info-box">
+    <div class="info-box-title">Neste guia</div>
     <ul>
-      <li>Vinagre branco (2 litros) <em>ou</em> produto específico para limpeza de lavadoras</li>
-      <li>Esponja ou pano macio (sem lado abrasivo)</li>
+      <li><a href="#antes-de-comecar" style="color:var(--accent);font-weight:600;text-decoration:none;">Antes de começar: o que você vai precisar</a></li>
+      <li><a href="#ciclo-limpeza" style="color:var(--accent);font-weight:600;text-decoration:none;">Passo 1 — Ciclo de limpeza com vinagre ou produto</a></li>
+      <li><a href="#remover-agitador" style="color:var(--accent);font-weight:600;text-decoration:none;">Passo 2 — Como remover e limpar o agitador</a></li>
+      <li><a href="#tambor-e-acumulo" style="color:var(--accent);font-weight:600;text-decoration:none;">Passo 3 — Limpar o tambor e o acúmulo de sabão</a></li>
+      <li><a href="#filtro" style="color:var(--accent);font-weight:600;text-decoration:none;">Passo 4 — Limpar o filtro de fiapos</a></li>
+      <li><a href="#mangueiras" style="color:var(--accent);font-weight:600;text-decoration:none;">Passo 5 — Verificar as mangueiras</a></li>
+      <li><a href="#frequencia" style="color:var(--accent);font-weight:600;text-decoration:none;">Com que frequência fazer</a></li>
+      <li><a href="#faq" style="color:var(--accent);font-weight:600;text-decoration:none;">Perguntas frequentes</a></li>
+    </ul>
+  </div>
+
+  <div class="warn-box">
+    <p>⚠️ <strong>Antes de qualquer coisa:</strong> desligue a máquina da tomada e feche o registro de água. Nunca trabalhe com a lavadora ligada à rede elétrica.</p>
+  </div>
+
+  <div class="article-section" id="antes-de-comecar">
+    <h2>Antes de começar: o que você vai precisar</h2>
+    <p>Você não precisa de ferramentas especiais para a limpeza básica. Para a maioria das lavadoras verticais brasileiras, basta ter alguns itens simples em mãos.</p>
+    <ul>
+      <li>Vinagre branco <em>ou</em> produto específico para limpeza de lavadoras</li>
+      <li>Esponja ou pano macio, sem lado abrasivo</li>
       <li>Escova de dentes velha para cantos e frestas</li>
       <li>Chave de fenda Phillips</li>
       <li>Balde e luvas de borracha</li>
     </ul>
-    <p>A limpeza completa leva cerca de <strong>1h30</strong>, mas a maior parte do tempo é o ciclo rodando sozinho enquanto você faz outra coisa.</p>
+    <p>A limpeza completa leva cerca de <strong>1h30</strong>, mas boa parte desse tempo é o ciclo rodando sozinho.</p>
+  </div>
 
-    <!-- 2 -->
-    <h2 id="ciclo-limpeza">Passo 1 — Ciclo de limpeza com vinagre</h2>
-    <p>Comece com um <strong>ciclo vazio</strong> — sem roupas — para dissolver os resíduos de sabão e amaciante acumulados nas paredes internas.</p>
+  <div class="article-section" id="ciclo-limpeza">
+    <h2>Passo 1 — Ciclo de limpeza com vinagre</h2>
+    <p>Comece com um ciclo vazio, sem roupas, para dissolver resíduos de sabão e amaciante acumulados nas paredes internas da máquina.</p>
     <ol>
-      <li>Encha a máquina com <strong>água quente</strong> no nível máximo</li>
-      <li>Adicione <strong>2 xícaras de vinagre branco</strong> diretamente no tambor (não na gaveta)</li>
-      <li>Deixe agitar por 1 minuto, depois <strong>pause o ciclo e espere 30 minutos</strong></li>
-      <li>Retome e deixe completar o ciclo normalmente</li>
+      <li>Encha a máquina com água quente no nível máximo, se o modelo permitir</li>
+      <li>Adicione 2 xícaras de vinagre branco diretamente no tambor</li>
+      <li>Deixe agitar por 1 minuto, pause o ciclo e espere 30 minutos</li>
+      <li>Retome o ciclo e deixe completar normalmente</li>
     </ol>
-    <p>Se preferir usar produto industrializado (tipo Descalcificador ou pastilha de higienização), siga as instruções da embalagem — o princípio é o mesmo.</p>
-
-    <div class="article-tip">
-      💡 <strong>Dica:</strong> Se a máquina tiver muito acúmulo (cheiro forte, manchas pretas nas roupas), faça dois ciclos seguidos antes de prosseguir.
+    <p>Se preferir usar produto industrializado para higienização de lavadora, siga as instruções da embalagem.</p>
+    <div class="tip-box">
+      <p>💡 <strong>Dica:</strong> Se a máquina estiver com muito cheiro ou soltando manchas escuras, faça dois ciclos vazios antes de limpar as peças internas.</p>
     </div>
+  </div>
 
-    <!-- 3 -->
-    <h2 id="remover-agitador">Passo 2 — Como remover e limpar o agitador</h2>
-    <p>O agitador é a peça central do tambor — aquela coluna com aletas que movimenta as roupas. É onde mais acumula coágulo de sabão, fiapos e até bolor.</p>
+  <div class="article-section" id="remover-agitador">
+    <h2>Passo 2 — Como remover e limpar o agitador</h2>
+    <p>O agitador é a peça central do tambor, aquela coluna com aletas que movimenta as roupas. É um dos pontos onde mais acumulam sabão, fiapos e sujeira.</p>
 
     <h3>Como soltar o agitador</h3>
-    <p>Na maioria das lavadoras verticais, o agitador é preso por um parafuso ou trava na parte superior:</p>
+    <p>Na maioria das lavadoras verticais, o agitador é preso por um parafuso ou trava na parte superior.</p>
     <ol>
-      <li>Remova a tampa ou cobertura do topo do agitador (geralmente encaixe, sem parafuso)</li>
-      <li>Localize o parafuso central — Phillips ou sextavado — e remova. Para Brastemp e Consul, o parafuso costuma ser 5/16"; use uma <a href="/product/chave-t-5-16-parafuso-do-agitador-lavadora-brastemp-consul">chave T 5/16 específica para agitador</a></li>
-      <li>Puxe o agitador para cima com firmeza. Pode precisar balançar suavemente para soltar</li>
-      <li>Nas Brastemp e Consul mais antigas, o agitador sai apenas puxando — sem parafuso</li>
+      <li>Remova a tampa ou cobertura do topo do agitador</li>
+      <li>Localize o parafuso central e remova com a chave correta</li>
+      <li>Puxe o agitador para cima com firmeza, sem torcer com força excessiva</li>
+      <li>Em alguns modelos antigos, o agitador pode sair apenas puxando</li>
     </ol>
+    <p>Para muitos modelos Brastemp e Consul, o parafuso costuma usar chave T 5/16.</p>
+    <p>
+      <span class="product-row"><a class="product-name-link" href="/product/chave-t-5-16-parafuso-do-agitador-lavadora-brastemp-consul">Chave T 5/16 para parafuso do agitador</a><a class="product-wa-btn wa-track" href="https://wa.me/{{ wa_number }}?text={{ msg_chave_t | urlencode }}" target="_blank" rel="noopener" data-product="Chave T 5/16 agitador"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg> Comprar agora</a></span>
+    </p>
 
-    <h3>Como limpar</h3>
+    <h3>Como limpar o agitador</h3>
     <ol>
-      <li>Leve o agitador para uma bancada ou banheiro</li>
-      <li>Esfregue com esponja e vinagre branco puro</li>
-      <li>Use a escova de dentes nas aletas e nas frestas internas</li>
-      <li>Enxague bem e seque antes de recolocar</li>
+      <li>Leve o agitador para uma bancada, tanque ou banheiro</li>
+      <li>Esfregue com esponja e vinagre branco</li>
+      <li>Use a escova de dentes nas aletas e frestas internas</li>
+      <li>Enxágue bem e seque antes de recolocar</li>
     </ol>
-
-    <div class="article-tip">
-      💡 Se o agitador estiver com a borracha rachada ou as aletas quebradas, é hora de trocar. Uma borracha velha pode manchar as roupas com fragmentos pretos. Veja o <a href="/product/agitador-consul-brastemp-lavadora-326006286">agitador Consul/Brastemp disponível na MTF</a>.
+    <div class="tip-box">
+      <p>💡 Se o agitador estiver rachado, com aletas quebradas ou soltando fragmentos escuros, pode ser hora de trocar a peça.</p>
     </div>
+    <p>
+      <span class="product-row"><a class="product-name-link" href="/product/agitador-consul-brastemp-lavadora-326006286">Agitador Consul/Brastemp para lavadora</a><a class="product-wa-btn wa-track" href="https://wa.me/{{ wa_number }}?text={{ msg_agitador | urlencode }}" target="_blank" rel="noopener" data-product="Agitador Consul Brastemp"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg> Comprar agora</a></span>
+    </p>
+  </div>
 
-    <!-- 4 -->
-    <h2 id="tambor-e-coagulo">Passo 3 — Limpar o tambor e o coágulo de sabão</h2>
-    <p>Com o agitador fora, você terá acesso à parte interna do tambor. É comum encontrar uma camada gelatinosa nas paredes — isso é o <strong>coágulo de sabão</strong>, formado pelo acúmulo de detergente e amaciante que não foi enxaguado completamente.</p>
+  <div class="article-section" id="tambor-e-acumulo">
+    <h2>Passo 3 — Limpar o tambor e o acúmulo de sabão</h2>
+    <p>Com o agitador fora, você consegue ver melhor a parte interna do tambor. É comum encontrar uma camada grudenta ou escura formada por excesso de sabão, amaciante e sujeira das roupas.</p>
     <ol>
-      <li>Molhe o pano com vinagre puro</li>
+      <li>Molhe um pano com vinagre branco</li>
       <li>Esfregue as paredes internas do tambor em movimentos circulares</li>
-      <li>Preste atenção na <strong>borda superior do tambor</strong> e na área sob o agitador — são os pontos com mais acúmulo</li>
-      <li>Para manchas mais resistentes, aplique vinagre e deixe agir por 10 minutos antes de esfregar</li>
-      <li>Enxague com pano úmido limpo</li>
+      <li>Limpe com atenção a borda superior do tambor e a área sob o agitador</li>
+      <li>Para sujeira resistente, aplique vinagre e deixe agir por 10 minutos</li>
+      <li>Finalize com pano úmido limpo</li>
     </ol>
+    <p>O excesso de produto é uma das principais causas desse acúmulo. Usar mais sabão não melhora a lavagem e pode deixar resíduos dentro da lavadora.</p>
+  </div>
 
-    <!-- 5 -->
-    <h2 id="filtro">Passo 4 — Limpar o filtro de fiapos</h2>
-    <p>A <strong>maioria das lavadoras verticais tem o filtro dentro do próprio agitador</strong> ou em uma cesta na lateral do tambor — não embaixo como nas frontais.</p>
+  <div class="article-section" id="filtro">
+    <h2>Passo 4 — Limpar o filtro de fiapos</h2>
+    <p>A maioria das lavadoras verticais tem o filtro dentro do próprio agitador ou em uma peça encaixada na lateral interna do tambor.</p>
 
     <h3>Onde fica o filtro</h3>
     <ul>
-      <li><strong>Brastemp e Consul:</strong> geralmente na parte inferior do agitador, no formato de cesta ou tubo</li>
-      <li><strong>Electrolux Turbo:</strong> na lateral interna do tambor, encaixado</li>
-      <li><strong>Samsung:</strong> pode ter filtro na mangueira de saída — consulte o manual</li>
+      <li><strong>Brastemp e Consul:</strong> geralmente na parte inferior do agitador, em formato de cesta ou tubo</li>
+      <li><strong>Electrolux:</strong> muitas vezes fica na lateral interna do tambor</li>
+      <li><strong>Samsung e outros modelos:</strong> pode variar bastante; consulte o manual quando possível</li>
     </ul>
 
     <h3>Como limpar</h3>
     <ol>
-      <li>Remova o filtro — geralmente gira no sentido anti-horário ou encaixa por pressão</li>
+      <li>Remova o filtro com cuidado</li>
       <li>Retire os fiapos com os dedos</li>
-      <li>Lave em água corrente com escova de dentes</li>
-      <li>Recoloque no lugar com cuidado — um filtro mal encaixado pode provocar <a href="/blog/maquina-de-lavar-vazando-agua">vazamentos</a></li>
+      <li>Lave em água corrente com uma escova pequena</li>
+      <li>Recoloque no lugar e confira se ficou bem encaixado</li>
     </ol>
-
-    <div class="article-alert">
-      ⚠️ Se o filtro estiver com bolor profundo ou completamente entupido e não limpar com escova, é melhor <strong>trocar o filtro</strong> do que reutilizá-lo. Um filtro danificado compromete a lavagem e pode derramar fiapos nas roupas.
+    <div class="warn-box">
+      <p>⚠️ Se o filtro estiver quebrado, com bolor profundo ou completamente entupido, pode ser melhor trocar a peça. Filtro danificado pode espalhar fiapos nas roupas e atrapalhar a lavagem.</p>
     </div>
+  </div>
 
-    <!-- 6 -->
-    <h2 id="mangueiras">Passo 5 — Verificar as mangueiras</h2>
-    <p>Aproveite a limpeza para dar uma olhada nas mangueiras de entrada e saída de água. Não é necessário remová-las, mas vale verificar:</p>
+  <div class="article-section" id="mangueiras">
+    <h2>Passo 5 — Verificar as mangueiras</h2>
+    <p>Aproveite a limpeza para verificar as mangueiras de entrada e saída de água. Não é obrigatório remover tudo, mas vale olhar se há ressecamento, rachadura ou conexão frouxa.</p>
     <ul>
-      <li>Sinais de ressecamento, rachadura ou bolor na borracha</li>
-      <li>Conexões bem firmes nas duas pontas</li>
-      <li>Ausência de dobras acentuadas que impeçam o fluxo de água</li>
+      <li>Sinais de borracha ressecada</li>
+      <li>Rachaduras ou pontos com bolor</li>
+      <li>Conexões mal apertadas</li>
+      <li>Dobras que dificultam a passagem da água</li>
     </ul>
-    <p>Mangueiras ressecadas são uma causa comum de <a href="/blog/maquina-de-lavar-vazando-agua">vazamentos embaixo da máquina</a> — muitas vezes confundidos com defeito na bomba. Se precisar trocar, a MTF tem:</p>
+    <p>Mangueira velha é uma causa comum de vazamento em lavadora. Muitas vezes o cliente pensa que é bomba, mas o problema está em uma conexão ou borracha desgastada.</p>
+
+    <h3>Peças úteis para manutenção</h3>
+    <p>
+      <span class="product-row"><a class="product-name-link" href="/product/mangueira-de-entrada-para-lavadora-2m">Mangueira de entrada para lavadora 2m</a><a class="product-wa-btn wa-track" href="https://wa.me/{{ wa_number }}?text={{ msg_mangueira_entrada | urlencode }}" target="_blank" rel="noopener" data-product="Mangueira entrada lavadora"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg> Comprar agora</a></span>
+    </p>
+    <p>
+      <span class="product-row"><a class="product-name-link" href="/product/mangueira-de-saida-para-lavadora">Mangueira de saída para lavadora</a><a class="product-wa-btn wa-track" href="https://wa.me/{{ wa_number }}?text={{ msg_mangueira_saida | urlencode }}" target="_blank" rel="noopener" data-product="Mangueira saída lavadora"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg> Comprar agora</a></span>
+    </p>
+    <p>
+      <span class="product-row"><a class="product-name-link" href="/product/mangueira-do-dreno">Mangueira do dreno</a><a class="product-wa-btn wa-track" href="https://wa.me/{{ wa_number }}?text={{ msg_mangueira_dreno | urlencode }}" target="_blank" rel="noopener" data-product="Mangueira dreno lavadora"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg> Comprar agora</a></span>
+    </p>
+    <p>
+      <span class="product-row"><a class="product-name-link" href="/product/kit-mangueira-de-lavadora">Kit mangueira de lavadora</a><a class="product-wa-btn wa-track" href="https://wa.me/{{ wa_number }}?text={{ msg_kit_mangueira | urlencode }}" target="_blank" rel="noopener" data-product="Kit mangueira lavadora"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg> Comprar agora</a></span>
+    </p>
+  </div>
+
+  <div class="article-section" id="frequencia">
+    <h2>Com que frequência fazer a limpeza</h2>
     <ul>
-      <li><a href="/product/mangueira-de-entrada-para-lavadora-2m">Mangueira de entrada 2m</a></li>
-      <li><a href="/product/mangueira-de-saida-para-lavadora">Mangueira de saída</a></li>
-      <li><a href="/product/mangueira-do-dreno">Mangueira do dreno</a></li>
-      <li><a href="/product/kit-mangueira-de-lavadora">Kit mangueira completo</a></li>
+      <li><strong>Ciclo de limpeza:</strong> uma vez por mês</li>
+      <li><strong>Agitador e tambor:</strong> a cada 3 meses</li>
+      <li><strong>Filtro de fiapos:</strong> a cada 2 meses ou quando a lavagem piorar</li>
+      <li><strong>Mangueiras:</strong> a cada 6 meses ou quando aparecer umidade no chão</li>
     </ul>
-
-    <!-- 7 -->
-    <h2 id="frequencia">Com que frequência fazer a limpeza</h2>
-    <ul>
-      <li><strong>Ciclo de vinagre (passo 1):</strong> todo mês</li>
-      <li><strong>Agitador + tambor (passos 2 e 3):</strong> a cada 3 meses</li>
-      <li><strong>Filtro de fiapos (passo 4):</strong> a cada 2 meses ou quando a lavagem piorar</li>
-      <li><strong>Mangueiras (passo 5):</strong> a cada 6 meses ou se aparecer umidade no chão</li>
-    </ul>
-
-    <div class="article-tip">
-      💡 <strong>Prevenção:</strong> usar a quantidade certa de sabão é o fator mais importante. Excesso de detergente forma coágulo muito mais rápido e é a principal causa de odor e manchas.
+    <div class="tip-box">
+      <p>💡 <strong>Prevenção:</strong> usar a quantidade certa de sabão é o fator mais importante. Excesso de produto forma sujeira acumulada mais rápido e favorece mau cheiro.</p>
     </div>
+  </div>
 
-    <!-- FAQ -->
-    <h2 id="faq">Perguntas frequentes</h2>
+  <div class="article-section" id="faq">
+    <h2>Perguntas frequentes</h2>
 
-    <div class="faq-item">
-      <div class="faq-question">Com que frequência devo limpar a máquina de lavar por dentro?</div>
-      <div class="faq-answer">O ideal é fazer uma limpeza completa a cada 1 a 3 meses, dependendo da frequência de uso. Famílias que lavam roupa todos os dias devem fazer mensalmente.</div>
-    </div>
+    <h3>Com que frequência devo limpar a máquina de lavar por dentro?</h3>
+    <p>O ideal é fazer uma limpeza completa a cada 1 a 3 meses, dependendo da frequência de uso. Famílias que lavam roupa todos os dias devem fazer mensalmente.</p>
 
-    <div class="faq-item">
-      <div class="faq-question">Posso usar vinagre para limpar a máquina de lavar?</div>
-      <div class="faq-answer">Sim. Vinagre branco é eficaz para desinfetar e remover resíduos de sabão. Use 2 xícaras no ciclo de limpeza sem roupa. Não misture com água sanitária.</div>
-    </div>
+    <h3>Posso usar vinagre para limpar a máquina de lavar?</h3>
+    <p>Sim. Vinagre branco pode ajudar a remover resíduos de sabão e mau cheiro. Use no ciclo vazio e nunca misture com água sanitária.</p>
 
-    <div class="faq-item">
-      <div class="faq-question">Preciso de ferramenta para tirar o agitador?</div>
-      <div class="faq-answer">Na maioria das lavadoras verticais brasileiras (Brastemp, Consul, Electrolux) o agitador é removido com as mãos ou com uma chave de fenda simples. Não é preciso técnico.</div>
-    </div>
+    <h3>Preciso de ferramenta para tirar o agitador?</h3>
+    <p>Depende do modelo. Muitas lavadoras verticais usam parafuso central, e alguns modelos Brastemp e Consul usam chave T 5/16. O ideal é verificar o encaixe antes de forçar.</p>
 
-    <div class="faq-item">
-      <div class="faq-question">A máquina ficou com mau cheiro depois da limpeza, o que fazer?</div>
-      <div class="faq-answer">Faça um ciclo completo com 2 xícaras de vinagre branco e água quente. Depois deixe a tampa aberta por algumas horas para secar por dentro. Se o cheiro persistir, o filtro pode estar com fungos e precisa de substituição.</div>
-    </div>
+    <h3>A máquina ficou com mau cheiro depois da limpeza. O que fazer?</h3>
+    <p>Faça mais um ciclo vazio, deixe a tampa aberta por algumas horas e confira se o filtro não ficou com sujeira presa. Se o cheiro persistir, pode haver acúmulo em peça interna.</p>
 
-    <div class="faq-item">
-      <div class="faq-question">Roupas saindo com manchas pretas após a limpeza são normais?</div>
-      <div class="faq-answer">Não. Fragmentos pretos são resíduos de borracha velha ou lodo acumulado que se soltaram durante a limpeza. Faça mais um ciclo vazio com vinagre. Se persistir, pode ser a borracha do agitador que precisou de troca.</div>
-    </div>
-
-  </div><!-- .article-body -->
+    <h3>Roupas saindo com manchas pretas após a limpeza são normais?</h3>
+    <p>Não. Fragmentos escuros podem ser sujeira antiga se soltando, lodo acumulado ou borracha desgastada. Faça mais um ciclo vazio e confira agitador, filtro e mangueiras.</p>
+  </div>
 
   <div class="cta-block">
     <h3>Limpeza feita, mas a máquina ainda está com problema?</h3>
-    <p>Às vezes a limpeza revela um problema que já estava escondido — borracha desgastada, filtro rachado ou mangueira ressecada. Na MTF Refrigeração você encontra as peças certas para Brastemp, Consul e Electrolux.</p>
-    <a class="cta-wa wa-track"
-       href="https://wa.me/{{ wa_number }}?text=Ol%C3%A1%21%20Limpei%20minha%20m%C3%A1quina%20de%20lavar%20e%20ainda%20est%C3%A1%20com%20problema.%20Pode%20me%20ajudar%3F"
-       target="_blank" rel="noopener" data-product="Artigo limpeza máquina">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.126 1.532 5.858L0 24l6.293-1.51A11.933 11.933 0 0012 24c6.627 0 12-5.373 12-5.373V12S18.627 0 12 0zm0 22a10 10 0 01-5.006-1.346l-.36-.214-3.733.923.955-3.643-.232-.373A9.973 9.973 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+    <p>Às vezes a limpeza revela um problema que já estava escondido: borracha desgastada, filtro rachado, mangueira ressecada, agitador quebrado ou outra peça da lavadora.</p>
+    <a class="cta-wa wa-track" href="https://wa.me/{{ wa_number }}?text={{ msg_limpeza | urlencode }}" target="_blank" rel="noopener" data-product="Artigo limpeza máquina">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
       Descrever o problema no WhatsApp
     </a>
-
   </div>
 
   <div class="related-articles">
@@ -270,12 +330,23 @@
     </div>
   </div>
 
-</div><!-- .article-wrap -->
+</div>
 
-<a class="wa-float wa-track"
-   href="https://wa.me/{{ wa_number }}?text=Ol%C3%A1%21%20Tenho%20uma%20d%C3%BAvida%20sobre%20m%C3%A1quina%20de%20lavar."
-   target="_blank" rel="noopener" data-product="Float limpeza máquina"
-   aria-label="Falar no WhatsApp">
-  <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.126 1.532 5.858L0 24l6.293-1.51A11.933 11.933 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 01-5.006-1.346l-.36-.214-3.733.923.955-3.643-.232-.373A9.973 9.973 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+<a class="wa-float wa-track" href="https://wa.me/{{ wa_number }}?text=Ol%C3%A1%21%20Tenho%20uma%20d%C3%BAvida%20sobre%20m%C3%A1quina%20de%20lavar." target="_blank" rel="noopener" data-product="Blog WA float">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+  <span>Falar no WhatsApp</span>
 </a>
-{% endblock %}
+
+<footer>M.T.F Refrigeração · Rio de Janeiro</footer>
+
+<script>
+document.querySelectorAll('.wa-track').forEach(el=>{
+  el.addEventListener('click',function(){
+    const product=this.dataset.product||'Geral';
+    if(typeof gtag!=='undefined')gtag('event','whatsapp_click',{product_name:product});
+    fetch('/api/track/whatsapp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({product})}).catch(()=>{});
+  });
+});
+</script>
+</body>
+</html>
