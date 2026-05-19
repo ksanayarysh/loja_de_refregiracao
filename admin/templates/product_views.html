@@ -1,0 +1,244 @@
+{% extends '_base_admin.html' %}
+{% block title %}Visualizações de produtos — M.T.F{% endblock %}
+
+{% block extra_styles %}
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, Helvetica, sans-serif; background: bisque; min-height: 100vh; font-size: 15px; }
+
+  .content { padding: 24px; display: flex; flex-direction: column; gap: 20px; overflow-x: auto; }
+  h1 { font-size: 1.4rem; color: #111; margin-bottom: 4px; }
+
+  .period-bar { background: #fff; border-radius: 12px; padding: 12px 16px; box-shadow: 0 2px 8px rgba(0,0,0,.06); display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .period-btn { padding: 7px 13px; border-radius: 8px; border: 1px solid #ccc; background: #fff; color: #111; font-weight: 700; font-size: .85rem; cursor: pointer; text-decoration: none; font-family: inherit; white-space: nowrap; }
+  .period-btn:hover { background: bisque; }
+  .period-btn.active { background: #111827; color: #fff; border-color: #111827; }
+
+  .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .sum-card { background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,.06); border-left: 4px solid #E2144A; }
+  .sum-label { font-size: .72rem; font-weight: 800; color: #888; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px; }
+  .sum-value { font-size: 1.6rem; font-weight: 900; color: #111; }
+  .sum-sub { font-size: .78rem; color: #888; margin-top: 3px; }
+
+  .card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+  .card h2 { font-size: 1rem; font-weight: 900; color: #111; margin-bottom: 14px; }
+
+  table { width: 100%; border-collapse: collapse; }
+  th, td { padding: 8px 10px; border-bottom: 1px solid #f3f4f6; text-align: left; font-size: .85rem; }
+  th { font-weight: 900; color: #555; font-size: .75rem; text-transform: uppercase; }
+  .num { text-align: right; font-weight: 900; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #fafaf8; }
+
+  .bar-wrap { flex: 1; background: #f3f4f6; border-radius: 4px; height: 18px; }
+  .bar-fill { height: 100%; border-radius: 4px; background: #E2144A; }
+  .bar-fill.blue { background: #3b82f6; }
+  .bar-fill.orange { background: #f59e0b; }
+
+  /* Динамика по дням */
+  .daily-chart { display: flex; align-items: flex-end; gap: 3px; height: 100px; padding-top: 10px; }
+  .daily-col { display: flex; flex-direction: column; align-items: center; flex: 1; height: 100%; justify-content: flex-end; }
+  .daily-bar { width: 100%; background: #E2144A; border-radius: 2px 2px 0 0; min-height: 2px; transition: height .3s; position: relative; cursor: default; }
+  .daily-bar:hover::after { content: attr(data-tip); position: absolute; bottom: 110%; left: 50%; transform: translateX(-50%); background: #111; color: #fff; font-size: .65rem; padding: 3px 6px; border-radius: 4px; white-space: nowrap; z-index: 10; }
+  .daily-label { font-size: .55rem; color: #aaa; margin-top: 3px; white-space: nowrap; transform: rotate(-45deg); transform-origin: top left; margin-left: 5px; }
+
+  /* Дни недели */
+  .dow-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+  .dow-cell { text-align: center; }
+  .dow-bar-wrap { height: 70px; display: flex; align-items: flex-end; justify-content: center; margin-bottom: 4px; }
+  .dow-bar { width: 30px; background: #6366f1; border-radius: 4px 4px 0 0; min-height: 4px; }
+  .dow-label { font-size: .72rem; font-weight: 700; color: #374151; }
+  .dow-value { font-size: .68rem; color: #6b7280; }
+
+  /* Конверсия */
+  .conv-pct { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: .78rem; font-weight: 800; }
+  .conv-zero { background: #fee2e2; color: #991b1b; }
+  .conv-low  { background: #fef3c7; color: #92400e; }
+  .conv-ok   { background: #dcfce7; color: #166534; }
+
+  .rank { font-size: .75rem; font-weight: 900; color: #9ca3af; width: 24px; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .cat-pill { display: inline-block; padding: 2px 7px; border-radius: 6px; background: #f3f4f6; font-size: .75rem; color: #555; font-weight: 600; }
+
+  .nav-links { display: flex; gap: 10px; flex-wrap: wrap; }
+  .nav-link { padding: 7px 13px; border-radius: 8px; border: 1px solid #ccc; background: #fff; color: #111; font-weight: 700; font-size: .85rem; text-decoration: none; }
+  .nav-link:hover { background: bisque; }
+
+  @media (max-width: 900px) {
+    .summary-grid { grid-template-columns: 1fr 1fr; }
+    .two-col { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 600px) {
+    .summary-grid { grid-template-columns: 1fr; }
+    .dow-grid { gap: 4px; }
+    .dow-bar { width: 20px; }
+  }
+{% endblock %}
+
+{% block content %}
+<div class="content">
+
+  <div>
+    <h1>👁 Visualizações de produtos</h1>
+    <div style="font-size:.85rem;color:#888;margin-top:4px;">desde {{ since }} · últimos {{ days }} dias</div>
+  </div>
+
+  {# Navlinks para outros relatórios #}
+  <div class="nav-links">
+    <a class="nav-link" href="/reports">📊 Vendas</a>
+    <a class="nav-link" href="/reports/stock-alert">⚠️ Estoque crítico</a>
+    <a class="nav-link" href="/reports/stock-forecast">📦 Previsão estoque</a>
+    <a class="nav-link" href="/reports/price-history">💰 Histórico de preços</a>
+  </div>
+
+  {# Período #}
+  <div class="period-bar">
+    <span style="font-size:.82rem;color:#888;font-weight:700;">Período:</span>
+    {% for d, label in [(7,"7 dias"), (14,"14 dias"), (30,"30 dias"), (60,"60 dias"), (90,"90 dias")] %}
+    <a class="period-btn {% if days==d %}active{% endif %}" href="/reports/product-views?days={{ d }}">{{ label }}</a>
+    {% endfor %}
+  </div>
+
+  {# Resumo #}
+  <div class="summary-grid">
+    <div class="sum-card">
+      <div class="sum-label">👁 Total de visualizações</div>
+      <div class="sum-value">{{ totals.total or 0 }}</div>
+      <div class="sum-sub">últimos {{ days }} dias</div>
+    </div>
+    <div class="sum-card" style="border-left-color:#6366f1;">
+      <div class="sum-label">👤 Visitantes únicos</div>
+      <div class="sum-value" style="color:#6366f1;">{{ totals.uniq_visitors or 0 }}</div>
+      <div class="sum-sub">IPs distintos</div>
+    </div>
+    <div class="sum-card" style="border-left-color:#10b981;">
+      <div class="sum-label">📦 Produtos vistos</div>
+      <div class="sum-value" style="color:#10b981;">{{ totals.uniq_products or 0 }}</div>
+      <div class="sum-sub">produtos distintos</div>
+    </div>
+  </div>
+
+  {# Gráfico diário #}
+  <div class="card">
+    <h2>📈 Visualizações por dia</h2>
+    {% if daily %}
+      {% set max_views = daily | map(attribute='views') | max %}
+      <div class="daily-chart">
+        {% for d in daily %}
+          {% set h = ((d.views / max_views) * 100) | int if max_views > 0 else 2 %}
+          <div class="daily-col">
+            <div class="daily-bar"
+                 style="height:{{ [h,2]|max }}%;"
+                 data-tip="{{ d.label }}: {{ d.views }} views ({{ d.uniq }} únicos)"></div>
+            {% if loop.index % (daily|length // 10 + 1) == 0 or loop.first or loop.last %}
+            <div class="daily-label">{{ d.label }}</div>
+            {% else %}
+            <div class="daily-label" style="opacity:0;">{{ d.label }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div style="color:#888;font-size:.9rem;">Sem dados ainda.</div>
+    {% endif %}
+  </div>
+
+  <div class="two-col">
+
+    {# Top produtos #}
+    <div class="card">
+      <h2>🏆 Top produtos mais vistos</h2>
+      {% if top_viewed %}
+        {% set max_v = top_viewed[0].views %}
+        <table>
+          <thead><tr>
+            <th>#</th>
+            <th>Produto</th>
+            <th class="num">Views</th>
+            <th class="num">Únicos</th>
+          </tr></thead>
+          <tbody>
+          {% for r in top_viewed %}
+          <tr>
+            <td class="rank">{{ loop.index }}</td>
+            <td>
+              <a href="/product/{{ r.slug }}" target="_blank" style="font-weight:700;color:#111;text-decoration:none;">{{ r.name or r.slug }}</a>
+              <div><span class="cat-pill">{{ r.category_name }}</span></div>
+              <div style="margin-top:4px;">
+                <div class="bar-wrap" style="display:block;height:6px;border-radius:3px;">
+                  <div class="bar-fill" style="width:{{ ((r.views / max_v) * 100)|int }}%;height:6px;border-radius:3px;"></div>
+                </div>
+              </div>
+            </td>
+            <td class="num">{{ r.views }}</td>
+            <td class="num" style="color:#6b7280;">{{ r.unique_ips }}</td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <div style="color:#888;font-size:.9rem;">Sem visualizações registradas ainda.<br>Elas aparecem aqui conforme os clientes acessam as páginas de produto.</div>
+      {% endif %}
+    </div>
+
+    {# Dias da semana #}
+    <div class="card">
+      <h2>📅 Visualizações por dia da semana</h2>
+      {% if by_dow %}
+        {% set max_dow = by_dow | map(attribute='views') | max %}
+        <div class="dow-grid">
+          {% for d in by_dow %}
+          <div class="dow-cell">
+            <div class="dow-bar-wrap">
+              <div class="dow-bar" style="height:{% if max_dow > 0 %}{{ ((d.views / max_dow) * 70)|int }}px{% else %}4px{% endif %};"></div>
+            </div>
+            <div class="dow-label">{{ d.label }}</div>
+            <div class="dow-value">{{ d.views }}</div>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div style="color:#888;font-size:.9rem;">Sem dados.</div>
+      {% endif %}
+    </div>
+
+  </div>
+
+  {# Produtos sem conversão #}
+  <div class="card">
+    <h2>🚨 Vistos mas não consultados no WhatsApp</h2>
+    <div style="font-size:.82rem;color:#888;margin-bottom:12px;">Produtos com ≥ 3 visualizações e baixa conversão para WhatsApp — potencial de melhoria de preço, foto ou descrição.</div>
+    {% if no_conversion %}
+      <table>
+        <thead><tr>
+          <th>Produto</th>
+          <th class="num">Views</th>
+          <th class="num">WA cliques</th>
+          <th class="num">Conversão</th>
+        </tr></thead>
+        <tbody>
+        {% for r in no_conversion %}
+          {% set conv = ((r.wa_clicks / r.views) * 100) | round(1) if r.views > 0 else 0 %}
+          <tr>
+            <td>
+              <a href="/product/{{ r.slug }}" target="_blank" style="font-weight:700;color:#111;text-decoration:none;">{{ r.name or r.slug }}</a>
+              <div><span class="cat-pill">{{ r.category_name }}</span></div>
+            </td>
+            <td class="num">{{ r.views }}</td>
+            <td class="num">{{ r.wa_clicks }}</td>
+            <td class="num">
+              <span class="conv-pct {% if conv == 0 %}conv-zero{% elif conv < 20 %}conv-low{% else %}conv-ok{% endif %}">
+                {{ conv }}%
+              </span>
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div style="color:#888;font-size:.9rem;">Sem dados suficientes ainda (mínimo 3 visualizações por produto).</div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

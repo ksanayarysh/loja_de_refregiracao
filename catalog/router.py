@@ -140,6 +140,57 @@ async def _send_tg(message: str):
         pass
 
 
+
+# ── PRODUCT VIEW TRACKING ──────────────────────────────────────────────────────
+_view_cache: dict = {}   # (ip, slug) -> timestamp, дедупликация 1 час
+_view_table_ready = False
+
+async def _ensure_views_table():
+    global _view_table_ready
+    if _view_table_ready:
+        return
+    async with engine.begin() as conn:
+        await conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS product_views (
+                id          SERIAL PRIMARY KEY,
+                product_id  INTEGER,
+                slug        VARCHAR(200),
+                ip          VARCHAR(64),
+                user_agent  VARCHAR(200),
+                viewed_at   TIMESTAMPTZ DEFAULT NOW()
+            )
+        """))
+        await conn.execute(text(
+            "CREATE INDEX IF NOT EXISTS ix_pv_slug ON product_views(slug)"
+        ))
+        await conn.execute(text(
+            "CREATE INDEX IF NOT EXISTS ix_pv_viewed ON product_views(viewed_at)"
+        ))
+    _view_table_ready = True
+
+async def _track_product_view(product_id: int, slug: str, ip: str, ua: str):
+    import time
+    if ip in _EXCLUDED_IPS:
+        return
+    key = (ip, slug)
+    if time.time() - _view_cache.get(key, 0) < 3600:
+        return
+    _view_cache[key] = time.time()
+    # Ограничиваем размер кеша
+    if len(_view_cache) > 10000:
+        oldest = min(_view_cache.keys(), key=lambda k: _view_cache[k])
+        del _view_cache[oldest]
+    try:
+        await _ensure_views_table()
+        async with engine.begin() as conn:
+            await conn.execute(text("""
+                INSERT INTO product_views (product_id, slug, ip, user_agent, viewed_at)
+                VALUES (:pid, :slug, :ip, :ua, NOW())
+            """), {"pid": product_id, "slug": slug, "ip": ip, "ua": ua[:200]})
+    except Exception:
+        pass
+# ──────────────────────────────────────────────────────────────────────────────
+
 # ── VISIT TRACKING ─────────────────────────────────────────────────────────────
 _visit_cache: dict = {}  # ip -> timestamp, чтобы не спамить с одного IP
 _EXCLUDED_IPS = {"177.192.23.188"}  # свои IP — не трекать
@@ -283,15 +334,11 @@ async def _get_products(conn):
     res = await conn.execute(text("""
         SELECT p.id, p.name, p.sale_price, p.unit, p.image, p.description,
                COALESCE(c.name, 'Outro') AS category_name,
-               c2.name AS category2_name,
-               GREATEST(0, COALESCE(SUM(sm.qty), 0)) AS current_stock
+               c2.name AS category2_name
         FROM products p
         LEFT JOIN categories c  ON c.id  = p.category_id
         LEFT JOIN categories c2 ON c2.id = p.category2_id
-        LEFT JOIN stock_movements sm ON sm.product_id = p.id
         WHERE p.active = TRUE
-        GROUP BY p.id, p.name, p.sale_price, p.unit, p.image, p.description,
-                 c.name, c2.name
         ORDER BY
             CASE WHEN c.name ILIKE '%gas%' OR c.name ILIKE '%gás%' THEN 0 ELSE 1 END,
             c.name NULLS LAST,
@@ -306,7 +353,6 @@ async def _get_products(conn):
             r["image"] = ADMIN_URL + r["image"]
         if r.get("sale_price") is not None:
             r["sale_price"] = float(r["sale_price"])
-        r["current_stock"] = float(r.get("current_stock") or 0)
         result.append(r)
     return result
 
@@ -458,6 +504,11 @@ async def product_page(request: Request, slug: str):
 
     if not product:
         return HTMLResponse("Produto não encontrado", status_code=404)
+
+    # Fire-and-forget трекинг просмотра
+    ip = request.client.host if request.client else "unknown"
+    ua = request.headers.get("user-agent", "")
+    asyncio.ensure_future(_track_product_view(product["id"], slug, ip, ua))
 
     related = []
     for r in rows:

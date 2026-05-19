@@ -655,3 +655,120 @@ async def reports(
         "gas_seasonality": gas_seasonality,
         "monthly_daily": monthly_daily,
     })
+
+
+@router.get("/reports/product-views", response_class=HTMLResponse)
+async def product_views_report(
+    request: Request,
+    days: int = Query(30),
+    _=Depends(basic_auth),
+):
+    from datetime import date as _date
+    since = _date.today() - timedelta(days=days)
+
+    async with engine.connect() as conn:
+
+        # 1. Топ товаров по просмотрам
+        top_res = await conn.execute(text("""
+            SELECT
+                pv.slug,
+                pv.product_id,
+                p.name,
+                COALESCE(c.name, 'Outro') AS category_name,
+                COUNT(*)                  AS views,
+                COUNT(DISTINCT pv.ip)     AS unique_ips
+            FROM product_views pv
+            LEFT JOIN products p  ON p.id  = pv.product_id
+            LEFT JOIN categories c ON c.id = p.category_id
+            WHERE pv.viewed_at::date >= :since
+            GROUP BY pv.slug, pv.product_id, p.name, c.name
+            ORDER BY views DESC
+            LIMIT 30
+        """), {"since": since})
+        top_viewed = top_res.mappings().all()
+
+        # 2. Просмотры vs WA-клики (без конверсии)
+        no_conv_res = await conn.execute(text("""
+            SELECT
+                pv.slug,
+                pv.product_id,
+                p.name,
+                COALESCE(c.name, 'Outro')     AS category_name,
+                COUNT(*)                       AS views,
+                COUNT(DISTINCT pv.ip)          AS unique_ips,
+                COALESCE(wa.clicks, 0)         AS wa_clicks
+            FROM product_views pv
+            LEFT JOIN products p   ON p.id  = pv.product_id
+            LEFT JOIN categories c ON c.id  = p.category_id
+            LEFT JOIN (
+                SELECT product_name, COUNT(*) AS clicks
+                FROM catalog_clicks
+                WHERE clicked_at::date >= :since
+                GROUP BY product_name
+            ) wa ON wa.product_name = p.name
+            WHERE pv.viewed_at::date >= :since
+            GROUP BY pv.slug, pv.product_id, p.name, c.name, wa.clicks
+            HAVING COUNT(*) >= 3
+            ORDER BY (COUNT(*) - COALESCE(wa.clicks, 0)) DESC
+            LIMIT 25
+        """), {"since": since})
+        no_conversion = no_conv_res.mappings().all()
+
+        # 3. Динамика по дням недели
+        dow_res = await conn.execute(text("""
+            SELECT
+                EXTRACT(DOW FROM pv.viewed_at)::int AS dow,
+                COUNT(*)                             AS views,
+                COUNT(DISTINCT pv.ip)                AS unique_ips
+            FROM product_views pv
+            WHERE pv.viewed_at::date >= :since
+            GROUP BY dow
+            ORDER BY dow
+        """), {"since": since})
+        by_dow_raw = {r["dow"]: {"views": int(r["views"]), "uniq": int(r["unique_ips"])}
+                      for r in dow_res.mappings().all()}
+        dow_labels = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"]
+        by_dow = [{"label": dow_labels[i], **by_dow_raw.get(i, {"views": 0, "uniq": 0})}
+                  for i in range(7)]
+
+        # 4. Динамика по дням месяца (последние 30 дней)
+        daily_res = await conn.execute(text("""
+            SELECT
+                pv.viewed_at::date AS day,
+                COUNT(*)            AS views,
+                COUNT(DISTINCT pv.ip) AS unique_ips
+            FROM product_views pv
+            WHERE pv.viewed_at::date >= :since
+            GROUP BY pv.viewed_at::date
+            ORDER BY day ASC
+        """), {"since": since})
+        daily_raw = {r["day"]: {"views": int(r["views"]), "uniq": int(r["unique_ips"])}
+                     for r in daily_res.mappings().all()}
+
+        from datetime import timedelta as _td
+        today = _date.today()
+        daily = []
+        for i in range(days):
+            d = since + _td(days=i)
+            entry = daily_raw.get(d, {"views": 0, "uniq": 0})
+            daily.append({"date": d.isoformat(), "label": d.strftime("%-d/%m"), **entry})
+
+        # 5. Итоговые цифры
+        total_res = await conn.execute(text("""
+            SELECT COUNT(*) AS total, COUNT(DISTINCT ip) AS uniq_visitors,
+                   COUNT(DISTINCT slug) AS uniq_products
+            FROM product_views
+            WHERE viewed_at::date >= :since
+        """), {"since": since})
+        totals = dict(total_res.mappings().first() or {})
+
+    return templates.TemplateResponse("product_views.html", {
+        "request":       request,
+        "days":          days,
+        "since":         since.isoformat(),
+        "top_viewed":    top_viewed,
+        "no_conversion": no_conversion,
+        "by_dow":        by_dow,
+        "daily":         daily,
+        "totals":        totals,
+    })
