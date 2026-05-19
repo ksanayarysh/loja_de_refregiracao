@@ -276,6 +276,7 @@ async def products_list(
             {"limit": per_page, "offset": offset},
         )
         rows = rows_res.mappings().all()
+        categories = await _get_categories(conn)
 
     total_pages = max(1, ceil(total_count / per_page))
     page        = min(page, total_pages)
@@ -283,6 +284,7 @@ async def products_list(
     return templates.TemplateResponse("products_list.html", {
         "request": request, "rows": rows, "page": page, "per_page": per_page,
         "total_pages": total_pages, "total_count": total_count,
+        "categories": categories,
         "sort": sort if sort in SORT_FIELDS else "name",
         "direction": "desc" if direction.lower() == "desc" else "asc",
         "deleted": request.query_params.get("deleted") == "1",
@@ -337,6 +339,50 @@ Regras:
         return {"description": text_out.strip()}
     except Exception as e:
         return {"error": str(e)}
+
+
+@router.get("/api/products/model-search")
+async def api_model_search(
+    q: str = Query(""),
+    category_id: Optional[int] = Query(None),
+    _=Depends(basic_auth),
+):
+    """Busca por modelo ou marca no nome e descrição do produto."""
+    if not q.strip():
+        return []
+    async with engine.connect() as conn:
+        where = "p.active = TRUE AND (LOWER(p.name) LIKE LOWER(:q) OR LOWER(COALESCE(p.description,'')) LIKE LOWER(:q))"
+        params: dict = {"q": f"%{q.strip()}%"}
+        if category_id:
+            where += " AND p.category_id = :cat_id"
+            params["cat_id"] = category_id
+        res = await conn.execute(
+            text(f"""SELECT p.id, p.name, p.sale_price, p.unit, p.image, p.description,
+                           c.name as category_name,
+                           GREATEST(0, COALESCE(SUM(sm.qty), 0)) as current_stock
+                    FROM products p
+                    LEFT JOIN categories c ON c.id = p.category_id
+                    LEFT JOIN stock_movements sm ON sm.product_id = p.id
+                    WHERE {where}
+                    GROUP BY p.id, p.name, p.sale_price, p.unit, p.image, p.description, c.name
+                    ORDER BY p.name
+                    LIMIT 100"""),
+            params,
+        )
+        rows = res.mappings().all()
+    return [
+        {
+            "id": r["id"],
+            "name": r["name"],
+            "sale_price": float(r["sale_price"] or 0),
+            "unit": r["unit"] or "un",
+            "image": r["image"],
+            "category_name": r["category_name"] or "Outro",
+            "current_stock": float(r["current_stock"]),
+            "description": (r["description"] or "")[:120],
+        }
+        for r in rows
+    ]
 
 
 @router.get("/api/products")

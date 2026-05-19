@@ -59,7 +59,33 @@
     .cat-filter-input{width:100%;max-width:320px;padding:8px 12px 8px 34px;border:1px solid #ccc;border-radius:8px;font-size:.92rem;font-family:inherit;background:#fff;outline:none;}
     .cat-filter-input:focus{border-color:#E2144A;}
     .cat-no-match{padding:12px;color:#888;font-size:.9rem;display:none;}
-    @media(max-width:600px){.topbar-right{margin-left:0;}.search-input{width:100%;}}
+    .model-search-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px;padding:14px;background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;}
+    .model-search-bar label{font-weight:900;font-size:.88rem;color:#7c2d12;white-space:nowrap;}
+    .model-search-input{padding:8px 10px;border:1px solid #ccc;border-radius:8px;font-size:.95rem;font-family:inherit;width:220px;outline:none;}
+    .model-search-input:focus{border-color:#E2144A;}
+    .model-cat-select{padding:8px 10px;border:1px solid #ccc;border-radius:8px;font-size:.9rem;font-family:inherit;background:#fff;outline:none;max-width:200px;}
+    .model-cat-select:focus{border-color:#E2144A;}
+    .model-search-btn{padding:8px 14px;border:none;background:#E2144A;color:#fff;border-radius:8px;cursor:pointer;font-size:.9rem;font-weight:800;font-family:inherit;}
+    .model-search-btn:hover{background:#b91c3a;}
+    .model-clear-btn{padding:8px 12px;border:1px solid #ccc;background:#fff;color:#555;border-radius:8px;cursor:pointer;font-size:.88rem;font-weight:700;font-family:inherit;}
+    .model-clear-btn:hover{background:#f3f4f6;}
+    #model-results{display:none;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:16px;margin-bottom:14px;}
+    #model-results.show{display:block;}
+    #model-results h3{font-size:1rem;font-weight:900;color:#111;margin-bottom:4px;}
+    #model-results .result-count{font-size:.82rem;color:#888;margin-bottom:12px;}
+    .mresult-item{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid #eee;flex-wrap:wrap;}
+    .mresult-item:last-child{border-bottom:none;}
+    .mresult-img{width:44px;height:44px;object-fit:cover;border-radius:6px;border:1px solid #e5e7eb;flex-shrink:0;}
+    .mresult-img-ph{width:44px;height:44px;border-radius:6px;background:#f3f4f6;border:1px solid #e5e7eb;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;}
+    .mresult-info{flex:1;min-width:160px;}
+    .mresult-name{font-size:.97rem;font-weight:900;color:#111;}
+    .mresult-cat{font-size:.78rem;color:#888;margin-top:1px;}
+    .mresult-desc{font-size:.8rem;color:#555;margin-top:3px;line-height:1.4;}
+    .mresult-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;}
+    .mresult-price{font-weight:900;font-size:1.05rem;color:#E2144A;white-space:nowrap;}
+    .mresult-stock{font-size:.78rem;font-weight:700;}
+    .mresult-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;}
+    @media(max-width:600px){.topbar-right{margin-left:0;}.search-input{width:100%;}.model-search-input{width:100%;}}
 {% endblock %}
 
 {% block content %}
@@ -96,6 +122,27 @@
   </div>
 
   <div id="search-results"><h3>Resultados:</h3><div id="results-list"></div></div>
+
+  {# ── BUSCA POR MODELO / MARCA ─────────────────────────────────────────── #}
+  <div class="model-search-bar">
+    <label>🔍 Busca por modelo / marca:</label>
+    <input type="text" id="model-query" class="model-search-input" placeholder="ex: SD3399ui ou Consul"
+           onkeydown="if(event.key==='Enter')modelSearch()">
+    <select id="model-cat" class="model-cat-select">
+      <option value="">Todas as categorias</option>
+      {% for cat in categories %}
+        <option value="{{ cat.id }}">{{ cat.name }}</option>
+      {% endfor %}
+    </select>
+    <button class="model-search-btn" onclick="modelSearch()">Buscar</button>
+    <button class="model-clear-btn" onclick="modelClear()" style="display:none;" id="model-clear-btn">✕ Limpar</button>
+  </div>
+  <div id="model-results">
+    <h3>Resultados da busca por modelo</h3>
+    <div class="result-count" id="model-result-count"></div>
+    <div id="model-results-list"></div>
+  </div>
+  {# ─────────────────────────────────────────────────────────────────────── #}
 
   <div class="cat-filter-wrap">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
@@ -210,5 +257,66 @@ async function searchProducts() {
   } catch { list.innerHTML='<div class="result-item" style="color:#dc2626">Erro ao buscar.</div>'; }
 }
 document.getElementById('search-input')?.addEventListener('keydown',e=>{if(e.key==='Enter')searchProducts();});
+
+async function modelSearch() {
+  const q = (document.getElementById('model-query').value || '').trim();
+  const catId = document.getElementById('model-cat').value;
+  const container = document.getElementById('model-results');
+  const list = document.getElementById('model-results-list');
+  const countEl = document.getElementById('model-result-count');
+  if (!q) { alert('Digite um modelo ou marca para buscar.'); return; }
+  list.innerHTML = '<div style="color:#888;padding:8px 0;">Buscando...</div>';
+  container.classList.add('show');
+  document.getElementById('model-clear-btn').style.display = 'inline-block';
+  try {
+    let url = `/api/products/model-search?q=${encodeURIComponent(q)}`;
+    if (catId) url += `&category_id=${catId}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    countEl.textContent = data.length ? `${data.length} produto(s) encontrado(s) para "${q}"` : '';
+    if (!data.length) {
+      list.innerHTML = '<div style="color:#888;padding:8px 0;">Nenhum produto encontrado.</div>';
+      return;
+    }
+    list.innerHTML = data.map(p => {
+      const name = escapeHtml(p.name);
+      const price = parseFloat(p.sale_price || 0);
+      const unit = escapeHtml(p.unit || 'un');
+      const cat = escapeHtml(p.category_name || '');
+      const desc = escapeHtml(p.description || '');
+      const stockColor = p.current_stock <= 0 ? '#dc2626' : '#166534';
+      const stockQty = p.unit === 'kg' ? parseFloat(p.current_stock).toFixed(3) : Math.round(p.current_stock);
+      const img = p.image
+        ? `<img class="mresult-img" src="${escapeHtml(p.image)}" alt="${name}">`
+        : `<div class="mresult-img-ph">📦</div>`;
+      return `<div class="mresult-item">
+        ${img}
+        <div class="mresult-info">
+          <div class="mresult-name">${name}</div>
+          <div class="mresult-cat">📂 ${cat}</div>
+          ${desc ? `<div class="mresult-desc">${desc}…</div>` : ''}
+        </div>
+        <div class="mresult-right">
+          <span class="mresult-price">R$ ${price.toFixed(2)}</span>
+          <span class="mresult-stock" style="color:${stockColor};">Estoque: ${stockQty} ${unit}</span>
+          <div class="mresult-actions">
+            <button class="btn-cart" onclick="addToCart(${p.id},'${name}',${price},'${unit}',1)">🛒</button>
+            <button class="btn-buy" onclick="buyNow(${p.id},${price},'${unit}',1)">⚡</button>
+            <a class="edit-btn" href="/products/${p.id}/edit">✏️</a>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch (e) {
+    list.innerHTML = '<div style="color:#dc2626;padding:8px 0;">Erro ao buscar.</div>';
+  }
+}
+
+function modelClear() {
+  document.getElementById('model-query').value = '';
+  document.getElementById('model-cat').value = '';
+  document.getElementById('model-results').classList.remove('show');
+  document.getElementById('model-clear-btn').style.display = 'none';
+}
 </script>
 {% endblock %}
