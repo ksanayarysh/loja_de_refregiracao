@@ -283,11 +283,15 @@ async def _get_products(conn):
     res = await conn.execute(text("""
         SELECT p.id, p.name, p.sale_price, p.unit, p.image, p.description,
                COALESCE(c.name, 'Outro') AS category_name,
-               c2.name AS category2_name
+               c2.name AS category2_name,
+               GREATEST(0, COALESCE(SUM(sm.qty), 0)) AS current_stock
         FROM products p
         LEFT JOIN categories c  ON c.id  = p.category_id
         LEFT JOIN categories c2 ON c2.id = p.category2_id
+        LEFT JOIN stock_movements sm ON sm.product_id = p.id
         WHERE p.active = TRUE
+        GROUP BY p.id, p.name, p.sale_price, p.unit, p.image, p.description,
+                 c.name, c2.name
         ORDER BY
             CASE WHEN c.name ILIKE '%gas%' OR c.name ILIKE '%gás%' THEN 0 ELSE 1 END,
             c.name NULLS LAST,
@@ -302,6 +306,7 @@ async def _get_products(conn):
             r["image"] = ADMIN_URL + r["image"]
         if r.get("sale_price") is not None:
             r["sale_price"] = float(r["sale_price"])
+        r["current_stock"] = float(r.get("current_stock") or 0)
         result.append(r)
     return result
 
