@@ -285,7 +285,7 @@
 <div class="search-bar-row">
   <div class="search-bar-inner">
     <div class="header-search">
-      <input type="text" id="quickSearch" placeholder="O que você está procurando hoje?" oninput="quickSearchHandler(this.value)" onkeydown="if(event.key==='Enter')triggerFixedSearch()" autocomplete="off">
+      <input type="text" id="quickSearch" placeholder="Produto, marca ou modelo (ex: SD3399, Consul, R410a)…" oninput="quickSearchHandler(this.value)" onkeydown="if(event.key==='Enter')triggerFixedSearch()" autocomplete="off">
       <button class="header-search-btn" onclick="triggerFixedSearch()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
       </button>
@@ -709,7 +709,8 @@ async function triggerFixedSearch() {
   try {
     const res = await fetch('/api/catalog');
     const products = await res.json();
-    const filtered = products.filter(p => p.name.toLowerCase().includes(q.toLowerCase()));
+    const ql2 = q.toLowerCase();
+    const filtered = products.filter(p => p.name.toLowerCase().includes(ql2) || (p.description || '').toLowerCase().includes(ql2));
     if (!filtered.length) {
       count.textContent = 'Nenhum produto encontrado';
       list.innerHTML = `<div style="padding:20px 16px;color:var(--muted);font-size:.9rem;text-align:center;">Não encontramos "<b>${q}</b>". <a href="https://wa.me/${WA_NUMBER}?text=Olá! Procuro: ${encodeURIComponent(q)}" style="color:var(--accent);font-weight:700;" target="_blank">Pergunte no WhatsApp →</a></div>`;
@@ -759,7 +760,8 @@ async function quickSearchHandler(q) {
   try {
     const res = await fetch('/api/catalog');
     const products = await res.json();
-    const filtered = products.filter(p => p.name.toLowerCase().includes(q.toLowerCase())).slice(0, 8);
+    const ql = q.toLowerCase();
+    const filtered = products.filter(p => p.name.toLowerCase().includes(ql) || (p.description || '').toLowerCase().includes(ql)).slice(0, 8);
     if (!filtered.length) {
       box.innerHTML = `<div style="padding:14px 16px;color:var(--muted);font-size:.88rem;">Nenhum produto encontrado. <a href="https://wa.me/${WA_NUMBER}?text=Ol%C3%A1!%20N%C3%A3o%20encontrei%20o%20produto%20que%20preciso." style="color:var(--accent);font-weight:700;" target="_blank">Pergunte no WhatsApp →</a></div>`;
       box.style.display = 'block';
