@@ -12,6 +12,12 @@
   .period-btn { padding: 7px 13px; border-radius: 8px; border: 1px solid #ccc; background: #fff; color: #111; font-weight: 700; font-size: .85rem; cursor: pointer; text-decoration: none; font-family: inherit; white-space: nowrap; }
   .period-btn:hover { background: bisque; }
   .period-btn.active { background: #111827; color: #fff; border-color: #111827; }
+  .period-sep { width: 1px; height: 28px; background: #e5e7eb; margin: 0 2px; }
+  .date-range-form { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .date-range-form input[type=date] { padding: 6px 10px; border-radius: 8px; border: 1px solid #ccc; font-size: .85rem; font-family: inherit; background: #fff; cursor: pointer; }
+  .date-range-form input[type=date]:focus { outline: none; border-color: #E2144A; }
+  .date-range-form button { padding: 7px 13px; border-radius: 8px; border: none; background: #E2144A; color: #fff; font-weight: 700; font-size: .85rem; cursor: pointer; font-family: inherit; }
+  .date-range-form button:hover { background: #c0112f; }
 
   .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
   .sum-card { background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,.06); border-left: 4px solid #E2144A; }
@@ -80,7 +86,17 @@
 
   <div>
     <h1>👁 Visualizações de produtos</h1>
-    <div style="font-size:.85rem;color:#888;margin-top:4px;">desde {{ since }} · últimos {{ days }} dias</div>
+    <div style="font-size:.85rem;color:#888;margin-top:4px;">
+      {% if period == 'today' %}
+        hoje · {{ since }}
+      {% elif period == 'yesterday' %}
+        ontem · {{ since }}
+      {% elif period == 'custom' %}
+        {{ since }} → {{ date_end }}
+      {% else %}
+        desde {{ since }} · últimos {{ days }} dias
+      {% endif %}
+    </div>
   </div>
 
   {# Navlinks para outros relatórios #}
@@ -94,9 +110,27 @@
   {# Período #}
   <div class="period-bar">
     <span style="font-size:.82rem;color:#888;font-weight:700;">Período:</span>
+    <a class="period-btn {% if period=='today' %}active{% endif %}"
+       href="/reports/product-views?period=today">Hoje</a>
+    <a class="period-btn {% if period=='yesterday' %}active{% endif %}"
+       href="/reports/product-views?period=yesterday">Ontem</a>
+    <div class="period-sep"></div>
     {% for d, label in [(7,"7 dias"), (14,"14 dias"), (30,"30 dias"), (60,"60 dias"), (90,"90 dias")] %}
-    <a class="period-btn {% if days==d %}active{% endif %}" href="/reports/product-views?days={{ d }}">{{ label }}</a>
+    <a class="period-btn {% if not period and days==d %}active{% endif %}"
+       href="/reports/product-views?days={{ d }}">{{ label }}</a>
     {% endfor %}
+    <div class="period-sep"></div>
+    <form class="date-range-form" method="get" action="/reports/product-views">
+      <input type="hidden" name="period" value="custom">
+      <input type="date" name="date_from"
+             value="{{ date_from_input or since }}"
+             max="{{ date_end }}">
+      <span style="font-size:.82rem;color:#888;font-weight:700;">até</span>
+      <input type="date" name="date_to"
+             value="{{ date_to_input or date_end }}"
+             max="{{ date_end }}">
+      <button type="submit">→</button>
+    </form>
   </div>
 
   {# Resumo #}

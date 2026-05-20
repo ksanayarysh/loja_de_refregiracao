@@ -660,11 +660,38 @@ async def reports(
 @router.get("/reports/product-views", response_class=HTMLResponse)
 async def product_views_report(
     request: Request,
-    days: int = Query(30),
+    days: int = Query(None),
+    period: str = Query(None),    # today | yesterday | custom
+    date_from: str = Query(""),
+    date_to: str = Query(""),
     _=Depends(basic_auth),
 ):
     from datetime import date as _date
-    since = _date.today() - timedelta(days=days)
+    today = _date.today()
+
+    if period == "today":
+        since = today
+        date_end = today
+        days = 1
+    elif period == "yesterday":
+        since = today - timedelta(days=1)
+        date_end = since
+        days = 1
+    elif period == "custom" and date_from and date_to:
+        try:
+            since = _date.fromisoformat(date_from)
+            date_end = _date.fromisoformat(date_to)
+            if since > date_end:
+                since, date_end = date_end, since
+            days = (date_end - since).days + 1
+        except Exception:
+            since = today - timedelta(days=30)
+            date_end = today
+            days = 30
+    else:
+        days = days or 30
+        since = today - timedelta(days=days)
+        date_end = today
 
     async with engine.connect() as conn:
 
@@ -680,11 +707,11 @@ async def product_views_report(
             FROM product_views pv
             LEFT JOIN products p  ON p.id  = pv.product_id
             LEFT JOIN categories c ON c.id = p.category_id
-            WHERE pv.viewed_at::date >= :since
+            WHERE pv.viewed_at::date >= :since AND pv.viewed_at::date <= :date_end
             GROUP BY pv.slug, pv.product_id, p.name, c.name
             ORDER BY views DESC
             LIMIT 30
-        """), {"since": since})
+        """), {"since": since, "date_end": date_end})
         top_viewed = top_res.mappings().all()
 
         # 2. Просмотры vs WA-клики (без конверсии)
@@ -703,15 +730,15 @@ async def product_views_report(
             LEFT JOIN (
                 SELECT product_name, COUNT(*) AS clicks
                 FROM catalog_clicks
-                WHERE clicked_at::date >= :since
+                WHERE clicked_at::date >= :since AND clicked_at::date <= :date_end
                 GROUP BY product_name
             ) wa ON wa.product_name = p.name
-            WHERE pv.viewed_at::date >= :since
+            WHERE pv.viewed_at::date >= :since AND pv.viewed_at::date <= :date_end
             GROUP BY pv.slug, pv.product_id, p.name, c.name, wa.clicks
             HAVING COUNT(*) >= 3
             ORDER BY (COUNT(*) - COALESCE(wa.clicks, 0)) DESC
             LIMIT 25
-        """), {"since": since})
+        """), {"since": since, "date_end": date_end})
         no_conversion = no_conv_res.mappings().all()
 
         # 3. Динамика по дням недели
@@ -721,34 +748,33 @@ async def product_views_report(
                 COUNT(*)                             AS views,
                 COUNT(DISTINCT pv.ip)                AS unique_ips
             FROM product_views pv
-            WHERE pv.viewed_at::date >= :since
+            WHERE pv.viewed_at::date >= :since AND pv.viewed_at::date <= :date_end
             GROUP BY dow
             ORDER BY dow
-        """), {"since": since})
+        """), {"since": since, "date_end": date_end})
         by_dow_raw = {r["dow"]: {"views": int(r["views"]), "uniq": int(r["unique_ips"])}
                       for r in dow_res.mappings().all()}
         dow_labels = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"]
         by_dow = [{"label": dow_labels[i], **by_dow_raw.get(i, {"views": 0, "uniq": 0})}
                   for i in range(7)]
 
-        # 4. Динамика по дням месяца (последние 30 дней)
+        # 4. Динамика по дням
         daily_res = await conn.execute(text("""
             SELECT
                 pv.viewed_at::date AS day,
                 COUNT(*)            AS views,
                 COUNT(DISTINCT pv.ip) AS unique_ips
             FROM product_views pv
-            WHERE pv.viewed_at::date >= :since
+            WHERE pv.viewed_at::date >= :since AND pv.viewed_at::date <= :date_end
             GROUP BY pv.viewed_at::date
             ORDER BY day ASC
-        """), {"since": since})
+        """), {"since": since, "date_end": date_end})
         daily_raw = {r["day"]: {"views": int(r["views"]), "uniq": int(r["unique_ips"])}
                      for r in daily_res.mappings().all()}
 
         from datetime import timedelta as _td
-        today = _date.today()
         daily = []
-        for i in range(days):
+        for i in range((date_end - since).days + 1):
             d = since + _td(days=i)
             entry = daily_raw.get(d, {"views": 0, "uniq": 0})
             daily.append({"date": d.isoformat(), "label": d.strftime("%-d/%m"), **entry})
@@ -758,14 +784,18 @@ async def product_views_report(
             SELECT COUNT(*) AS total, COUNT(DISTINCT ip) AS uniq_visitors,
                    COUNT(DISTINCT slug) AS uniq_products
             FROM product_views
-            WHERE viewed_at::date >= :since
-        """), {"since": since})
+            WHERE viewed_at::date >= :since AND viewed_at::date <= :date_end
+        """), {"since": since, "date_end": date_end})
         totals = dict(total_res.mappings().first() or {})
 
     return templates.TemplateResponse("product_views.html", {
         "request":       request,
         "days":          days,
+        "period":        period or "",
         "since":         since.isoformat(),
+        "date_end":      date_end.isoformat(),
+        "date_from_input": date_from,
+        "date_to_input":   date_to,
         "top_viewed":    top_viewed,
         "no_conversion": no_conversion,
         "by_dow":        by_dow,
