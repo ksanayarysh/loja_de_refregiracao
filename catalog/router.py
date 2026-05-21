@@ -168,9 +168,26 @@ async def _ensure_views_table():
         ))
     _view_table_ready = True
 
+_BOT_UA_PATTERNS = (
+    "googlebot", "bingbot", "slurp", "duckduckbot", "baiduspider",
+    "yandexbot", "sogou", "exabot", "facebot", "ia_archiver",
+    "ahrefsbot", "semrushbot", "dotbot", "mj12bot", "blexbot",
+    "petalbot", "bytespider", "applebot", "google-inspectiontool",
+    "gptbot", "chatgpt-user", "claudebot", "anthropic-ai",
+    "dataforseobot", "serpstatbot", "sistrix", "rogerbot",
+    "screaming frog", "python-requests", "go-http-client",
+    "curl/", "wget/", "jakarta commons-httpclient",
+)
+
+def _is_bot(ua: str) -> bool:
+    u = ua.lower()
+    return any(p in u for p in _BOT_UA_PATTERNS)
+
 async def _track_product_view(product_id: int, slug: str, ip: str, ua: str):
     import time
     if ip in _EXCLUDED_IPS:
+        return
+    if _is_bot(ua):
         return
     key = (ip, slug)
     if time.time() - _view_cache.get(key, 0) < 3600:
@@ -259,6 +276,8 @@ async def track_visit(request: Request):
             f"Página: <b>{page}</b>\n"
             f"Fonte: {source}\n"
             f"Dispositivo: {device}\n"
+            f"IP: <code>{ip}</code>\n"
+            f"UA: <code>{ua[:80]}</code>\n"
             f"Horário: {now_str}"
         )
         return JSONResponse({"ok": True})
