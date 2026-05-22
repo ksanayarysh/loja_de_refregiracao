@@ -960,6 +960,82 @@ async def sitemap():
     xml = f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{"".join(items)}\n</urlset>'
     return PlainTextResponse(xml, media_type="application/xml")
 
+@router.get("/feed.xml", response_class=PlainTextResponse)
+async def product_feed():
+    """
+    Google Merchant Center / Facebook Commerce Manager product feed.
+    Формат: RSS 2.0 + Google Merchant namespace (g:).
+    Обновляется при каждом запросе (Facebook обновляет раз в сутки).
+    """
+    base = SITE_URL.rstrip("/")
+    async with engine.connect() as conn:
+        rows = await _get_products_cached(conn)
+
+    items = []
+    seen = set()
+
+    for r in rows:
+        name = (r.get("name") or "").strip()
+        if not name:
+            continue
+
+        sl = slugify(name)
+        if sl in seen:
+            continue
+        seen.add(sl)
+
+        product_id  = str(r.get("id", sl))
+        price       = r.get("sale_price")
+        category    = r.get("category_name") or "Peças de Refrigeração"
+        description = (r.get("description") or name).strip()
+        image_url   = r.get("image") or ""
+        in_stock    = float(r.get("current_stock") or 0) > 0
+        availability = "in stock" if in_stock else "out of stock"
+        unit        = r.get("unit") or "un"
+
+        # Пропускаем товары без цены
+        if not price:
+            continue
+
+        # Facebook/Google требует изображение — пропускаем без него
+        if not image_url:
+            continue
+
+        # Если изображение относительное — делаем абсолютным
+        if image_url.startswith("/"):
+            image_url = f"{base}{image_url}"
+
+        price_str = f"{price:.2f} BRL"
+        link = f"{base}/product/{sl}"
+
+        item = f"""
+  <item>
+    <g:id>{escape(product_id)}</g:id>
+    <g:title>{escape(name)}</g:title>
+    <g:description>{escape(description[:5000])}</g:description>
+    <g:link>{escape(link)}</g:link>
+    <g:image_link>{escape(image_url)}</g:image_link>
+    <g:price>{price_str}</g:price>
+    <g:availability>{availability}</g:availability>
+    <g:condition>new</g:condition>
+    <g:brand>MTF Refrigeração</g:brand>
+    <g:google_product_category>Electronics &gt; Parts</g:google_product_category>
+    <g:product_type>{escape(category)}</g:product_type>
+  </item>"""
+        items.append(item)
+
+    xml = f"""<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">
+  <channel>
+    <title>MTF Refrigeração — Catálogo de Peças</title>
+    <link>{escape(base)}</link>
+    <description>Peças e gases para refrigeração no Rio de Janeiro</description>
+{"".join(items)}
+  </channel>
+</rss>"""
+
+    return PlainTextResponse(xml, media_type="application/xml")
+
 
 @router.get("/robots.txt", response_class=PlainTextResponse)
 async def robots():
