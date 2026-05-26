@@ -199,6 +199,16 @@ ARTICLES = [
         "published": True,
     },
     {
+        "slug": "chuveiro-eletrico-nao-aquece",
+        "title": "Chuveiro elétrico não aquece: causas e como resolver",
+        "description": "Chuveiro ligado mas água fria? Veja as causas mais comuns — resistência queimada, disjuntor, pressão — e saiba como resolver.",
+        "category": "componentes",
+        "icon": "🚿",
+        "tags": ["chuveiro", "resistência", "lorenzetti", "elétrico"],
+        "template": "blog/chuveiro-eletrico-nao-aquece.html",
+        "published": True,
+    },
+    {
         "slug": "roupa-saindo-manchada-lavadora",
         "title": "Roupa saindo manchada da máquina de lavar? Veja as causas",
         "description": "Manchas de óleo, ferrugem ou sabão nas roupas? Saiba o que causa cada tipo de mancha e quais peças precisam de troca. Brastemp, Consul, Cargo e Mare.",
