@@ -124,6 +124,8 @@ STORE_PHONE      = os.environ.get("STORE_PHONE", "")
 ADMIN_URL        = os.environ.get("ADMIN_URL", "https://lojaderefregiracao-production.up.railway.app")
 TG_BOT_TOKEN     = os.environ.get("TG_BOT_TOKEN", "")
 TG_CHAT_ID       = os.environ.get("TG_CHAT_ID", "")
+META_PIXEL_ID    = os.environ.get("META_PIXEL_ID", "")
+META_CAPI_TOKEN  = os.environ.get("META_CAPI_TOKEN", "")
 
 
 async def _send_tg(message: str):
@@ -819,6 +821,57 @@ async def blog_article(request: Request, slug: str):
 
 
 
+@router.post("/api/diagnostico")
+async def diagnostico_proxy(request: Request):
+    """Проксирует запрос к Anthropic API — ключ остаётся на сервере."""
+    ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
+    if not ANTHROPIC_API_KEY:
+        return JSONResponse({"error": "not configured"}, status_code=503)
+    try:
+        body = await request.json()
+        symptom = str(body.get("symptom", ""))[:500]
+        if not symptom:
+            return JSONResponse({"error": "symptom required"}, status_code=400)
+        system_prompt = (
+            "Você é o assistente técnico da MTF Refrigeração, loja de peças e serviços de refrigeração "
+            "no Rio de Janeiro (Av. Brasil, 6818).\n\n"
+            "Ao receber a descrição de um problema, retorne APENAS um JSON válido com esta estrutura exata:\n"
+            "{\"titulo\":\"string curto\",\"causas\":[{\"probabilidade\":\"alta|media|baixa\","
+            "\"descricao\":\"string\",\"peca\":\"string|null\"}],"
+            "\"cliente_pode_verificar\":[\"string\"],\"precisa_tecnico\":\"string\",\"alerta\":\"string|null\"}\n\n"
+            "Regras:\n"
+            "- Máximo 4 causas ordenadas por probabilidade\n"
+            "- \"peca\": somente peças que a MTF vende (compressor, gás R22/R410a/R134a/R32/R290/R600, "
+            "placa eletrônica, termostato, capacitor, válvula, resistência, turbina/motoventilador, "
+            "dreno, bandeja condensado). null se não aplicável\n"
+            "- \"cliente_pode_verificar\": máximo 3 itens, ações simples e seguras\n"
+            "- \"alerta\": somente se houver risco elétrico real, senão null\n"
+            "- Resposta APENAS JSON, sem markdown, sem texto fora do JSON"
+        )
+        async with httpx.AsyncClient(timeout=15) as client:
+            resp = await client.post(
+                "https://api.anthropic.com/v1/messages",
+                headers={
+                    "x-api-key": ANTHROPIC_API_KEY,
+                    "anthropic-version": "2023-06-01",
+                    "content-type": "application/json",
+                },
+                json={
+                    "model": "claude-haiku-4-5-20251001",
+                    "max_tokens": 1000,
+                    "system": system_prompt,
+                    "messages": [{"role": "user", "content": symptom}],
+                },
+            )
+        data = resp.json()
+        raw = (data.get("content") or [{}])[0].get("text", "{}")
+        import json as _json2
+        result = _json2.loads(raw.replace("```json", "").replace("```", "").strip())
+        return JSONResponse(result)
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
 @router.get("/api/catalog")
 async def catalog_api():
     async with engine.connect() as conn:
@@ -881,9 +934,54 @@ async def track_whatsapp_click(request: Request):
                 f"Horário: {now_str}\n"
                 f"IP: {ip}"
             )
+        # Meta CAPI — дублируем клик server-side
+        import uuid
+        event_id  = f"wa_{uuid.uuid4().hex}"
+        page_url  = request.headers.get("referer", SITE_URL)
+        await _send_meta_capi(
+            event_name="Contact",
+            event_id=event_id,
+            ip=ip,
+            user_agent=user_agent,
+            page_url=page_url,
+        )
         return JSONResponse({"ok": True})
     except Exception:
         return JSONResponse({"ok": False})
+
+
+async def _send_meta_capi(event_name: str, event_id: str, ip: str, user_agent: str, page_url: str = ""):
+    """Отправляет событие в Meta Conversions API."""
+    if not META_PIXEL_ID or not META_CAPI_TOKEN:
+        return
+    import hashlib, time
+    # хешируем IP как client_ip_address (Meta требует SHA256)
+    ip_hash = hashlib.sha256(ip.encode()).hexdigest()
+    payload = {
+        "data": [{
+            "event_name":       event_name,
+            "event_time":       int(time.time()),
+            "event_id":         event_id,
+            "event_source_url": page_url or SITE_URL,
+            "action_source":    "website",
+            "user_data": {
+                "client_ip_address": ip,
+                "client_user_agent": user_agent,
+            },
+        }],
+        "test_event_code": None,  # убрать после тестирования
+    }
+    # убираем test_event_code если None
+    payload["data"][0] = {k: v for k, v in payload["data"][0].items() if v is not None}
+    try:
+        async with httpx.AsyncClient(timeout=5) as client:
+            await client.post(
+                f"https://graph.facebook.com/v19.0/{META_PIXEL_ID}/events",
+                params={"access_token": META_CAPI_TOKEN},
+                json=payload,
+            )
+    except Exception:
+        pass
 
 
 async def _send_wa_notification(message: str):
