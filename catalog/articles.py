@@ -202,7 +202,7 @@ ARTICLES = [
         "slug": "chuveiro-eletrico-nao-aquece",
         "title": "Chuveiro elétrico não aquece: causas e como resolver",
         "description": "Chuveiro ligado mas água fria? Veja as causas mais comuns — resistência queimada, disjuntor, pressão — e saiba como resolver.",
-        "category": "componentes",
+        "category": "chuveiro",
         "icon": "🚿",
         "tags": ["chuveiro", "resistência", "lorenzetti", "elétrico"],
         "template": "blog/chuveiro-eletrico-nao-aquece.html",
@@ -240,5 +240,6 @@ CATEGORY_LABELS = {
     "geladeira":        "Geladeiras e refrigeração",
     "ar-condicionado":  "Ar-condicionado",
     "maquina-de-lavar": "Máquina de lavar",
+    "chuveiro":         "Chuveiro elétrico",
     "componentes":      "Componentes",
 }
