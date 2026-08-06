@@ -175,8 +175,8 @@ ARTICLES = [
         "category": "componentes",
         "icon": "⚡",
         "tags": ["capacitor", "compressor", "geladeira", "ar-condicionado"],
-        "template": None,
-        "published": False,
+        "template": "blog/capacitor-de-partida-geladeira.html",
+        "published": True,
     },
     {
         "slug": "timer-de-degelo-refrigeracao",
