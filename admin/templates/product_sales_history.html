@@ -94,8 +94,8 @@
               <td class="num">{% if r.unit_price is not none %}R$ {{ '%.2f'|format(r.unit_price) }}{% else %}—{% endif %}</td>
               <td class="num">R$ {{ '%.2f'|format(r.total) }}</td>
               <td>
-                {% if r.payment_method %}
-                  <span class="pay-badge pay-{{ r.payment_method }}">{{ r.payment_method }}</span>
+                {% if r.payment_type %}
+                  <span class="pay-badge pay-{{ r.payment_type }}">{{ r.payment_type }}</span>
                 {% else %}—{% endif %}
               </td>
             </tr>

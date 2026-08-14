@@ -2,3 +2,4 @@
 .idea
 catalog/.env
 admin/.env
+/script/backup-mtf.ps1

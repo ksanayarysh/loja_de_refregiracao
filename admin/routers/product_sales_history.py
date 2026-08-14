@@ -42,7 +42,7 @@ async def product_sales_history(
                     s.qty,
                     s.total,
                     (s.total / NULLIF(s.qty, 0)) AS unit_price,
-                    s.payment_method
+                    s.payment_type
                 FROM sales s
                 WHERE s.product_id = :pid
                 ORDER BY s.sold_at DESC
@@ -56,7 +56,7 @@ async def product_sales_history(
                     "qty": float(r["qty"] or 0),
                     "total": float(r["total"] or 0),
                     "unit_price": float(r["unit_price"]) if r["unit_price"] is not None else None,
-                    "payment_method": r["payment_method"],
+                    "payment_type": r["payment_type"],
                 }
                 for r in raw_rows
             ]
