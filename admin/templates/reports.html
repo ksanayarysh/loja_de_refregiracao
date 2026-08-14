@@ -311,17 +311,22 @@
             <thead>
               <tr>
                 <th>Mês</th>
+                <th class="num">Receita total</th>
                 <th class="num">Receita c/ custo</th>
+                <th class="num">Receita sem custo</th>
                 <th class="num">Custo dos vendidos</th>
                 <th class="num">Lucro bruto</th>
                 <th class="num">Margem (%)</th>
+                <th class="num">Giro de estoque</th>
               </tr>
             </thead>
             <tbody>
               {% for m in monthly %}
                 <tr>
                   <td>{{ month_names[m.month.month - 1] }}/{{ m.month.year % 100 }}</td>
+                  <td class="num">R$ {{ '%.2f'|format(m.revenue_total|float) }}</td>
                   <td class="num">R$ {{ '%.2f'|format(m.revenue_with_cost|float) }}</td>
+                  <td class="num">R$ {{ '%.2f'|format(m.revenue_no_cost|float) }}</td>
                   <td class="num">R$ {{ '%.2f'|format(m.cogs|float) }}</td>
                   <td class="num" style="color:{{ '#16a34a' if m.gross_profit >= 0 else '#dc2626' }};">
                     R$ {{ '%.2f'|format(m.gross_profit|float) }}
@@ -329,11 +334,76 @@
                   <td class="num" style="color:{{ '#16a34a' if m.gross_profit >= 0 else '#dc2626' }};">
                     {% if m.gross_margin_pct is not none %}{{ '%.1f'|format(m.gross_margin_pct) }}%{% else %}—{% endif %}
                   </td>
+                  <td class="num">
+                    {% if m.giro_estoque is not none %}{{ '%.2f'|format(m.giro_estoque) }}x{% else %}—{% endif %}
+                  </td>
                 </tr>
               {% endfor %}
             </tbody>
           </table>
-          <div class="muted-note">Baseado no custo (cost_price) dos produtos efetivamente vendidos naquele mês — independe de quando o material foi comprado.</div>
+          <div class="muted-note">"Receita sem custo" são vendas de produtos sem cost_price cadastrado — não entram na margem, pois não dá pra calcular o custo real delas. "Giro de estoque" = custo dos produtos vendidos no mês ÷ valor médio do estoque no mês (quanto maior, mais rápido o estoque se renova).</div>
+        </div>
+
+        <!-- PRODUTOS PARADOS -->
+        <div style="margin-top:22px; overflow-x:auto;">
+          <h2 style="font-size:.9rem; margin-bottom:10px;">🐌 Produtos parados (sem venda há 60+ dias)</h2>
+          {% if produtos_parados %}
+            <table>
+              <thead>
+                <tr>
+                  <th>Produto</th>
+                  <th class="num">Em estoque</th>
+                  <th class="num">Valor parado</th>
+                  <th class="num">Última venda</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for p in produtos_parados %}
+                  <tr>
+                    <td>{{ p.name }}</td>
+                    <td class="num">{{ '%.2f'|format(p.stock_qty) }} {{ p.unit or '' }}</td>
+                    <td class="num">{% if p.stock_value is not none %}R$ {{ '%.2f'|format(p.stock_value) }}{% else %}—{% endif %}</td>
+                    <td class="num">
+                      {% if p.last_sale %}{{ p.days_since_sale }} dias atrás{% else %}nunca vendido{% endif %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            <div class="muted-note">Total parado (produtos com custo cadastrado): R$ {{ '%.2f'|format(parados_total_value) }}</div>
+          {% else %}
+            <div class="empty">Nenhum produto parado — tudo com giro nos últimos 60 dias 🎉</div>
+          {% endif %}
+        </div>
+
+        <!-- RUPTURA DE ESTOQUE -->
+        <div style="margin-top:22px; overflow-x:auto;">
+          <h2 style="font-size:.9rem; margin-bottom:10px;">📉 Ruptura de estoque (vendas perdidas por falta de produto)</h2>
+          {% if ruptura_estoque %}
+            <table>
+              <thead>
+                <tr>
+                  <th>Produto</th>
+                  <th class="num">Zerado desde</th>
+                  <th class="num">Dias sem estoque</th>
+                  <th class="num">Receita perdida (estimada)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for r in ruptura_estoque %}
+                  <tr>
+                    <td>{{ r.name }}</td>
+                    <td class="num">{{ r.stockout_since.strftime('%d/%m/%Y') }}</td>
+                    <td class="num">{{ r.days_out }}</td>
+                    <td class="num" style="color:#dc2626;">R$ {{ '%.2f'|format(r.estimated_lost_revenue) }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            <div class="muted-note">Estimativa: média de venda diária dos 30 dias antes de zerar × dias sem estoque. Total estimado: R$ {{ '%.2f'|format(ruptura_total_estimado) }}</div>
+          {% else %}
+            <div class="empty">Nenhuma ruptura relevante detectada 🎉</div>
+          {% endif %}
         </div>
 
         <!-- VALOR EM ESTOQUE NO FIM DE CADA MÊS -->

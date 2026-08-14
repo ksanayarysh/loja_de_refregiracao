@@ -566,6 +566,7 @@ async def reports(
             m_item["revenue_with_cost"] = mm["revenue_with_cost"]
             m_item["cogs"] = mm["cogs"]
             m_item["revenue_no_cost"] = mm["revenue_no_cost"]
+            m_item["revenue_total"] = mm["revenue_with_cost"] + mm["revenue_no_cost"]
             m_item["gross_profit"] = gross_profit
             m_item["gross_margin_pct"] = (gross_profit / mm["revenue_with_cost"] * 100) if mm["revenue_with_cost"] > 0 else None
 
@@ -615,6 +616,128 @@ async def reports(
             ) sub
         """))
         stock_no_cost_count = int(stock_no_cost_res.scalar() or 0)
+
+        # 7e. GIRO DE ESTOQUE POR MÊS (COGS do mês / estoque médio do mês)
+        first_month_key = monthly[0]["month"]
+        stock_value_before_res = await conn.execute(text("""
+            SELECT COALESCE(SUM(sq.stock_qty * p.cost_price), 0) AS stock_value
+            FROM (
+                SELECT product_id, SUM(qty) AS stock_qty
+                FROM stock_movements
+                WHERE moved_at::date < :d
+                GROUP BY product_id
+            ) sq
+            JOIN products p ON p.id = sq.product_id
+            WHERE p.cost_price IS NOT NULL AND p.cost_price > 0
+        """), {"d": first_month_key})
+        stock_value_before_first = float(stock_value_before_res.scalar() or 0)
+
+        prev_stock_value = stock_value_before_first
+        for m_item in monthly:
+            avg_stock = (prev_stock_value + m_item["stock_value"]) / 2
+            m_item["giro_estoque"] = (m_item["cogs"] / avg_stock) if avg_stock > 0 else None
+            prev_stock_value = m_item["stock_value"]
+
+        # 7f. PRODUTOS PARADOS (em estoque, sem venda nos últimos 60 dias)
+        parados_res = await conn.execute(text("""
+            SELECT p.id, p.name, p.unit, p.cost_price, sq.stock_qty, ls.last_sale
+            FROM (
+                SELECT product_id, SUM(qty) AS stock_qty
+                FROM stock_movements
+                GROUP BY product_id
+                HAVING SUM(qty) > 0
+            ) sq
+            JOIN products p ON p.id = sq.product_id
+            LEFT JOIN (
+                SELECT product_id, MAX(sold_at) AS last_sale
+                FROM sales
+                GROUP BY product_id
+            ) ls ON ls.product_id = p.id
+            WHERE ls.last_sale IS NULL OR ls.last_sale::date < CURRENT_DATE - INTERVAL '60 days'
+            ORDER BY (sq.stock_qty * COALESCE(p.cost_price, 0)) DESC
+            LIMIT 30
+        """))
+        produtos_parados = []
+        for row in parados_res.mappings().all():
+            qty = float(row["stock_qty"] or 0)
+            cost_price = float(row["cost_price"]) if row["cost_price"] is not None else None
+            produtos_parados.append({
+                "name": row["name"],
+                "unit": row["unit"],
+                "stock_qty": qty,
+                "cost_price": cost_price,
+                "stock_value": (qty * cost_price) if cost_price else None,
+                "last_sale": row["last_sale"],
+                "days_since_sale": (today - row["last_sale"].date()).days if row["last_sale"] else None,
+            })
+        parados_total_value = sum(p["stock_value"] or 0 for p in produtos_parados)
+
+        # 7g. RUPTURA DE ESTOQUE (produtos zerados/negativos, com histórico de venda)
+        zerados_res = await conn.execute(text("""
+            SELECT product_id, SUM(qty) AS stock_qty
+            FROM stock_movements
+            GROUP BY product_id
+            HAVING SUM(qty) <= 0
+        """))
+        zerado_ids = [r["product_id"] for r in zerados_res.mappings().all()]
+
+        ruptura_estoque = []
+        if zerado_ids:
+            moves_res = await conn.execute(text("""
+                SELECT sm.product_id, sm.qty, sm.moved_at, p.name, p.unit
+                FROM stock_movements sm
+                JOIN products p ON p.id = sm.product_id
+                WHERE sm.product_id = ANY(:ids)
+                ORDER BY sm.product_id, sm.moved_at ASC
+            """), {"ids": zerado_ids})
+            moves_by_product = {}
+            names_by_product = {}
+            for r in moves_res.mappings().all():
+                moves_by_product.setdefault(r["product_id"], []).append((r["moved_at"], float(r["qty"])))
+                names_by_product[r["product_id"]] = (r["name"], r["unit"])
+
+            for pid, moves in moves_by_product.items():
+                running = 0.0
+                stockout_start = None
+                for moved_at, qty in moves:
+                    prev_running = running
+                    running += qty
+                    if prev_running > 0 and running <= 0:
+                        stockout_start = moved_at
+                    elif running > 0:
+                        stockout_start = None
+                if stockout_start is None:
+                    continue  # nunca teve estoque positivo, ou zerou há muito e reabasteceu depois
+                stockout_date = stockout_start.date() if hasattr(stockout_start, "date") else stockout_start
+                days_out = (today - stockout_date).days
+                if days_out <= 0:
+                    continue
+
+                sales_before_res = await conn.execute(text("""
+                    SELECT COALESCE(SUM(total), 0) AS rev, COUNT(DISTINCT sold_at::date) AS days_with_sale
+                    FROM sales
+                    WHERE product_id = :pid
+                      AND sold_at::date >= :d_start AND sold_at::date < :d_end
+                """), {"pid": pid, "d_start": stockout_date - timedelta(days=30), "d_end": stockout_date})
+                sb = sales_before_res.mappings().first()
+                rev_before = float(sb["rev"] or 0)
+                avg_daily_revenue = rev_before / 30.0
+                if avg_daily_revenue <= 0:
+                    continue  # sem histórico de venda relevante, não é ruptura significativa
+
+                name, unit = names_by_product[pid]
+                ruptura_estoque.append({
+                    "name": name,
+                    "unit": unit,
+                    "stockout_since": stockout_date,
+                    "days_out": days_out,
+                    "avg_daily_revenue": avg_daily_revenue,
+                    "estimated_lost_revenue": avg_daily_revenue * days_out,
+                })
+
+        ruptura_estoque.sort(key=lambda x: x["estimated_lost_revenue"], reverse=True)
+        ruptura_estoque = ruptura_estoque[:30]
+        ruptura_total_estimado = sum(r["estimated_lost_revenue"] for r in ruptura_estoque)
 
         # 8b. VENDAS DIÁRIAS POR MÊS (últimos 3 meses)
         three_months_ago = today.replace(day=1)
@@ -753,6 +876,10 @@ async def reports(
         "monthly": monthly,
         "stock_value_now": stock_value_now,
         "stock_no_cost_count": stock_no_cost_count,
+        "produtos_parados": produtos_parados,
+        "parados_total_value": parados_total_value,
+        "ruptura_estoque": ruptura_estoque,
+        "ruptura_total_estimado": ruptura_total_estimado,
         "gas_seasonality": gas_seasonality,
         "monthly_daily": monthly_daily,
     })
