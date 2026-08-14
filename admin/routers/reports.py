@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 
 from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import HTMLResponse
@@ -7,6 +7,13 @@ from sqlalchemy import text
 from dependencies import engine, templates, basic_auth
 
 router = APIRouter()
+
+
+def _to_date(value):
+    """Преобразует date или datetime в date, безопасно."""
+    if isinstance(value, datetime):
+        return value.date()
+    return value
 
 
 @router.get("/reports/price-history", response_class=HTMLResponse)
@@ -668,7 +675,7 @@ async def reports(
                 "cost_price": cost_price,
                 "stock_value": (qty * cost_price) if cost_price else None,
                 "last_sale": row["last_sale"],
-                "days_since_sale": (today - row["last_sale"].date()).days if row["last_sale"] else None,
+                "days_since_sale": (today - _to_date(row["last_sale"])).days if row["last_sale"] else None,
             })
         parados_total_value = sum(p["stock_value"] or 0 for p in produtos_parados)
 
@@ -708,7 +715,7 @@ async def reports(
                         stockout_start = None
                 if stockout_start is None:
                     continue  # nunca teve estoque positivo, ou zerou há muito e reabasteceu depois
-                stockout_date = stockout_start.date() if hasattr(stockout_start, "date") else stockout_start
+                stockout_date = _to_date(stockout_start)
                 days_out = (today - stockout_date).days
                 if days_out <= 0:
                     continue
