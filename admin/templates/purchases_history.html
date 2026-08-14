@@ -1,0 +1,138 @@
+{% extends '_base_admin.html' %}
+{% block title %}Histórico de compras — M.T.F{% endblock %}
+{% block extra_styles %}
+    body { font-family: Arial, Helvetica, sans-serif; background: bisque; min-height: 100vh; font-size: 15px; }
+    .content { flex: 1; padding: 24px; display: flex; flex-direction: column; gap: 20px; overflow-x: auto; }
+    h1 { font-size: 1.4rem; color: #111; margin-bottom: 4px; }
+    .period-label { color: #888; font-size: .85rem; }
+    .period-bar { background: #fff; border-radius: 12px; padding: 12px 16px; box-shadow: 0 2px 8px rgba(0,0,0,.06); display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+    .period-btn { padding: 7px 13px; border-radius: 8px; border: 1px solid #ccc; background: #fff; color: #111; font-weight: 700; font-size: .85rem; cursor: pointer; text-decoration: none; font-family: inherit; white-space: nowrap; }
+    .period-btn:hover { background: bisque; }
+    .period-btn.active { background: #111827; color: #fff; border-color: #111827; }
+    .period-sep { color: #ddd; }
+    .custom-dates { display: flex; gap: 6px; align-items: center; }
+    .custom-dates input { padding: 0 10px; border-radius: 8px; border: 1px solid #ccc; font-size: .85rem; font-family: inherit; height: 36px; width: 148px; }
+    .custom-dates button { padding: 0 14px; border-radius: 8px; border: none; background: #111827; color: #fff; font-weight: 700; font-size: .85rem; cursor: pointer; font-family: inherit; height: 36px; white-space: nowrap; }
+    .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .sum-card { background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+    .sum-label { font-size: .72rem; font-weight: 800; color: #888; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px; }
+    .sum-value { font-size: 1.4rem; font-weight: 900; color: #111; }
+    .sum-sub { font-size: .78rem; color: #888; margin-top: 3px; }
+    .card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+    .card h2 { font-size: 1rem; font-weight: 900; color: #111; margin-bottom: 14px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 8px 10px; border-bottom: 1px solid #f3f4f6; text-align: left; font-size: .85rem; }
+    th { font-weight: 900; color: #555; font-size: .75rem; text-transform: uppercase; }
+    .num { text-align: right; font-weight: 900; }
+    .empty { color: #888; }
+    .muted-note { color: #9ca3af; font-size: .8rem; margin-top: 8px; }
+    .type-badge { display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: .72rem; font-weight: 800; }
+    .type-entrada { background: #dcfce7; color: #166534; }
+    .type-saldo_inicial { background: #e0e7ff; color: #3730a3; }
+    @media (max-width: 1100px) { .summary-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 600px) { .summary-grid { grid-template-columns: 1fr; } }
+{% endblock %}
+{% block content %}
+<div>
+  <h1>📦 Histórico de compras</h1>
+  <div class="period-label">{{ date_from }} até {{ date_to }}</div>
+</div>
+
+<div class="period-bar">
+  <a class="period-btn {% if period=='day' %}active{% endif %}" href="/reports/purchases-history?period=day">Hoje</a>
+  <a class="period-btn {% if period=='week' %}active{% endif %}" href="/reports/purchases-history?period=week">Esta semana</a>
+  <a class="period-btn {% if period=='month' %}active{% endif %}" href="/reports/purchases-history?period=month">Este mês</a>
+  <a class="period-btn {% if period=='year' %}active{% endif %}" href="/reports/purchases-history?period=year">Este ano</a>
+  <span class="period-sep">|</span>
+  <form method="get" action="/reports/purchases-history" class="custom-dates">
+    <input type="hidden" name="period" value="custom">
+    <input type="date" name="date_from" value="{{ date_from_input or '' }}">
+    <span style="color:#888">até</span>
+    <input type="date" name="date_to" value="{{ date_to_input or '' }}">
+    <button type="submit">Filtrar</button>
+  </form>
+</div>
+
+<div class="summary-grid">
+  <div class="sum-card">
+    <div class="sum-label">Compras no período</div>
+    <div class="sum-value">{{ summary.purchases_count }}</div>
+    <div class="sum-sub">lançamentos de entrada</div>
+  </div>
+  <div class="sum-card">
+    <div class="sum-label">Quantidade total</div>
+    <div class="sum-value">{{ '%.2f'|format(summary.total_qty) }}</div>
+    <div class="sum-sub">unidades/kg/m compradas</div>
+  </div>
+  <div class="sum-card">
+    <div class="sum-label">Valor total gasto</div>
+    <div class="sum-value" style="color:#dc2626;">R$ {{ '%.2f'|format(summary.total_cost) }}</div>
+    <div class="sum-sub">com preço de compra cadastrado</div>
+  </div>
+  <div class="sum-card">
+    <div class="sum-label">Sem preço cadastrado</div>
+    <div class="sum-value">{{ summary.without_cost_count }}</div>
+    <div class="sum-sub">lançamento(s) — não entram no total</div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>📊 Por produto</h2>
+  {% if by_product %}
+    <table>
+      <thead>
+        <tr>
+          <th>Produto</th>
+          <th class="num">Qtd comprada</th>
+          <th class="num">Valor gasto</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in by_product %}
+          <tr>
+            <td>{{ p.product_name }}</td>
+            <td class="num">{{ '%.2f'|format(p.total_qty) }} {{ p.product_unit or '' }}</td>
+            <td class="num">R$ {{ '%.2f'|format(p.total_cost) }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <div class="empty">Nenhuma compra neste período.</div>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>📋 Todos os lançamentos</h2>
+  {% if rows %}
+    <table>
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Produto</th>
+          <th>Tipo</th>
+          <th class="num">Qtd</th>
+          <th class="num">Custo unit.</th>
+          <th class="num">Total</th>
+          <th>Nota</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+          <tr>
+            <td>{{ r.moved_at.strftime('%d/%m/%Y') if r.moved_at.strftime is defined else r.moved_at }}</td>
+            <td>{{ r.product_name }}</td>
+            <td><span class="type-badge type-{{ r.movement_type }}">{{ r.movement_type }}</span></td>
+            <td class="num">{{ '%.2f'|format(r.qty) }} {{ r.product_unit or '' }}</td>
+            <td class="num">{% if r.unit_cost is not none %}R$ {{ '%.2f'|format(r.unit_cost) }}{% else %}—{% endif %}</td>
+            <td class="num">R$ {{ '%.2f'|format(r.total_cost) }}</td>
+            <td>{{ r.note or '' }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <div class="empty">Nenhuma compra neste período.</div>
+  {% endif %}
+</div>
+{% endblock %}

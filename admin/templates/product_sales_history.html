@@ -1,0 +1,115 @@
+{% extends '_base_admin.html' %}
+{% block title %}Histórico de vendas por produto — M.T.F{% endblock %}
+{% block extra_styles %}
+    body { font-family: Arial, Helvetica, sans-serif; background: bisque; min-height: 100vh; font-size: 15px; }
+    .content { flex: 1; padding: 24px; display: flex; flex-direction: column; gap: 20px; overflow-x: auto; }
+    h1 { font-size: 1.4rem; color: #111; margin-bottom: 4px; }
+    .card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+    .card h2 { font-size: 1rem; font-weight: 900; color: #111; margin-bottom: 14px; }
+    .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .sum-card { background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+    .sum-label { font-size: .72rem; font-weight: 800; color: #888; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px; }
+    .sum-value { font-size: 1.4rem; font-weight: 900; color: #111; }
+    .sum-sub { font-size: .78rem; color: #888; margin-top: 3px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 8px 10px; border-bottom: 1px solid #f3f4f6; text-align: left; font-size: .85rem; }
+    th { font-weight: 900; color: #555; font-size: .75rem; text-transform: uppercase; }
+    .num { text-align: right; font-weight: 900; }
+    .empty { color: #888; }
+    .muted-note { color: #9ca3af; font-size: .8rem; margin-top: 8px; }
+    .pay-badge { display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: .78rem; font-weight: 800; }
+    .pay-dinheiro { background: #dcfce7; color: #166534; }
+    .pay-pix { background: #dbeafe; color: #1e40af; }
+    .pay-cartao_credito { background: #fef3c7; color: #92400e; }
+    .pay-cartao_debito { background: #f3e8ff; color: #6b21a8; }
+    .product-select { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .product-select select { max-width: 360px; }
+    .product-select button { padding: 10px 18px; border-radius: 10px; border: none; background: #111827; color: #fff; font-weight: 800; font-size: .9rem; cursor: pointer; font-family: inherit; }
+    @media (max-width: 1100px) { .summary-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 600px) { .summary-grid { grid-template-columns: 1fr; } }
+{% endblock %}
+{% block content %}
+<div>
+  <h1>🧾 Histórico de vendas por produto</h1>
+</div>
+
+<div class="card">
+  <form method="get" action="/reports/product-sales-history" class="product-select">
+    <select name="product_id">
+      <option value="">Selecione um produto...</option>
+      {% for p in products %}
+        <option value="{{ p.id }}" {% if selected_product_id == p.id %}selected{% endif %}>{{ p.name }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit">Ver histórico</button>
+  </form>
+</div>
+
+{% if selected_product_id and summary %}
+  <div class="summary-grid">
+    <div class="sum-card">
+      <div class="sum-label">Total vendido</div>
+      <div class="sum-value">{{ '%.2f'|format(summary.total_qty) }}</div>
+      <div class="sum-sub">unidades/kg (todas as vendas)</div>
+    </div>
+    <div class="sum-card">
+      <div class="sum-label">Receita total</div>
+      <div class="sum-value">R$ {{ '%.2f'|format(summary.total_revenue) }}</div>
+      <div class="sum-sub">{{ summary.sales_count }} venda(s)</div>
+    </div>
+    <div class="sum-card">
+      <div class="sum-label">Preço médio</div>
+      <div class="sum-value">
+        {% if summary.avg_unit_price is not none %}R$ {{ '%.2f'|format(summary.avg_unit_price) }}{% else %}—{% endif %}
+      </div>
+      <div class="sum-sub">receita ÷ quantidade</div>
+    </div>
+    <div class="sum-card">
+      <div class="sum-label">Período de vendas</div>
+      <div class="sum-value" style="font-size:1rem;">
+        {% if summary.first_sale %}{{ summary.first_sale.strftime('%d/%m/%Y') }} — {{ summary.last_sale.strftime('%d/%m/%Y') }}{% else %}—{% endif %}
+      </div>
+      <div class="sum-sub">primeira e última venda</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📋 Todas as vendas ({{ rows|length }} mais recentes)</h2>
+    {% if rows %}
+      <table>
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th class="num">Qtd</th>
+            <th class="num">Preço unit.</th>
+            <th class="num">Total</th>
+            <th>Pagamento</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in rows %}
+            <tr>
+              <td>{{ r.sold_at.strftime('%d/%m/%Y %H:%M') if r.sold_at.strftime is defined else r.sold_at }}</td>
+              <td class="num">{{ '%.2f'|format(r.qty) }}</td>
+              <td class="num">{% if r.unit_price is not none %}R$ {{ '%.2f'|format(r.unit_price) }}{% else %}—{% endif %}</td>
+              <td class="num">R$ {{ '%.2f'|format(r.total) }}</td>
+              <td>
+                {% if r.payment_method %}
+                  <span class="pay-badge pay-{{ r.payment_method }}">{{ r.payment_method }}</span>
+                {% else %}—{% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% if rows|length >= 300 %}
+        <div class="muted-note">Mostrando as 300 vendas mais recentes.</div>
+      {% endif %}
+    {% else %}
+      <div class="empty">Nenhuma venda registrada para este produto.</div>
+    {% endif %}
+  </div>
+{% elif selected_product_id %}
+  <div class="card"><div class="empty">Nenhuma venda encontrada para este produto.</div></div>
+{% endif %}
+{% endblock %}
