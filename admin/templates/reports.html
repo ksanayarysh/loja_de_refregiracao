@@ -184,6 +184,14 @@
           <div class="muted-note">Vendas sem preço de compra válida não entram no lucro: R$ {{ "%.2f"|format(profit_summary.revenue_without_cost) }}</div>
         {% endif %}
       </div>
+      <div class="sum-card" style="border-left: 4px solid #6366f1;">
+        <div class="sum-label">Valor em estoque agora</div>
+        <div class="sum-value" style="color:#6366f1;">R$ {{ "%.2f"|format(stock_value_now or 0) }}</div>
+        <div class="sum-sub">saldo atual × preço de compra</div>
+        {% if stock_no_cost_count and stock_no_cost_count > 0 %}
+          <div class="muted-note">{{ stock_no_cost_count }} produto(s) em estoque sem preço de compra cadastrado (não entram nesta soma)</div>
+        {% endif %}
+      </div>
     </div>
 
     {% if daily %}
@@ -292,6 +300,28 @@
               {% endfor %}
             </tbody>
           </table>
+        </div>
+
+        <!-- VALOR EM ESTOQUE NO FIM DE CADA MÊS -->
+        <div style="margin-top:22px; overflow-x:auto;">
+          <h2 style="font-size:.9rem; margin-bottom:10px;">📦 Valor da produção em estoque (fim do mês)</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Mês</th>
+                <th class="num">Valor em estoque</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for m in monthly %}
+                <tr>
+                  <td>{{ month_names[m.month.month - 1] }}/{{ m.month.year % 100 }}</td>
+                  <td class="num">R$ {{ '%.2f'|format(m.stock_value|float) }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          <div class="muted-note">Calculado pelo custo (cost_price) dos produtos vs. saldo de estoque acumulado até o fim de cada mês.</div>
         </div>
       {% else %}
         <div class="empty">Sem dados mensais.</div>

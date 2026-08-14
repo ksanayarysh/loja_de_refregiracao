@@ -539,6 +539,53 @@ async def reports(
                 "margin_pct": (m_margin / m_revenue * 100) if m_revenue > 0 else None,
             })
 
+        # 7c. VALOR EM ESTOQUE NO FIM DE CADA MÊS (valorizado por p.cost_price)
+        import calendar as _calendar
+        for m_item in monthly:
+            key = m_item["month"]
+            last_day = _calendar.monthrange(key.year, key.month)[1]
+            month_end = _date(key.year, key.month, last_day)
+            if month_end > today:
+                month_end = today
+            stock_value_res = await conn.execute(text("""
+                SELECT COALESCE(SUM(sq.stock_qty * p.cost_price), 0) AS stock_value
+                FROM (
+                    SELECT product_id, SUM(qty) AS stock_qty
+                    FROM stock_movements
+                    WHERE moved_at::date <= :month_end
+                    GROUP BY product_id
+                ) sq
+                JOIN products p ON p.id = sq.product_id
+                WHERE p.cost_price IS NOT NULL AND p.cost_price > 0
+            """), {"month_end": month_end})
+            m_item["stock_value"] = float(stock_value_res.scalar() or 0)
+
+        # 7d. VALOR EM ESTOQUE AGORA (neste exato momento, não por período)
+        stock_value_now_res = await conn.execute(text("""
+            SELECT COALESCE(SUM(sq.stock_qty * p.cost_price), 0) AS stock_value
+            FROM (
+                SELECT product_id, SUM(qty) AS stock_qty
+                FROM stock_movements
+                GROUP BY product_id
+            ) sq
+            JOIN products p ON p.id = sq.product_id
+            WHERE p.cost_price IS NOT NULL AND p.cost_price > 0
+        """))
+        stock_value_now = float(stock_value_now_res.scalar() or 0)
+
+        # produtos sem cost_price que têm estoque (para nota informativa)
+        stock_no_cost_res = await conn.execute(text("""
+            SELECT COUNT(*) FROM (
+                SELECT sm.product_id, SUM(sm.qty) AS stock_qty
+                FROM stock_movements sm
+                JOIN products p ON p.id = sm.product_id
+                WHERE p.cost_price IS NULL OR p.cost_price <= 0
+                GROUP BY sm.product_id
+                HAVING SUM(sm.qty) > 0
+            ) sub
+        """))
+        stock_no_cost_count = int(stock_no_cost_res.scalar() or 0)
+
         # 8b. VENDAS DIÁRIAS POR MÊS (últimos 3 meses)
         three_months_ago = today.replace(day=1)
         m = three_months_ago.month - 3
@@ -674,6 +721,8 @@ async def reports(
         "by_dom": by_dom,
         "avg_data": avg_data,
         "monthly": monthly,
+        "stock_value_now": stock_value_now,
+        "stock_no_cost_count": stock_no_cost_count,
         "gas_seasonality": gas_seasonality,
         "monthly_daily": monthly_daily,
     })
