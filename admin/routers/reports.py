@@ -529,17 +529,47 @@ async def reports(
             key = _date(y, m, 1)
             m_revenue = month_map.get(key, {}).get("revenue", 0)
             m_cost = cost_map.get(key, 0)
-            m_margin = m_revenue - m_cost
+            m_cash_flow = m_revenue - m_cost
             monthly.append({
                 "month": key,
                 "revenue": m_revenue,
                 "cnt": month_map.get(key, {}).get("cnt", 0),
                 "material_cost": m_cost,
-                "margin": m_margin,
-                "margin_pct": (m_margin / m_revenue * 100) if m_revenue > 0 else None,
+                "cash_flow": m_cash_flow,
+                "cash_flow_pct": (m_cash_flow / m_revenue * 100) if m_revenue > 0 else None,
             })
 
-        # 7c. VALOR EM ESTOQUE NO FIM DE CADA MÊS (valorizado por p.cost_price)
+        # 7c. MARGEM REAL POR MÊS (receita dos produtos vendidos vs. custo desses produtos, por cost_price)
+        margin_res = await conn.execute(text("""
+            SELECT
+                DATE_TRUNC('month', s.sold_at::date)::date AS month,
+                COALESCE(SUM(CASE WHEN p.cost_price IS NOT NULL AND p.cost_price > 0 THEN s.total ELSE 0 END), 0) AS revenue_with_cost,
+                COALESCE(SUM(CASE WHEN p.cost_price IS NOT NULL AND p.cost_price > 0 THEN s.qty * p.cost_price ELSE 0 END), 0) AS cogs,
+                COALESCE(SUM(CASE WHEN p.cost_price IS NULL OR p.cost_price <= 0 THEN s.total ELSE 0 END), 0) AS revenue_no_cost
+            FROM sales s
+            JOIN products p ON p.id = s.product_id
+            WHERE s.sold_at::date >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '5 months'
+            GROUP BY DATE_TRUNC('month', s.sold_at::date)
+        """))
+        margin_raw = margin_res.mappings().all()
+        margin_map = {
+            r["month"]: {
+                "revenue_with_cost": float(r["revenue_with_cost"]),
+                "cogs": float(r["cogs"]),
+                "revenue_no_cost": float(r["revenue_no_cost"]),
+            } for r in margin_raw
+        }
+        for m_item in monthly:
+            key = m_item["month"]
+            mm = margin_map.get(key, {"revenue_with_cost": 0, "cogs": 0, "revenue_no_cost": 0})
+            gross_profit = mm["revenue_with_cost"] - mm["cogs"]
+            m_item["revenue_with_cost"] = mm["revenue_with_cost"]
+            m_item["cogs"] = mm["cogs"]
+            m_item["revenue_no_cost"] = mm["revenue_no_cost"]
+            m_item["gross_profit"] = gross_profit
+            m_item["gross_margin_pct"] = (gross_profit / mm["revenue_with_cost"] * 100) if mm["revenue_with_cost"] > 0 else None
+
+        # 7d. VALOR EM ESTOQUE NO FIM DE CADA MÊS (valorizado por p.cost_price)
         import calendar as _calendar
         for m_item in monthly:
             key = m_item["month"]

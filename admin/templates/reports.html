@@ -272,16 +272,17 @@
           </div>
         {% endif %}
 
-        <!-- CUSTO DE MATERIAIS E MARGEM POR MÊS -->
+        <!-- FLUXO DE CAIXA OPERACIONAL POR MÊS (receita vs. compras de materiais no mês) -->
         <div style="margin-top:18px; overflow-x:auto;">
+          <h2 style="font-size:.9rem; margin-bottom:10px;">💵 Fluxo de caixa operacional por mês</h2>
           <table>
             <thead>
               <tr>
                 <th>Mês</th>
                 <th class="num">Receita</th>
-                <th class="num">Custo materiais</th>
-                <th class="num">Margem (R$)</th>
-                <th class="num">Margem (%)</th>
+                <th class="num">Compras de materiais</th>
+                <th class="num">Fluxo de caixa (R$)</th>
+                <th class="num">Fluxo de caixa (%)</th>
               </tr>
             </thead>
             <tbody>
@@ -290,16 +291,49 @@
                   <td>{{ month_names[m.month.month - 1] }}/{{ m.month.year % 100 }}</td>
                   <td class="num">R$ {{ '%.2f'|format(m.revenue|float) }}</td>
                   <td class="num">R$ {{ '%.2f'|format(m.material_cost|float) }}</td>
-                  <td class="num" style="color:{{ '#16a34a' if m.margin >= 0 else '#dc2626' }};">
-                    R$ {{ '%.2f'|format(m.margin|float) }}
+                  <td class="num" style="color:{{ '#16a34a' if m.cash_flow >= 0 else '#dc2626' }};">
+                    R$ {{ '%.2f'|format(m.cash_flow|float) }}
                   </td>
-                  <td class="num" style="color:{{ '#16a34a' if m.margin >= 0 else '#dc2626' }};">
-                    {% if m.margin_pct is not none %}{{ '%.1f'|format(m.margin_pct) }}%{% else %}—{% endif %}
+                  <td class="num" style="color:{{ '#16a34a' if m.cash_flow >= 0 else '#dc2626' }};">
+                    {% if m.cash_flow_pct is not none %}{{ '%.1f'|format(m.cash_flow_pct) }}%{% else %}—{% endif %}
                   </td>
                 </tr>
               {% endfor %}
             </tbody>
           </table>
+          <div class="muted-note">Receita do mês menos o que foi gasto em compras de materiais no mesmo mês (caixa, não lucro real).</div>
+        </div>
+
+        <!-- MARGEM REAL POR MÊS (produtos vendidos vs. custo desses produtos) -->
+        <div style="margin-top:22px; overflow-x:auto;">
+          <h2 style="font-size:.9rem; margin-bottom:10px;">📊 Margem real por mês (produtos vendidos)</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Mês</th>
+                <th class="num">Receita c/ custo</th>
+                <th class="num">Custo dos vendidos</th>
+                <th class="num">Lucro bruto</th>
+                <th class="num">Margem (%)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for m in monthly %}
+                <tr>
+                  <td>{{ month_names[m.month.month - 1] }}/{{ m.month.year % 100 }}</td>
+                  <td class="num">R$ {{ '%.2f'|format(m.revenue_with_cost|float) }}</td>
+                  <td class="num">R$ {{ '%.2f'|format(m.cogs|float) }}</td>
+                  <td class="num" style="color:{{ '#16a34a' if m.gross_profit >= 0 else '#dc2626' }};">
+                    R$ {{ '%.2f'|format(m.gross_profit|float) }}
+                  </td>
+                  <td class="num" style="color:{{ '#16a34a' if m.gross_profit >= 0 else '#dc2626' }};">
+                    {% if m.gross_margin_pct is not none %}{{ '%.1f'|format(m.gross_margin_pct) }}%{% else %}—{% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          <div class="muted-note">Baseado no custo (cost_price) dos produtos efetivamente vendidos naquele mês — independe de quando o material foi comprado.</div>
         </div>
 
         <!-- VALOR EM ESTOQUE NO FIM DE CADA MÊS -->
