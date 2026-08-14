@@ -498,6 +498,22 @@ async def reports(
         """))
         monthly_raw = monthly_res.mappings().all()
 
+        # 7b. GASTO EM MATERIAIS POR MÊS (mesmos últimos 6 meses)
+        monthly_cost_res = await conn.execute(text("""
+            SELECT
+                DATE_TRUNC('month', sm.moved_at::date)::date AS month,
+                COALESCE(SUM(sm.qty * sm.unit_cost), 0)       AS material_cost
+            FROM stock_movements sm
+            WHERE sm.moved_at::date >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '5 months'
+              AND sm.movement_type IN ('entrada', 'saldo_inicial')
+              AND sm.unit_cost IS NOT NULL
+              AND sm.unit_cost > 0
+              AND sm.qty > 0
+            GROUP BY DATE_TRUNC('month', sm.moved_at::date)
+        """))
+        monthly_cost_raw = monthly_cost_res.mappings().all()
+        cost_map = {r["month"]: float(r["material_cost"]) for r in monthly_cost_raw}
+
         # Заполняем все 6 месяцев (даже пустые)
         from datetime import date as _date
         month_map = {r["month"]: {"revenue": float(r["revenue"]), "cnt": int(r["cnt"])} for r in monthly_raw}
@@ -511,10 +527,16 @@ async def reports(
                 m += 12
                 y -= 1
             key = _date(y, m, 1)
+            m_revenue = month_map.get(key, {}).get("revenue", 0)
+            m_cost = cost_map.get(key, 0)
+            m_margin = m_revenue - m_cost
             monthly.append({
                 "month": key,
-                "revenue": month_map.get(key, {}).get("revenue", 0),
+                "revenue": m_revenue,
                 "cnt": month_map.get(key, {}).get("cnt", 0),
+                "material_cost": m_cost,
+                "margin": m_margin,
+                "margin_pct": (m_margin / m_revenue * 100) if m_revenue > 0 else None,
             })
 
         # 8b. VENDAS DIÁRIAS POR MÊS (últimos 3 meses)

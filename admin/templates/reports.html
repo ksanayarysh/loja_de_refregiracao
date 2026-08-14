@@ -263,6 +263,36 @@
             </span>
           </div>
         {% endif %}
+
+        <!-- CUSTO DE MATERIAIS E MARGEM POR MÊS -->
+        <div style="margin-top:18px; overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Mês</th>
+                <th class="num">Receita</th>
+                <th class="num">Custo materiais</th>
+                <th class="num">Margem (R$)</th>
+                <th class="num">Margem (%)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for m in monthly %}
+                <tr>
+                  <td>{{ month_names[m.month.month - 1] }}/{{ m.month.year % 100 }}</td>
+                  <td class="num">R$ {{ '%.2f'|format(m.revenue|float) }}</td>
+                  <td class="num">R$ {{ '%.2f'|format(m.material_cost|float) }}</td>
+                  <td class="num" style="color:{{ '#16a34a' if m.margin >= 0 else '#dc2626' }};">
+                    R$ {{ '%.2f'|format(m.margin|float) }}
+                  </td>
+                  <td class="num" style="color:{{ '#16a34a' if m.margin >= 0 else '#dc2626' }};">
+                    {% if m.margin_pct is not none %}{{ '%.1f'|format(m.margin_pct) }}%{% else %}—{% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
       {% else %}
         <div class="empty">Sem dados mensais.</div>
       {% endif %}
