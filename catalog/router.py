@@ -880,6 +880,7 @@ async def catalog_api():
         {
             "id":          r["id"],
             "name":        r["name"],
+            "slug":        slugify(r["name"]),
             "sale_price":  float(r["sale_price"]) if r["sale_price"] else None,
             "unit":        r["unit"],
             "category":    r["category_name"],
