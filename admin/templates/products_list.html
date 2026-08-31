@@ -173,13 +173,14 @@
         <div class="cat-group" data-cat="{{ cat|lower }}">
         <div class="cat-title">📂 {{ cat }}</div>
         <table>
-          <colgroup><col style="width:5%"><col style="width:30%"><col style="width:11%"><col style="width:8%"><col style="width:10%"><col style="width:36%"></colgroup>
+          <colgroup><col style="width:5%"><col style="width:26%"><col style="width:10%"><col style="width:7%"><col style="width:10%"><col style="width:10%"><col style="width:32%"></colgroup>
           <thead><tr>
             <th></th>
             <th><a href="{{ url(1,'name',(dir_toggle if sort=='name' else 'asc')) }}">Produto {% if sort=='name' %}{{ '↑' if direction=='asc' else '↓' }}{% endif %}</a></th>
             <th><a href="{{ url(1,'sale_price',(dir_toggle if sort=='sale_price' else 'asc')) }}">Preço {% if sort=='sale_price' %}{{ '↑' if direction=='asc' else '↓' }}{% endif %}</a></th>
             <th><a href="{{ url(1,'unit',(dir_toggle if sort=='unit' else 'asc')) }}">Unidade {% if sort=='unit' %}{{ '↑' if direction=='asc' else '↓' }}{% endif %}</a></th>
             <th style="text-align:right;">Estoque</th>
+            <th>Prateleira</th>
             <th></th>
           </tr></thead>
           <tbody>
@@ -195,6 +196,7 @@
         <td style="text-align:right;font-weight:800;color:{% if r['current_stock']<=0 %}#dc2626{% else %}#166534{% endif %};">
           {% if r['unit']=='kg' %}{{ "%.3f"|format(r['current_stock']) }}{% else %}{{ "%.0f"|format(r['current_stock']) }}{% endif %}
         </td>
+        <td class="unit-cell">{{ r['shelf_code'] or '—' }}</td>
         <td>
           <div class="action-cell">
             <button class="cart-btn" onclick="addToCart({{ r['id'] }}, '{{ r['name']|replace("'","\\'") }}', {{ r['sale_price'] or 0 }}, '{{ r['unit'] or 'un' }}', 1)">🛒</button>
@@ -252,7 +254,12 @@ async function searchProducts() {
     if(!data.length){list.innerHTML='<div class="result-item" style="color:#888">Nenhum produto encontrado.</div>';return;}
     list.innerHTML = data.map(p=>{
       const price=parseFloat(p.sale_price||0);const name=escapeHtml(p.name);const unit=escapeHtml(p.unit||'un');
-      return `<div class="result-item"><div class="result-info"><div class="result-name">${name}</div><div class="result-unit">${unit}</div></div><span class="result-price">R$ ${price.toFixed(2)}</span><div class="result-actions"><button class="btn-cart" onclick="addToCart(${p.id},'${name}',${price},'${unit}',1)">🛒 Carrinho</button><button class="btn-buy" onclick="buyNow(${p.id},${price},'${unit}',1)">⚡ Comprar agora</button><a class="edit-btn" href="/products/${p.id}/edit">✏️</a></div></div>`;
+      const stock=p.current_stock!=null?p.current_stock:null;
+      const stockColor=stock<=0?'#dc2626':'#166534';
+      const stockQty=p.unit==='kg'?parseFloat(stock).toFixed(3):Math.round(stock);
+      const shelfPart=p.shelf_code?` · 📍 ${escapeHtml(p.shelf_code)}`:'';
+      const stockLine=stock!==null?`<div class="result-unit"><span style="color:${stockColor};font-weight:700;">${stockQty} ${unit} em estoque</span>${shelfPart}</div>`:`<div class="result-unit">${unit}</div>`;
+      return `<div class="result-item"><div class="result-info"><div class="result-name">${name}</div>${stockLine}</div><span class="result-price">R$ ${price.toFixed(2)}</span><div class="result-actions"><button class="btn-cart" onclick="addToCart(${p.id},'${name}',${price},'${unit}',1)">🛒 Carrinho</button><button class="btn-buy" onclick="buyNow(${p.id},${price},'${unit}',1)">⚡ Comprar agora</button><a class="edit-btn" href="/products/${p.id}/edit">✏️</a></div></div>`;
     }).join('');
   } catch { list.innerHTML='<div class="result-item" style="color:#dc2626">Erro ao buscar.</div>'; }
 }
@@ -286,6 +293,7 @@ async function modelSearch() {
       const desc = escapeHtml(p.description || '');
       const stockColor = p.current_stock <= 0 ? '#dc2626' : '#166534';
       const stockQty = p.unit === 'kg' ? parseFloat(p.current_stock).toFixed(3) : Math.round(p.current_stock);
+      const shelf = escapeHtml(p.shelf_code || '');
       const img = p.image
         ? `<img class="mresult-img" src="${escapeHtml(p.image)}" alt="${name}">`
         : `<div class="mresult-img-ph">📦</div>`;
@@ -299,6 +307,7 @@ async function modelSearch() {
         <div class="mresult-right">
           <span class="mresult-price">R$ ${price.toFixed(2)}</span>
           <span class="mresult-stock" style="color:${stockColor};">Estoque: ${stockQty} ${unit}</span>
+          ${shelf ? `<span class="mresult-stock" style="color:#555;">📍 ${shelf}</span>` : ''}
           <div class="mresult-actions">
             <button class="btn-cart" onclick="addToCart(${p.id},'${name}',${price},'${unit}',1)">🛒</button>
             <button class="btn-buy" onclick="buyNow(${p.id},${price},'${unit}',1)">⚡</button>

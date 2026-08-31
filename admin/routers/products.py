@@ -32,6 +32,17 @@ async def _ensure_price_history(conn):
     _price_history_ready = True
 # ─────────────────────────────────────────────────────────────────────────────
 
+# ── КОД ПОЛКИ ────────────────────────────────────────────────────────────────
+_shelf_code_ready = False
+
+async def _ensure_shelf_code_column(conn):
+    global _shelf_code_ready
+    if _shelf_code_ready:
+        return
+    await conn.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS shelf_code VARCHAR(50)"))
+    _shelf_code_ready = True
+# ─────────────────────────────────────────────────────────────────────────────
+
 SORT_FIELDS = {
     "name": "p.name",
     "unit": "p.unit",
@@ -112,6 +123,7 @@ async def create_product(
     cost_price: str = Form("0"),
     min_stock: int = Form(0),
     description: str = Form(""),
+    shelf_code: str = Form(""),
     image: UploadFile = File(None),
     _=Depends(basic_auth),
 ):
@@ -120,6 +132,8 @@ async def create_product(
     image_b64 = await _process_image(image)
 
     async with engine.begin() as conn:
+        await _ensure_shelf_code_column(conn)
+
         dup = await conn.execute(
             text("SELECT id FROM products WHERE LOWER(TRIM(name)) = LOWER(TRIM(:name)) AND active = TRUE"),
             {"name": name.strip()}
@@ -132,19 +146,23 @@ async def create_product(
             }, status_code=400)
 
         await conn.execute(
-            text("""INSERT INTO products (name, category_id, unit, sale_price, cost_price, min_stock, active, image, description)
-                    VALUES (:name, :category_id, :unit, :sale_price, :cost_price, :min_stock, TRUE, :image, :description)"""),
+            text("""INSERT INTO products (name, category_id, unit, sale_price, cost_price, min_stock, active, image, description, shelf_code)
+                    VALUES (:name, :category_id, :unit, :sale_price, :cost_price, :min_stock, TRUE, :image, :description, :shelf_code)"""),
             {"name": name.strip(), "category_id": category_id, "unit": unit,
-             "sale_price": price, "cost_price": cost, "min_stock": min_stock, "image": image_b64, "description": description.strip() or None},
+             "sale_price": price, "cost_price": cost, "min_stock": min_stock, "image": image_b64, "description": description.strip() or None,
+             "shelf_code": shelf_code.strip() or None},
         )
     return RedirectResponse(url="/products/new?ok=1", status_code=303)
 
 
 @router.get("/products/{product_id}/edit", response_class=HTMLResponse)
 async def edit_product_form(product_id: int, request: Request, _=Depends(basic_auth)):
+    async with engine.begin() as conn:
+        await _ensure_shelf_code_column(conn)
+
     async with engine.connect() as conn:
         res = await conn.execute(
-            text("SELECT id, name, category_id, category2_id, unit, sale_price, cost_price, min_stock, image, description FROM products WHERE id = :id AND active = TRUE"),
+            text("SELECT id, name, category_id, category2_id, unit, sale_price, cost_price, min_stock, image, description, shelf_code FROM products WHERE id = :id AND active = TRUE"),
             {"id": product_id},
         )
         product = res.mappings().first()
@@ -168,6 +186,7 @@ async def update_product(
     cost_price: str = Form("0"),
     min_stock: int = Form(0),
     description: str = Form(""),
+    shelf_code: str = Form(""),
     image: UploadFile = File(None),
     remove_image: str = Form(""),
     _=Depends(basic_auth),
@@ -177,13 +196,15 @@ async def update_product(
     image_b64 = await _process_image(image)
 
     async with engine.begin() as conn:
+        await _ensure_shelf_code_column(conn)
+
         dup = await conn.execute(
             text("SELECT id FROM products WHERE LOWER(TRIM(name)) = LOWER(TRIM(:name)) AND active = TRUE AND id != :id"),
             {"name": name.strip(), "id": product_id}
         )
         if dup.first():
             res = await conn.execute(
-                text("SELECT id, name, category_id, category2_id, unit, sale_price, cost_price, min_stock, image, description FROM products WHERE id = :id"),
+                text("SELECT id, name, category_id, category2_id, unit, sale_price, cost_price, min_stock, image, description, shelf_code FROM products WHERE id = :id"),
                 {"id": product_id}
             )
             product    = res.mappings().first()
@@ -223,13 +244,13 @@ async def update_product(
         await conn.execute(
             text(f"""UPDATE products
                     SET name=:name, category_id=:category_id, category2_id=:category2_id,
-                        unit=:unit, description=:description,
+                        unit=:unit, description=:description, shelf_code=:shelf_code,
                         sale_price=:sale_price, cost_price=:cost_price, min_stock=:min_stock
                         {extra_sql}
                     WHERE id=:id"""),
             {"id": product_id, "name": name.strip(), "category_id": category_id,
              "category2_id": category2_id if category2_id and category2_id > 0 else None,
-             "description": description.strip() or None,
+             "description": description.strip() or None, "shelf_code": shelf_code.strip() or None,
              "unit": unit, "sale_price": price, "cost_price": cost, "min_stock": min_stock, **extra_val},
         )
     return RedirectResponse(url=f"/products/{product_id}/edit?ok=1", status_code=303)
@@ -255,6 +276,9 @@ async def products_list(
     direction_sql = "DESC" if direction.lower() == "desc" else "ASC"
     offset        = (page - 1) * per_page
 
+    async with engine.begin() as conn:
+        await _ensure_shelf_code_column(conn)
+
     async with engine.connect() as conn:
         total       = await conn.execute(text("SELECT COUNT(*) FROM products p WHERE p.active = TRUE"))
         total_count = int(total.scalar() or 0)
@@ -262,14 +286,14 @@ async def products_list(
         rows_res = await conn.execute(
             text(f"""
                 SELECT p.id, p.name, p.sale_price, p.cost_price, p.unit, p.min_stock,
-                       p.image,
+                       p.image, p.shelf_code,
                        c.name as category_name,
                        COALESCE(SUM(sm.qty), 0) as current_stock
                 FROM products p
                 LEFT JOIN categories c ON c.id = p.category_id
                 LEFT JOIN stock_movements sm ON sm.product_id = p.id
                 WHERE p.active = TRUE
-                GROUP BY p.id, p.name, p.sale_price, p.cost_price, p.unit, p.min_stock, p.image, c.name
+                GROUP BY p.id, p.name, p.sale_price, p.cost_price, p.unit, p.min_stock, p.image, p.shelf_code, c.name
                 ORDER BY LOWER(COALESCE(c.name, 'Outro')) ASC, {sort_col} {direction_sql}
                 LIMIT :limit OFFSET :offset
             """),
@@ -350,6 +374,8 @@ async def api_model_search(
     """Busca por modelo ou marca no nome e descrição do produto."""
     if not q.strip():
         return []
+    async with engine.begin() as conn:
+        await _ensure_shelf_code_column(conn)
     async with engine.connect() as conn:
         where = "p.active = TRUE AND (LOWER(p.name) LIKE LOWER(:q) OR LOWER(COALESCE(p.description,'')) LIKE LOWER(:q))"
         params: dict = {"q": f"%{q.strip()}%"}
@@ -357,14 +383,14 @@ async def api_model_search(
             where += " AND p.category_id = :cat_id"
             params["cat_id"] = category_id
         res = await conn.execute(
-            text(f"""SELECT p.id, p.name, p.sale_price, p.unit, p.image, p.description,
+            text(f"""SELECT p.id, p.name, p.sale_price, p.unit, p.image, p.description, p.shelf_code,
                            c.name as category_name,
                            GREATEST(0, COALESCE(SUM(sm.qty), 0)) as current_stock
                     FROM products p
                     LEFT JOIN categories c ON c.id = p.category_id
                     LEFT JOIN stock_movements sm ON sm.product_id = p.id
                     WHERE {where}
-                    GROUP BY p.id, p.name, p.sale_price, p.unit, p.image, p.description, c.name
+                    GROUP BY p.id, p.name, p.sale_price, p.unit, p.image, p.description, p.shelf_code, c.name
                     ORDER BY p.name
                     LIMIT 100"""),
             params,
@@ -379,6 +405,7 @@ async def api_model_search(
             "image": r["image"],
             "category_name": r["category_name"] or "Outro",
             "current_stock": float(r["current_stock"]),
+            "shelf_code": r["shelf_code"],
             "description": (r["description"] or "")[:120],
         }
         for r in rows
@@ -387,6 +414,8 @@ async def api_model_search(
 
 @router.get("/api/products")
 async def api_products(search: str = Query(""), unit: str = Query(""), category: str = Query(""), _=Depends(basic_auth)):
+    async with engine.begin() as conn:
+        await _ensure_shelf_code_column(conn)
     async with engine.connect() as conn:
         where = "p.active = TRUE AND LOWER(p.name) LIKE LOWER(:q)"
         params: dict = {"q": f"%{search}%"}
@@ -397,7 +426,7 @@ async def api_products(search: str = Query(""), unit: str = Query(""), category:
             where += " AND LOWER(COALESCE(c.name, '')) LIKE LOWER(:cat)"
             params["cat"] = f"%{category}%"
         res = await conn.execute(
-            text(f"""SELECT p.id, p.name, p.sale_price, p.cost_price, p.unit, p.image,
+            text(f"""SELECT p.id, p.name, p.sale_price, p.cost_price, p.unit, p.image, p.shelf_code,
                            GREATEST(0, COALESCE(SUM(sm.qty), 0)) as current_stock
                     FROM products p
                     LEFT JOIN categories c ON c.id = p.category_id
@@ -411,6 +440,7 @@ async def api_products(search: str = Query(""), unit: str = Query(""), category:
         {"id": r["id"], "name": r["name"], "sale_price": float(r["sale_price"] or 0),
          "cost_price": float(r["cost_price"]) if r["cost_price"] else None,
          "unit": r["unit"] or "un", "image": r["image"],
-         "current_stock": float(r["current_stock"])}
+         "current_stock": float(r["current_stock"]),
+         "shelf_code": r["shelf_code"]}
         for r in rows
     ]

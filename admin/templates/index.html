@@ -628,7 +628,8 @@ async function searchProducts() {
       if (stock !== null) {
         const stockEl = document.createElement('div');
         stockEl.className = 'result-stock';
-        stockEl.innerHTML = `<span style="color:${stockColor};font-weight:700">${stock} ${p.unit} em estoque</span>`;
+        const shelfPart = p.shelf_code ? ` · 📍 ${String(p.shelf_code).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]))}` : '';
+        stockEl.innerHTML = `<span style="color:${stockColor};font-weight:700">${stock} ${p.unit} em estoque</span><span>${shelfPart}</span>`;
         info.appendChild(stockEl);
       }
 
