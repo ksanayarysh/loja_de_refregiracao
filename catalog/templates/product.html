@@ -551,7 +551,7 @@
   <span>{{ product.name }}</span>
 </nav>
 
-{% set wa_msg = "Olá! Tenho interesse no produto: " + product.name + " (" + product.unit + ")" + (". Preço: R$ " + ('%.2f'|format(product.sale_price)) if product.sale_price else "") + ". Está disponível?" %}
+{% set wa_msg = "Olá! Tenho interesse no produto: " + product.name + " (" + product.unit + ")" + (". Preço: R$ " + ('%.2f'|format(product.sale_price)|replace('.', ',')) if product.sale_price else "") + ". Está disponível?" %}
 
 <div class="product-page">
   <div class="product-img-wrap">
@@ -600,7 +600,7 @@
     <div class="price-block" style="border:2px solid var(--accent);background:linear-gradient(135deg,#fff5f7 0%,#fff 100%);">
       <div class="price-label">Preço</div>
       {% if product.sale_price %}
-      <div class="price-value" style="font-size:2.4rem;color:var(--accent);">R$ {{ "%.2f"|format(product.sale_price) }}{% if product.unit == 'kg' %}<span style="font-size:1.1rem;font-weight:400;color:var(--muted);">/kg</span>{% endif %}</div>
+      <div class="price-value" style="font-size:2.4rem;color:var(--accent);">R$ {{ "%.2f"|format(product.sale_price)|replace('.', ',') }}{% if product.unit == 'kg' %}<span style="font-size:1.1rem;font-weight:400;color:var(--muted);">/kg</span>{% endif %}</div>
       <div style="font-size:.8rem;color:var(--muted);margin-top:2px;">por {{ product.unit }} · Rio de Janeiro</div>
       {% else %}
       <div class="price-consult">Consulte disponibilidade</div>
@@ -719,7 +719,7 @@
       <span class="related-name">{{ r.name }} <span style="color:var(--muted);font-size:.8rem;">({{ r.unit }})</span></span>
 
       {% if r.sale_price %}
-      <span class="related-price">R$ {{ "%.2f"|format(r.sale_price) }}</span>
+      <span class="related-price">R$ {{ "%.2f"|format(r.sale_price)|replace('.', ',') }}</span>
       {% else %}
       <span class="related-price" style="font-family:inherit;font-size:.82rem;">Consulte</span>
       {% endif %}
