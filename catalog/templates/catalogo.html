@@ -905,6 +905,45 @@ async function _getCatalogData() {
   return _catalogApiCache;
 }
 
+// ===== BUSCA: sugestões quando nada é encontrado (typo/similaridade) =====
+function _normStr(s) {
+  return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+function _levenshtein(a, b) {
+  const m = a.length, n = b.length;
+  if (!m) return n;
+  if (!n) return m;
+  const dp = Array.from({length: m + 1}, () => new Array(n + 1).fill(0));
+  for (let i = 0; i <= m; i++) dp[i][0] = i;
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      dp[i][j] = a[i-1] === b[j-1] ? dp[i-1][j-1] : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
+    }
+  }
+  return dp[m][n];
+}
+function _similarityScore(query, name) {
+  const q = _normStr(query);
+  const words = _normStr(name).split(/\s+/);
+  let best = 0;
+  for (const w of words) {
+    const maxLen = Math.max(q.length, w.length);
+    if (!maxLen) continue;
+    const score = 1 - _levenshtein(q, w) / maxLen;
+    if (score > best) best = score;
+  }
+  return best;
+}
+function findSimilarProducts(products, query, limit) {
+  return products
+    .map(p => ({ p, score: _similarityScore(query, p.name) }))
+    .filter(x => x.score >= 0.45)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit)
+    .map(x => x.p);
+}
+
 async function filterProducts() {
   const q = document.getElementById('searchInput').value.toLowerCase().trim();
   const catalogEl = document.getElementById('catalog');
@@ -934,7 +973,12 @@ async function filterProducts() {
 
   try {
     const products = await _getCatalogData();
-    const filtered = products.filter(p => p.name.toLowerCase().includes(q));
+    let filtered = products.filter(p => p.name.toLowerCase().includes(q));
+    let isFallback = false;
+    if (!filtered.length) {
+      filtered = findSimilarProducts(products, q, 8);
+      isFallback = true;
+    }
 
     // скрыть обычный каталог, показать результаты
     catalogEl.style.display = 'none';
@@ -950,7 +994,9 @@ async function filterProducts() {
       return;
     }
 
-    statsBar.innerHTML = `<b>${filtered.length}</b> produto${filtered.length !== 1 ? 's' : ''} encontrado${filtered.length !== 1 ? 's' : ''}`;
+    statsBar.innerHTML = isFallback
+      ? `Nenhum resultado exato — talvez você quis dizer:`
+      : `<b>${filtered.length}</b> produto${filtered.length !== 1 ? 's' : ''} encontrado${filtered.length !== 1 ? 's' : ''}`;
 
     searchList.innerHTML = filtered.map(p => {
       const slug = p.slug || p.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\+/g,' plus ').replace(/[^\w\s-]/g,' ').replace(/[\s_]+/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');

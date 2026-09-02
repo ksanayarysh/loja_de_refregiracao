@@ -696,6 +696,45 @@ function cartClose() {
 
 cartUpdateUI();
 
+// ===== BUSCA: sugestões quando nada é encontrado (typo/similaridade) =====
+function _normStr(s) {
+  return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+function _levenshtein(a, b) {
+  const m = a.length, n = b.length;
+  if (!m) return n;
+  if (!n) return m;
+  const dp = Array.from({length: m + 1}, () => new Array(n + 1).fill(0));
+  for (let i = 0; i <= m; i++) dp[i][0] = i;
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      dp[i][j] = a[i-1] === b[j-1] ? dp[i-1][j-1] : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
+    }
+  }
+  return dp[m][n];
+}
+function _similarityScore(query, name) {
+  const q = _normStr(query);
+  const words = _normStr(name).split(/\s+/);
+  let best = 0;
+  for (const w of words) {
+    const maxLen = Math.max(q.length, w.length);
+    if (!maxLen) continue;
+    const score = 1 - _levenshtein(q, w) / maxLen;
+    if (score > best) best = score;
+  }
+  return best;
+}
+function findSimilarProducts(products, query, limit) {
+  return products
+    .map(p => ({ p, score: _similarityScore(query, p.name) }))
+    .filter(x => x.score >= 0.45)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit)
+    .map(x => x.p);
+}
+
 // ===== FIXED SEARCH RESULTS =====
 async function triggerFixedSearch() {
   const q = document.getElementById('quickSearch').value.trim();
@@ -710,7 +749,12 @@ async function triggerFixedSearch() {
     const res = await fetch('/api/catalog');
     const products = await res.json();
     const ql2 = q.toLowerCase();
-    const filtered = products.filter(p => p.name.toLowerCase().includes(ql2) || (p.description || '').toLowerCase().includes(ql2));
+    let filtered = products.filter(p => p.name.toLowerCase().includes(ql2) || (p.description || '').toLowerCase().includes(ql2));
+    let isFallback = false;
+    if (!filtered.length) {
+      filtered = findSimilarProducts(products, q, 6);
+      isFallback = true;
+    }
     if (!filtered.length) {
       count.textContent = 'Nenhum produto encontrado';
       list.innerHTML = `<div style="padding:20px 16px;color:var(--muted);font-size:.9rem;text-align:center;">Não encontramos "<b>${q}</b>". <a href="https://wa.me/${WA_NUMBER}?text=Olá! Procuro: ${encodeURIComponent(q)}" style="color:var(--accent);font-weight:700;" target="_blank">Pergunte no WhatsApp →</a></div>`;
@@ -718,7 +762,9 @@ async function triggerFixedSearch() {
       box.scrollIntoView({behavior:'smooth', block:'start'});
       return;
     }
-    count.textContent = `${filtered.length} resultado${filtered.length !== 1 ? 's' : ''} para "${q}"`;
+    count.textContent = isFallback
+      ? `Nenhum resultado exato para "${q}" — talvez você quis dizer:`
+      : `${filtered.length} resultado${filtered.length !== 1 ? 's' : ''} para "${q}"`;
     list.innerHTML = filtered.map(p => {
       const slug = p.slug || p.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\+/g,' plus ').replace(/[^\w\s-]/g,' ').replace(/[\s_]+/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');
       const price = p.sale_price ? `<span style="font-family:'DM Mono',monospace;font-weight:700;color:var(--accent);font-size:.95rem;white-space:nowrap;">R$ ${p.sale_price.toFixed(2).replace('.',',')}</span>` : `<span style="color:var(--muted);font-size:.85rem;">Consulte</span>`;
@@ -761,13 +807,18 @@ async function quickSearchHandler(q) {
     const res = await fetch('/api/catalog');
     const products = await res.json();
     const ql = q.toLowerCase();
-    const filtered = products.filter(p => p.name.toLowerCase().includes(ql) || (p.description || '').toLowerCase().includes(ql)).slice(0, 8);
+    let filtered = products.filter(p => p.name.toLowerCase().includes(ql) || (p.description || '').toLowerCase().includes(ql)).slice(0, 8);
+    let isFallback = false;
+    if (!filtered.length) {
+      filtered = findSimilarProducts(products, q, 5);
+      isFallback = true;
+    }
     if (!filtered.length) {
       box.innerHTML = `<div style="padding:14px 16px;color:var(--muted);font-size:.88rem;">Nenhum produto encontrado. <a href="https://wa.me/${WA_NUMBER}?text=Ol%C3%A1!%20N%C3%A3o%20encontrei%20o%20produto%20que%20preciso." style="color:var(--accent);font-weight:700;" target="_blank">Pergunte no WhatsApp →</a></div>`;
       box.style.display = 'block';
       return;
     }
-    box.innerHTML = filtered.map(p => {
+    box.innerHTML = (isFallback ? `<div style="padding:8px 16px 2px;color:var(--muted);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.02em;">Você quis dizer:</div>` : '') + filtered.map(p => {
       const slug = p.slug || p.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\+/g,' plus ').replace(/[^\w\s-]/g,' ').replace(/[\s_]+/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');
       const price = p.sale_price ? `<span style="font-family:'DM Mono',monospace;font-weight:700;color:var(--accent);font-size:.88rem;white-space:nowrap;">R$ ${p.sale_price.toFixed(2).replace('.',',')}</span>` : `<span style="color:var(--muted);font-size:.82rem;">Consulte</span>`;
       const img = p.image ? `<img loading="lazy" src="${imgProxy(p.image,72)}" style="width:36px;height:36px;object-fit:contain;border-radius:6px;border:1px solid var(--border);background:var(--bg);flex-shrink:0;">` : `<div style="width:36px;height:36px;border-radius:6px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;">📦</div>`;
