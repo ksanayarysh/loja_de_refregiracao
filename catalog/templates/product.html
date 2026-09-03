@@ -692,6 +692,7 @@
   </div>
 </div>
 
+{% if not product.description %}
 <section class="seo-product-text">
   <div class="seo-product-box">
     <h2>{{ product.name }}</h2>
@@ -703,6 +704,7 @@
     </p>
   </div>
 </section>
+{% endif %}
 
 {% if related %}
 <div class="related">
