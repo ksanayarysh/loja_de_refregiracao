@@ -892,6 +892,124 @@ async def reports(
     })
 
 
+MESES_PT = [
+    "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+    "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+]
+
+
+def _month_bounds(year: int, month: int):
+    d_from = date(year, month, 1)
+    if month == 12:
+        d_to = date(year, 12, 31)
+    else:
+        d_to = date(year, month + 1, 1) - timedelta(days=1)
+    return d_from, d_to
+
+
+def _shift_month(year: int, month: int, delta: int):
+    idx = (year * 12 + (month - 1)) + delta
+    return idx // 12, idx % 12 + 1
+
+
+@router.get("/reports/monthly-sales", response_class=HTMLResponse)
+async def monthly_sales_report(
+    request: Request,
+    month: int = Query(None, ge=1, le=12),
+    year: int = Query(None),
+    _=Depends(basic_auth),
+):
+    today = date.today()
+    month = month or today.month
+    year = year or today.year
+    d_from, d_to = _month_bounds(year, month)
+
+    prev_year, prev_month = _shift_month(year, month, -1)
+    next_year, next_month = _shift_month(year, month, 1)
+
+    async with engine.connect() as conn:
+        res = await conn.execute(text("""
+            SELECT
+                p.id,
+                p.name,
+                p.unit,
+                p.cost_price,
+                COALESCE(SUM(s.qty), 0)   AS total_qty,
+                COALESCE(SUM(s.total), 0) AS total_revenue,
+                COALESCE(SUM(
+                    CASE WHEN p.cost_price IS NOT NULL AND p.cost_price > 0
+                         THEN s.qty * p.cost_price ELSE 0 END
+                ), 0) AS total_cost
+            FROM sales s
+            JOIN products p ON p.id = s.product_id
+            WHERE s.sold_at::date BETWEEN :d_from AND :d_to
+            GROUP BY p.id, p.name, p.unit, p.cost_price
+            ORDER BY total_revenue DESC, p.name ASC
+        """), {"d_from": d_from, "d_to": d_to})
+        rows = res.mappings().all()
+
+    products = []
+    grand_qty = grand_revenue = grand_cost = 0.0
+    for r in rows:
+        qty = float(r["total_qty"] or 0)
+        revenue = float(r["total_revenue"] or 0)
+        cost_price = float(r["cost_price"]) if r["cost_price"] is not None else None
+        has_cost = cost_price is not None and cost_price > 0
+        # Sem preço de custo cadastrado -> custo assumido = 0 (o produto participa
+        # normalmente do relatório e dos totais; lucro fica igual à receita).
+        cost_total = float(r["total_cost"] or 0)
+        avg_sale_price = (revenue / qty) if qty > 0 else 0.0
+        profit = revenue - cost_total
+        margin_pct = (profit / revenue) * 100 if revenue > 0 else None
+
+        products.append({
+            "id": r["id"],
+            "name": r["name"],
+            "unit": r["unit"],
+            "qty": qty,
+            "cost_price": cost_price,
+            "has_cost": has_cost,
+            "avg_sale_price": avg_sale_price,
+            "revenue": revenue,
+            "cost_total": cost_total,
+            "profit": profit,
+            "margin_pct": margin_pct,
+        })
+        grand_qty += qty
+        grand_revenue += revenue
+        grand_cost += cost_total
+
+    grand_profit = grand_revenue - grand_cost
+    products_no_cost = [p["name"] for p in products if not p["has_cost"]]
+
+    # Últimos 24 meses para o seletor
+    month_options = []
+    for i in range(24):
+        y, m = _shift_month(today.year, today.month, -i)
+        month_options.append({"year": y, "month": m, "label": f"{MESES_PT[m - 1]} {y}"})
+
+    return templates.TemplateResponse("monthly_sales_report.html", {
+        "request": request,
+        "year": year,
+        "month": month,
+        "month_name": MESES_PT[month - 1],
+        "d_from": d_from.isoformat(),
+        "d_to": d_to.isoformat(),
+        "prev_year": prev_year,
+        "prev_month": prev_month,
+        "next_year": next_year,
+        "next_month": next_month,
+        "is_current_month": (year == today.year and month == today.month),
+        "month_options": month_options,
+        "products": products,
+        "products_no_cost": products_no_cost,
+        "grand_qty": grand_qty,
+        "grand_revenue": grand_revenue,
+        "grand_cost": grand_cost,
+        "grand_profit": grand_profit,
+    })
+
+
 @router.get("/reports/product-views", response_class=HTMLResponse)
 async def product_views_report(
     request: Request,

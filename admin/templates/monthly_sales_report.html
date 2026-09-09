@@ -1,0 +1,130 @@
+{% extends "_base_admin.html" %}
+{% block title %}Relatório mensal de vendas{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+    <h4 class="mb-0">Relatório mensal de vendas</h4>
+
+    <div class="d-flex align-items-center gap-2">
+      <a class="btn btn-outline-secondary btn-sm"
+         href="/reports/monthly-sales?year={{ prev_year }}&month={{ prev_month }}">‹ Anterior</a>
+
+      <form method="get" action="/reports/monthly-sales" class="d-flex align-items-center gap-1">
+        <select name="ym" class="form-select form-select-sm"
+                onchange="var v=this.value.split('-'); window.location='/reports/monthly-sales?year='+v[0]+'&month='+v[1];">
+          {% for opt in month_options %}
+          <option value="{{ opt.year }}-{{ opt.month }}"
+            {% if opt.year == year and opt.month == month %}selected{% endif %}>
+            {{ opt.label }}
+          </option>
+          {% endfor %}
+        </select>
+      </form>
+
+      <a class="btn btn-outline-secondary btn-sm {% if is_current_month %}disabled{% endif %}"
+         href="/reports/monthly-sales?year={{ next_year }}&month={{ next_month }}">Próximo ›</a>
+    </div>
+  </div>
+
+  <p class="text-muted small mb-3">
+    Período: {{ d_from }} a {{ d_to }} ({{ month_name }} de {{ year }})
+  </p>
+
+  <!-- Cartões resumo -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="card h-100" style="background:#fff5e6;border:1px solid #f0d9b5;">
+        <div class="card-body py-2">
+          <div class="text-muted small">Itens vendidos</div>
+          <div class="fs-5 fw-bold">{{ "%.2f"|format(grand_qty) }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card h-100" style="background:#fff5e6;border:1px solid #f0d9b5;">
+        <div class="card-body py-2">
+          <div class="text-muted small">Receita total</div>
+          <div class="fs-5 fw-bold" style="color:#e2144a;">R$ {{ "%.2f"|format(grand_revenue) }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card h-100" style="background:#fff5e6;border:1px solid #f0d9b5;">
+        <div class="card-body py-2">
+          <div class="text-muted small">Custo (produtos com preço de custo)</div>
+          <div class="fs-5 fw-bold">R$ {{ "%.2f"|format(grand_cost) }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card h-100" style="background:#fff5e6;border:1px solid #f0d9b5;">
+        <div class="card-body py-2">
+          <div class="text-muted small">Lucro estimado</div>
+          <div class="fs-5 fw-bold">R$ {{ "%.2f"|format(grand_profit) }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if products_no_cost %}
+  <div class="alert alert-warning py-2 small">
+    Sem preço de custo cadastrado (custo considerado R$ 0,00 — lucro real pode ser menor): {{ products_no_cost|join(", ") }}
+  </div>
+  {% endif %}
+
+  <div class="table-responsive">
+    <table class="table table-sm table-hover align-middle">
+      <thead>
+        <tr style="background:#fff5e6;">
+          <th>Produto</th>
+          <th class="text-end">Quantidade</th>
+          <th class="text-end">Preço de custo</th>
+          <th class="text-end">Preço de venda (méd.)</th>
+          <th class="text-end">Receita</th>
+          <th class="text-end">Lucro</th>
+          <th class="text-end">Margem</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in products %}
+        <tr>
+          <td>{{ p.name }}</td>
+          <td class="text-end">{{ "%.2f"|format(p.qty) }} {{ p.unit or "" }}</td>
+          <td class="text-end">
+            {% if p.has_cost %}
+              R$ {{ "%.2f"|format(p.cost_price) }}
+            {% else %}
+              <span class="text-muted" title="Sem preço de custo cadastrado, considerado R$ 0,00">R$ 0,00*</span>
+            {% endif %}
+          </td>
+          <td class="text-end">R$ {{ "%.2f"|format(p.avg_sale_price) }}</td>
+          <td class="text-end fw-semibold">R$ {{ "%.2f"|format(p.revenue) }}</td>
+          <td class="text-end">R$ {{ "%.2f"|format(p.profit) }}</td>
+          <td class="text-end">
+            {% if p.margin_pct is not none %}{{ "%.1f"|format(p.margin_pct) }}%{% else %}—{% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="text-center text-muted py-4">Nenhuma venda neste período.</td></tr>
+        {% endfor %}
+      </tbody>
+      {% if products %}
+      <tfoot>
+        <tr class="fw-bold" style="background:#fff5e6;">
+          <td>Total</td>
+          <td class="text-end">{{ "%.2f"|format(grand_qty) }}</td>
+          <td></td>
+          <td></td>
+          <td class="text-end">R$ {{ "%.2f"|format(grand_revenue) }}</td>
+          <td class="text-end">R$ {{ "%.2f"|format(grand_profit) }}</td>
+          <td></td>
+        </tr>
+      </tfoot>
+      {% endif %}
+    </table>
+  </div>
+
+</div>
+{% endblock %}
