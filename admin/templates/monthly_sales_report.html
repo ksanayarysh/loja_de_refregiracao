@@ -2,16 +2,308 @@
 {% block title %}Relatório mensal de vendas{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-3">
+<style>
+  .sales-report {
+    --report-bg: #f6f8fb;
+    --report-card: #ffffff;
+    --report-border: #e5e9f0;
+    --report-text: #172033;
+    --report-muted: #697386;
+    --report-accent: #e2144a;
+    --report-accent-soft: #fff0f4;
+    --report-green: #14804a;
+    --report-green-soft: #edf9f2;
+    --report-shadow: 0 4px 18px rgba(24, 39, 75, .06);
+    color: var(--report-text);
+  }
 
-  <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
-    <h4 class="mb-0">Relatório mensal de vendas</h4>
+  .sales-report .report-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
 
-    <div class="d-flex align-items-center gap-2">
+  .sales-report .report-title {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 700;
+    letter-spacing: -.02em;
+  }
+
+  .sales-report .report-period {
+    color: var(--report-muted);
+    font-size: .86rem;
+    margin: 4px 0 0;
+  }
+
+  .sales-report .report-nav {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .sales-report .report-nav .btn,
+  .sales-report .report-nav .form-select {
+    border-color: var(--report-border);
+    background: #fff;
+    border-radius: 8px;
+    min-height: 34px;
+  }
+
+  .sales-report .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+
+  .sales-report .summary-card {
+    position: relative;
+    overflow: hidden;
+    min-height: 104px;
+    padding: 17px 18px;
+    border: 1px solid var(--report-border);
+    border-radius: 12px;
+    background: var(--report-card);
+    box-shadow: var(--report-shadow);
+  }
+
+  .sales-report .summary-card::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: #9aa5b5;
+  }
+
+  .sales-report .summary-card.revenue::before { background: var(--report-accent); }
+  .sales-report .summary-card.profit::before { background: var(--report-green); }
+
+  .sales-report .summary-label {
+    color: var(--report-muted);
+    font-size: .78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .045em;
+  }
+
+  .sales-report .summary-value {
+    margin-top: 6px;
+    font-size: 1.38rem;
+    line-height: 1.1;
+    font-weight: 750;
+  }
+
+  .sales-report .summary-card.revenue .summary-value { color: var(--report-accent); }
+  .sales-report .summary-card.profit .summary-value { color: var(--report-green); }
+
+  .sales-report .cost-warning {
+    border: 1px solid #f2d58a;
+    border-radius: 10px;
+    background: #fff9e8;
+    color: #6f5310;
+    padding: 10px 13px;
+    margin-bottom: 16px;
+    font-size: .82rem;
+  }
+
+  .sales-report .table-shell {
+    overflow: hidden;
+    border: 1px solid var(--report-border);
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: var(--report-shadow);
+  }
+
+  .sales-report .table-scroll {
+    overflow-x: auto;
+    max-height: calc(100vh - 365px);
+    min-height: 260px;
+  }
+
+  .sales-report table.sales-table {
+    width: 100%;
+    min-width: 930px;
+    margin: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .sales-report .sales-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    padding: 0;
+    border-bottom: 1px solid #dfe4ec;
+    background: #f8fafc;
+    color: #475467;
+    font-size: .73rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .035em;
+    white-space: nowrap;
+  }
+
+  .sales-report .sort-button {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 7px;
+    width: 100%;
+    min-height: 44px;
+    padding: 9px 12px;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-transform: inherit;
+    letter-spacing: inherit;
+    cursor: pointer;
+    transition: background .15s ease, color .15s ease;
+  }
+
+  .sales-report .sort-button.product-head {
+    justify-content: flex-start;
+  }
+
+  .sales-report .sort-button:hover {
+    background: #eef2f7;
+    color: #172033;
+  }
+
+  .sales-report .sort-icon {
+    display: inline-flex;
+    width: 15px;
+    justify-content: center;
+    color: #98a2b3;
+    font-size: .8rem;
+  }
+
+  .sales-report th.sorted .sort-button {
+    color: #172033;
+    background: #f0f3f8;
+  }
+
+  .sales-report th.sorted .sort-icon {
+    color: var(--report-accent);
+  }
+
+  .sales-report .sales-table tbody td {
+    padding: 9px 12px;
+    border-bottom: 1px solid #edf0f4;
+    font-size: .86rem;
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+
+  .sales-report .sales-table tbody tr:nth-child(even) td {
+    background: #fbfcfe;
+  }
+
+  .sales-report .sales-table tbody tr:hover td {
+    background: #f5f7fa;
+  }
+
+  .sales-report .sales-table tbody tr:last-child td {
+    border-bottom: 0;
+  }
+
+  .sales-report .product-name {
+    min-width: 290px;
+    max-width: 440px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #202939;
+    font-weight: 500;
+  }
+
+  .sales-report .money-strong {
+    font-weight: 700;
+  }
+
+  .sales-report .profit-positive {
+    color: var(--report-green);
+    font-weight: 600;
+  }
+
+  .sales-report .margin-pill {
+    display: inline-block;
+    min-width: 58px;
+    padding: 3px 7px;
+    border-radius: 999px;
+    background: var(--report-green-soft);
+    color: var(--report-green);
+    font-size: .76rem;
+    font-weight: 700;
+    text-align: center;
+  }
+
+  .sales-report .missing-cost {
+    color: #98a2b3;
+  }
+
+  .sales-report .sales-table tfoot td {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    padding: 11px 12px;
+    border-top: 2px solid #dfe4ec;
+    background: #f8fafc;
+    font-weight: 750;
+    white-space: nowrap;
+  }
+
+  .sales-report .sort-help {
+    padding: 8px 12px;
+    border-top: 1px solid var(--report-border);
+    color: #98a2b3;
+    background: #fff;
+    font-size: .72rem;
+  }
+
+  @media (max-width: 900px) {
+    .sales-report .summary-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 576px) {
+    .sales-report .summary-grid {
+      grid-template-columns: 1fr;
+    }
+    .sales-report .report-nav {
+      width: 100%;
+    }
+    .sales-report .report-nav .form-select {
+      flex: 1;
+    }
+    .sales-report .table-scroll {
+      max-height: none;
+    }
+  }
+</style>
+
+<div class="container-fluid py-3 sales-report">
+
+  <div class="report-header">
+    <div>
+      <h4 class="report-title">Relatório mensal de vendas</h4>
+      <p class="report-period">
+        Período: {{ d_from }} a {{ d_to }} ({{ month_name }} de {{ year }})
+      </p>
+    </div>
+
+    <div class="report-nav">
       <a class="btn btn-outline-secondary btn-sm"
          href="/reports/monthly-sales?year={{ prev_year }}&month={{ prev_month }}">‹ Anterior</a>
 
-      <form method="get" action="/reports/monthly-sales" class="d-flex align-items-center gap-1">
+      <form method="get" action="/reports/monthly-sales" class="m-0">
         <select name="ym" class="form-select form-select-sm"
                 onchange="var v=this.value.split('-'); window.location='/reports/monthly-sales?year='+v[0]+'&month='+v[1];">
           {% for opt in month_options %}
@@ -28,103 +320,198 @@
     </div>
   </div>
 
-  <p class="text-muted small mb-3">
-    Período: {{ d_from }} a {{ d_to }} ({{ month_name }} de {{ year }})
-  </p>
+  <div class="summary-grid">
+    <div class="summary-card">
+      <div class="summary-label">Itens vendidos</div>
+      <div class="summary-value">{{ "%.2f"|format(grand_qty) }}</div>
+    </div>
 
-  <!-- Cartões resumo -->
-  <div class="row g-3 mb-4">
-    <div class="col-6 col-md-3">
-      <div class="card h-100" style="background:#fff5e6;border:1px solid #f0d9b5;">
-        <div class="card-body py-2">
-          <div class="text-muted small">Itens vendidos</div>
-          <div class="fs-5 fw-bold">{{ "%.2f"|format(grand_qty) }}</div>
-        </div>
-      </div>
+    <div class="summary-card revenue">
+      <div class="summary-label">Receita total</div>
+      <div class="summary-value">R$ {{ "%.2f"|format(grand_revenue) }}</div>
     </div>
-    <div class="col-6 col-md-3">
-      <div class="card h-100" style="background:#fff5e6;border:1px solid #f0d9b5;">
-        <div class="card-body py-2">
-          <div class="text-muted small">Receita total</div>
-          <div class="fs-5 fw-bold" style="color:#e2144a;">R$ {{ "%.2f"|format(grand_revenue) }}</div>
-        </div>
-      </div>
+
+    <div class="summary-card">
+      <div class="summary-label">Custo</div>
+      <div class="summary-value">R$ {{ "%.2f"|format(grand_cost) }}</div>
     </div>
-    <div class="col-6 col-md-3">
-      <div class="card h-100" style="background:#fff5e6;border:1px solid #f0d9b5;">
-        <div class="card-body py-2">
-          <div class="text-muted small">Custo (produtos com preço de custo)</div>
-          <div class="fs-5 fw-bold">R$ {{ "%.2f"|format(grand_cost) }}</div>
-        </div>
-      </div>
-    </div>
-    <div class="col-6 col-md-3">
-      <div class="card h-100" style="background:#fff5e6;border:1px solid #f0d9b5;">
-        <div class="card-body py-2">
-          <div class="text-muted small">Lucro estimado</div>
-          <div class="fs-5 fw-bold">R$ {{ "%.2f"|format(grand_profit) }}</div>
-        </div>
-      </div>
+
+    <div class="summary-card profit">
+      <div class="summary-label">Lucro estimado</div>
+      <div class="summary-value">R$ {{ "%.2f"|format(grand_profit) }}</div>
     </div>
   </div>
 
   {% if products_no_cost %}
-  <div class="alert alert-warning py-2 small">
-    Sem preço de custo cadastrado (custo considerado R$ 0,00 — lucro real pode ser menor): {{ products_no_cost|join(", ") }}
+  <div class="cost-warning">
+    <strong>⚠ Produtos sem preço de custo:</strong>
+    custo considerado R$ 0,00, portanto o lucro real pode ser menor.
+    {{ products_no_cost|join(", ") }}
   </div>
   {% endif %}
 
-  <div class="table-responsive">
-    <table class="table table-sm table-hover align-middle">
-      <thead>
-        <tr style="background:#fff5e6;">
-          <th>Produto</th>
-          <th class="text-end">Quantidade</th>
-          <th class="text-end">Preço de custo</th>
-          <th class="text-end">Preço de venda (méd.)</th>
-          <th class="text-end">Receita</th>
-          <th class="text-end">Lucro</th>
-          <th class="text-end">Margem</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for p in products %}
-        <tr>
-          <td>{{ p.name }}</td>
-          <td class="text-end">{{ "%.2f"|format(p.qty) }} {{ p.unit or "" }}</td>
-          <td class="text-end">
-            {% if p.has_cost %}
-              R$ {{ "%.2f"|format(p.cost_price) }}
-            {% else %}
-              <span class="text-muted" title="Sem preço de custo cadastrado, considerado R$ 0,00">R$ 0,00*</span>
-            {% endif %}
-          </td>
-          <td class="text-end">R$ {{ "%.2f"|format(p.avg_sale_price) }}</td>
-          <td class="text-end fw-semibold">R$ {{ "%.2f"|format(p.revenue) }}</td>
-          <td class="text-end">R$ {{ "%.2f"|format(p.profit) }}</td>
-          <td class="text-end">
-            {% if p.margin_pct is not none %}{{ "%.1f"|format(p.margin_pct) }}%{% else %}—{% endif %}
-          </td>
-        </tr>
-        {% else %}
-        <tr><td colspan="7" class="text-center text-muted py-4">Nenhuma venda neste período.</td></tr>
-        {% endfor %}
-      </tbody>
-      {% if products %}
-      <tfoot>
-        <tr class="fw-bold" style="background:#fff5e6;">
-          <td>Total</td>
-          <td class="text-end">{{ "%.2f"|format(grand_qty) }}</td>
-          <td></td>
-          <td></td>
-          <td class="text-end">R$ {{ "%.2f"|format(grand_revenue) }}</td>
-          <td class="text-end">R$ {{ "%.2f"|format(grand_profit) }}</td>
-          <td></td>
-        </tr>
-      </tfoot>
-      {% endif %}
-    </table>
-  </div>
+  <div class="table-shell">
+    <div class="table-scroll">
+      <table class="sales-table" id="salesTable">
+        <thead>
+          <tr>
+            <th data-sort-type="text" class="sorted">
+              <button type="button" class="sort-button product-head" data-sort-index="0">
+                Produto <span class="sort-icon">▲</span>
+              </button>
+            </th>
+            <th data-sort-type="number">
+              <button type="button" class="sort-button" data-sort-index="1">
+                Quantidade <span class="sort-icon">↕</span>
+              </button>
+            </th>
+            <th data-sort-type="number">
+              <button type="button" class="sort-button" data-sort-index="2">
+                Preço de custo <span class="sort-icon">↕</span>
+              </button>
+            </th>
+            <th data-sort-type="number">
+              <button type="button" class="sort-button" data-sort-index="3">
+                Preço de venda (méd.) <span class="sort-icon">↕</span>
+              </button>
+            </th>
+            <th data-sort-type="number">
+              <button type="button" class="sort-button" data-sort-index="4">
+                Receita <span class="sort-icon">↕</span>
+              </button>
+            </th>
+            <th data-sort-type="number">
+              <button type="button" class="sort-button" data-sort-index="5">
+                Lucro <span class="sort-icon">↕</span>
+              </button>
+            </th>
+            <th data-sort-type="number">
+              <button type="button" class="sort-button" data-sort-index="6">
+                Margem <span class="sort-icon">↕</span>
+              </button>
+            </th>
+          </tr>
+        </thead>
 
+        <tbody>
+          {% for p in products %}
+          <tr>
+            <td class="product-name" title="{{ p.name }}">{{ p.name }}</td>
+            <td class="text-end" data-sort-value="{{ p.qty }}">{{ "%.2f"|format(p.qty) }} {{ p.unit or "" }}</td>
+            <td class="text-end" data-sort-value="{% if p.has_cost %}{{ p.cost_price }}{% else %}0{% endif %}">
+              {% if p.has_cost %}
+                R$ {{ "%.2f"|format(p.cost_price) }}
+              {% else %}
+                <span class="missing-cost" title="Sem preço de custo cadastrado, considerado R$ 0,00">R$ 0,00*</span>
+              {% endif %}
+            </td>
+            <td class="text-end" data-sort-value="{{ p.avg_sale_price }}">R$ {{ "%.2f"|format(p.avg_sale_price) }}</td>
+            <td class="text-end money-strong" data-sort-value="{{ p.revenue }}">R$ {{ "%.2f"|format(p.revenue) }}</td>
+            <td class="text-end profit-positive" data-sort-value="{{ p.profit }}">R$ {{ "%.2f"|format(p.profit) }}</td>
+            <td class="text-end" data-sort-value="{% if p.margin_pct is not none %}{{ p.margin_pct }}{% else %}-999999{% endif %}">
+              {% if p.margin_pct is not none %}
+                <span class="margin-pill">{{ "%.1f"|format(p.margin_pct) }}%</span>
+              {% else %}
+                —
+              {% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="7" class="text-center text-muted py-5">Nenhuma venda neste período.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+
+        {% if products %}
+        <tfoot>
+          <tr>
+            <td>Total</td>
+            <td class="text-end">{{ "%.2f"|format(grand_qty) }}</td>
+            <td></td>
+            <td></td>
+            <td class="text-end">R$ {{ "%.2f"|format(grand_revenue) }}</td>
+            <td class="text-end">R$ {{ "%.2f"|format(grand_profit) }}</td>
+            <td></td>
+          </tr>
+        </tfoot>
+        {% endif %}
+      </table>
+    </div>
+
+    <div class="sort-help">
+      Clique no título de qualquer coluna para ordenar. Clique novamente para inverter a ordem.
+    </div>
+  </div>
 </div>
+
+<script>
+(function () {
+  const table = document.getElementById('salesTable');
+  if (!table) return;
+
+  const headers = Array.from(table.querySelectorAll('thead th'));
+  const tbody = table.querySelector('tbody');
+  let currentIndex = 0;
+  let ascending = true;
+
+  function valueFor(row, index, type) {
+    const cell = row.children[index];
+    if (!cell) return '';
+    const raw = cell.dataset.sortValue;
+    if (type === 'number') {
+      const n = Number(raw);
+      return Number.isFinite(n) ? n : -Infinity;
+    }
+    return (raw ?? cell.textContent).trim().toLocaleLowerCase('pt-BR');
+  }
+
+  function updateIcons(activeIndex, asc) {
+    headers.forEach((th, i) => {
+      const button = th.querySelector('.sort-button');
+      const icon = th.querySelector('.sort-icon');
+      th.classList.toggle('sorted', i === activeIndex);
+      if (icon) icon.textContent = i === activeIndex ? (asc ? '▲' : '▼') : '↕';
+      if (button) button.setAttribute('aria-label',
+        `Ordenar por ${button.textContent.replace(/[▲▼↕]/g, '').trim()} ${asc ? 'crescente' : 'decrescente'}`
+      );
+    });
+  }
+
+  headers.forEach((th, index) => {
+    const button = th.querySelector('.sort-button');
+    if (!button) return;
+
+    button.addEventListener('click', function () {
+      if (currentIndex === index) {
+        ascending = !ascending;
+      } else {
+        currentIndex = index;
+        ascending = true;
+      }
+
+      const type = th.dataset.sortType || 'text';
+      const rows = Array.from(tbody.querySelectorAll('tr'));
+
+      rows.sort((a, b) => {
+        const av = valueFor(a, index, type);
+        const bv = valueFor(b, index, type);
+
+        let result;
+        if (type === 'number') {
+          result = av - bv;
+        } else {
+          result = av.localeCompare(bv, 'pt-BR', { numeric: true, sensitivity: 'base' });
+        }
+        return ascending ? result : -result;
+      });
+
+      rows.forEach(row => tbody.appendChild(row));
+      updateIcons(currentIndex, ascending);
+    });
+  });
+
+  updateIcons(currentIndex, ascending);
+})();
+</script>
 {% endblock %}
