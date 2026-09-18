@@ -208,6 +208,7 @@ async def sales_checkout(
     payment_type: str = Form("dinheiro"),
     items_json: str = Form(...),
     client_id: str = Form(""),
+    discount_percent: str = Form("0"),
     _=Depends(basic_auth),
 ):
     sold_at_date = _parse_date(sold_at)
@@ -216,25 +217,49 @@ async def sales_checkout(
     except Exception:
         return HTMLResponse("Dados inválidos", status_code=400)
 
+    try:
+        discount_pct = Decimal(discount_percent.replace(",", ".") or "0")
+    except Exception:
+        discount_pct = Decimal(0)
+    if discount_pct < 0:
+        discount_pct = Decimal(0)
+    if discount_pct > 100:
+        discount_pct = Decimal(100)
+    discount_factor = (Decimal(100) - discount_pct) / Decimal(100)
+
     async with engine.begin() as conn:
-        # Подтягиваем имена продуктов для уведомления
+        # Подтягиваем nome + custo real (nunca confiar no cost_price vindo do cliente)
         product_ids = [int(i["product_id"]) for i in items]
+        cost_map = {}
         if product_ids:
             names_res = await conn.execute(
-                text(f"SELECT id, name FROM products WHERE id = ANY(:ids)"),
+                text("SELECT id, name, cost_price FROM products WHERE id = ANY(:ids)"),
                 {"ids": product_ids}
             )
-            names_map = {r["id"]: r["name"] for r in names_res.mappings()}
+            names_map = {}
+            for r in names_res.mappings():
+                names_map[r["id"]] = r["name"]
+                cost_map[r["id"]] = Decimal(str(r["cost_price"])) if r["cost_price"] is not None else Decimal(0)
             for item in items:
                 item["name"] = names_map.get(int(item["product_id"]), "")
 
+        total_cost = Decimal(0)
+        grand_total = Decimal(0)
         for item in items:
-            qty_d   = money2(Decimal(str(item["qty"])))
-            price_d = money2(Decimal(str(item["unit_price"])))
+            qty_d = money2(Decimal(str(item["qty"])))
+            base_price_d = money2(Decimal(str(item["unit_price"])))
+            price_d = money2(base_price_d * discount_factor)
             total_d = money2(qty_d * price_d)
+            grand_total += total_d
+            total_cost += qty_d * cost_map.get(int(item["product_id"]), Decimal(0))
+            item["_discounted_price"] = price_d
+            item["_discounted_total"] = total_d
+
             await conn.exec_driver_sql(
-                "INSERT INTO sales (sold_at, product_id, qty, unit_price, total, payment_type, client_id) VALUES ($1,$2,$3,$4,$5,$6,$7)",
-                (sold_at_date, int(item["product_id"]), qty_d, price_d, total_d, payment_type, int(client_id.strip()) if client_id.strip() else None)
+                "INSERT INTO sales (sold_at, product_id, qty, unit_price, total, note, payment_type, client_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)",
+                (sold_at_date, int(item["product_id"]), qty_d, price_d, total_d,
+                 f"Desconto {discount_pct}%" if discount_pct > 0 else None,
+                 payment_type, int(client_id.strip()) if client_id.strip() else None)
             )
             # Автосписание стока
             sale_res = await conn.execute(text("SELECT lastval()"))
@@ -245,36 +270,47 @@ async def sales_checkout(
                 {"pid": int(item["product_id"]), "qty": -qty_d, "sid": sale_id, "dt": sold_at_date}
             )
 
-    # Списать баланс клиента если saldo
+    grand_total = money2(grand_total)
+    total_cost = money2(total_cost)
+
+    # Списать баланс клиента se saldo (já com desconto aplicado)
     if payment_type == "saldo" and client_id.strip():
         try:
             cid = int(client_id.strip())
-            grand_total = sum(Decimal(str(i["qty"])) * Decimal(str(i["unit_price"])) for i in items)
             async with engine.begin() as conn2:
                 await conn2.execute(
                     text("UPDATE clients SET balance = balance - :a WHERE id = :id"),
-                    {"a": money2(grand_total), "id": cid}
+                    {"a": grand_total, "id": cid}
                 )
         except Exception:
             pass
-    await _tg_notify_checkout(items, payment_type)
+    await _tg_notify_checkout(items, payment_type, discount_pct, grand_total, total_cost)
     return RedirectResponse(url="/sales?checkout=1", status_code=303)
 
 
-async def _tg_notify_checkout(items: list, payment_type: str):
+async def _tg_notify_checkout(items: list, payment_type: str, discount_pct: Decimal = Decimal(0),
+                               grand_total: Decimal = None, total_cost: Decimal = None):
     """Отправляет одно суммарное уведомление по всем позициям чекаута."""
     if not TG_BOT_TOKEN or not TG_CHAT_ID:
         return
     payment_icons = {"dinheiro": "💵", "pix": "🟢 Pix", "cartao": "💳", "cartão": "💳"}
     pay_label = payment_icons.get(payment_type.lower(), payment_type)
-    grand_total = sum(Decimal(str(i["qty"])) * Decimal(str(i["unit_price"])) for i in items)
+    if grand_total is None:
+        grand_total = sum(Decimal(str(i.get("_discounted_total", i["unit_price"]))) for i in items)
     lines = ["🛒 *Nova venda (checkout)*"]
     for i in items:
         qty = Decimal(str(i["qty"]))
-        price = Decimal(str(i["unit_price"]))
+        price = Decimal(str(i.get("_discounted_price", i["unit_price"])))
         name = i.get('name') or f'ID {i["product_id"]}'
         lines.append(f"  • {name} × {qty} = R$ {qty*price:.2f}")
+    if discount_pct and discount_pct > 0:
+        lines.append(f"🏷️ Desconto aplicado: {discount_pct}%")
     lines.append(f"💰 *Total: R$ {grand_total:.2f}*")
+    if total_cost is not None:
+        profit = grand_total - total_cost
+        margin = (profit / grand_total * 100) if grand_total > 0 else Decimal(0)
+        flag = "✅" if profit >= 0 else "⚠️"
+        lines.append(f"{flag} Lucro: R$ {profit:.2f} (margem {margin:.1f}%)")
     lines.append(f"💳 Pagamento: {pay_label}")
     msg = "\n".join(lines)
     url = f"https://api.telegram.org/bot{TG_BOT_TOKEN}/sendMessage"

@@ -41,9 +41,19 @@
     .subtotal-cell { font-weight: 900; color: #111; white-space: nowrap; }
 
     /* TOTAL */
-    .total-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-top: 2px solid #111; margin-bottom: 20px; }
+    .totals-block { margin-bottom: 20px; }
+    .subtotal-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; font-size: .95rem; color: #444; }
+    .discount-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; }
+    .discount-row label { margin: 0; font-weight: 700; font-size: .95rem; color: #111; }
+    .discount-input { width: 100px; padding: 8px 10px; border-radius: 8px; border: 1px solid #d6d9e0; font-size: .95rem; font-family: inherit; text-align: right; }
+    .discount-input:focus { outline: none; border-color: #007bff; }
+    .total-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-top: 2px solid #111; }
     .total-label { font-size: 1.1rem; font-weight: 900; }
     .total-value { font-size: 1.4rem; font-weight: 900; color: #E2144A; }
+    .profit-block { display: none; margin-top: 4px; padding: 12px 16px; background: #f0fdf4; border-radius: 10px; border: 1px solid #bbf7d0; }
+    .profit-block.loss { background: #fef2f2; border-color: #fecaca; }
+    .profit-line { display: flex; justify-content: space-between; align-items: center; font-size: .95rem; font-weight: 700; color: #166534; }
+    .profit-block.loss .profit-line { color: #dc2626; }
 
     /* PAYMENT */
     label { display: block; font-weight: 900; margin: 14px 0 6px; color: #111; }
@@ -146,14 +156,29 @@
           <tbody id="cart-tbody"></tbody>
         </table>
 
-        <div class="total-row">
-          <span class="total-label">Total:</span>
-          <span class="total-value" id="total-display">R$ 0,00</span>
-        </div>
-
         <!-- Hidden form submitted to backend -->
         <form id="checkout-form" method="post" action="/sales/checkout">
           <input type="hidden" name="items_json" id="items-json">
+
+          <div class="totals-block">
+            <div class="subtotal-row">
+              <span>Subtotal:</span>
+              <span id="subtotal-display">R$ 0,00</span>
+            </div>
+            <div class="discount-row">
+              <label for="discount_percent">Desconto (%)</label>
+              <input class="discount-input" type="number" id="discount_percent" name="discount_percent"
+                     min="0" max="100" step="0.01" value="0" oninput="updateTotal()">
+            </div>
+            <div class="total-row">
+              <span class="total-label">Total:</span>
+              <span class="total-value" id="total-display">R$ 0,00</span>
+            </div>
+            <div class="profit-block" id="profit-block">
+              <div class="profit-line"><span>Lucro estimado:</span><span id="profit-display">R$ 0,00</span></div>
+              <div class="profit-line"><span>Margem:</span><span id="margin-display">0%</span></div>
+            </div>
+          </div>
 
           <label for="sold_at">Data da venda</label>
           <input type="date" id="sold_at" name="sold_at" required>
@@ -202,6 +227,8 @@
 
 <script>
   let cart = JSON.parse(localStorage.getItem('mtf_cart') || '[]');
+  let costMap = {};
+  let selectedClientBalance = null;
 
   document.getElementById('sold_at').value = new Date().toISOString().split('T')[0];
 
@@ -210,6 +237,31 @@
   function saveCart() { localStorage.setItem('mtf_cart', JSON.stringify(cart)); }
 
   function fmt(n) { return 'R$ ' + parseFloat(n).toFixed(2).replace('.', ','); }
+
+  function getDiscountPct() {
+    const el = document.getElementById('discount_percent');
+    return Math.min(100, Math.max(0, parseFloat(el.value) || 0));
+  }
+
+  function getSubtotal() {
+    return cart.reduce((s, i) => s + i.price * i.qty, 0);
+  }
+
+  function getDiscountedTotal() {
+    const subtotal = getSubtotal();
+    return subtotal - (subtotal * getDiscountPct() / 100);
+  }
+
+  async function loadCosts() {
+    const ids = [...new Set(cart.map(i => i.id))];
+    if (!ids.length) return;
+    try {
+      const r = await fetch('/api/products/batch?ids=' + ids.join(','));
+      const data = await r.json();
+      data.forEach(p => { costMap[p.id] = p.cost_price; });
+    } catch (e) { /* segue sem margem se falhar */ }
+    updateTotal();
+  }
 
   function renderCart() {
     const tbody = document.getElementById('cart-tbody');
@@ -231,6 +283,7 @@
       </tr>
     `).join('');
     updateTotal();
+    loadCosts();
   }
 
   function updateQty(idx, val) {
@@ -248,8 +301,33 @@
   }
 
   function updateTotal() {
-    const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+    const subtotal = getSubtotal();
+    const total = getDiscountedTotal();
+    document.getElementById('subtotal-display').textContent = fmt(subtotal);
     document.getElementById('total-display').textContent = fmt(total);
+
+    const profitBlock = document.getElementById('profit-block');
+    let totalCost = 0;
+    let hasCost = cart.length > 0;
+    for (const i of cart) {
+      const c = costMap[i.id];
+      if (c === undefined || c === null) { hasCost = false; break; }
+      totalCost += c * i.qty;
+    }
+    if (hasCost) {
+      const profit = total - totalCost;
+      const margin = total > 0 ? (profit / total * 100) : 0;
+      profitBlock.style.display = 'block';
+      profitBlock.classList.toggle('loss', profit < 0);
+      document.getElementById('profit-display').textContent = fmt(profit);
+      document.getElementById('margin-display').textContent = margin.toFixed(1).replace('.', ',') + '%';
+    } else {
+      profitBlock.style.display = 'none';
+    }
+
+    // Propaga para troco e saldo, que dependem do total com desconto
+    if (document.getElementById('valor-pago').value) calcTroco();
+    if (selectedClientBalance !== null) applySaldoDisplay(selectedClientBalance);
   }
 
   function submitCheckout() {
@@ -278,8 +356,14 @@
     const lines = cart.map(i =>
       `• ${i.name} (${i.unit}) × ${i.qty} = R$ ${(i.price * i.qty).toFixed(2).replace('.', ',')}`
     );
-    const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
-    const msg = `Olá! Segue o orçamento:\n\n${lines.join('\n')}\n\n*Total: R$ ${total.toFixed(2).replace('.', ',')}*\n\nPodemos confirmar?`;
+    const subtotal = getSubtotal();
+    const discountPct = getDiscountPct();
+    const total = getDiscountedTotal();
+    let msg = `Olá! Segue o orçamento:\n\n${lines.join('\n')}\n\nSubtotal: R$ ${subtotal.toFixed(2).replace('.', ',')}`;
+    if (discountPct > 0) {
+      msg += `\nDesconto: ${discountPct.toFixed(2).replace(/\.?0+$/, '').replace('.', ',')}%`;
+    }
+    msg += `\n*Total: R$ ${total.toFixed(2).replace('.', ',')}*\n\nPodemos confirmar?`;
     const url = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`;
     const a = document.createElement('a');
     a.href = url;
@@ -291,14 +375,14 @@
   }
 
   function autoFillTroco() {
-    const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+    const total = getDiscountedTotal();
     const rounded = Math.ceil(total / 5) * 5;
     document.getElementById('valor-pago').value = rounded.toFixed(2);
     calcTroco();
   }
 
   function calcTroco() {
-    const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+    const total = getDiscountedTotal();
     const pago  = parseFloat(document.getElementById('valor-pago').value) || 0;
     const el    = document.getElementById('troco-result');
     if (!pago) { el.style.display = 'none'; return; }
@@ -316,7 +400,7 @@
   document.getElementById('payment_type').addEventListener('change', function() {
     document.getElementById('troco-block').style.display = this.value === 'dinheiro' ? 'block' : 'none';
     document.getElementById('saldo-block').style.display = this.value === 'saldo' ? 'block' : 'none';
-    if (this.value !== 'saldo') { document.getElementById('client_id').value = ''; document.getElementById('saldo-balance').style.display = 'none'; }
+    if (this.value !== 'saldo') { document.getElementById('client_id').value = ''; document.getElementById('saldo-balance').style.display = 'none'; selectedClientBalance = null; }
   });
 
   let allClients = [];
@@ -326,6 +410,7 @@
     const box = document.getElementById('client-results');
     document.getElementById('client_id').value = '';
     document.getElementById('saldo-balance').style.display = 'none';
+    selectedClientBalance = null;
     if (!q || q.length < 1) { box.style.display = 'none'; return; }
     const filtered = allClients.filter(c => c.name.toLowerCase().includes(q.toLowerCase())).slice(0, 8);
     if (!filtered.length) { box.innerHTML = '<div class="client-item" style="color:#888">Nenhum cliente encontrado</div>'; box.style.display = 'block'; return; }
@@ -341,10 +426,14 @@
     document.getElementById('client_id').value = id;
     document.getElementById('client-search').value = name;
     document.getElementById('client-results').style.display = 'none';
-    const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+    selectedClientBalance = parseFloat(balance);
+    applySaldoDisplay(selectedClientBalance);
+  }
+
+  function applySaldoDisplay(balNum) {
+    const total = getDiscountedTotal();
     const bal = document.getElementById('saldo-balance');
     bal.style.display = 'block';
-    const balNum = parseFloat(balance);
     if (balNum > 0 && balNum >= total) {
       bal.className = 'saldo-balance saldo-ok';
       bal.textContent = '✅ Saldo: R$ ' + balNum.toFixed(2).replace('.',',');

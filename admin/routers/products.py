@@ -412,6 +412,27 @@ async def api_model_search(
     ]
 
 
+@router.get("/api/products/batch")
+async def api_products_batch(ids: str = Query(""), _=Depends(basic_auth)):
+    try:
+        id_list = [int(x) for x in ids.split(",") if x.strip()]
+    except Exception:
+        id_list = []
+    if not id_list:
+        return []
+    async with engine.connect() as conn:
+        res = await conn.execute(
+            text("SELECT id, sale_price, cost_price FROM products WHERE id = ANY(:ids)"),
+            {"ids": id_list},
+        )
+        rows = res.mappings().all()
+    return [
+        {"id": r["id"], "sale_price": float(r["sale_price"] or 0),
+         "cost_price": float(r["cost_price"]) if r["cost_price"] is not None else None}
+        for r in rows
+    ]
+
+
 @router.get("/api/products")
 async def api_products(search: str = Query(""), unit: str = Query(""), category: str = Query(""), _=Depends(basic_auth)):
     async with engine.begin() as conn:
