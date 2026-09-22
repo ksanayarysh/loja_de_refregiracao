@@ -83,6 +83,9 @@
     {% if added %}<div class="msg ok">✅ Movimento registrado!</div>{% endif %}
     {% if deleted %}<div class="msg del">🗑 Movimento excluído.</div>{% endif %}
     {% if edited %}<div class="msg ok">✅ Movimento atualizado.</div>{% endif %}
+    {% if opened %}<div class="msg ok">🔓 Botija aberta — gás transferido para o estoque em kg!</div>{% endif %}
+    {% if open_error == 'not_linked' %}<div class="msg del">⚠️ Este produto não está vinculado a um gás em kg. Edite o produto e defina o vínculo primeiro.</div>{% endif %}
+    {% if open_error == 'qty' %}<div class="msg del">⚠️ Quantidade inválida.</div>{% endif %}
 
     <!-- TOOLBAR -->
     <div class="toolbar">
@@ -154,6 +157,12 @@
                 <div class="td-actions">
                   <a class="act-btn" href="/stock/new?product_id={{ s.id }}">+ Entrada</a>
                   <a class="act-btn" href="/stock/history?product_id={{ s.id }}">Histórico</a>
+                  {% if s.is_botija and s.linked_product_id %}
+                  <form method="post" action="/products/{{ s.id }}/open" style="margin:0" onsubmit="return confirm('Abrir 1 {{ s.name }}?');">
+                    <input type="hidden" name="qty" value="1">
+                    <button type="submit" class="act-btn" title="Abrir botija (converter em gás kg)">🔓</button>
+                  </form>
+                  {% endif %}
                   <form method="post" action="/shopping-list/add" style="margin:0">
                     <input type="hidden" name="product_id" value="{{ s.id }}">
                     <button type="submit" class="act-btn" title="Adicionar à lista de compras">🛒</button>

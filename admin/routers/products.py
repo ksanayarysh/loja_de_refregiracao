@@ -43,6 +43,18 @@ async def _ensure_shelf_code_column(conn):
     _shelf_code_ready = True
 # ─────────────────────────────────────────────────────────────────────────────
 
+# ── СВЯЗЬ БУТИЖА ↔ ГАЗ ПО КГ ─────────────────────────────────────────────────
+_gas_link_ready = False
+
+async def _ensure_gas_link_columns(conn):
+    global _gas_link_ready
+    if _gas_link_ready:
+        return
+    await conn.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS linked_product_id INTEGER REFERENCES products(id)"))
+    await conn.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS linked_qty NUMERIC(10,3)"))
+    _gas_link_ready = True
+# ─────────────────────────────────────────────────────────────────────────────
+
 SORT_FIELDS = {
     "name": "p.name",
     "unit": "p.unit",
@@ -106,6 +118,17 @@ async def _get_categories(conn):
     return cats.mappings().all()
 
 
+async def _get_gas_products(conn, exclude_id: Optional[int] = None):
+    """Товары по кг — кандидаты для привязки к закрытой бутиже."""
+    where = "unit = 'kg' AND active = TRUE"
+    params: dict = {}
+    if exclude_id:
+        where += " AND id != :exclude_id"
+        params["exclude_id"] = exclude_id
+    res = await conn.execute(text(f"SELECT id, name FROM products WHERE {where} ORDER BY name"), params)
+    return res.mappings().all()
+
+
 @router.get("/products/new", response_class=HTMLResponse)
 async def new_product_form(request: Request, _=Depends(basic_auth)):
     async with engine.connect() as conn:
@@ -159,18 +182,23 @@ async def create_product(
 async def edit_product_form(product_id: int, request: Request, _=Depends(basic_auth)):
     async with engine.begin() as conn:
         await _ensure_shelf_code_column(conn)
+        await _ensure_gas_link_columns(conn)
 
     async with engine.connect() as conn:
         res = await conn.execute(
-            text("SELECT id, name, category_id, category2_id, unit, sale_price, cost_price, min_stock, image, description, shelf_code FROM products WHERE id = :id AND active = TRUE"),
+            text("""SELECT id, name, category_id, category2_id, unit, sale_price, cost_price, min_stock,
+                           image, description, shelf_code, linked_product_id, linked_qty
+                    FROM products WHERE id = :id AND active = TRUE"""),
             {"id": product_id},
         )
         product = res.mappings().first()
         if not product:
             return HTMLResponse("Produto não encontrado", status_code=404)
         categories = await _get_categories(conn)
+        gas_products = await _get_gas_products(conn, exclude_id=product_id)
     return templates.TemplateResponse("edit_product.html", {
         "request": request, "product": product, "categories": categories,
+        "gas_products": gas_products,
     })
 
 
@@ -187,6 +215,8 @@ async def update_product(
     min_stock: int = Form(0),
     description: str = Form(""),
     shelf_code: str = Form(""),
+    linked_product_id: str = Form(""),
+    linked_qty: str = Form(""),
     image: UploadFile = File(None),
     remove_image: str = Form(""),
     _=Depends(basic_auth),
@@ -195,8 +225,14 @@ async def update_product(
     cost      = _parse_price(cost_price)
     image_b64 = await _process_image(image)
 
+    linked_pid = int(linked_product_id) if linked_product_id.strip().isdigit() else None
+    linked_qty_d = _parse_price(linked_qty) if linked_qty.strip() else None
+    if not linked_pid:
+        linked_qty_d = None  # без связанного товара количество бессмысленно
+
     async with engine.begin() as conn:
         await _ensure_shelf_code_column(conn)
+        await _ensure_gas_link_columns(conn)
 
         dup = await conn.execute(
             text("SELECT id FROM products WHERE LOWER(TRIM(name)) = LOWER(TRIM(:name)) AND active = TRUE AND id != :id"),
@@ -204,13 +240,17 @@ async def update_product(
         )
         if dup.first():
             res = await conn.execute(
-                text("SELECT id, name, category_id, category2_id, unit, sale_price, cost_price, min_stock, image, description, shelf_code FROM products WHERE id = :id"),
+                text("""SELECT id, name, category_id, category2_id, unit, sale_price, cost_price, min_stock,
+                               image, description, shelf_code, linked_product_id, linked_qty
+                        FROM products WHERE id = :id"""),
                 {"id": product_id}
             )
-            product    = res.mappings().first()
-            categories = await _get_categories(conn)
+            product      = res.mappings().first()
+            categories   = await _get_categories(conn)
+            gas_products = await _get_gas_products(conn, exclude_id=product_id)
             return templates.TemplateResponse("edit_product.html", {
                 "request": request, "product": product, "categories": categories,
+                "gas_products": gas_products,
                 "error": f'Produto "{name.strip()}" já existe! Escolha outro nome.',
             }, status_code=400)
 
@@ -245,13 +285,15 @@ async def update_product(
             text(f"""UPDATE products
                     SET name=:name, category_id=:category_id, category2_id=:category2_id,
                         unit=:unit, description=:description, shelf_code=:shelf_code,
-                        sale_price=:sale_price, cost_price=:cost_price, min_stock=:min_stock
+                        sale_price=:sale_price, cost_price=:cost_price, min_stock=:min_stock,
+                        linked_product_id=:linked_product_id, linked_qty=:linked_qty
                         {extra_sql}
                     WHERE id=:id"""),
             {"id": product_id, "name": name.strip(), "category_id": category_id,
              "category2_id": category2_id if category2_id and category2_id > 0 else None,
              "description": description.strip() or None, "shelf_code": shelf_code.strip() or None,
-             "unit": unit, "sale_price": price, "cost_price": cost, "min_stock": min_stock, **extra_val},
+             "unit": unit, "sale_price": price, "cost_price": cost, "min_stock": min_stock,
+             "linked_product_id": linked_pid, "linked_qty": linked_qty_d, **extra_val},
         )
     return RedirectResponse(url=f"/products/{product_id}/edit?ok=1", status_code=303)
 
@@ -278,6 +320,7 @@ async def products_list(
 
     async with engine.begin() as conn:
         await _ensure_shelf_code_column(conn)
+        await _ensure_gas_link_columns(conn)
 
     async with engine.connect() as conn:
         total       = await conn.execute(text("SELECT COUNT(*) FROM products p WHERE p.active = TRUE"))
@@ -286,14 +329,16 @@ async def products_list(
         rows_res = await conn.execute(
             text(f"""
                 SELECT p.id, p.name, p.sale_price, p.cost_price, p.unit, p.min_stock,
-                       p.image, p.shelf_code,
+                       p.image, p.shelf_code, p.linked_product_id,
+                       (LOWER(p.name) LIKE '%botija%') AS is_botija,
                        c.name as category_name,
                        COALESCE(SUM(sm.qty), 0) as current_stock
                 FROM products p
                 LEFT JOIN categories c ON c.id = p.category_id
                 LEFT JOIN stock_movements sm ON sm.product_id = p.id
                 WHERE p.active = TRUE
-                GROUP BY p.id, p.name, p.sale_price, p.cost_price, p.unit, p.min_stock, p.image, p.shelf_code, c.name
+                GROUP BY p.id, p.name, p.sale_price, p.cost_price, p.unit, p.min_stock, p.image, p.shelf_code,
+                         p.linked_product_id, c.name
                 ORDER BY LOWER(COALESCE(c.name, 'Outro')) ASC, {sort_col} {direction_sql}
                 LIMIT :limit OFFSET :offset
             """),

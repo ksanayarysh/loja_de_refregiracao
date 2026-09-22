@@ -22,6 +22,19 @@ def money2(x) -> Decimal:
     return Decimal(str(x)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
 
+# ── СВЯЗЬ БУТИЖА ↔ ГАЗ ПО КГ (миграция колонок, повторяет products.py) ───────
+_gas_link_ready = False
+
+async def _ensure_gas_link_columns(conn):
+    global _gas_link_ready
+    if _gas_link_ready:
+        return
+    await conn.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS linked_product_id INTEGER REFERENCES products(id)"))
+    await conn.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS linked_qty NUMERIC(10,3)"))
+    _gas_link_ready = True
+# ─────────────────────────────────────────────────────────────────────────────
+
+
 async def _add_movement(conn, product_id: int, qty, movement_type: str, note: str = None, sale_id: int = None):
     """Registra um movimento de estoque."""
     await conn.execute(
@@ -154,16 +167,21 @@ async def stock_balance(request: Request, _=Depends(basic_auth)):
 
 @router.get("/stock", response_class=HTMLResponse)
 async def stock_balance_v2(request: Request, _=Depends(basic_auth)):
+    async with engine.begin() as conn:
+        await _ensure_gas_link_columns(conn)
+
     async with engine.connect() as conn:
         summary_res = await conn.execute(text("""
             SELECT p.id, p.name, p.unit, p.min_stock,
+                   p.linked_product_id,
+                   (LOWER(p.name) LIKE '%botija%') AS is_botija,
                    COALESCE(c.name, 'Outro') as category_name,
                    GREATEST(0, COALESCE(SUM(sm.qty), 0)) as current_stock
             FROM products p
             LEFT JOIN categories c ON c.id = p.category_id
             LEFT JOIN stock_movements sm ON sm.product_id = p.id
             WHERE p.active = TRUE
-            GROUP BY p.id, p.name, p.unit, p.min_stock, c.name
+            GROUP BY p.id, p.name, p.unit, p.min_stock, p.linked_product_id, c.name
             ORDER BY COALESCE(c.name, 'Outro'), p.name
         """))
         stock_summary = summary_res.mappings().all()
@@ -174,7 +192,46 @@ async def stock_balance_v2(request: Request, _=Depends(basic_auth)):
         "added":   request.query_params.get("added")   == "1",
         "deleted": request.query_params.get("deleted") == "1",
         "edited":  request.query_params.get("edited")  == "1",
+        "opened":  request.query_params.get("opened")  == "1",
+        "open_error": request.query_params.get("open_error"),
     })
+
+
+@router.post("/products/{product_id}/open")
+async def open_botija(product_id: int, qty: str = Form("1"), _=Depends(basic_auth)):
+    """Открывает N бутижей: списывает N шт. закрытого товара и зачисляет
+    N × linked_qty кг связанному товару 'газ по кг'."""
+    try:
+        qty_d = Decimal(qty.replace(",", "."))
+        if qty_d <= 0:
+            raise ValueError
+    except Exception:
+        return RedirectResponse(url="/stock?open_error=qty", status_code=303)
+
+    async with engine.begin() as conn:
+        await _ensure_gas_link_columns(conn)
+
+        res = await conn.execute(
+            text("SELECT id, name, linked_product_id, linked_qty FROM products WHERE id = :id AND active = TRUE"),
+            {"id": product_id},
+        )
+        prod = res.mappings().first()
+        if not prod or not prod["linked_product_id"] or not prod["linked_qty"]:
+            return RedirectResponse(url="/stock?open_error=not_linked", status_code=303)
+
+        gas_qty = qty_d * Decimal(str(prod["linked_qty"]))
+
+        await conn.execute(
+            text("""INSERT INTO stock_movements (product_id, qty, movement_type, note, moved_at)
+                    VALUES (:pid, :qty, 'abertura', :note, CURRENT_DATE)"""),
+            {"pid": product_id, "qty": -qty_d, "note": f"Abertura de {prod['name']}"},
+        )
+        await conn.execute(
+            text("""INSERT INTO stock_movements (product_id, qty, movement_type, note, moved_at)
+                    VALUES (:pid, :qty, 'abertura', :note, CURRENT_DATE)"""),
+            {"pid": prod["linked_product_id"], "qty": gas_qty, "note": f"Gás de {prod['name']} aberta"},
+        )
+    return RedirectResponse(url="/stock?opened=1", status_code=303)
 
 
 # ── STOCK HISTORY (histórico de movimentos) ──

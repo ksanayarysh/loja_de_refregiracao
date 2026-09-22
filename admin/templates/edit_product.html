@@ -75,6 +75,20 @@
           <option value="l"  {% if product.unit == 'l'  %}selected{% endif %}>l (litro)</option>
         </select>
 
+        <div id="gasLinkSection" style="display:none;">
+          <label for="linked_product_id">Vincular ao gás (kg)</label>
+          <select id="linked_product_id" name="linked_product_id">
+            <option value="">— Nenhum —</option>
+            {% for g in gas_products %}
+              <option value="{{ g.id }}" {% if g.id == product.linked_product_id %}selected{% endif %}>{{ g.name }}</option>
+            {% endfor %}
+          </select>
+          <div class="hint">Ao clicar em "🔓 Abrir" no estoque, o gás é creditado automaticamente no produto vinculado.</div>
+
+          <label for="linked_qty">Quantidade de gás por botija (kg)</label>
+          <input id="linked_qty" name="linked_qty" inputmode="decimal" value="{{ product.linked_qty or '' }}" placeholder="Ex.: 10.000">
+        </div>
+
         <label for="shelf_code">Código da prateleira</label>
         <input id="shelf_code" name="shelf_code" value="{{ product.shelf_code or '' }}" placeholder="Ex.: A3, Corredor 2" autocomplete="off">
 
@@ -175,6 +189,13 @@ function updateMargin() {
 document.getElementById('sale_price').addEventListener('input', updateMargin);
 document.getElementById('cost_price').addEventListener('input', updateMargin);
 updateMargin();
+
+function toggleGasLink() {
+  const name = document.getElementById('name').value.toLowerCase();
+  document.getElementById('gasLinkSection').style.display = name.includes('botija') ? 'block' : 'none';
+}
+document.getElementById('name').addEventListener('input', toggleGasLink);
+toggleGasLink();
 
 function previewImage(input) {
   if (!input.files || !input.files[0]) return;
