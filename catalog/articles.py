@@ -23,12 +23,16 @@ ARTICLES = [
     },
     {
         "slug": "geladeira-frost-free-acumulando-gelo",
-        "title": "Geladeira frost free acumulando gelo: causas e solução",
-        "description": "Frost free deveria degelar sozinha — se está acumulando gelo, algo falhou. Veja o que checar.",
+        "title": "Geladeira Frost Free Acumulando Gelo: Causas e Peças no RJ",
+        "description": "Geladeira frost free acumulando gelo? Veja as causas mais comuns, sensores e peças para o sistema de degelo no RJ.",
         "category": "geladeira",
         "icon": "❄️",
-        "tags": ["geladeira", "frost free", "degelo", "resistência"],
+        "tags": ["geladeira", "frost free", "degelo", "resistência", "sensor", "peças", "rj"],
         "template": "blog/geladeira-frost-free-acumula-gelo.html",
+        "products": [
+            "sensor-de-temperatura-2-7k-brastemp",
+            "sensor-de-temperatura-para-geladeira-electrolux"
+        ],
         "published": True,
     },
     {
@@ -226,12 +230,17 @@ ARTICLES = [
     },
     {
         "slug": "roupa-saindo-manchada-lavadora",
-        "title": "Roupa saindo manchada da máquina de lavar? Veja as causas",
-        "description": "Manchas de óleo, ferrugem ou sabão nas roupas? Saiba o que causa cada tipo de mancha e quais peças precisam de troca. Brastemp, Consul, Cargo e Mare.",
+        "title": "Lavadora Manchando Roupa: Causas, Peças e Soluções no RJ",
+        "description": "Lavadora manchando roupa? Veja as causas das manchas e quais peças podem estar envolvidas em lavadoras Brastemp, Consul, Cargo e Mare no RJ.",
         "category": "maquina-de-lavar",
         "icon": "👕",
-        "tags": ["máquina de lavar", "mancha", "válvula", "mecanismo", "óleo"],
+        "tags": ["máquina de lavar", "mancha", "válvula", "mecanismo", "óleo", "pressostato", "peças", "rj"],
         "template": "blog/roupa-manchada-lavadora.html",
+        "products": [
+            "valvula-dupla-lavadora-cargo-mare-110v-brastemp-consul-w10201538-w11364875",
+            "pressostato-3-niveis-lavadora-brastemp-w10737624",
+            "pressostato-4-niveis-cargo-mare-7-5-8-10kg-consul-326028183"
+        ],
         "published": True,
     },
 
