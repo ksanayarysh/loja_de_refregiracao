@@ -51,6 +51,8 @@ ARTICLES = [
         "icon": "🌡️",
         "tags": ["ar-condicionado", "split", "gás", "filtro"],
         "template": "blog/ar-condicionado-nao-gela.html",
+        "products": ["gas-r410", "gas-r410-750g", "gas-r22", "gas-r22-700g",
+                     "gas-r32-650g", "gas-r32-3kg-hulter"],  # preço visível ao lado do link
         "published": True,
     },
     {
@@ -81,6 +83,8 @@ ARTICLES = [
         "icon": "⚡",
         "tags": ["ar-condicionado", "capacitor", "elétrica", "peças"],
         "template": "blog/capacitor-ar-condicionado.html",
+        "products": ["capacitor-25-plus-2-5uf", "capacitor-35-plus-2-5uf", "capacitor-45-plus-5uf",
+                     "capacitor-60-plus-10uf", "capacitor-do-ventilador-2-5uf"],
         "published": True,
     },
     {
@@ -176,6 +180,8 @@ ARTICLES = [
         "icon": "⚡",
         "tags": ["capacitor", "compressor", "geladeira", "ar-condicionado"],
         "template": "blog/capacitor-de-partida-geladeira.html",
+        "products": ["capacitor-de-partida-270-324uf-110vac-motor-weg-110-220"],
+        "schema_product": "capacitor-de-partida-270-324uf-110vac-motor-weg-110-220",  # JSON-LD Product
         "published": True,
     },
     {

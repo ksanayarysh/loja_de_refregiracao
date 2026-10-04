@@ -10,6 +10,7 @@ from sqlalchemy import text
 
 from dependencies import engine, templates
 from articles import ARTICLES, ARTICLES_BY_SLUG
+from blog_schema import build_article_context
 
 router = APIRouter()
 
@@ -810,13 +811,29 @@ async def blog_article(request: Request, slug: str):
     article = ARTICLES_BY_SLUG.get(slug)
     if not article or not article.get("published"):
         return HTMLResponse("Artigo não encontrado", status_code=404)
+
+    site_url = SITE_URL.rstrip("/")  # evita "//blog/..." no canonical se SITE_URL termina em "/"
+
+    # Preços/estoque só para artigos que declaram "products" ou "schema_product".
+    # Se o banco falhar, o artigo renderiza normalmente, apenas sem preços.
+    blog_ctx = {"products": {}, "schema_product": None}
+    if article.get("products") or article.get("schema_product"):
+        try:
+            async with engine.connect() as conn:
+                rows = await _get_products_cached(conn)
+            blog_ctx = build_article_context(article, rows, site_url, slugify)
+        except Exception:
+            pass
+
     return templates.TemplateResponse(article["template"], {
         "request":       request,
+        "article":       article,
         "ga_id":         GA_ID,
-        "site_url":      SITE_URL,
+        "site_url":      site_url,
         "store_address": STORE_ADDRESS,
         "store_phone":   STORE_PHONE,
         "wa_number":     WA_OWNER_NUMBER,
+        **blog_ctx,
     })
 
 
