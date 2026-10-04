@@ -294,6 +294,20 @@
       display:flex; gap:10px; flex-wrap:wrap; margin-top:14px;
     }
 
+    .inline-product {
+      display: inline-flex; align-items: center; gap: 10px;
+      margin: 8px 0 4px; padding: 7px 10px 7px 7px;
+      background: #fff; border: 1px solid var(--border); border-radius: 10px;
+      text-decoration: none !important; vertical-align: middle;
+      box-shadow: 0 2px 8px rgba(0,0,0,.035);
+    }
+    .inline-product:hover { border-color: #d8d2ca; text-decoration: none !important; }
+    .inline-product img { width: 46px; height: 46px; object-fit: contain; border-radius: 7px; background: #fff; flex-shrink: 0; }
+    .inline-product-info { display:flex; flex-direction:column; gap:2px; line-height:1.2; }
+    .inline-product-name { font-size:.84rem; font-weight:700; color:var(--text); }
+    .inline-product-price { font-family:'DM Mono',monospace; font-size:.78rem; color:var(--accent); font-weight:700; }
+    .inline-product-label { font-size:.72rem; color:var(--muted); font-weight:500; }
+
     .btn,
     .btn-outline {
       display:inline-flex; align-items:center; justify-content:center; gap:8px;
@@ -415,8 +429,13 @@
       <p>
         O sensor informa ao sistema quando resfriar e quando interromper o ciclo. Se ele falha, a geladeira pode
         interpretar a temperatura de forma errada e deixar o compartimento inferior sem refrigeração suficiente.
-        Se houver suspeita, vale conferir um <a href="/product/sensor-de-temperatura-2-7k-brastemp-w10531315">sensor de temperatura para geladeira</a> compatível.
       </p>
+      {% if products.get('sensor-de-temperatura-para-geladeira-electrolux') %}
+      <a class="inline-product" href="/product/sensor-de-temperatura-para-geladeira-electrolux">
+        {% if products['sensor-de-temperatura-para-geladeira-electrolux'].image %}<img src="{{ products['sensor-de-temperatura-para-geladeira-electrolux'].image }}" alt="Sensor de temperatura para geladeira Electrolux" loading="lazy">{% endif %}
+        <span class="inline-product-info"><span class="inline-product-label">Para modelos Electrolux</span><span class="inline-product-name">Sensor de temperatura para geladeira</span>{% if products['sensor-de-temperatura-para-geladeira-electrolux'].sale_price %}<span class="inline-product-price">R$ {{ "%.2f"|format(products['sensor-de-temperatura-para-geladeira-electrolux'].sale_price)|replace('.', ',') }}</span>{% endif %}</span>
+      </a>
+      {% endif %}
 
       <h3>3. Resistência de degelo que não atua</h3>
       <p>
@@ -424,12 +443,37 @@
         onde não deveria. Com isso, a circulação de ar frio é bloqueada e a parte de baixo perde rendimento.
         Esse cenário é clássico em casos de <strong>geladeira frost free não gela embaixo</strong>.
       </p>
+      <p>Em alguns modelos, o <strong>timer de degelo</strong> participa do acionamento do ciclo de degelo e também precisa ser compatível com a tensão do aparelho:</p>
+      {% if products.get('timer-de-degelo-eletrolux-220v') %}
+      <a class="inline-product" href="/product/timer-de-degelo-eletrolux-220v">
+        {% if products['timer-de-degelo-eletrolux-220v'].image %}<img src="{{ products['timer-de-degelo-eletrolux-220v'].image }}" alt="Timer de degelo Electrolux 220V" loading="lazy">{% endif %}
+        <span class="inline-product-info"><span class="inline-product-label">Degelo · 220V</span><span class="inline-product-name">Timer de degelo Electrolux</span>{% if products['timer-de-degelo-eletrolux-220v'].sale_price %}<span class="inline-product-price">R$ {{ "%.2f"|format(products['timer-de-degelo-eletrolux-220v'].sale_price)|replace('.', ',') }}</span>{% endif %}</span>
+      </a>
+      {% endif %}
+      {% if products.get('timer-degelo-electrolux-tmdj812zb9-110v-original') %}
+      <a class="inline-product" href="/product/timer-degelo-electrolux-tmdj812zb9-110v-original">
+        {% if products['timer-degelo-electrolux-tmdj812zb9-110v-original'].image %}<img src="{{ products['timer-degelo-electrolux-tmdj812zb9-110v-original'].image }}" alt="Timer Degelo Electrolux TMDJ812ZB9 110V Original" loading="lazy">{% endif %}
+        <span class="inline-product-info"><span class="inline-product-label">Degelo · 110V</span><span class="inline-product-name">Timer TMDJ812ZB9 Original</span>{% if products['timer-degelo-electrolux-tmdj812zb9-110v-original'].sale_price %}<span class="inline-product-price">R$ {{ "%.2f"|format(products['timer-degelo-electrolux-tmdj812zb9-110v-original'].sale_price)|replace('.', ',') }}</span>{% endif %}</span>
+      </a>
+      {% endif %}
 
       <h3>4. Termostato com falha</h3>
       <p>
         O <a href="/product/termostato-de-geladeira-wdf20">termostato da geladeira</a> regula a temperatura interna. Se ele estiver
         desregulado ou danificado, o sistema pode não ligar no momento certo ou trabalhar de forma irregular.
       </p>
+      {% if products.get('termostato-de-geladeira-wdf20') %}
+      <a class="inline-product" href="/product/termostato-de-geladeira-wdf20">
+        {% if products['termostato-de-geladeira-wdf20'].image %}<img src="{{ products['termostato-de-geladeira-wdf20'].image }}" alt="Termostato de geladeira WDF20" loading="lazy">{% endif %}
+        <span class="inline-product-info"><span class="inline-product-label">Termostato</span><span class="inline-product-name">Termostato de geladeira WDF20</span>{% if products['termostato-de-geladeira-wdf20'].sale_price %}<span class="inline-product-price">R$ {{ "%.2f"|format(products['termostato-de-geladeira-wdf20'].sale_price)|replace('.', ',') }}</span>{% endif %}</span>
+      </a>
+      {% endif %}
+      {% if products.get('termostato-geladeira-electrolux-dc34a-dc33a-dc35a-wdf30a') %}
+      <a class="inline-product" href="/product/termostato-geladeira-electrolux-dc34a-dc33a-dc35a-wdf30a">
+        {% if products['termostato-geladeira-electrolux-dc34a-dc33a-dc35a-wdf30a'].image %}<img src="{{ products['termostato-geladeira-electrolux-dc34a-dc33a-dc35a-wdf30a'].image }}" alt="Termostato Geladeira Electrolux WDF30A" loading="lazy">{% endif %}
+        <span class="inline-product-info"><span class="inline-product-label">Para modelos Electrolux</span><span class="inline-product-name">Termostato DC34A / DC33A / DC35A</span>{% if products['termostato-geladeira-electrolux-dc34a-dc33a-dc35a-wdf30a'].sale_price %}<span class="inline-product-price">R$ {{ "%.2f"|format(products['termostato-geladeira-electrolux-dc34a-dc33a-dc35a-wdf30a'].sale_price)|replace('.', ',') }}</span>{% endif %}</span>
+      </a>
+      {% endif %}
 
       <h3>5. Ventilação interna prejudicada</h3>
       <p>
@@ -437,35 +481,14 @@
         o ar não circula bem. Resultado: o freezer parece normal, mas o refrigerador perde eficiência.
       </p>
 
-      <h3>Peças relacionadas ao defeito</h3>
-      <p>O componente correto depende da marca, modelo, tensão e sistema de controle da geladeira. Estes são alguns itens do catálogo que têm relação direta com os sintomas descritos acima:</p>
-      <div class="product-list">
-        {% for slug, label, msg in [
-          ('sensor-de-temperatura-2-7k-brastemp-w10531315', 'Sensor de temperatura 2,7K Brastemp W10531315', msg_sensor_brastemp),
-          ('sensor-de-temperatura-para-geladeira-electrolux', 'Sensor de temperatura para geladeira Electrolux', msg_sensor_electrolux),
-          ('termostato-de-geladeira-wdf20', 'Termostato de geladeira WDF20', msg_termostato_wdf20),
-          ('termostato-geladeira-electrolux-dc34a-dc33a-dc35a-wdf30a', 'Termostato Geladeira Electrolux DC34A DC33A DC35A WDF30A', msg_termostato_electrolux),
-          ('timer-de-degelo-eletrolux-220v', 'Timer de degelo Electrolux 220V', msg_timer_220),
-          ('timer-degelo-electrolux-tmdj812zb9-110v-original', 'Timer Degelo Electrolux TMDJ812ZB9 110V Original', msg_timer_110),
-          ('motor-ventilador-brastemp-consul-127v-w11369860-original', 'Motor Ventilador Brastemp Consul 127V W11369860 Original', msg_motor),
-          ('placa-geladeira-electrolux-df47-dfn49-df49x-dw50x-64500437', 'Placa Geladeira Electrolux DF47 DFN49 DF49X DW50X 64500437', msg_placa)
-        ] %}
-          {% if products.get(slug) %}
-          <div class="product-card-row">
-            {% if products[slug].image %}
-              <img class="product-thumb" src="{{ products[slug].image }}" alt="{{ label }}" loading="lazy">
-            {% endif %}
-            <div class="product-row-info">
-              <a class="product-name-link" href="/product/{{ slug }}">{{ label }}</a>
-              {% if products[slug].sale_price %}
-                <span class="product-price">R$ {{ "%.2f"|format(products[slug].sale_price)|replace('.', ',') }}</span>
-              {% endif %}
-              <a class="product-wa-btn wa-track" href="https://wa.me/{{ wa_number }}?text={{ msg | urlencode }}" target="_blank" rel="noopener" data-product="{{ label }}">💬 Comprar pelo WhatsApp</a>
-            </div>
-          </div>
-          {% endif %}
-        {% endfor %}
-      </div>
+      <p class="product-context">Se o diagnóstico apontar para um componente específico, confira o modelo compatível antes da compra:</p>
+
+      {% if products.get('sensor-de-temperatura-2-7k-brastemp-w10531315') %}
+      <a class="inline-product" href="/product/sensor-de-temperatura-2-7k-brastemp-w10531315">
+        {% if products['sensor-de-temperatura-2-7k-brastemp-w10531315'].image %}<img src="{{ products['sensor-de-temperatura-2-7k-brastemp-w10531315'].image }}" alt="Sensor de temperatura 2,7K Brastemp W10531315" loading="lazy">{% endif %}
+        <span class="inline-product-info"><span class="inline-product-label">Sensor de temperatura</span><span class="inline-product-name">Sensor 2,7K Brastemp W10531315</span>{% if products['sensor-de-temperatura-2-7k-brastemp-w10531315'].sale_price %}<span class="inline-product-price">R$ {{ "%.2f"|format(products['sensor-de-temperatura-2-7k-brastemp-w10531315'].sale_price)|replace('.', ',') }}</span>{% endif %}</span>
+      </a>
+      {% endif %}
 
       <h3>O que fazer antes de trocar peças</h3>
       <ol>
@@ -476,6 +499,15 @@
         <li>Se estiver em dúvida, envie foto para atendimento técnico</li>
       </ol>
 
+      {% if products.get('placa-geladeira-electrolux-df47-dfn49-df49x-dw50x-64500437') %}
+      <p>Em alguns modelos eletrônicos, o diagnóstico pode apontar para a placa de controle. Confira sempre o código da peça e a compatibilidade:</p>
+      <a class="inline-product" href="/product/placa-geladeira-electrolux-df47-dfn49-df49x-dw50x-64500437">
+        {% if products['placa-geladeira-electrolux-df47-dfn49-df49x-dw50x-64500437'].image %}<img src="{{ products['placa-geladeira-electrolux-df47-dfn49-df49x-dw50x-64500437'].image }}" alt="Placa Geladeira Electrolux 64500437" loading="lazy">{% endif %}
+        <span class="inline-product-info"><span class="inline-product-label">Placa eletrônica</span><span class="inline-product-name">Electrolux 64500437</span>{% if products['placa-geladeira-electrolux-df47-dfn49-df49x-dw50x-64500437'].sale_price %}<span class="inline-product-price">R$ {{ "%.2f"|format(products['placa-geladeira-electrolux-df47-dfn49-df49x-dw50x-64500437'].sale_price)|replace('.', ',') }}</span>{% endif %}</span>
+      </a>
+      {% endif %}
+      </ol>
+
       <h3>Quando vale a pena consertar?</h3>
       <p>
         Em muitos casos, sim. Se o defeito estiver em peças pontuais como sensor, termostato ou resistência,
@@ -483,16 +515,7 @@
         o modelo e evitar compra errada, porque ser humano adora improvisar diagnóstico e depois culpar a peça.
       </p>
 
-      <h3>Peças que podem ajudar nesse defeito</h3>
-      <ul>
-        <li><a href="/product/sensor-de-temperatura-2-7k-brastemp-w10531315">Sensor de temperatura 2,7K Brastemp W10531315</a></li>
-        <li><a href="/product/sensor-de-temperatura-para-geladeira-electrolux">Sensor de temperatura para geladeira Electrolux</a></li>
-        <li><a href="/product/termostato-de-geladeira-wdf20">Termostato de geladeira WDF20</a></li>
-        <li><a href="/product/timer-de-degelo-eletrolux-220v">Timer de degelo Electrolux 220V</a></li>
-        <li><a href="/product/motor-ventilador-brastemp-consul-127v-w11369860-original">Motor ventilador Brastemp Consul 127V W11369860 Original</a></li>
-        <li><a href="/product/placa-geladeira-electrolux-df47-dfn49-df49x-dw50x-64500437">Placa eletrônica Electrolux 64500437</a></li>
-        <li><a href="/category/geladeira">Outras peças para geladeira</a></li>
-      </ul>
+
 
     </article>
   </section>
