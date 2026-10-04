@@ -9,6 +9,16 @@ ARTICLES = [
         "icon": "🧊",
         "tags": ["geladeira", "degelo", "sensor", "termostato"],
         "template": "blog/geladeira-nao-gela.html",
+        "products": [
+            "sensor-de-temperatura-2-7k-brastemp-w10531315",
+            "sensor-de-temperatura-para-geladeira-electrolux",
+            "termostato-de-geladeira-wdf20",
+            "termostato-geladeira-electrolux-dc34a-dc33a-dc35a-wdf30a",
+            "timer-de-degelo-eletrolux-220v",
+            "timer-degelo-electrolux-tmdj812zb9-110v-original",
+            "motor-ventilador-brastemp-consul-127v-w11369860-original",
+            "placa-geladeira-electrolux-df47-dfn49-df49x-dw50x-64500437",
+        ],
         "published": True,
     },
     {

@@ -385,7 +385,7 @@
       <h2>Guia completo</h2>
 
       <div class="lead-box">
-        <p><strong>Resumo rápido:</strong> quando a geladeira gela no freezer, mas não resfria embaixo, quase sempre existe falha na passagem de ar frio, no sistema de degelo ou em peças como <a href="https://www.mtfrefrigeracao.com.br/category/sensores">sensor de temperatura</a>, <a href="https://www.mtfrefrigeracao.com.br/category/termostato">termostato</a> ou <a href="https://www.mtfrefrigeracao.com.br/category/sensores">resistência de degelo</a>.</p>
+        <p><strong>Resumo rápido:</strong> quando a geladeira gela no freezer, mas não resfria embaixo, as causas mais comuns envolvem a passagem de ar frio, o sistema de degelo ou peças como <a href="https://www.mtfrefrigeracao.com.br/category/sensores">sensor de temperatura</a>, <a href="https://www.mtfrefrigeracao.com.br/category/termostato">termostato</a> ou <a href="https://www.mtfrefrigeracao.com.br/category/geladeira">resistência e outras peças para geladeira</a>.</p>
       </div>
 
       <p>
@@ -415,19 +415,19 @@
       <p>
         O sensor informa ao sistema quando resfriar e quando interromper o ciclo. Se ele falha, a geladeira pode
         interpretar a temperatura de forma errada e deixar o compartimento inferior sem refrigeração suficiente.
-        Se houver suspeita, vale conferir um <a href="https://www.mtfrefrigeracao.com.br/category/sensores">sensor de temperatura para geladeira</a> compatível.
+        Se houver suspeita, vale conferir um <a href="/product/sensor-de-temperatura-2-7k-brastemp-w10531315">sensor de temperatura para geladeira</a> compatível.
       </p>
 
       <h3>3. Resistência de degelo que não atua</h3>
       <p>
-        Quando a <a href="https://www.mtfrefrigeracao.com.br/category/sensores">resistência de degelo</a> não funciona, o gelo se acumula
+        Quando a <a href="https://www.mtfrefrigeracao.com.br/category/geladeira">resistência e outras peças para geladeira</a> não funciona, o gelo se acumula
         onde não deveria. Com isso, a circulação de ar frio é bloqueada e a parte de baixo perde rendimento.
         Esse cenário é clássico em casos de <strong>geladeira frost free não gela embaixo</strong>.
       </p>
 
       <h3>4. Termostato com falha</h3>
       <p>
-        O <a href="https://www.mtfrefrigeracao.com.br/category/termostato">termostato da geladeira</a> regula a temperatura interna. Se ele estiver
+        O <a href="/product/termostato-de-geladeira-wdf20">termostato da geladeira</a> regula a temperatura interna. Se ele estiver
         desregulado ou danificado, o sistema pode não ligar no momento certo ou trabalhar de forma irregular.
       </p>
 
@@ -436,6 +436,36 @@
         Alguns modelos contam com ventilação forçada. Se houver travamento, sujeira, gelo excessivo ou outra restrição,
         o ar não circula bem. Resultado: o freezer parece normal, mas o refrigerador perde eficiência.
       </p>
+
+      <h3>Peças relacionadas ao defeito</h3>
+      <p>O componente correto depende da marca, modelo, tensão e sistema de controle da geladeira. Estes são alguns itens do catálogo que têm relação direta com os sintomas descritos acima:</p>
+      <div class="product-list">
+        {% for slug, label, msg in [
+          ('sensor-de-temperatura-2-7k-brastemp-w10531315', 'Sensor de temperatura 2,7K Brastemp W10531315', msg_sensor_brastemp),
+          ('sensor-de-temperatura-para-geladeira-electrolux', 'Sensor de temperatura para geladeira Electrolux', msg_sensor_electrolux),
+          ('termostato-de-geladeira-wdf20', 'Termostato de geladeira WDF20', msg_termostato_wdf20),
+          ('termostato-geladeira-electrolux-dc34a-dc33a-dc35a-wdf30a', 'Termostato Geladeira Electrolux DC34A DC33A DC35A WDF30A', msg_termostato_electrolux),
+          ('timer-de-degelo-eletrolux-220v', 'Timer de degelo Electrolux 220V', msg_timer_220),
+          ('timer-degelo-electrolux-tmdj812zb9-110v-original', 'Timer Degelo Electrolux TMDJ812ZB9 110V Original', msg_timer_110),
+          ('motor-ventilador-brastemp-consul-127v-w11369860-original', 'Motor Ventilador Brastemp Consul 127V W11369860 Original', msg_motor),
+          ('placa-geladeira-electrolux-df47-dfn49-df49x-dw50x-64500437', 'Placa Geladeira Electrolux DF47 DFN49 DF49X DW50X 64500437', msg_placa)
+        ] %}
+          {% if products.get(slug) %}
+          <div class="product-card-row">
+            {% if products[slug].image %}
+              <img class="product-thumb" src="{{ products[slug].image }}" alt="{{ label }}" loading="lazy">
+            {% endif %}
+            <div class="product-row-info">
+              <a class="product-name-link" href="/product/{{ slug }}">{{ label }}</a>
+              {% if products[slug].sale_price %}
+                <span class="product-price">R$ {{ "%.2f"|format(products[slug].sale_price)|replace('.', ',') }}</span>
+              {% endif %}
+              <a class="product-wa-btn wa-track" href="https://wa.me/{{ wa_number }}?text={{ msg | urlencode }}" target="_blank" rel="noopener" data-product="{{ label }}">💬 Comprar pelo WhatsApp</a>
+            </div>
+          </div>
+          {% endif %}
+        {% endfor %}
+      </div>
 
       <h3>O que fazer antes de trocar peças</h3>
       <ol>
@@ -455,9 +485,13 @@
 
       <h3>Peças que podem ajudar nesse defeito</h3>
       <ul>
-        <li><a href="https://www.mtfrefrigeracao.com.br/category/sensores">Sensor de temperatura para geladeira</a></li>
-        <li><a href="https://www.mtfrefrigeracao.com.br/category/termostato">Termostato para geladeira</a></li>
-        <li><a href="https://www.mtfrefrigeracao.com.br/category/sensores">Resistência de degelo</a></li>
+        <li><a href="/product/sensor-de-temperatura-2-7k-brastemp-w10531315">Sensor de temperatura 2,7K Brastemp W10531315</a></li>
+        <li><a href="/product/sensor-de-temperatura-para-geladeira-electrolux">Sensor de temperatura para geladeira Electrolux</a></li>
+        <li><a href="/product/termostato-de-geladeira-wdf20">Termostato de geladeira WDF20</a></li>
+        <li><a href="/product/timer-de-degelo-eletrolux-220v">Timer de degelo Electrolux 220V</a></li>
+        <li><a href="/product/motor-ventilador-brastemp-consul-127v-w11369860-original">Motor ventilador Brastemp Consul 127V W11369860 Original</a></li>
+        <li><a href="/product/placa-geladeira-electrolux-df47-dfn49-df49x-dw50x-64500437">Placa eletrônica Electrolux 64500437</a></li>
+        <li><a href="/category/geladeira">Outras peças para geladeira</a></li>
       </ul>
 
     </article>
