@@ -101,14 +101,24 @@ ARTICLES = [
     # ── COMPONENTES ELÉTRICOS ─────────────────────────────────────────────────
     {
         "slug": "rele-refrigeracao",
-        "title": "Relé de refrigeração: tipos, funções e como escolher o certo",
-        "description": "Relé de indução, conjugado Embraco ou relé de placa — entenda as diferenças, como identificar defeito e qual substituir.",
+        "title": "Relé de Geladeira Embraco e PTC: Tabela de Potências e Peças no RJ",
+        "description": "Precisa trocar o relé da geladeira? Entenda a diferença entre Relé PTC, Conjugado Embraco e Indução. Veja a tabela de HP e compre sua peça na Av. Brasil, RJ.",
         "category": "geladeira",
         "icon": "⚡",
-        "tags": ["relé", "embraco", "compressor", "geladeira", "ar-condicionado"],
+        "tags": ["relé", "embraco", "ptc", "compressor", "geladeira", "peças", "rj"],
         "template": "blog/rele-refrigeracao.html",
+        "products": [
+            "rele-de-inducao",
+            "rele-embraco-conjugado-1-2-220v-hulter",
+            "rele-embraco-conjugado-1-3-220v-hulter",
+            "rele-embraco-conjugado-1-5-220v-dugold",
+            "rele-embraco-conjugado-1-6-110v-eos",
+            "protetor-termico-ptc",
+            "rele-12v-20a-placa-ar-condicionado-split"
+        ],
         "published": True,
     },
+
     {
         "slug": "termostato-refrigeracao",
         "title": "Termostato de refrigeração: tipos, defeitos e como trocar",
