@@ -113,7 +113,7 @@ ARTICLES = [
             "rele-embraco-conjugado-1-3-220v-hulter",
             "rele-embraco-conjugado-1-5-220v-dugold",
             "rele-embraco-conjugado-1-6-110v-eos",
-            "protetor-termico-ptc",
+            "rele-ptc",
             "rele-12v-20a-placa-ar-condicionado-split"
         ],
         "published": True,

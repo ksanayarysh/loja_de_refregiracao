@@ -175,22 +175,19 @@
     <h3>2. Relé PTC (dispositivo de partida)</h3>
     <p>O <strong>PTC (Positive Temperature Coefficient)</strong> é um dispositivo de partida usado em muitos compressores de geladeira. Ele permite a passagem de corrente para o enrolamento de partida no momento em que o compressor é ligado. Conforme o PTC aquece, sua resistência aumenta e a corrente de partida é reduzida.</p>
     <p>Por isso, o PTC correto precisa ser compatível com o compressor. Um PTC com especificação inadequada pode impedir a partida do compressor ou provocar funcionamento incorreto.</p>
-    <div class="tip-box">
-      <p>💡 <strong>PTC não é a mesma coisa que o protetor térmico:</strong> o PTC participa da partida do compressor, enquanto o protetor térmico atua na proteção contra sobrecorrente e superaquecimento. Alguns conjuntos vendidos para compressores reúnem os dois componentes.</p>
-    </div>
     <p>
       <span class="product-row">
-        {% if products.get('protetor-termico-ptc') and products['protetor-termico-ptc'].image %}
-          <img class="product-thumb" src="{{ products['protetor-termico-ptc'].image|imgurl(96) }}" alt="Protetor térmico PTC para compressor de geladeira" loading="lazy">
+        {% if products.get('rele-ptc') and products['rele-ptc'].image %}
+          <img class="product-thumb" src="{{ products['rele-ptc'].image|imgurl(96) }}" alt="Relé PTC para compressor de geladeira" loading="lazy">
         {% else %}
           <span class="product-thumb" aria-hidden="true"></span>
         {% endif %}
         <span class="product-row-info">
-          <a class="product-name-link" href="/product/protetor-termico-ptc">Protetor térmico PTC</a>
-          {% if products.get('protetor-termico-ptc') and products['protetor-termico-ptc'].sale_price %}
-            <span class="product-price">R$ {{ "%.2f"|format(products['protetor-termico-ptc'].sale_price)|replace('.', ',') }}</span>
+          <a class="product-name-link" href="/product/rele-ptc">Relé PTC</a>
+          {% if products.get('rele-ptc') and products['rele-ptc'].sale_price %}
+            <span class="product-price">R$ {{ "%.2f"|format(products['rele-ptc'].sale_price)|replace('.', ',') }}</span>
           {% endif %}
-          <a class="product-wa-btn wa-track" href="https://wa.me/{{ wa_number }}?text={{ 'Olá! Tenho interesse no PTC para geladeira. Qual o preço e disponibilidade?' | urlencode }}" target="_blank" rel="noopener" data-product="Protetor térmico PTC">Comprar pelo WhatsApp</a>
+          <a class="product-wa-btn wa-track" href="https://wa.me/{{ wa_number }}?text={{ 'Olá! Tenho interesse no relé PTC para geladeira. Qual o preço e disponibilidade?' | urlencode }}" target="_blank" rel="noopener" data-product="Relé PTC">Comprar pelo WhatsApp</a>
         </span>
       </span>
     </p>
@@ -363,25 +360,6 @@
     <div class="tip-box">
       <p>💡 Se for trocar o relé da geladeira você mesmo, sempre compre também o protetor térmico (overload). Os dois costumam falhar juntos e a troca preventiva evita uma segunda visita ao técnico.</p>
     </div>
-  </div>
-
-  <div class="cta-block">
-    <h3>Precisa de relé para geladeira ou ar-condicionado no RJ?</h3>
-    <p>Temos relé Embraco (1/2 a 1/8), relé de indução e relé para placa de ar-condicionado em estoque. Retirada na Av. Brasil, 6818 ou consulte pelo WhatsApp.</p>
-    <a class="cta-wa wa-track" href="https://wa.me/{{ wa_number }}?text=Ol%C3%A1%21%20Preciso%20de%20rel%C3%A9%20para%20refrigera%C3%A7%C3%A3o.%20Qual%20o%20pre%C3%A7o%20e%20disponibilidade%3F" target="_blank" rel="noopener" data-product="Artigo rele refrigeracao">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
-      Consultar preço e disponibilidade
-    </a>
-    <br>
-    <a class="cta-tecnico" href="https://wa.me/5521965832950?text=Ol%C3%A1%20Douglas%21%20Preciso%20de%20ajuda%20com%20rel%C3%A9%20de%20refrigera%C3%A7%C3%A3o." target="_blank" rel="noopener">
-      🔧 Falar com o técnico Douglas
-    </a>
-  </div>
-
-  <div class="cta-block">
-    <h3>Precisa de um relé para sua geladeira?</h3>
-    <p>Confira o modelo, potência e tensão do compressor. A M.T.F Refrigeração atende na <strong>Av. Brasil, 6818 — Rio de Janeiro</strong> e também recebe pedidos pelo WhatsApp.</p>
-    <a class="cta-wa" href="https://wa.me/{{ wa_number }}?text={{ 'Olá! Preciso de um relé para geladeira. Posso enviar a foto do compressor para identificar a peça?' | urlencode }}" target="_blank" rel="noopener">Falar pelo WhatsApp</a>
   </div>
 
   <div class="related-articles">
