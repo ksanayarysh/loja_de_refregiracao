@@ -1,5 +1,5 @@
 {% extends 'blog/_article_base.html' %}
-{% from 'blog/_macros.html' import product_row, tip_box, warn_box, info_box, cta_block, related_cards with context %}
+{% from 'blog/_macros.html' import product_row, product_card, product_schema, tip_box, warn_box, info_box, cta_block, related_cards with context %}
 
 {% set seo_title = "Compressor de geladeira: sintomas de defeito e como escolher o certo" %}
 {% set meta_description = "Geladeira não gela ou o compressor não parte? Veja os sinais de defeito, o que testar antes de trocar e como escolher o compressor Embraco certo para a sua geladeira no RJ." %}
@@ -15,6 +15,12 @@
   {"q": "O que deve ser trocado junto com o compressor?",
    "a": "Normalmente se troca também o filtro secador e se faz vácuo no sistema antes de recarregar o gás. Relé e protetor térmico novos também são recomendados, para não comprometer o compressor novo."}
 ] %}
+
+{# Schema.org Product (preço, estoque, foto, marca, SKU/GTIN) vindo do banco — um bloco por produto #}
+{% block extra_head %}
+{{ product_schema("compressor-embraco-emr70hlr-1-5-hp-r134") }}
+{{ product_schema("compressor-embraco-1-4-127v-emr80hlr-gas-r134a") }}
+{% endblock %}
 
 {% block tag %}⚙️ Compressor{% endblock %}
 
@@ -78,21 +84,21 @@
 
   <h3>Compressor Embraco EMR70HLR 1/5 HP · R134</h3>
   <p>Compressor de 1/5 HP, 127V. Substitui, entre outros, os modelos EMI60HER, EMI70HER, EMIS70HHR, TPA1370, THB1355, TA1365Y e TSB1374. Indicado para refrigeradores, freezers, adegas refrigeradas, frigobares, freezers horizontais e expositores.</p>
-  {{ product_row(
+  {{ product_card(
+      "compressor-embraco-emr70hlr-1-5-hp-r134",
       "Compressor Embraco EMR70HLR 1/5 HP R134",
       "/product/compressor-embraco-emr70hlr-1-5-hp-r134",
       "Olá! Quero saber sobre o Compressor Embraco EMR70HLR 1/5 HP R134.",
-      "Blog compressor EMR70HLR",
-      slug="compressor-embraco-emr70hlr-1-5-hp-r134") }}
+      "Blog compressor EMR70HLR") }}
 
   <h3>Compressor Embraco EMR80HLR 1/4 HP · R134a · 127V</h3>
   <p>Compressor compacto de 1/4 HP, 127V, fabricado para substituir os modelos EGAS 80HLP/HLR, EM2S80HLP/HLR, EM2U80HLP/HLR, FFUS70HAK, FFUS80HAK, EM2P 80HLP/HLP, TPH1378YDS, TP1380YS e outros de 1/4 HP para gás R134a. A linha EMR tem faixa de evaporação estendida (de −35 °C a 0 °C), indicada para refrigeradores domésticos, adegas refrigeradas e expositores verticais de bebidas.</p>
-  {{ product_row(
+  {{ product_card(
+      "compressor-embraco-1-4-127v-emr80hlr-gas-r134a",
       "Compressor Embraco 1/4 127V EMR80HLR Gas R134a",
       "/product/compressor-embraco-1-4-127v-emr80hlr-gas-r134a",
       "Olá! Quero saber sobre o Compressor Embraco 1/4 127V EMR80HLR Gas R134a.",
-      "Blog compressor EMR80HLR",
-      slug="compressor-embraco-1-4-127v-emr80hlr-gas-r134a") }}
+      "Blog compressor EMR80HLR") }}
 
   {% call tip_box() %}
   Em dúvida se o seu modelo é compatível? Mande uma foto da etiqueta do compressor antigo pelo WhatsApp que conferimos para você antes da compra. Retirada no mesmo dia na loja, na Av. Brasil, 6818.
