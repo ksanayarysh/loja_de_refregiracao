@@ -92,6 +92,21 @@
         <label for="shelf_code">Código da prateleira</label>
         <input id="shelf_code" name="shelf_code" value="{{ product.shelf_code or '' }}" placeholder="Ex.: A3, Corredor 2" autocomplete="off">
 
+        <label for="google_category">Categoria Google (Merchant Center)</label>
+        <input id="google_category" name="google_category" value="{{ product.google_category or '' }}" placeholder="Ex.: 1626 ou Home &amp; Garden &gt; ..." autocomplete="off">
+        <div class="hint">ID numérico ou caminho completo da taxonomia do Google. Vazio = categoria padrão do feed.</div>
+
+        <label for="brand">Marca</label>
+        <input id="brand" name="brand" value="{{ product.brand or '' }}" placeholder="Ex.: Embraco, Consul, Hulter" autocomplete="off">
+        <div class="hint">Vazio = "MTF Refrigeração" no feed.</div>
+
+        <label for="sku">SKU / código do fabricante (MPN)</label>
+        <input id="sku" name="sku" value="{{ product.sku or '' }}" placeholder="Ex.: EMR80HLR, W11369860" autocomplete="off">
+
+        <label for="gtin">GTIN / EAN (código de barras)</label>
+        <input id="gtin" name="gtin" inputmode="numeric" value="{{ product.gtin or '' }}" placeholder="8, 12, 13 ou 14 dígitos" autocomplete="off">
+        <div class="hint">Só números. Se não tiver GTIN, deixe vazio.</div>
+
         <label for="sale_price">Preço de venda (R$)</label>
         <input id="sale_price" name="sale_price" inputmode="decimal" value="{{ '%.2f'|format(product.sale_price or 0) }}">
 

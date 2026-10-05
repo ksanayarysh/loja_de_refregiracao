@@ -1,5 +1,6 @@
 import io
 import os
+import re
 import uuid
 from math import ceil
 from decimal import Decimal
@@ -55,6 +56,20 @@ async def _ensure_gas_link_columns(conn):
     _gas_link_ready = True
 # ─────────────────────────────────────────────────────────────────────────────
 
+# ── GOOGLE PRODUCT CATEGORY (Merchant Center) ────────────────────────────────
+_google_cat_ready = False
+
+async def _ensure_google_category_column(conn):
+    global _google_cat_ready
+    if _google_cat_ready:
+        return
+    await conn.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS google_category VARCHAR(255)"))
+    await conn.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS gtin VARCHAR(20)"))
+    await conn.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS brand VARCHAR(100)"))
+    await conn.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS sku VARCHAR(100)"))
+    _google_cat_ready = True
+# ─────────────────────────────────────────────────────────────────────────────
+
 SORT_FIELDS = {
     "name": "p.name",
     "unit": "p.unit",
@@ -69,6 +84,12 @@ IMAGE_SIZE = 400
 MAX_FILE_MB = 5
 STATIC_DIR = os.environ.get("STATIC_DIR", os.path.join(os.path.dirname(__file__), "static", "images"))
 os.makedirs(STATIC_DIR, exist_ok=True)
+
+
+def _clean_gtin(value: str) -> Optional[str]:
+    """GTIN/EAN/UPC: оставляем только цифры (пробелы, дефисы убираем)."""
+    digits = re.sub(r"\D", "", value or "")
+    return digits or None
 
 
 def _parse_price(value: str) -> Decimal:
@@ -147,6 +168,10 @@ async def create_product(
     min_stock: int = Form(0),
     description: str = Form(""),
     shelf_code: str = Form(""),
+    google_category: str = Form(""),
+    gtin: str = Form(""),
+    brand: str = Form(""),
+    sku: str = Form(""),
     image: UploadFile = File(None),
     _=Depends(basic_auth),
 ):
@@ -156,6 +181,7 @@ async def create_product(
 
     async with engine.begin() as conn:
         await _ensure_shelf_code_column(conn)
+        await _ensure_google_category_column(conn)
 
         dup = await conn.execute(
             text("SELECT id FROM products WHERE LOWER(TRIM(name)) = LOWER(TRIM(:name)) AND active = TRUE"),
@@ -169,11 +195,13 @@ async def create_product(
             }, status_code=400)
 
         await conn.execute(
-            text("""INSERT INTO products (name, category_id, unit, sale_price, cost_price, min_stock, active, image, description, shelf_code)
-                    VALUES (:name, :category_id, :unit, :sale_price, :cost_price, :min_stock, TRUE, :image, :description, :shelf_code)"""),
+            text("""INSERT INTO products (name, category_id, unit, sale_price, cost_price, min_stock, active, image, description, shelf_code, google_category, gtin, brand, sku)
+                    VALUES (:name, :category_id, :unit, :sale_price, :cost_price, :min_stock, TRUE, :image, :description, :shelf_code, :google_category, :gtin, :brand, :sku)"""),
             {"name": name.strip(), "category_id": category_id, "unit": unit,
              "sale_price": price, "cost_price": cost, "min_stock": min_stock, "image": image_b64, "description": description.strip() or None,
-             "shelf_code": shelf_code.strip() or None},
+             "shelf_code": shelf_code.strip() or None,
+             "google_category": google_category.strip() or None,
+             "gtin": _clean_gtin(gtin), "brand": brand.strip() or None, "sku": sku.strip() or None},
         )
     return RedirectResponse(url="/products/new?ok=1", status_code=303)
 
@@ -183,11 +211,13 @@ async def edit_product_form(product_id: int, request: Request, _=Depends(basic_a
     async with engine.begin() as conn:
         await _ensure_shelf_code_column(conn)
         await _ensure_gas_link_columns(conn)
+        await _ensure_google_category_column(conn)
 
     async with engine.connect() as conn:
         res = await conn.execute(
             text("""SELECT id, name, category_id, category2_id, unit, sale_price, cost_price, min_stock,
-                           image, description, shelf_code, linked_product_id, linked_qty
+                           image, description, shelf_code, linked_product_id, linked_qty, google_category,
+                           gtin, brand, sku
                     FROM products WHERE id = :id AND active = TRUE"""),
             {"id": product_id},
         )
@@ -217,6 +247,10 @@ async def update_product(
     shelf_code: str = Form(""),
     linked_product_id: str = Form(""),
     linked_qty: str = Form(""),
+    google_category: str = Form(""),
+    gtin: str = Form(""),
+    brand: str = Form(""),
+    sku: str = Form(""),
     image: UploadFile = File(None),
     remove_image: str = Form(""),
     _=Depends(basic_auth),
@@ -233,6 +267,7 @@ async def update_product(
     async with engine.begin() as conn:
         await _ensure_shelf_code_column(conn)
         await _ensure_gas_link_columns(conn)
+        await _ensure_google_category_column(conn)
 
         dup = await conn.execute(
             text("SELECT id FROM products WHERE LOWER(TRIM(name)) = LOWER(TRIM(:name)) AND active = TRUE AND id != :id"),
@@ -241,7 +276,8 @@ async def update_product(
         if dup.first():
             res = await conn.execute(
                 text("""SELECT id, name, category_id, category2_id, unit, sale_price, cost_price, min_stock,
-                               image, description, shelf_code, linked_product_id, linked_qty
+                               image, description, shelf_code, linked_product_id, linked_qty, google_category,
+                               gtin, brand, sku
                         FROM products WHERE id = :id"""),
                 {"id": product_id}
             )
@@ -286,14 +322,19 @@ async def update_product(
                     SET name=:name, category_id=:category_id, category2_id=:category2_id,
                         unit=:unit, description=:description, shelf_code=:shelf_code,
                         sale_price=:sale_price, cost_price=:cost_price, min_stock=:min_stock,
-                        linked_product_id=:linked_product_id, linked_qty=:linked_qty
+                        linked_product_id=:linked_product_id, linked_qty=:linked_qty,
+                        google_category=:google_category,
+                        gtin=:gtin, brand=:brand, sku=:sku
                         {extra_sql}
                     WHERE id=:id"""),
             {"id": product_id, "name": name.strip(), "category_id": category_id,
              "category2_id": category2_id if category2_id and category2_id > 0 else None,
              "description": description.strip() or None, "shelf_code": shelf_code.strip() or None,
              "unit": unit, "sale_price": price, "cost_price": cost, "min_stock": min_stock,
-             "linked_product_id": linked_pid, "linked_qty": linked_qty_d, **extra_val},
+             "linked_product_id": linked_pid, "linked_qty": linked_qty_d,
+             "google_category": google_category.strip() or None,
+             "gtin": _clean_gtin(gtin), "brand": brand.strip() or None, "sku": sku.strip() or None,
+             **extra_val},
         )
     return RedirectResponse(url=f"/products/{product_id}/edit?ok=1", status_code=303)
 
