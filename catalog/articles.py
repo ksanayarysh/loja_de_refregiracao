@@ -57,6 +57,20 @@ ARTICLES = [
         "template": "blog/tipos-de-gas-refrigerante-geladeira.html",
         "published": True,
     },
+    {
+        "slug": "compressor-de-geladeira",
+        "title": "Compressor de geladeira: sintomas de defeito e como escolher o certo",
+        "description": "Geladeira não gela ou o compressor não parte? Veja os sinais de defeito, o que testar antes de trocar e como escolher o compressor Embraco certo no RJ.",
+        "category": "geladeira",
+        "icon": "⚙️",
+        "tags": ["compressor", "embraco", "r134a", "geladeira", "peças", "rj"],
+        "template": "blog/compressor-de-geladeira.html",
+        "products": [
+            "compressor-embraco-emr70hlr-1-5-hp-r134",
+            "compressor-embraco-1-4-127v-emr80hlr-gas-r134a",
+        ],
+        "published": True,
+    },
 
     # ── AR-CONDICIONADO ───────────────────────────────────────────────────────
     {

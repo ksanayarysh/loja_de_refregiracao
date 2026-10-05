@@ -1,0 +1,133 @@
+{% extends 'blog/_article_base.html' %}
+{% from 'blog/_macros.html' import product_row, tip_box, warn_box, info_box, cta_block, related_cards with context %}
+
+{% set seo_title = "Compressor de geladeira: sintomas de defeito e como escolher o certo" %}
+{% set meta_description = "Geladeira não gela ou o compressor não parte? Veja os sinais de defeito, o que testar antes de trocar e como escolher o compressor Embraco certo para a sua geladeira no RJ." %}
+{% set meta_keywords = "compressor de geladeira, compressor embraco, emr70hlr, emr80hlr, compressor r134a, geladeira não gela, trocar compressor, peças de refrigeração rj" %}
+{% set breadcrumb_label = "Compressor de geladeira" %}
+{% set faq = [
+  {"q": "Como saber se o compressor da geladeira queimou?",
+   "a": "Os sinais mais comuns são: o compressor não parte e a geladeira fica quente atrás, ele liga e desarma logo em seguida (ouve-se um estalo), ou funciona sem parar e a geladeira não gela. Antes de condenar o compressor, é preciso testar o relé, o protetor térmico e o capacitor, que falham com mais frequência e custam bem menos."},
+  {"q": "Posso trocar um compressor de R134a por outro gás?",
+   "a": "Não. O compressor é projetado para um tipo de gás e de óleo. Compressores de R134a e de R600a não são intercambiáveis. Use sempre um compressor para o mesmo gás indicado na etiqueta da geladeira."},
+  {"q": "Como escolher o compressor certo para a minha geladeira?",
+   "a": "Confira na etiqueta do compressor antigo e da geladeira: o gás refrigerante, a potência (HP), a tensão (127V ou 220V) e o modelo. Compressores Embraco costumam ter uma lista de modelos que eles substituem. Se tiver dúvida, envie a foto da etiqueta pelo WhatsApp."},
+  {"q": "O que deve ser trocado junto com o compressor?",
+   "a": "Normalmente se troca também o filtro secador e se faz vácuo no sistema antes de recarregar o gás. Relé e protetor térmico novos também são recomendados, para não comprometer o compressor novo."}
+] %}
+
+{% block tag %}⚙️ Compressor{% endblock %}
+
+{% block lead %}A geladeira liga mas não gela, ou o motor nem parte? O compressor é a peça mais cara do sistema, por isso vale confirmar o defeito antes de trocar. Veja os sinais, o que testar primeiro e como escolher o modelo certo.{% endblock %}
+
+{% block content %}
+
+<div class="article-section">
+  <h2>1. O que o compressor faz na geladeira</h2>
+  <p>O compressor é o "coração" do circuito de refrigeração: ele aspira o gás refrigerante e o comprime, fazendo o gás circular pelo condensador e pelo evaporador. Sem essa circulação, a geladeira não retira calor de dentro e deixa de gelar.</p>
+  <p>Como ele trabalha com apoio de outras peças, nem todo "compressor que não parte" está realmente com defeito. Muitas vezes o problema é uma peça de partida ou de proteção.</p>
+</div>
+
+<div class="article-section">
+  <h2>2. Sinais de que o compressor pode estar com defeito</h2>
+  <ul class="checklist">
+    <li><span class="checklist-icon">🔌</span><span><strong>Não parte:</strong> a geladeira está energizada, a luz acende, mas não se ouve o motor do compressor funcionar.</span></li>
+    <li><span class="checklist-icon">🔁</span><span><strong>Liga e desarma:</strong> ouve-se um "clique" ou estalo e o compressor desliga logo depois, repetindo o ciclo.</span></li>
+    <li><span class="checklist-icon">🌡️</span><span><strong>Funciona sem gelar:</strong> o compressor roda, mas o freezer não esfria e a parte de trás não esquenta como deveria.</span></li>
+    <li><span class="checklist-icon">🔊</span><span><strong>Barulho anormal:</strong> ruído metálico forte, batidas ou vibração diferente do habitual.</span></li>
+    <li><span class="checklist-icon">🔥</span><span><strong>Superaquecimento:</strong> o corpo do compressor fica muito mais quente que o normal e o protetor térmico desarma repetidamente.</span></li>
+  </ul>
+</div>
+
+<div class="article-section">
+  <h2>3. Antes de condenar o compressor, teste estas peças</h2>
+  <p>Relé, protetor térmico e capacitor fazem o compressor partir e protegem o motor. São peças bem mais baratas e falham com frequência, com sintomas muito parecidos com os de um compressor ruim.</p>
+  {% call info_box("Verifique primeiro") %}
+  <ul>
+    <li><strong>Relé de partida</strong> (PTC ou conjugado): se estiver queimado, o compressor tenta partir e não consegue.</li>
+    <li><strong>Protetor térmico:</strong> se estiver aberto ou ruim, o compressor desarma o tempo todo.</li>
+    <li><strong>Capacitor</strong> (em modelos que usam): sem ele, o motor "trava" na partida.</li>
+    <li><strong>Termostato / placa:</strong> se não enviarem sinal, o compressor nem é acionado.</li>
+  </ul>
+  {% endcall %}
+  <p>Veja o guia completo: <a class="product-name-link" href="/blog/rele-refrigeracao">relé de geladeira Embraco e PTC</a> e <a class="product-name-link" href="/blog/capacitor-de-partida-geladeira">capacitor de geladeira</a>.</p>
+  {% call warn_box() %}
+  Mexer na parte elétrica da geladeira envolve risco de choque. Desligue o aparelho da tomada antes de qualquer teste ou troca.
+  {% endcall %}
+</div>
+
+<div class="article-section">
+  <h2>4. Como escolher o compressor certo</h2>
+  <p>Um compressor só funciona bem se for compatível com o sistema da sua geladeira. Procure estas informações na etiqueta do compressor antigo (no corpo do compressor) e na etiqueta da geladeira:</p>
+  {% call info_box("O que conferir na etiqueta") %}
+  <ul>
+    <li><strong>Gás refrigerante:</strong> R134a, R600a etc. Use sempre o mesmo gás.</li>
+    <li><strong>Potência (HP):</strong> por exemplo 1/5 HP ou 1/4 HP.</li>
+    <li><strong>Tensão:</strong> 127V ou 220V, de acordo com a sua tomada.</li>
+    <li><strong>Modelo:</strong> compare com a lista de modelos que o compressor novo substitui.</li>
+  </ul>
+  {% endcall %}
+  {% call warn_box() %}
+  Compressores de R134a e de R600a não são intercambiáveis. Não troque o tipo de gás do sistema. Para saber mais, leia o guia sobre <a class="product-name-link" href="/blog/tipos-de-gas-refrigerante-geladeira">tipos de gás refrigerante para geladeira</a>.
+  {% endcall %}
+</div>
+
+<div class="article-section">
+  <h2>5. Compressores Embraco disponíveis na MTF</h2>
+  <p>Trabalhamos com compressores Embraco 127V para gás R134a, usados em refrigeradores domésticos, freezers, frigobares e adegas refrigeradas. Confira se o seu modelo está na lista de substituição antes de comprar.</p>
+
+  <h3>Compressor Embraco EMR70HLR 1/5 HP · R134</h3>
+  <p>Compressor de 1/5 HP, 127V. Substitui, entre outros, os modelos EMI60HER, EMI70HER, EMIS70HHR, TPA1370, THB1355, TA1365Y e TSB1374. Indicado para refrigeradores, freezers, adegas refrigeradas, frigobares, freezers horizontais e expositores.</p>
+  {{ product_row(
+      "Compressor Embraco EMR70HLR 1/5 HP R134",
+      "/product/compressor-embraco-emr70hlr-1-5-hp-r134",
+      "Olá! Quero saber sobre o Compressor Embraco EMR70HLR 1/5 HP R134.",
+      "Blog compressor EMR70HLR",
+      slug="compressor-embraco-emr70hlr-1-5-hp-r134") }}
+
+  <h3>Compressor Embraco EMR80HLR 1/4 HP · R134a · 127V</h3>
+  <p>Compressor compacto de 1/4 HP, 127V, fabricado para substituir os modelos EGAS 80HLP/HLR, EM2S80HLP/HLR, EM2U80HLP/HLR, FFUS70HAK, FFUS80HAK, EM2P 80HLP/HLP, TPH1378YDS, TP1380YS e outros de 1/4 HP para gás R134a. A linha EMR tem faixa de evaporação estendida (de −35 °C a 0 °C), indicada para refrigeradores domésticos, adegas refrigeradas e expositores verticais de bebidas.</p>
+  {{ product_row(
+      "Compressor Embraco 1/4 127V EMR80HLR Gas R134a",
+      "/product/compressor-embraco-1-4-127v-emr80hlr-gas-r134a",
+      "Olá! Quero saber sobre o Compressor Embraco 1/4 127V EMR80HLR Gas R134a.",
+      "Blog compressor EMR80HLR",
+      slug="compressor-embraco-1-4-127v-emr80hlr-gas-r134a") }}
+
+  {% call tip_box() %}
+  Em dúvida se o seu modelo é compatível? Mande uma foto da etiqueta do compressor antigo pelo WhatsApp que conferimos para você antes da compra. Retirada no mesmo dia na loja, na Av. Brasil, 6818.
+  {% endcall %}
+</div>
+
+<div class="article-section">
+  <h2>6. O que trocar junto com o compressor</h2>
+  <p>Trocar apenas o compressor, sem cuidar do resto do sistema, costuma encurtar a vida do compressor novo. As boas práticas incluem:</p>
+  <ul>
+    <li>Trocar o <strong>filtro secador</strong>, que retém umidade e impurezas do circuito.</li>
+    <li>Fazer <strong>vácuo</strong> no sistema antes de recarregar o gás.</li>
+    <li>Recarregar o <strong>gás refrigerante</strong> correto, na quantidade indicada pelo fabricante.</li>
+    <li>Usar <strong>relé e protetor térmico</strong> adequados ao modelo do compressor.</li>
+  </ul>
+  {% call warn_box() %}
+  A troca de compressor exige solda, vácuo e carga de gás. É um serviço para profissional de refrigeração com ferramenta adequada.
+  {% endcall %}
+</div>
+
+{% endblock %}
+
+{% block cta %}
+{{ cta_block(
+    "Precisa de um compressor para geladeira?",
+    "Envie pelo WhatsApp a foto da etiqueta do compressor ou da geladeira e confirmamos o modelo certo, o preço e a disponibilidade.",
+    "Olá! Preciso de um compressor para geladeira. Posso enviar a foto da etiqueta?",
+    "Blog compressor CTA") }}
+{% endblock %}
+
+{% block related %}
+{{ related_cards([
+  {"href": "/blog/rele-refrigeracao", "icon": "⚡", "title": "Relé de geladeira Embraco e PTC: tabela de potências"},
+  {"href": "/blog/capacitor-de-partida-geladeira", "icon": "⚡", "title": "Capacitor de geladeira: sintomas e como escolher"},
+  {"href": "/blog/geladeira-fazendo-barulho", "icon": "🔊", "title": "Geladeira fazendo barulho: o que pode ser?"},
+  {"href": "/blog/tipos-de-gas-refrigerante-geladeira", "icon": "💨", "title": "Tipos de gás refrigerante para geladeira"}
+]) }}
+{% endblock %}
