@@ -15,93 +15,27 @@
   mostra o preço visível ao lado do nome — o Google exige que o preço do
   schema esteja visível na página.
 #}
-{% macro product_row(name, href, msg, track, btn="Comprar agora", slug=none) -%}
+{% macro price_tag(slug) -%}
 {%- set p = (products.get(slug) if (products and slug) else none) -%}
+{%- if p and p.sale_price %}
+<span class="product-price">R$ {{ "%.2f"|format(p.sale_price|float)|replace(".", ",") }}{% if p.unit == 'kg' %}/kg{% endif %}</span>
+{%- if p.current_stock is defined and p.current_stock <= 0 %}
+<span class="product-stock">sem estoque</span>
+{%- endif %}
+{%- endif %}
+{%- endmacro %}
+
+{% macro product_row(name, href, msg, track, btn="Comprar agora", slug=none) -%}
 <p>
   <span class="product-row">
     <a class="product-name-link" href="{{ href }}">{{ name }}</a>
-    {%- if p and p.sale_price %}
-    <span class="product-price">R$ {{ "%.2f"|format(p.sale_price|float)|replace(".", ",") }}{% if p.unit == 'kg' %}/kg{% endif %}</span>
-    {%- if p.current_stock is defined and p.current_stock <= 0 %}
-    <span class="product-stock">sem estoque</span>
-    {%- endif %}
-    {%- endif %}
+    {{- price_tag(slug) }}
     <a class="product-wa-btn wa-track" href="https://wa.me/{{ wa_number }}?text={{ msg | urlencode }}" target="_blank" rel="noopener" data-product="{{ track }}">
       {{ wa_icon(13) }}
       {{ btn }}
     </a>
   </span>
 </p>
-{%- endmacro %}
-
-
-{#
-  Cartão de produto com FOTO, preço visível e botão WhatsApp.
-  slug: chave em `products` (passado pelo roteador). Sem produto no dict,
-  mostra só nome + botão. O preço visível aqui precisa bater com o JSON-LD
-  de product_schema(slug) — o Google confere.
-#}
-{% macro product_card(slug, name, href, msg, track, btn="Comprar agora") -%}
-{%- set p = (products.get(slug) if (products and slug) else none) -%}
-<div class="product-card">
-  {%- if p and p.image %}
-  <a class="product-card-img" href="{{ href }}">
-    <img src="{{ p.image | imgurl(480) }}" alt="{{ name }}" width="140" height="140" loading="lazy">
-  </a>
-  {%- endif %}
-  <div class="product-card-body">
-    <a class="product-card-name" href="{{ href }}">{{ name }}</a>
-    {%- if p and p.sale_price %}
-    <div class="product-card-price">R$ {{ "%.2f"|format(p.sale_price|float)|replace(".", ",") }}{% if p.unit == 'kg' %}/kg{% endif %}</div>
-    <div class="product-card-meta">
-      {%- if p.current_stock is defined and p.current_stock <= 0 %}Sem estoque no momento{% else %}<span class="in">● Em estoque</span> · Retirada no dia{% endif %}
-    </div>
-    {%- endif %}
-    <a class="product-wa-btn wa-track" href="https://wa.me/{{ wa_number }}?text={{ msg | urlencode }}" target="_blank" rel="noopener" data-product="{{ track }}">
-      {{ wa_icon(13) }}
-      {{ btn }}
-    </a>
-  </div>
-</div>
-{%- endmacro %}
-
-
-{#
-  JSON-LD schema.org/Product (preço, estoque, imagem, marca, SKU/GTIN) a partir de
-  `products[slug]`. Chamar dentro de {% block extra_head %}. Se o produto não estiver
-  no dict ou não tiver preço, não emite nada (o Google exige preço visível).
-#}
-{% macro product_schema(slug) -%}
-{%- set p = (products.get(slug) if (products and slug) else none) -%}
-{%- if p and p.sale_price -%}
-{%- set url = site_url ~ "/product/" ~ slug -%}
-{%- set d = {
-  "@context": "https://schema.org",
-  "@type": "Product",
-  "name": p.name,
-  "url": url,
-  "description": ((p.description or p.name) | striptags | trim)[:5000],
-  "brand": {"@type": "Brand", "name": (p.brand or "MTF Refrigeração")},
-  "offers": {
-    "@type": "Offer",
-    "url": url,
-    "priceCurrency": "BRL",
-    "price": "%.2f"|format(p.sale_price|float),
-    "itemCondition": "https://schema.org/NewCondition",
-    "availability": ("https://schema.org/OutOfStock" if (p.current_stock is defined and p.current_stock <= 0) else "https://schema.org/InStock"),
-    "seller": {"@type": "Organization", "name": "M.T.F Refrigeração"}
-  }
-} -%}
-{%- if p.image -%}
-  {%- set img = (site_url ~ p.image) if p.image.startswith("/") else p.image -%}
-  {%- set _ = d.update({"image": [img]}) -%}
-{%- endif -%}
-{%- if p.sku -%}{%- set _ = d.update({"sku": p.sku, "mpn": p.sku}) -%}{%- endif -%}
-{%- if p.gtin -%}{%- set _ = d.update({"gtin": p.gtin}) -%}{%- endif -%}
-<script type="application/ld+json">
-{{ d | tojson }}
-</script>
-{%- endif -%}
 {%- endmacro %}
 
 
@@ -130,7 +64,7 @@
   tecnico_msg: passe o texto só se o artigo pode citar o técnico Douglas
   (NUNCA em artigos de máquina de lavar). Sem tecnico_msg = sem botão do Douglas.
 #}
-{% macro cta_block(title, text, msg, track, tecnico_msg=none, btn="Falar com a loja") -%}
+{% macro cta_block(title, text, msg, track, tecnico_msg=none, btn="Falar com a loja", tecnico_btn="Falar com o técnico Douglas") -%}
 <div class="cta-block">
   <h3>{{ title }}</h3>
   <p>{{ text }}</p>
@@ -141,7 +75,7 @@
   {%- if tecnico_msg %}
   <br>
   <a class="cta-tecnico" href="https://wa.me/5521965832950?text={{ tecnico_msg | urlencode }}" target="_blank" rel="noopener">
-    🔧 Falar com o técnico Douglas
+    🔧 {{ tecnico_btn }}
   </a>
   {%- endif %}
 </div>
@@ -149,9 +83,9 @@
 
 
 {# items: lista de dicts {"href":..., "icon":..., "title":..., "cta": opcional (padrão "Ler guia →")} #}
-{% macro related_cards(items) -%}
+{% macro related_cards(items, title="Outros guias") -%}
 <div class="related-articles">
-  <div class="related-title">Outros guias</div>
+  <div class="related-title">{{ title }}</div>
   <div class="related-grid">
     {%- for it in items %}
     <a class="related-card" href="{{ it.href }}">

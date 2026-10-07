@@ -9,6 +9,10 @@
 
   Variáveis que o artigo filho pode definir com {% set %} no topo:
     meta_description, meta_keywords, breadcrumb_label, faq (lista de {"q","a"})
+    tag_theme ("green" | "orange"; padrão azul), float_msg / float_track (botão flutuante)
+    date_published / date_modified (opcional, vão para o JSON-LD Article)
+    schema_headline / schema_description / schema_keywords (quando o JSON-LD Article
+    difere do <title>/meta do artigo original)
     Overrides opcionais (quando o título SEO difere do título em articles.py):
     seo_title (<title> e headline), h1_text, og_title, og_description
 
@@ -37,13 +41,17 @@
   {
     "@context": "https://schema.org",
     "@type": "Article",
-    "headline": {{ (seo_title or article.title) | tojson }},
-    "description": {{ (meta_description or article.description) | tojson }},
+    "headline": {{ (schema_headline or seo_title or article.title) | tojson }},
+    "description": {{ (schema_description or meta_description or article.description) | tojson }},
     "mainEntityOfPage": {"@type": "WebPage", "@id": {{ (site_url ~ '/blog/' ~ article.slug) | tojson }}},
     "author": {"@type": "Organization", "name": "M.T.F Refrigeração", "url": {{ site_url | tojson }}},
     "publisher": {"@type": "Organization", "name": "M.T.F Refrigeração", "url": {{ site_url | tojson }}, "logo": {"@type": "ImageObject", "url": {{ (site_url ~ '/static/og-catalog.jpg') | tojson }}}}
-    {%- if meta_keywords %},
-    "keywords": {{ meta_keywords | tojson }}
+    {%- if (schema_keywords or meta_keywords) %},
+    "keywords": {{ (schema_keywords or meta_keywords) | tojson }}
+    {%- endif %}
+    {%- if date_published %},
+    "datePublished": {{ date_published | tojson }},
+    "dateModified": {{ (date_modified or date_published) | tojson }}
     {%- endif %}
   }
   </script>
@@ -77,6 +85,8 @@
     .breadcrumb-bar a{color:var(--muted);text-decoration:none;}.breadcrumb-bar a:hover{color:var(--accent);}
     .article-header{margin-bottom:36px;}
     .article-tag{display:inline-block;background:#f0f7ff;border:1px solid #c6dfff;border-radius:20px;padding:4px 12px;font-size:.75rem;font-weight:700;color:#1a6bc4;margin-bottom:14px;letter-spacing:.04em;text-transform:uppercase;}
+    .article-tag.tag-green{background:#f0fdf4;border-color:#bbf7d0;color:#16a34a;}
+    .article-tag.tag-orange{background:#fff3f0;border-color:#ffc9bb;color:#c44a1a;}
     .article-header h1{font-size:clamp(1.6rem,4vw,2.2rem);font-weight:700;letter-spacing:-.02em;line-height:1.25;margin-bottom:14px;}
     .article-lead{font-size:1.05rem;color:var(--muted);line-height:1.7;padding-bottom:24px;border-bottom:1px solid var(--border);}
     .article-section{margin-bottom:32px;}
@@ -90,15 +100,6 @@
     .product-name-link:hover{text-decoration:underline;}
     .product-price{font-weight:700;font-size:.9rem;color:var(--text);}
     .product-stock{font-size:.78rem;color:var(--muted);}
-    .product-card{display:flex;gap:16px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;margin:16px 0;}
-    .product-card-img{flex:0 0 140px;display:block;}
-    .product-card-img img{width:140px;height:140px;object-fit:contain;background:#fff;border:1px solid var(--border);border-radius:10px;display:block;}
-    .product-card-body{flex:1;min-width:0;}
-    .product-card-name{display:block;font-weight:700;font-size:.95rem;line-height:1.35;color:var(--text);text-decoration:none;margin-bottom:6px;}
-    .product-card-name:hover{color:var(--accent);}
-    .product-card-price{font-weight:700;font-size:1.15rem;color:var(--text);margin-bottom:2px;}
-    .product-card-meta{font-size:.78rem;color:var(--muted);margin-bottom:10px;}
-    .product-card-meta .in{color:#16a34a;font-weight:700;}
     .product-wa-btn{display:inline-flex;align-items:center;gap:5px;background:var(--wa);color:#fff;font-weight:700;font-size:.78rem;padding:5px 12px;border-radius:7px;text-decoration:none;transition:opacity .15s;white-space:nowrap;}
     .product-wa-btn:hover{opacity:.88;}
     .info-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin:16px 0;}
@@ -128,15 +129,18 @@
     .checklist li{display:flex;align-items:flex-start;gap:10px;font-size:.95rem;line-height:1.65;color:var(--text);margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border);}
     .checklist li:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0;}
     .checklist-icon{font-size:1.1rem;flex-shrink:0;margin-top:1px;}
+    .cap-table,.gas-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:.88rem;}
+    .cap-table th,.gas-table th{background:var(--bg);padding:8px 12px;text-align:left;font-weight:700;border:1px solid var(--border);}
+    .cap-table td,.gas-table td{padding:8px 12px;border:1px solid var(--border);color:var(--text);}
+    .cap-table tr:nth-child(even),.gas-table tr:nth-child(even){background:var(--bg);}
     footer{border-top:1px solid var(--border);padding:20px;text-align:center;font-size:.8rem;color:var(--muted);}
     .wa-float{position:fixed;bottom:24px;right:24px;z-index:200;display:flex;align-items:center;gap:8px;background:var(--wa);color:#fff;padding:12px 20px;border-radius:50px;text-decoration:none;font-weight:700;font-size:.92rem;box-shadow:0 4px 20px rgba(37,211,102,.35);transition:transform .2s;}
     .wa-float:hover{transform:translateY(-2px);}
     @media(max-width:500px){
       .article-wrap{padding:24px 16px 60px;}
       .related-grid{grid-template-columns:1fr;}
-      .product-card{flex-direction:column;align-items:stretch;}
-      .product-card-img{flex:none;}
-      .product-card-img img{width:100%;height:210px;}
+      .gas-table,.cap-table{font-size:.78rem;}
+      .gas-table th,.gas-table td,.cap-table th,.cap-table td{padding:6px 8px;}
       .cta-wa,.cta-tecnico{width:100%;justify-content:center;}
       .wa-float span{display:none;}
       .wa-float{padding:14px;border-radius:50%;bottom:16px;right:16px;}
@@ -158,7 +162,7 @@
 <div class="article-wrap">
 
   <div class="article-header">
-    <div class="article-tag">{% block tag %}{{ article.icon }}{% endblock %}</div>
+    <div class="article-tag{% if tag_theme %} tag-{{ tag_theme }}{% endif %}">{% block tag %}{{ article.icon }}{% endblock %}</div>
     <h1>{{ h1_text or article.title }}</h1>
     <p class="article-lead">{% block lead %}{{ article.description }}{% endblock %}</p>
   </div>
@@ -171,7 +175,7 @@
 
 </div>
 
-<a class="wa-float wa-track" href="https://wa.me/{{ wa_number }}?text=Ol%C3%A1%21%20Tenho%20uma%20d%C3%BAvida%20sobre%20refrigera%C3%A7%C3%A3o." target="_blank" rel="noopener" data-product="Blog WA float">
+<a class="wa-float wa-track" href="https://wa.me/{{ wa_number }}?text={{ (float_msg or 'Olá! Tenho uma dúvida sobre refrigeração.') | urlencode }}" target="_blank" rel="noopener" data-product="{{ float_track or 'Blog WA float' }}">
   <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
   <span>Falar no WhatsApp</span>
 </a>
