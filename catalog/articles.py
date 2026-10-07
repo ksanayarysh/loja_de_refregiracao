@@ -9,15 +9,6 @@ ARTICLES = [
         "icon": "🧊",
         "tags": ["geladeira", "degelo", "sensor", "termostato"],
         "template": "blog/geladeira-nao-gela.html",
-        "products": [
-            "sensor-de-temperatura-2-7k-brastemp-w10531315",
-            "sensor-de-temperatura-10k-para-geladeira-electrolux",
-            "termostato-de-geladeira-wdf20",
-            "termostato-geladeira-electrolux-dc34a-dc33a-dc35a-wdf30a",
-            "timer-de-degelo-eletrolux-220v",
-            "timer-degelo-electrolux-tmdj812zb9-110v-original",
-            "motor-ventilador-brastemp-consul-127v-w11369860-original",
-            ],
         "published": True,
     },
     {
@@ -32,19 +23,12 @@ ARTICLES = [
     },
     {
         "slug": "geladeira-frost-free-acumulando-gelo",
-        "title": "Geladeira Frost Free Acumulando Gelo: Causas e Peças no RJ",
-        "description": "Geladeira frost free acumulando gelo? Veja as causas mais comuns, sensores e peças para o sistema de degelo no RJ.",
+        "title": "Geladeira frost free acumulando gelo: causas e solução",
+        "description": "Frost free deveria degelar sozinha — se está acumulando gelo, algo falhou. Veja o que checar.",
         "category": "geladeira",
         "icon": "❄️",
-        "tags": ["geladeira", "frost free", "degelo", "resistência", "sensor", "peças", "rj"],
+        "tags": ["geladeira", "frost free", "degelo", "resistência"],
         "template": "blog/geladeira-frost-free-acumula-gelo.html",
-        "products": [
-            "sensor-de-temperatura-2-7k-brastemp-w10531315",
-            "sensor-de-temperatura-10k-para-geladeira-electrolux",
-            "timer-de-degelo-eletrolux-220v",
-            "timer-degelo-electrolux-tmdj812zb9-110v-original",
-            "placa-geladeira-electrolux-df47-dfn49-df49x-dw50x-64500437"
-        ],
         "published": True,
     },
     {
@@ -55,20 +39,6 @@ ARTICLES = [
         "icon": "💨",
         "tags": ["gás", "r134a", "r600a", "geladeira"],
         "template": "blog/tipos-de-gas-refrigerante-geladeira.html",
-        "published": True,
-    },
-    {
-        "slug": "compressor-de-geladeira",
-        "title": "Compressor de geladeira: sintomas de defeito e como escolher o certo",
-        "description": "Geladeira não gela ou o compressor não parte? Veja os sinais de defeito, o que testar antes de trocar e como escolher o compressor Embraco certo no RJ.",
-        "category": "geladeira",
-        "icon": "⚙️",
-        "tags": ["compressor", "embraco", "r134a", "geladeira", "peças", "rj"],
-        "template": "blog/compressor-de-geladeira.html",
-        "products": [
-            "compressor-embraco-emr70hlr-1-5-hp-r134",
-            "compressor-embraco-1-4-127v-emr80hlr-gas-r134a",
-        ],
         "published": True,
     },
 
@@ -124,6 +94,7 @@ ARTICLES = [
         "category": "ar-condicionado",
         "icon": "🧪",
         "tags": ["gás", "r32", "r410a", "r22", "r134a", "recarga"],
+        "products": ["gas-r32-650g", "gas-r32-3kg-hulter", "gas-r410", "gas-r410-750g", "gas-r22", "gas-r22-700g", "gas-r134", "gas-r134-750g", "gas-r290-400g"],
         "template": "blog/gas-refrigerante-rj.html",
         "published": True,
     },
@@ -131,24 +102,14 @@ ARTICLES = [
     # ── COMPONENTES ELÉTRICOS ─────────────────────────────────────────────────
     {
         "slug": "rele-refrigeracao",
-        "title": "Relé de Geladeira Embraco e PTC: Tabela de Potências e Peças no RJ",
-        "description": "Precisa trocar o relé da geladeira? Entenda a diferença entre Relé PTC, Conjugado Embraco e Indução. Veja a tabela de HP e compre sua peça na Av. Brasil, RJ.",
+        "title": "Relé de refrigeração: tipos, funções e como escolher o certo",
+        "description": "Relé de indução, conjugado Embraco ou relé de placa — entenda as diferenças, como identificar defeito e qual substituir.",
         "category": "geladeira",
         "icon": "⚡",
-        "tags": ["relé", "embraco", "ptc", "compressor", "geladeira", "peças", "rj"],
+        "tags": ["relé", "embraco", "compressor", "geladeira", "ar-condicionado"],
         "template": "blog/rele-refrigeracao.html",
-        "products": [
-            "rele-de-inducao",
-            "rele-embraco-conjugado-1-2-220v-hulter",
-            "rele-embraco-conjugado-1-3-220v-hulter",
-            "rele-embraco-conjugado-1-5-220v-dugold",
-            "rele-embraco-conjugado-1-6-110v-eos",
-            "rele-ptc",
-            "rele-12v-20a-placa-ar-condicionado-split"
-        ],
         "published": True,
     },
-
     {
         "slug": "termostato-refrigeracao",
         "title": "Termostato de refrigeração: tipos, defeitos e como trocar",
@@ -256,17 +217,12 @@ ARTICLES = [
     },
     {
         "slug": "roupa-saindo-manchada-lavadora",
-        "title": "Lavadora Manchando Roupa: Causas, Peças e Soluções no RJ",
-        "description": "Lavadora manchando roupa? Veja as causas das manchas e quais peças podem estar envolvidas em lavadoras Brastemp, Consul, Cargo e Mare no RJ.",
+        "title": "Roupa saindo manchada da máquina de lavar? Veja as causas",
+        "description": "Manchas de óleo, ferrugem ou sabão nas roupas? Saiba o que causa cada tipo de mancha e quais peças precisam de troca. Brastemp, Consul, Cargo e Mare.",
         "category": "maquina-de-lavar",
         "icon": "👕",
-        "tags": ["máquina de lavar", "mancha", "válvula", "mecanismo", "óleo", "pressostato", "peças", "rj"],
+        "tags": ["máquina de lavar", "mancha", "válvula", "mecanismo", "óleo"],
         "template": "blog/roupa-manchada-lavadora.html",
-        "products": [
-            "valvula-dupla-lavadora-cargo-mare-110v-brastemp-consul-w10201538-w11364875",
-            "pressostato-3-niveis-lavadora-brastemp-w10737624",
-            "pressostato-4-niveis-cargo-mare-7-5-8-10kg-consul-326028183"
-        ],
         "published": True,
     },
 
