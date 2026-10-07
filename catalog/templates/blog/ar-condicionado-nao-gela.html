@@ -5,6 +5,7 @@
 {% set meta_keywords = "ar condicionado não gela, split não resfria, ar condicionado ligado mas não esfria, ar condicionado sem gás, capacitor ar condicionado, filtro ar condicionado sujo, técnico ar condicionado RJ" %}
 {% set og_description = "Split ligado mas não resfria? Veja as causas mais comuns e o que você pode verificar antes de chamar o técnico." %}
 {% set breadcrumb_label = "Ar-condicionado não gela" %}
+{% set schema_keywords = "ar condicionado não gela, split não resfria, ar condicionado sem gás, capacitor ar condicionado" %}
 
 {% set faq = [
   {"q": "Por que o ar-condicionado está ligado mas não esfria?",
@@ -42,12 +43,12 @@
     {% call warn_box() %}A recarga de gás exige equipamento específico e deve ser feita por técnico habilitado. O que você pode fazer é comprar o gás certo e levar junto quando chamar o técnico — isso economiza tempo e custo de deslocamento.{% endcall %}
     <p>Os gases mais comuns em splits residenciais são:</p>
     {# Nomes de tracking "Gás R410a" e "Gás R22" mantidos nas linhas por kg para não quebrar o histórico do resumo diário. #}
-    {{ product_row("Gás R410a — por kg", "/product/gas-r410", "Olá! Preciso de gás R410a (por kg) para recarga de ar-condicionado. Está disponível?", "Gás R410a", slug="gas-r410") }}
-    {{ product_row("Gás R410a — 750g", "/product/gas-r410-750g", "Olá! Preciso de gás R410a 750g para recarga de ar-condicionado. Está disponível?", "Gás R410a 750g", slug="gas-r410-750g") }}
-    {{ product_row("Gás R22 — por kg", "/product/gas-r22", "Olá! Preciso de gás R22 (por kg) para recarga de ar-condicionado. Está disponível?", "Gás R22", slug="gas-r22") }}
-    {{ product_row("Gás R22 — 700g", "/product/gas-r22-700g", "Olá! Preciso de gás R22 700g para recarga de ar-condicionado. Está disponível?", "Gás R22 700g", slug="gas-r22-700g") }}
-    {{ product_row("Gás R32 — 650g", "/product/gas-r32-650g", "Olá! Preciso de gás R32 650g para recarga de ar-condicionado. Está disponível?", "Gás R32 650g", slug="gas-r32-650g") }}
-    {{ product_row("Gás R32 — 3kg Hulter", "/product/gas-r32-3kg-hulter", "Olá! Preciso de gás R32 3kg Hulter para recarga de ar-condicionado. Está disponível?", "Gás R32 3kg Hulter", slug="gas-r32-3kg-hulter") }}
+    {{ product_row("Gás R410a — por kg", "/product/gas-refrigerante-r410-por-kg", "Olá! Preciso de gás R410a (por kg) para recarga de ar-condicionado. Está disponível?", "Gás R410a", slug="gas-refrigerante-r410-por-kg") }}
+    {{ product_row("Gás R410a — 750g", "/product/gas-refrigerante-r410-750g-eos", "Olá! Preciso de gás R410a 750g para recarga de ar-condicionado. Está disponível?", "Gás R410a 750g", slug="gas-refrigerante-r410-750g-eos") }}
+    {{ product_row("Gás R22 — por kg", "/product/gas-refrigerante-r22-por-kg", "Olá! Preciso de gás R22 (por kg) para recarga de ar-condicionado. Está disponível?", "Gás R22", slug="gas-refrigerante-r22-por-kg") }}
+    {{ product_row("Gás R22 — 700g", "/product/gas-refrigerante-r22-700g-dugold", "Olá! Preciso de gás R22 700g para recarga de ar-condicionado. Está disponível?", "Gás R22 700g", slug="gas-refrigerante-r22-700g-dugold") }}
+    {{ product_row("Gás R32 — 650g", "/product/gas-refrigerante-r32-650g-friven", "Olá! Preciso de gás R32 650g para recarga de ar-condicionado. Está disponível?", "Gás R32 650g", slug="gas-refrigerante-r32-650g-friven") }}
+    {{ product_row("Gás R32 — 3kg Hulter", "/product/gas-refrigerante-r32-3kg-hulter", "Olá! Preciso de gás R32 3kg Hulter para recarga de ar-condicionado. Está disponível?", "Gás R32 3kg Hulter", slug="gas-refrigerante-r32-3kg-hulter") }}
     <p>Não sabe qual gás usa o seu aparelho? Consulte o manual ou a etiqueta na unidade externa — o tipo de gás geralmente está indicado lá.</p>
   </div>
 

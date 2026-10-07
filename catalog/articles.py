@@ -51,8 +51,8 @@ ARTICLES = [
         "icon": "🌡️",
         "tags": ["ar-condicionado", "split", "gás", "filtro"],
         "template": "blog/ar-condicionado-nao-gela.html",
-        "products": ["gas-r410", "gas-r410-750g", "gas-r22", "gas-r22-700g",
-                     "gas-r32-650g", "gas-r32-3kg-hulter"],  # preço visível ao lado do link
+        "products": ["gas-refrigerante-r410-por-kg", "gas-refrigerante-r410-750g-eos", "gas-refrigerante-r22-por-kg", "gas-refrigerante-r22-700g-dugold",
+                     "gas-refrigerante-r32-650g-friven", "gas-refrigerante-r32-3kg-hulter"],  # preço visível ao lado do link
         "published": True,
     },
     {
@@ -94,7 +94,7 @@ ARTICLES = [
         "category": "ar-condicionado",
         "icon": "🧪",
         "tags": ["gás", "r32", "r410a", "r22", "r134a", "recarga"],
-        "products": ["gas-r32-650g", "gas-r32-3kg-hulter", "gas-r410", "gas-r410-750g", "gas-r22", "gas-r22-700g", "gas-r134", "gas-r134-750g", "gas-r290-400g"],
+        "products": ["gas-refrigerante-r32-650g-friven", "gas-refrigerante-r32-3kg-hulter", "gas-refrigerante-r410-por-kg", "gas-refrigerante-r410-750g-eos", "gas-refrigerante-r22-por-kg", "gas-refrigerante-r22-700g-dugold", "gas-refrigerante-r134-por-kg", "gas-refrigerante-r134a-lata-750g-rlx", "gas-refrigerante-r290-400g-friven"],
         "template": "blog/gas-refrigerante-rj.html",
         "published": True,
     },
