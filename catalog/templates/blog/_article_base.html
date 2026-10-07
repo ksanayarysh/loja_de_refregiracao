@@ -9,7 +9,7 @@
 
   Variáveis que o artigo filho pode definir com {% set %} no topo:
     meta_description, meta_keywords, breadcrumb_label, faq (lista de {"q","a"})
-    tag_theme ("green" | "orange"; padrão azul), float_msg / float_track (botão flutuante)
+    tag_theme ("green" | "orange" | "accent"; padrão azul), float_msg / float_track (botão flutuante)
     date_published / date_modified (opcional, vão para o JSON-LD Article)
     schema_headline / schema_description / schema_keywords (quando o JSON-LD Article
     difere do <title>/meta do artigo original)
@@ -43,6 +43,7 @@
     "@type": "Article",
     "headline": {{ (schema_headline or seo_title or article.title) | tojson }},
     "description": {{ (schema_description or meta_description or article.description) | tojson }},
+    "image": {{ (site_url ~ '/static/og-catalog.jpg') | tojson }},
     "mainEntityOfPage": {"@type": "WebPage", "@id": {{ (site_url ~ '/blog/' ~ article.slug) | tojson }}},
     "author": {"@type": "Organization", "name": "M.T.F Refrigeração", "url": {{ site_url | tojson }}},
     "publisher": {"@type": "Organization", "name": "M.T.F Refrigeração", "url": {{ site_url | tojson }}, "logo": {"@type": "ImageObject", "url": {{ (site_url ~ '/static/og-catalog.jpg') | tojson }}}}
@@ -54,6 +55,14 @@
     "dateModified": {{ (date_modified or date_published) | tojson }}
     {%- endif %}
   }
+  </script>
+
+  <script type="application/ld+json">
+  {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Início", "item": {{ (site_url ~ '/') | tojson }}},
+    {"@type": "ListItem", "position": 2, "name": "Guias", "item": {{ (site_url ~ '/blog') | tojson }}},
+    {"@type": "ListItem", "position": 3, "name": {{ (breadcrumb_label or article.title) | tojson }}, "item": {{ (site_url ~ '/blog/' ~ article.slug) | tojson }}}
+  ]}
   </script>
 
   {%- if faq %}
@@ -86,6 +95,7 @@
     .article-header{margin-bottom:36px;}
     .article-tag{display:inline-block;background:#f0f7ff;border:1px solid #c6dfff;border-radius:20px;padding:4px 12px;font-size:.75rem;font-weight:700;color:#1a6bc4;margin-bottom:14px;letter-spacing:.04em;text-transform:uppercase;}
     .article-tag.tag-green{background:#f0fdf4;border-color:#bbf7d0;color:#16a34a;}
+    .article-tag.tag-accent{background:#fff7f9;border-color:#ffd9e4;color:var(--accent);}
     .article-tag.tag-orange{background:#fff3f0;border-color:#ffc9bb;color:#c44a1a;}
     .article-header h1{font-size:clamp(1.6rem,4vw,2.2rem);font-weight:700;letter-spacing:-.02em;line-height:1.25;margin-bottom:14px;}
     .article-lead{font-size:1.05rem;color:var(--muted);line-height:1.7;padding-bottom:24px;border-bottom:1px solid var(--border);}

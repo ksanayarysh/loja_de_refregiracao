@@ -139,6 +139,7 @@ ARTICLES = [
         "category": "maquina-de-lavar",
         "icon": "💧",
         "tags": ["máquina de lavar", "vazamento", "mangueira", "bomba"],
+        "products": ["mangueira-de-entrada-para-lavadora-2m", "mangueira-de-saida-para-lavadora", "mangueira-do-dreno-maquina-de-lavar", "bomba-eletrobomba-lavadora-consul-brastemp-110v"],
         "template": "blog/maquina-de-lavar-vazando-agua.html",
         "published": True,
     },
