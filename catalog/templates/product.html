@@ -638,12 +638,6 @@
     </button>
     {% endif %}
 
-    <a class="tecnico-inline-btn wa-track"
-       href="https://wa.me/5521965832950?text=Ol%C3%A1%20Douglas%21%20Tenho%20interesse%20em%20instala%C3%A7%C3%A3o%20ou%20manuten%C3%A7%C3%A3o.%20Vi%20o%20produto%3A%20{{ product.name | urlencode }}"
-       target="_blank" rel="noopener" data-product="Técnico Douglas">
-      🔧 Falar com o técnico
-    </a>
-
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
       <div style="display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;">
         <span style="font-size:1.1rem;">🏪</span>
@@ -739,23 +733,6 @@
   <span>Consultar agora</span>
 </a>
 
-<div class="tecnico-card-wrap">
-  <div class="tecnico-card">
-    <div class="tecnico-avatar">DO</div>
-    <div class="tecnico-info">
-      <div class="tecnico-label">Precisa de instalação ou reparo?</div>
-      <div class="tecnico-name">Douglas</div>
-      <div class="tecnico-role">Técnico em refrigeração · Rio de Janeiro</div>
-    </div>
-    <a class="tecnico-btn wa-track"
-       href="https://wa.me/5521965832950?text=Ol%C3%A1%20Douglas%21%20Preciso%20de%20um%20servi%C3%A7o%20t%C3%A9cnico."
-       target="_blank" rel="noopener" data-product="Douglas técnico">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
-      Falar com o técnico
-    </a>
-  </div>
-</div>
-
 {% set cat = cat_slug | default('') %}
 {% set cat2 = cat2_slug | default('') %}
 {% if cat in ['geladeira', 'freezer', 'maquina-de-lavar', 'ar-condicionado'] or cat2 in ['geladeira', 'freezer', 'maquina-de-lavar', 'ar-condicionado'] %}
@@ -776,7 +753,7 @@
       <div style="font-size:.8rem;color:var(--muted);flex:1;">O que cada som significa.</div>
       <div style="font-size:.8rem;color:var(--accent);font-weight:700;">Ler guia →</div>
     </a>
-    <a href="/blog/geladeira-frost-free-acumula-gelo" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:6px;transition:border-color .15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+    <a href="/blog/geladeira-frost-free-acumulando-gelo" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:6px;transition:border-color .15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
       <div style="font-size:1.1rem;">❄️</div>
       <div style="font-weight:700;font-size:.88rem;line-height:1.3;">Frost free acumula gelo</div>
       <div style="font-size:.8rem;color:var(--muted);flex:1;">Por que acontece e como resolver.</div>
@@ -847,14 +824,6 @@
               <a href="https://ksenia-card.vercel.app" target="_blank" style="font-size:.72rem;color:var(--muted);text-decoration:none;font-weight:600;">🌐 Portfolio</a>
               <a href="https://wa.me/5521997982467" target="_blank" style="font-size:.72rem;color:var(--wa);text-decoration:none;font-weight:600;">(21) 99798-2467</a>
             </div>
-          </div>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <div style="width:32px;height:32px;border-radius:50%;background:#f0f7ff;color:#1a6bc4;border:1.5px solid #c6dfff;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;flex-shrink:0;">DO</div>
-          <div>
-            <div style="font-size:.88rem;font-weight:700;">Douglas</div>
-            <div style="font-size:.72rem;color:var(--muted);">Técnico · Instalação e manutenção</div>
-            <a href="https://wa.me/5521965832950" target="_blank" style="font-size:.72rem;color:var(--wa);text-decoration:none;font-weight:600;display:block;margin-top:3px;">(21) 96583-2950</a>
           </div>
         </div>
       </div>
