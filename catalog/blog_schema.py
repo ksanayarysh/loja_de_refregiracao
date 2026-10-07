@@ -68,4 +68,5 @@ def build_article_context(article, all_products, site_url, slugify):
     if main_slug and main_slug in by_slug:
         schema_product = product_jsonld(by_slug[main_slug], main_slug, site_url)
 
-    return {"products": by_slug, "schema_product": schema_product}
+    return {"products": by_slug, "schema_product": schema_product,
+            "missing": sorted(wanted - set(by_slug))}

@@ -9,6 +9,8 @@
 {% set meta_description = "Capacitor do ar-condicionado queimado? Veja os sintomas, como identificar o valor certo e onde comprar capacitor para ar-condicionado no Rio de Janeiro." %}
 {% set meta_keywords = "capacitor ar condicionado, capacitor ar condicionado queimado, onde comprar capacitor ar condicionado RJ, capacitor duplo ar condicionado, como saber se capacitor queimou, capacitor split" %}
 {% set breadcrumb_label = "Capacitor de ar-condicionado" %}
+{% set schema_description = "Guia completo sobre capacitor de ar-condicionado: sintomas de defeito, como identificar o valor correto e onde comprar no Rio de Janeiro." %}
+{% set schema_keywords = "capacitor ar condicionado, capacitor queimado, capacitor split, onde comprar capacitor RJ" %}
 
 {% set faq = [
   {"q": "Como saber se o capacitor do ar-condicionado está queimado?",
@@ -18,15 +20,6 @@
   {"q": "Onde comprar capacitor para ar-condicionado no RJ?",
    "a": "A M.T.F Refrigeração na Av. Brasil, 6818 tem grande variedade de capacitores para ar-condicionado, com atendimento pelo WhatsApp e retirada na loja."}
 ] %}
-
-{% block extra_head %}
-  <style>
-    .cap-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:.88rem;}
-    .cap-table th{background:var(--bg);padding:8px 12px;text-align:left;font-weight:700;border:1px solid var(--border);}
-    .cap-table td{padding:8px 12px;border:1px solid var(--border);color:var(--text);}
-    .cap-table tr:nth-child(even){background:var(--bg);}
-  </style>
-{% endblock %}
 
 {% block tag %}❄️ Ar-condicionado{% endblock %}
 
@@ -116,7 +109,7 @@
 
 {% block related %}
   {{ related_cards([
-      {"href": "/blog/gas-refrigerante-r32-rj", "icon": "🧪", "title": "Gás refrigerante R32: tudo que precisa saber"},
+      {"href": "/blog/gas-refrigerante-rj",     "icon": "🧪", "title": "Gás refrigerante no RJ: tipos, preços e quando recarregar"},
       {"href": "/blog",                         "icon": "📖", "title": "Ver todos os guias de refrigeração", "cta": "Ver guias →"}
   ]) }}
 {% endblock %}

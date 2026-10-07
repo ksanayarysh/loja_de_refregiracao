@@ -11,6 +11,8 @@ from sqlalchemy import text
 from dependencies import engine, templates
 from articles import ARTICLES, ARTICLES_BY_SLUG
 from blog_schema import build_article_context
+import logging
+_blog_log = logging.getLogger("uvicorn.error")
 
 router = APIRouter()
 
@@ -352,26 +354,9 @@ async def _start_digest():
     asyncio.ensure_future(_send_daily_digest())
 
 
-_google_cat_ready = False
-
-async def _ensure_google_category_column():
-    """Колонка создаётся в admin-сервисе, но БД общая — страхуемся, чтобы SELECT не упал."""
-    global _google_cat_ready
-    if _google_cat_ready:
-        return
-    async with engine.begin() as c:
-        await c.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS google_category VARCHAR(255)"))
-        await c.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS gtin VARCHAR(20)"))
-        await c.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS brand VARCHAR(100)"))
-        await c.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS sku VARCHAR(100)"))
-    _google_cat_ready = True
-
-
 async def _get_products(conn):
-    await _ensure_google_category_column()
     res = await conn.execute(text("""
         SELECT p.id, p.name, p.sale_price, p.unit, p.image, p.description,
-               p.google_category, p.gtin, p.brand, p.sku,
                COALESCE(c.name, 'Outro') AS category_name,
                c2.name AS category2_name,
                GREATEST(0, COALESCE(SUM(sm.qty), 0)) AS current_stock
@@ -381,7 +366,7 @@ async def _get_products(conn):
         LEFT JOIN stock_movements sm ON sm.product_id = p.id
         WHERE p.active = TRUE
         GROUP BY p.id, p.name, p.sale_price, p.unit, p.image, p.description,
-               p.google_category, p.gtin, p.brand, p.sku, c.name, c2.name
+               c.name, c2.name
         ORDER BY
             CASE WHEN c.name ILIKE '%gas%' OR c.name ILIKE '%gás%' THEN 0 ELSE 1 END,
             c.name NULLS LAST,
@@ -839,8 +824,11 @@ async def blog_article(request: Request, slug: str):
             async with engine.connect() as conn:
                 rows = await _get_products_cached(conn)
             blog_ctx = build_article_context(article, rows, site_url, slugify)
+            if blog_ctx.get("missing"):
+                _blog_log.warning("blog/%s: slugs de produto NÃO encontrados no catálogo: %s",
+                                  slug, blog_ctx["missing"])
         except Exception:
-            pass
+            _blog_log.exception("blog/%s: falha ao carregar produtos (artigo abre sem preços)", slug)
 
     return templates.TemplateResponse(article["template"], {
         "request":       request,
@@ -1125,20 +1113,6 @@ async def product_feed():
         in_stock    = float(r.get("current_stock") or 0) > 0
         availability = "in stock" if in_stock else "out of stock"
         unit        = r.get("unit") or "un"
-        # Google category: из карточки товара, иначе дефолт
-        google_cat  = (r.get("google_category") or "").strip() or "Electronics > Parts"
-        brand       = (r.get("brand") or "").strip() or "MTF Refrigeração"
-        sku         = (r.get("sku") or "").strip()
-        gtin        = re.sub(r"\D", "", r.get("gtin") or "")
-        if len(gtin) not in (8, 12, 13, 14):   # невалидный GTIN в фид не отдаём
-            gtin = ""
-        extra_ids = ""
-        if gtin:
-            extra_ids += f"\n    <g:gtin>{gtin}</g:gtin>"
-        if sku:
-            extra_ids += f"\n    <g:mpn>{escape(sku)}</g:mpn>"
-        if not gtin and not sku:
-            extra_ids += "\n    <g:identifier_exists>no</g:identifier_exists>"
 
         # Пропускаем товары без цены
         if not price:
@@ -1165,8 +1139,8 @@ async def product_feed():
     <g:price>{price_str}</g:price>
     <g:availability>{availability}</g:availability>
     <g:condition>new</g:condition>
-    <g:brand>{escape(brand)}</g:brand>{extra_ids}
-    <g:google_product_category>{escape(google_cat)}</g:google_product_category>
+    <g:brand>MTF Refrigeração</g:brand>
+    <g:google_product_category>Electronics &gt; Parts</g:google_product_category>
     <g:product_type>{escape(category)}</g:product_type>
   </item>"""
         items.append(item)
