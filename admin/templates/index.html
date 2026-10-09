@@ -69,6 +69,8 @@
     .result-info { min-width: 0; }
     .result-name { font-size: .92rem; color: #222; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .result-stock { font-size: .75rem; color: #888; margin-top: 2px; }
+    .promo-badge{display:inline-block;background:#E2144A;color:#fff;font-size:.62rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:5px;margin-right:6px;vertical-align:middle;line-height:1.4;}
+    .old-price{display:block;font-weight:400;font-size:.75rem;color:#888;text-decoration:line-through;line-height:1.1;}
     .result-price { font-weight: 800; color: #E2144A; white-space: nowrap; font-size: 1rem; min-width: 80px; text-align: right; }
     .result-actions { display: flex; gap: 6px; flex-shrink: 0; }
     .btn-cart { padding: 6px 12px; border-radius: 4px; background: #fff; border: 1.5px solid #E2144A; color: #E2144A; font-size: .82rem; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; transition: all .15s; }
@@ -442,7 +444,8 @@ function renderTable() {
   headerRow.innerHTML = gases.map((g, i) => `
     <th onclick="selectGas(${i})" id="th-${i}">
       <div class="gas-name">${g.name}</div>
-      <div class="gas-price-label">R$ ${parseFloat(g.sale_price).toFixed(2)}</div>
+      ${g.on_promo ? '<div><span class="promo-badge" style="margin:0 0 4px;">Promoção</span></div>' : ''}
+      <div class="gas-price-label">${g.on_promo ? `<span class="old-price" style="display:inline;margin-right:4px;">R$ ${parseFloat(g.regular_price).toFixed(2)}</span>` : ''}R$ ${parseFloat(g.sale_price).toFixed(2)}</div>
       <div class="gas-unit">por kg</div>
     </th>
   `).join('');
@@ -623,7 +626,8 @@ async function searchProducts() {
       info.className = 'result-info';
       const nameEl = document.createElement('div');
       nameEl.className = 'result-name';
-      nameEl.textContent = p.name;
+      if (p.on_promo) { const b = document.createElement('span'); b.className = 'promo-badge'; b.textContent = 'Promoção'; nameEl.appendChild(b); }
+      nameEl.appendChild(document.createTextNode(p.name));
       info.appendChild(nameEl);
       if (stock !== null) {
         const stockEl = document.createElement('div');
@@ -635,7 +639,8 @@ async function searchProducts() {
 
       const price = document.createElement('span');
       price.className = 'result-price';
-      price.textContent = `R$ ${parseFloat(p.sale_price).toFixed(2)}`;
+      if (p.on_promo) { const o = document.createElement('span'); o.className = 'old-price'; o.textContent = `R$ ${parseFloat(p.regular_price).toFixed(2)}`; price.appendChild(o); }
+      price.appendChild(document.createTextNode(`R$ ${parseFloat(p.sale_price).toFixed(2)}`));
 
       const actions = document.createElement('div');
       actions.className = 'result-actions';

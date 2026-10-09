@@ -109,6 +109,11 @@ ARTICLES = [
         "icon": "⚡",
         "tags": ["relé", "embraco", "compressor", "geladeira", "ar-condicionado"],
         "template": "blog/rele-refrigeracao.html",
+        "products": ["rele-de-inducao", "rele-ptc",
+                     "rele-embraco-conjugado-1-2-220v-hulter", "rele-embraco-conjugado-1-3-220v-hulter",
+                     "rele-embraco-conjugado-1-4-220v-hulter", "rele-embraco-conjugado-1-5-220v-dugold",
+                     "rele-embraco-conjugado-1-6-110v-eos", "rele-embraco-conjugado-1-8-220v",
+                     "rele-12v-20a-placa-ar-condicionado-split"],  # preço visível ao lado do link
         "published": True,
     },
     {

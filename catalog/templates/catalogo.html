@@ -374,6 +374,11 @@
       font-size: 2.5rem;
     }
 
+
+    /* ── PROMOÇÃO ── */
+    .promo-sticker{position:absolute;top:8px;left:8px;z-index:2;background:#E2144A;color:#fff;font-size:.62rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:6px;line-height:1.3;box-shadow:0 2px 6px rgba(226,20,74,.3);}
+    .prod-price-old{display:block;font-family:'DM Sans',sans-serif;font-size:.74rem;font-weight:400;color:var(--muted);text-decoration:line-through;line-height:1.2;}
+
     .prod-card-body {
       padding: 10px 10px 8px;
       display: flex;
@@ -619,13 +624,15 @@
           {% else %}
           <div class="prod-img-placeholder">📦</div>
           {% endif %}
+          {% if p.on_promo %}<span class="promo-sticker">Promoção</span>{% endif %}
         </div>
         <div class="prod-card-body">
           <div class="prod-name">{{ p.name }}</div>
           <div class="prod-unit">{{ p.unit }}</div>
           {% if p.sale_price %}
           <div class="prod-price">
-            R$ {{ ("%.2f"|format(p.sale_price))|replace(".", ",") }}{% if p.unit == 'kg' %}<span class="prod-price-unit">/kg</span>{% endif %}
+            {% if p.on_promo %}<span class="prod-price-old">R$ {{ ("%.2f"|format(p.sale_price))|replace(".", ",") }}</span>{% endif %}
+            R$ {{ ("%.2f"|format(p.price))|replace(".", ",") }}{% if p.unit == 'kg' %}<span class="prod-price-unit">/kg</span>{% endif %}
           </div>
           {% else %}
           <div class="prod-price no-price">Consulte</div>
@@ -642,7 +649,7 @@
         </a>
         {% if p.sale_price %}
         <button class="add-cart-btn" title="Adicionar ao carrinho"
-          onclick="addToCart({{ p.id }}, {{ p.name|tojson }}, {{ p.sale_price }}, {{ p.unit|tojson }}, this)">
+          onclick="addToCart({{ p.id }}, {{ p.name|tojson }}, {{ p.price }}, {{ p.unit|tojson }}, this)">
           🛒
         </button>
         {% endif %}
@@ -1000,20 +1007,23 @@ async function filterProducts() {
 
     searchList.innerHTML = filtered.map(p => {
       const slug = p.slug || p.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\+/g,' plus ').replace(/[^\w\s-]/g,' ').replace(/[\s_]+/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');
+      const eff = (p.price != null ? p.price : p.sale_price);
+      const old = p.on_promo ? `<span style="display:block;font-size:.72rem;font-weight:400;color:var(--muted);text-decoration:line-through;text-align:right;">R$ ${p.sale_price.toFixed(2).replace('.',',')}</span>` : '';
+      const tag = p.on_promo ? `<span style="font-size:.62rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#fff;background:#E2144A;border-radius:5px;padding:2px 6px;margin-left:6px;">Promoção</span>` : '';
       const price = p.sale_price
-        ? `<span style="font-family:'DM Mono',monospace;font-weight:700;color:var(--accent);font-size:.95rem;white-space:nowrap;">R$ ${p.sale_price.toFixed(2).replace('.',',')}</span>`
+        ? `<span style="text-align:right;white-space:nowrap;">${old}<span style="font-family:'DM Mono',monospace;font-weight:700;color:var(--accent);font-size:.95rem;">R$ ${eff.toFixed(2).replace('.',',')}</span></span>`
         : `<span style="color:var(--muted);font-size:.85rem;">Consulte</span>`;
       const img = p.image
         ? `<img loading="lazy" src="${imgProxy(p.image,88)}" style="width:48px;height:48px;object-fit:contain;border-radius:8px;border:1px solid var(--border);background:var(--bg);flex-shrink:0;">`
         : `<div style="width:48px;height:48px;border-radius:8px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">📦</div>`;
       const cartBtn = p.sale_price
-        ? `<button class="add-cart-btn" onclick="addToCart(${p.id}, ${JSON.stringify(p.name)}, ${p.sale_price}, ${JSON.stringify(p.unit)}, this)" title="Adicionar ao carrinho">🛒</button>`
+        ? `<button class="add-cart-btn" onclick="addToCart(${p.id}, ${JSON.stringify(p.name)}, ${eff}, ${JSON.stringify(p.unit)}, this)" title="Adicionar ao carrinho">🛒</button>`
         : '';
       return `<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--surface);">
         <a href="/product/${slug}" style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;text-decoration:none;color:inherit;">
           ${img}
           <div style="flex:1;min-width:0;">
-            <div style="font-weight:600;font-size:.92rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.name}</div>
+            <div style="font-weight:600;font-size:.92rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.name}${tag}</div>
             <div style="font-size:.76rem;color:var(--muted);margin-top:2px;">${p.category} · ${p.unit}</div>
           </div>
           ${price}

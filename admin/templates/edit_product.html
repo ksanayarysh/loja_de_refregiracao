@@ -114,6 +114,11 @@
         <input id="cost_price" name="cost_price" inputmode="decimal" value="{{ '%.2f'|format(product.cost_price or 0) }}" placeholder="Ex.: 20,00">
         <div class="hint" id="margin-hint"></div>
 
+        <label for="promo_price">Preço promocional (R$) — opcional</label>
+        <input id="promo_price" name="promo_price" inputmode="decimal" value="{% if product.promo_price %}{{ '%.2f'|format(product.promo_price) }}{% endif %}" placeholder="Ex.: 29,90">
+        <div class="hint">Vazio = sem promoção. Preenchido: o site mostra o selo "Promoção" e o preço de venda riscado. Precisa ser menor que o preço de venda.</div>
+        <div class="hint" id="promo-hint"></div>
+
 
 
         <div class="desc-row">
@@ -204,6 +209,24 @@ function updateMargin() {
 document.getElementById('sale_price').addEventListener('input', updateMargin);
 document.getElementById('cost_price').addEventListener('input', updateMargin);
 updateMargin();
+
+function updatePromo() {
+  const num = id => parseFloat(document.getElementById(id).value.replace(',','.')) || 0;
+  const sale = num('sale_price'), promo = num('promo_price'), cost = num('cost_price');
+  const hint = document.getElementById('promo-hint');
+  if (!promo) { hint.innerHTML = ''; return; }
+  if (sale && promo >= sale) { hint.innerHTML = '<span style="color:#dc2626;font-weight:800;">O preço promocional deve ser menor que o preço de venda.</span>'; return; }
+  const off = sale ? ((1 - promo/sale)*100).toFixed(0) : null;
+  let txt = off ? `${off}% de desconto` : '';
+  if (cost) {
+    const margin = ((promo-cost)/promo*100).toFixed(1);
+    const color = parseFloat(margin)>=20?'#16a34a':parseFloat(margin)>=0?'#d97706':'#dc2626';
+    txt += `${txt ? ' — ' : ''}<span style="color:${color};">margem na promoção: ${margin}% (lucro R$ ${(promo-cost).toFixed(2)})</span>`;
+  }
+  hint.innerHTML = `<span style="font-weight:800;">${txt}</span>`;
+}
+['sale_price','promo_price','cost_price'].forEach(id => document.getElementById(id).addEventListener('input', updatePromo));
+updatePromo();
 
 function toggleGasLink() {
   const name = document.getElementById('name').value.toLowerCase();

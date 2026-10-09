@@ -62,7 +62,13 @@ def build_article_context(article, all_products, site_url, slugify):
     for p in all_products or []:
         sl = slugify(p.get("name", ""))
         if sl in wanted and sl not in by_slug:
-            by_slug[sl] = p
+            q = dict(p)
+            # Promoção: sale_price passa a ser o preço EFETIVO (templates e JSON-LD já usam esse campo);
+            # o preço normal fica em regular_price (para mostrar riscado) e on_promo indica a promoção.
+            q["regular_price"] = p.get("sale_price")
+            if p.get("on_promo") and p.get("price"):
+                q["sale_price"] = p["price"]
+            by_slug[sl] = q
 
     schema_product = None
     if main_slug and main_slug in by_slug:

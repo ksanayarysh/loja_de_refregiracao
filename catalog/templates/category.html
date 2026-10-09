@@ -103,7 +103,11 @@
     .product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;}
     .product-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;transition:box-shadow .15s,transform .15s;}
     .product-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.08);transform:translateY(-2px);}
-    .prod-img-wrap{width:100%;aspect-ratio:1;background:var(--bg);overflow:hidden;}
+    .prod-img-wrap{position:relative;width:100%;aspect-ratio:1;background:var(--bg);overflow:hidden;}
+    /* ── PROMOÇÃO ── */
+    .promo-sticker{position:absolute;top:8px;left:8px;z-index:2;background:#E2144A;color:#fff;font-size:.62rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:6px;line-height:1.3;box-shadow:0 2px 6px rgba(226,20,74,.3);}
+    .prod-price-old{display:block;font-family:'DM Sans',sans-serif;font-size:.74rem;font-weight:400;color:var(--muted);text-decoration:line-through;line-height:1.2;}
+
     .prod-img{width:100%;height:100%;object-fit:contain;padding:8px;}
     .prod-img-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2.5rem;}
     .prod-card-body{padding:10px 10px 6px;display:flex;flex-direction:column;gap:4px;flex:1;}
@@ -317,12 +321,13 @@
         {% else %}
         <div class="prod-img-placeholder">📦</div>
         {% endif %}
+        {% if p.on_promo %}<span class="promo-sticker">Promoção</span>{% endif %}
       </div>
       <div class="prod-card-body">
         <div class="prod-name">{{ p.name }}</div>
         <div class="prod-unit">{{ p.unit }}</div>
         {% if p.sale_price %}
-        <div class="prod-price">R$ {{ "%.2f"|format(p.sale_price) }}{% if p.unit == 'kg' %}<span class="prod-price-unit">/kg</span>{% endif %}</div>
+        <div class="prod-price">{% if p.on_promo %}<span class="prod-price-old">R$ {{ "%.2f"|format(p.sale_price) }}</span>{% endif %}R$ {{ "%.2f"|format(p.price) }}{% if p.unit == 'kg' %}<span class="prod-price-unit">/kg</span>{% endif %}</div>
         {% else %}
         <div class="prod-price no-price">Consulte</div>
         {% endif %}
@@ -338,7 +343,7 @@
       </a>
       {% if p.sale_price %}
       <button class="add-cart-btn" title="Adicionar ao carrinho"
-        onclick='addToCart({{ p.id }}, {{ p.name|tojson }}, {{ p.sale_price|float }}, {{ p.unit|tojson }}, this)'>
+        onclick='addToCart({{ p.id }}, {{ p.name|tojson }}, {{ p.price|float }}, {{ p.unit|tojson }}, this)'>
         🛒
       </button>
       {% endif %}

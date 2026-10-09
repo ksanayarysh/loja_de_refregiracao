@@ -354,9 +354,45 @@ async def _start_digest():
     asyncio.ensure_future(_send_daily_digest())
 
 
+# ── ПРОМО-ЦЕНА ─────────────────────────────────────────────────────────────────
+_promo_col_ready = False
+
+async def _ensure_promo_column():
+    """Колонку promo_price админка создаёт лениво; каталог проверяет сам, чтобы не упасть при деплое."""
+    global _promo_col_ready
+    if _promo_col_ready:
+        return
+    try:
+        async with engine.begin() as conn:
+            exists = (await conn.execute(text(
+                "SELECT 1 FROM information_schema.columns "
+                "WHERE table_name = 'products' AND column_name = 'promo_price'"
+            ))).first()
+            if not exists:
+                await conn.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS promo_price NUMERIC(10,2)"))
+        _promo_col_ready = True
+    except Exception:
+        _blog_log.exception("promo_price: não foi possível garantir a coluna")
+
+@router.on_event("startup")
+async def _startup_promo_column():
+    await _ensure_promo_column()
+
+def _apply_promo(r: dict) -> dict:
+    """promo_price -> float; on_promo = промо действует (promo < sale); price = цена, по которой продаём сейчас."""
+    sale, promo = r.get("sale_price"), r.get("promo_price")
+    promo = float(promo) if promo is not None else None
+    r["promo_price"] = promo
+    r["on_promo"] = bool(promo and sale and promo < sale)
+    r["price"] = promo if r["on_promo"] else sale
+    return r
+# ─────────────────────────────────────────────────────────────────────────────
+
+
 async def _get_products(conn):
+    await _ensure_promo_column()
     res = await conn.execute(text("""
-        SELECT p.id, p.name, p.sale_price, p.unit, p.image, p.description,
+        SELECT p.id, p.name, p.sale_price, p.promo_price, p.unit, p.image, p.description,
                COALESCE(c.name, 'Outro') AS category_name,
                c2.name AS category2_name,
                GREATEST(0, COALESCE(SUM(sm.qty), 0)) AS current_stock
@@ -365,7 +401,7 @@ async def _get_products(conn):
         LEFT JOIN categories c2 ON c2.id = p.category2_id
         LEFT JOIN stock_movements sm ON sm.product_id = p.id
         WHERE p.active = TRUE
-        GROUP BY p.id, p.name, p.sale_price, p.unit, p.image, p.description,
+        GROUP BY p.id, p.name, p.sale_price, p.promo_price, p.unit, p.image, p.description,
                c.name, c2.name
         ORDER BY
             CASE WHEN c.name ILIKE '%gas%' OR c.name ILIKE '%gás%' THEN 0 ELSE 1 END,
@@ -381,14 +417,16 @@ async def _get_products(conn):
             r["image"] = ADMIN_URL + r["image"]
         if r.get("sale_price") is not None:
             r["sale_price"] = float(r["sale_price"])
+        _apply_promo(r)
         r["current_stock"] = float(r.get("current_stock") or 0)
         result.append(r)
     return result
 
 
 async def _get_banner_product(conn):
+    await _ensure_promo_column()
     res = await conn.execute(text("""
-        SELECT p.id, p.name, p.sale_price, p.unit, p.image,
+        SELECT p.id, p.name, p.sale_price, p.promo_price, p.unit, p.image,
                COALESCE(c.name, 'Outro') AS category_name
         FROM products p
         LEFT JOIN categories c ON c.id = p.category_id
@@ -404,6 +442,7 @@ async def _get_banner_product(conn):
         r["image"] = ADMIN_URL + r["image"]
     if r.get("sale_price") is not None:
         r["sale_price"] = float(r["sale_price"])
+    _apply_promo(r)
     return r
 
 def _group_by_category(rows):
@@ -421,8 +460,9 @@ def _group_by_category(rows):
 
 async def _get_promo_product(conn):
     """Товар для промо-баннера — ищет Gas R32 3kg по имени."""
+    await _ensure_promo_column()
     res = await conn.execute(text("""
-        SELECT p.id, p.name, p.sale_price, p.unit, p.image,
+        SELECT p.id, p.name, p.sale_price, p.promo_price, p.unit, p.image,
                COALESCE(c.name, 'Outro') AS category_name
         FROM products p
         LEFT JOIN categories c ON c.id = p.category_id
@@ -438,6 +478,7 @@ async def _get_promo_product(conn):
         r["image"] = ADMIN_URL + r["image"]
     if r.get("sale_price") is not None:
         r["sale_price"] = float(r["sale_price"])
+    _apply_promo(r)
     return r
 
 
@@ -459,6 +500,7 @@ async def redirect_gas_r32():
 
 @router.get("/", response_class=HTMLResponse)
 async def catalog_page(request: Request):
+    await _ensure_promo_column()
     async with engine.connect() as conn:
         # Только категории с кол-вом товаров
         cats_res = await conn.execute(text("""
@@ -475,7 +517,7 @@ async def catalog_page(request: Request):
 
         # 3 случайных товара с картинками для баннеров
         banners_res = await conn.execute(text("""
-            SELECT p.id, p.name, p.sale_price, p.unit, p.image,
+            SELECT p.id, p.name, p.sale_price, p.promo_price, p.unit, p.image,
                    COALESCE(c.name, 'Outro') AS category_name
             FROM products p
             LEFT JOIN categories c ON c.id = p.category_id
@@ -490,6 +532,7 @@ async def catalog_page(request: Request):
                 r["image"] = ADMIN_URL + r["image"]
             if r.get("sale_price") is not None:
                 r["sale_price"] = float(r["sale_price"])
+            _apply_promo(r)
             r["slug"] = slugify(r["name"])
             r["cat_slug"] = slugify(r["category_name"])
             banners_raw.append(r)
@@ -771,6 +814,55 @@ async def calculadora_gas_page(request: Request):
         "wa_number":     WA_OWNER_NUMBER,
     })
 
+# ── CALCULADORA DE INSTALAÇÃO (kit) ──────────────────────────────────────────
+_kit_settings_ready = False
+
+
+async def _ensure_kit_settings():
+    global _kit_settings_ready
+    if _kit_settings_ready:
+        return
+    async with engine.begin() as conn:
+        await conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS kit_settings (
+                id SMALLINT PRIMARY KEY DEFAULT 1,
+                discount_percent NUMERIC(5,2) NOT NULL DEFAULT 0,
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                CONSTRAINT kit_settings_single CHECK (id = 1)
+            )
+        """))
+        await conn.execute(text(
+            "INSERT INTO kit_settings (id, discount_percent) VALUES (1, 0) ON CONFLICT (id) DO NOTHING"
+        ))
+    _kit_settings_ready = True
+
+
+@router.get("/calculadora-instalacao", response_class=HTMLResponse)
+async def calculadora_instalacao_page(request: Request):
+    return templates.TemplateResponse("calculadora-instalacao.html", {
+        "request":       request,
+        "ga_id":         GA_ID,
+        "site_url":      SITE_URL,
+        "store_address": STORE_ADDRESS,
+        "store_phone":   STORE_PHONE,
+        "wa_number":     WA_OWNER_NUMBER,
+    })
+
+
+@router.get("/api/kit-config")
+async def api_kit_config():
+    """Desconto (%) do kit de instalação, definido na admin (/kit-discount)."""
+    pct = 0.0
+    try:
+        await _ensure_kit_settings()
+        async with engine.connect() as conn:
+            res = await conn.execute(text("SELECT discount_percent FROM kit_settings WHERE id = 1"))
+            pct = float(res.scalar() or 0)
+    except Exception:
+        _blog_log.exception("kit-config: falha ao ler desconto")
+    return JSONResponse({"discount_percent": pct}, headers={"Cache-Control": "no-store"})
+
+
 @router.get("/politica-de-devolucao", response_class=HTMLResponse)
 async def politica_page(request: Request):
     return templates.TemplateResponse("/politica-de-devolucao.html", {
@@ -904,6 +996,9 @@ async def catalog_api():
             "name":        r["name"],
             "slug":        slugify(r["name"]),
             "sale_price":  float(r["sale_price"]) if r["sale_price"] else None,
+            "promo_price": r.get("promo_price"),
+            "on_promo":    r.get("on_promo", False),
+            "price":       r.get("price"),
             "unit":        r["unit"],
             "category":    r["category_name"],
             "image":       r["image"],
@@ -1127,6 +1222,7 @@ async def product_feed():
             image_url = f"{base}{image_url}"
 
         price_str = f"{price:.2f} BRL"
+        sale_tag  = (f"\n    <g:sale_price>{r['promo_price']:.2f} BRL</g:sale_price>" if r.get("on_promo") else "")
         link = f"{base}/product/{sl}"
 
         item = f"""
@@ -1136,7 +1232,7 @@ async def product_feed():
     <g:description>{escape(description[:5000])}</g:description>
     <g:link>{escape(link)}</g:link>
     <g:image_link>{escape(image_url)}</g:image_link>
-    <g:price>{price_str}</g:price>
+    <g:price>{price_str}</g:price>{sale_tag}
     <g:availability>{availability}</g:availability>
     <g:condition>new</g:condition>
     <g:brand>MTF Refrigeração</g:brand>

@@ -262,6 +262,7 @@ function calcular(){
   document.getElementById('result-wa').href=`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`;
 
   // Fetch price from catalog
+  const eff = p => (p.price != null ? p.price : p.sale_price); // preço atual (com promoção, se houver)
   fetch('/api/catalog').then(r=>r.json()).then(products=>{
     const code = gas.toLowerCase().replace(/[a-z]$/,'');
     const allMatches = products.filter(p =>
@@ -286,10 +287,10 @@ function calcular(){
     if(gasItems.length){
       html += `<div style="font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Preços do gás</div>`;
       gasItems.forEach((p, i) => {
-        const priceStr = p.sale_price.toFixed(2).replace('.',',');
+        const priceStr = eff(p).toFixed(2).replace('.',',');
         let totalLine = '';
         if(p.unit === 'kg'){
-          const tot = (p.sale_price * total).toFixed(2).replace('.',',');
+          const tot = (eff(p) * total).toFixed(2).replace('.',',');
           totalLine = `<strong style="color:var(--accent);">R$ ${tot}</strong> <span style="color:var(--muted);font-size:.78rem;">(R$ ${priceStr}/kg)</span>`;
         } else {
           // unidade — extract grams
@@ -297,7 +298,7 @@ function calcular(){
           const productGrams = m ? (m[2].toLowerCase()==='kg' ? parseFloat(m[1])*1000 : parseFloat(m[1])) : null;
           if(productGrams){
             const unitsNeeded = Math.ceil(total * 1000 / productGrams);
-            const tot = (p.sale_price * unitsNeeded).toFixed(2).replace('.',',');
+            const tot = (eff(p) * unitsNeeded).toFixed(2).replace('.',',');
             totalLine = `<strong style="color:var(--accent);">R$ ${tot}</strong> <span style="color:var(--muted);font-size:.78rem;">(${unitsNeeded} un × R$ ${priceStr})</span>`;
           } else {
             totalLine = `<strong style="color:var(--accent);">R$ ${priceStr}</strong>`;
@@ -315,7 +316,7 @@ function calcular(){
       html += `<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);">
         <div style="font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Pode ser necessário</div>`;
       otherItems.forEach((p, i) => {
-        const priceStr = p.sale_price.toFixed(2).replace('.',',');
+        const priceStr = eff(p).toFixed(2).replace('.',',');
         html += `<div style="${i>0?'border-top:1px solid var(--border);padding-top:6px;margin-top:6px;':''}display:flex;justify-content:space-between;align-items:center;gap:8px;">
           <a href="/product/${p.slug||''}" style="color:var(--muted);text-decoration:none;font-size:.82rem;">${p.name}</a>
           <span style="font-size:.8rem;color:var(--muted);white-space:nowrap;">R$ ${priceStr}</span>

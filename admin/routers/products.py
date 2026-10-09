@@ -70,6 +70,17 @@ async def _ensure_google_category_column(conn):
     _google_cat_ready = True
 # ─────────────────────────────────────────────────────────────────────────────
 
+# ── ПРОМО-ЦЕНА ───────────────────────────────────────────────────────────────
+_promo_ready = False
+
+async def _ensure_promo_column(conn):
+    global _promo_ready
+    if _promo_ready:
+        return
+    await conn.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS promo_price NUMERIC(10,2)"))
+    _promo_ready = True
+# ─────────────────────────────────────────────────────────────────────────────
+
 SORT_FIELDS = {
     "name": "p.name",
     "unit": "p.unit",
@@ -102,6 +113,14 @@ def _parse_price(value: str) -> Decimal:
         return Decimal(s)
     except Exception:
         return Decimal("0")
+
+
+def _parse_promo(value: str) -> Optional[Decimal]:
+    """Пустое поле или 0 = без промо."""
+    if not (value or "").strip():
+        return None
+    p = _parse_price(value)
+    return p if p > 0 else None
 
 
 async def _process_image(file: UploadFile) -> Optional[str]:
@@ -168,6 +187,7 @@ async def create_product(
     min_stock: int = Form(0),
     description: str = Form(""),
     shelf_code: str = Form(""),
+    promo_price: str = Form(""),
     google_category: str = Form(""),
     gtin: str = Form(""),
     brand: str = Form(""),
@@ -177,28 +197,33 @@ async def create_product(
 ):
     price     = _parse_price(sale_price)
     cost      = _parse_price(cost_price)
+    promo     = _parse_promo(promo_price)
     image_b64 = await _process_image(image)
 
     async with engine.begin() as conn:
         await _ensure_shelf_code_column(conn)
         await _ensure_google_category_column(conn)
+        await _ensure_promo_column(conn)
 
         dup = await conn.execute(
             text("SELECT id FROM products WHERE LOWER(TRIM(name)) = LOWER(TRIM(:name)) AND active = TRUE"),
             {"name": name.strip()}
         )
-        if dup.first():
+        dup_found = dup.first() is not None
+        promo_bad = promo is not None and promo >= price
+        if dup_found or promo_bad:
             categories = await _get_categories(conn)
             return templates.TemplateResponse("new_product.html", {
                 "request": request, "categories": categories,
-                "error": f'Produto "{name.strip()}" já existe! Verifique a lista de produtos.',
+                "error": (f'Produto "{name.strip()}" já existe! Verifique a lista de produtos.' if dup_found
+                          else "O preço promocional deve ser menor que o preço de venda."),
             }, status_code=400)
 
         await conn.execute(
-            text("""INSERT INTO products (name, category_id, unit, sale_price, cost_price, min_stock, active, image, description, shelf_code, google_category, gtin, brand, sku)
-                    VALUES (:name, :category_id, :unit, :sale_price, :cost_price, :min_stock, TRUE, :image, :description, :shelf_code, :google_category, :gtin, :brand, :sku)"""),
+            text("""INSERT INTO products (name, category_id, unit, sale_price, promo_price, cost_price, min_stock, active, image, description, shelf_code, google_category, gtin, brand, sku)
+                    VALUES (:name, :category_id, :unit, :sale_price, :promo_price, :cost_price, :min_stock, TRUE, :image, :description, :shelf_code, :google_category, :gtin, :brand, :sku)"""),
             {"name": name.strip(), "category_id": category_id, "unit": unit,
-             "sale_price": price, "cost_price": cost, "min_stock": min_stock, "image": image_b64, "description": description.strip() or None,
+             "sale_price": price, "promo_price": promo, "cost_price": cost, "min_stock": min_stock, "image": image_b64, "description": description.strip() or None,
              "shelf_code": shelf_code.strip() or None,
              "google_category": google_category.strip() or None,
              "gtin": _clean_gtin(gtin), "brand": brand.strip() or None, "sku": sku.strip() or None},
@@ -212,10 +237,11 @@ async def edit_product_form(product_id: int, request: Request, _=Depends(basic_a
         await _ensure_shelf_code_column(conn)
         await _ensure_gas_link_columns(conn)
         await _ensure_google_category_column(conn)
+        await _ensure_promo_column(conn)
 
     async with engine.connect() as conn:
         res = await conn.execute(
-            text("""SELECT id, name, category_id, category2_id, unit, sale_price, cost_price, min_stock,
+            text("""SELECT id, name, category_id, category2_id, unit, sale_price, promo_price, cost_price, min_stock,
                            image, description, shelf_code, linked_product_id, linked_qty, google_category,
                            gtin, brand, sku
                     FROM products WHERE id = :id AND active = TRUE"""),
@@ -245,6 +271,7 @@ async def update_product(
     min_stock: int = Form(0),
     description: str = Form(""),
     shelf_code: str = Form(""),
+    promo_price: str = Form(""),
     linked_product_id: str = Form(""),
     linked_qty: str = Form(""),
     google_category: str = Form(""),
@@ -268,14 +295,18 @@ async def update_product(
         await _ensure_shelf_code_column(conn)
         await _ensure_gas_link_columns(conn)
         await _ensure_google_category_column(conn)
+        await _ensure_promo_column(conn)
 
+        promo = _parse_promo(promo_price)
         dup = await conn.execute(
             text("SELECT id FROM products WHERE LOWER(TRIM(name)) = LOWER(TRIM(:name)) AND active = TRUE AND id != :id"),
             {"name": name.strip(), "id": product_id}
         )
-        if dup.first():
+        dup_found = dup.first() is not None
+        promo_bad = promo is not None and promo >= price
+        if dup_found or promo_bad:
             res = await conn.execute(
-                text("""SELECT id, name, category_id, category2_id, unit, sale_price, cost_price, min_stock,
+                text("""SELECT id, name, category_id, category2_id, unit, sale_price, promo_price, cost_price, min_stock,
                                image, description, shelf_code, linked_product_id, linked_qty, google_category,
                                gtin, brand, sku
                         FROM products WHERE id = :id"""),
@@ -287,7 +318,8 @@ async def update_product(
             return templates.TemplateResponse("edit_product.html", {
                 "request": request, "product": product, "categories": categories,
                 "gas_products": gas_products,
-                "error": f'Produto "{name.strip()}" já existe! Escolha outro nome.',
+                "error": (f'Produto "{name.strip()}" já existe! Escolha outro nome.' if dup_found
+                          else "O preço promocional deve ser menor que o preço de venda."),
             }, status_code=400)
 
         cur = await conn.execute(text("SELECT image, sale_price FROM products WHERE id=:id"), {"id": product_id})
@@ -321,7 +353,7 @@ async def update_product(
             text(f"""UPDATE products
                     SET name=:name, category_id=:category_id, category2_id=:category2_id,
                         unit=:unit, description=:description, shelf_code=:shelf_code,
-                        sale_price=:sale_price, cost_price=:cost_price, min_stock=:min_stock,
+                        sale_price=:sale_price, promo_price=:promo_price, cost_price=:cost_price, min_stock=:min_stock,
                         linked_product_id=:linked_product_id, linked_qty=:linked_qty,
                         google_category=:google_category,
                         gtin=:gtin, brand=:brand, sku=:sku
@@ -330,7 +362,7 @@ async def update_product(
             {"id": product_id, "name": name.strip(), "category_id": category_id,
              "category2_id": category2_id if category2_id and category2_id > 0 else None,
              "description": description.strip() or None, "shelf_code": shelf_code.strip() or None,
-             "unit": unit, "sale_price": price, "cost_price": cost, "min_stock": min_stock,
+             "unit": unit, "sale_price": price, "promo_price": promo, "cost_price": cost, "min_stock": min_stock,
              "linked_product_id": linked_pid, "linked_qty": linked_qty_d,
              "google_category": google_category.strip() or None,
              "gtin": _clean_gtin(gtin), "brand": brand.strip() or None, "sku": sku.strip() or None,
@@ -362,6 +394,7 @@ async def products_list(
     async with engine.begin() as conn:
         await _ensure_shelf_code_column(conn)
         await _ensure_gas_link_columns(conn)
+        await _ensure_promo_column(conn)
 
     async with engine.connect() as conn:
         total       = await conn.execute(text("SELECT COUNT(*) FROM products p WHERE p.active = TRUE"))
@@ -369,7 +402,7 @@ async def products_list(
 
         rows_res = await conn.execute(
             text(f"""
-                SELECT p.id, p.name, p.sale_price, p.cost_price, p.unit, p.min_stock,
+                SELECT p.id, p.name, p.sale_price, p.promo_price, p.cost_price, p.unit, p.min_stock,
                        p.image, p.shelf_code, p.linked_product_id,
                        (LOWER(p.name) LIKE '%botija%') AS is_botija,
                        c.name as category_name,
@@ -378,14 +411,15 @@ async def products_list(
                 LEFT JOIN categories c ON c.id = p.category_id
                 LEFT JOIN stock_movements sm ON sm.product_id = p.id
                 WHERE p.active = TRUE
-                GROUP BY p.id, p.name, p.sale_price, p.cost_price, p.unit, p.min_stock, p.image, p.shelf_code,
+                GROUP BY p.id, p.name, p.sale_price, p.promo_price, p.cost_price, p.unit, p.min_stock, p.image, p.shelf_code,
                          p.linked_product_id, c.name
                 ORDER BY LOWER(COALESCE(c.name, 'Outro')) ASC, {sort_col} {direction_sql}
                 LIMIT :limit OFFSET :offset
             """),
             {"limit": per_page, "offset": offset},
         )
-        rows = rows_res.mappings().all()
+        # sale_price = preço efetivo (promo se houver); regular_price = preço normal
+        rows = [{**dict(r), **_eff_price(r["sale_price"], r["promo_price"])} for r in rows_res.mappings().all()]
         categories = await _get_categories(conn)
 
     total_pages = max(1, ceil(total_count / per_page))
@@ -451,6 +485,14 @@ Regras:
         return {"error": str(e)}
 
 
+def _eff_price(sale, promo) -> dict:
+    """Preço efetivo para PDV/API: promo (se menor que o preço de venda) senão sale_price."""
+    sale = float(sale or 0)
+    promo = float(promo) if promo else None
+    on = bool(promo and sale and promo < sale)
+    return {"sale_price": promo if on else sale, "regular_price": sale, "on_promo": on}
+
+
 @router.get("/api/products/model-search")
 async def api_model_search(
     q: str = Query(""),
@@ -462,6 +504,7 @@ async def api_model_search(
         return []
     async with engine.begin() as conn:
         await _ensure_shelf_code_column(conn)
+        await _ensure_promo_column(conn)
     async with engine.connect() as conn:
         where = "p.active = TRUE AND (LOWER(p.name) LIKE LOWER(:q) OR LOWER(COALESCE(p.description,'')) LIKE LOWER(:q))"
         params: dict = {"q": f"%{q.strip()}%"}
@@ -469,14 +512,14 @@ async def api_model_search(
             where += " AND p.category_id = :cat_id"
             params["cat_id"] = category_id
         res = await conn.execute(
-            text(f"""SELECT p.id, p.name, p.sale_price, p.unit, p.image, p.description, p.shelf_code,
+            text(f"""SELECT p.id, p.name, p.sale_price, p.promo_price, p.unit, p.image, p.description, p.shelf_code,
                            c.name as category_name,
                            GREATEST(0, COALESCE(SUM(sm.qty), 0)) as current_stock
                     FROM products p
                     LEFT JOIN categories c ON c.id = p.category_id
                     LEFT JOIN stock_movements sm ON sm.product_id = p.id
                     WHERE {where}
-                    GROUP BY p.id, p.name, p.sale_price, p.unit, p.image, p.description, p.shelf_code, c.name
+                    GROUP BY p.id, p.name, p.sale_price, p.promo_price, p.unit, p.image, p.description, p.shelf_code, c.name
                     ORDER BY p.name
                     LIMIT 100"""),
             params,
@@ -486,7 +529,7 @@ async def api_model_search(
         {
             "id": r["id"],
             "name": r["name"],
-            "sale_price": float(r["sale_price"] or 0),
+            **_eff_price(r["sale_price"], r["promo_price"]),
             "unit": r["unit"] or "un",
             "image": r["image"],
             "category_name": r["category_name"] or "Outro",
@@ -506,14 +549,16 @@ async def api_products_batch(ids: str = Query(""), _=Depends(basic_auth)):
         id_list = []
     if not id_list:
         return []
+    async with engine.begin() as conn:
+        await _ensure_promo_column(conn)
     async with engine.connect() as conn:
         res = await conn.execute(
-            text("SELECT id, sale_price, cost_price FROM products WHERE id = ANY(:ids)"),
+            text("SELECT id, sale_price, promo_price, cost_price FROM products WHERE id = ANY(:ids)"),
             {"ids": id_list},
         )
         rows = res.mappings().all()
     return [
-        {"id": r["id"], "sale_price": float(r["sale_price"] or 0),
+        {"id": r["id"], **_eff_price(r["sale_price"], r["promo_price"]),
          "cost_price": float(r["cost_price"]) if r["cost_price"] is not None else None}
         for r in rows
     ]
@@ -523,6 +568,7 @@ async def api_products_batch(ids: str = Query(""), _=Depends(basic_auth)):
 async def api_products(search: str = Query(""), unit: str = Query(""), category: str = Query(""), _=Depends(basic_auth)):
     async with engine.begin() as conn:
         await _ensure_shelf_code_column(conn)
+        await _ensure_promo_column(conn)
     async with engine.connect() as conn:
         where = "p.active = TRUE AND LOWER(p.name) LIKE LOWER(:q)"
         params: dict = {"q": f"%{search}%"}
@@ -533,7 +579,7 @@ async def api_products(search: str = Query(""), unit: str = Query(""), category:
             where += " AND LOWER(COALESCE(c.name, '')) LIKE LOWER(:cat)"
             params["cat"] = f"%{category}%"
         res = await conn.execute(
-            text(f"""SELECT p.id, p.name, p.sale_price, p.cost_price, p.unit, p.image, p.shelf_code,
+            text(f"""SELECT p.id, p.name, p.sale_price, p.promo_price, p.cost_price, p.unit, p.image, p.shelf_code,
                            GREATEST(0, COALESCE(SUM(sm.qty), 0)) as current_stock
                     FROM products p
                     LEFT JOIN categories c ON c.id = p.category_id
@@ -544,7 +590,7 @@ async def api_products(search: str = Query(""), unit: str = Query(""), category:
         )
         rows = res.mappings().all()
     return [
-        {"id": r["id"], "name": r["name"], "sale_price": float(r["sale_price"] or 0),
+        {"id": r["id"], "name": r["name"], **_eff_price(r["sale_price"], r["promo_price"]),
          "cost_price": float(r["cost_price"]) if r["cost_price"] else None,
          "unit": r["unit"] or "un", "image": r["image"],
          "current_stock": float(r["current_stock"]),

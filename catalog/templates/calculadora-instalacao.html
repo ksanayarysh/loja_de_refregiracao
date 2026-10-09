@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <link rel="icon" type="image/png" href="/static/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Calculadora de Kit de Instalação de Ar-Condicionado | M.T.F Refrigeração RJ</title>
+  <meta name="description" content="Monte o kit de instalação do seu ar-condicionado split: tubo de cobre, esponjoso, suporte, fita PVC, cabo PP e dreno. Veja o valor e peça pelo WhatsApp.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="{{ site_url }}/calculadora-instalacao">
+  {% if ga_id %}
+  <script async src="https://www.googletagmanager.com/gtag/js?id={{ ga_id }}"></script>
+  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","{{ ga_id }}");</script>
+  {% endif %}
+  {% include '_header_styles.html' %}
+  <style>
+    .page-wrap{max-width:680px;margin:0 auto;padding:40px 20px 80px;}
+    .back-link{display:inline-flex;align-items:center;gap:6px;color:var(--muted);text-decoration:none;font-size:.88rem;font-weight:500;margin-bottom:28px;}
+    .back-link:hover{color:var(--accent);}
+    .page-hero{margin-bottom:32px;}
+    .page-hero h1{font-size:clamp(1.6rem,4vw,2.2rem);font-weight:700;letter-spacing:-.02em;line-height:1.2;}
+    .page-hero h1 span{color:var(--accent);}
+    .page-hero p{color:var(--muted);margin-top:8px;font-size:.95rem;line-height:1.6;}
+    .calc-card{background:var(--surface);border:1.5px solid var(--border);border-radius:16px;padding:28px 24px;margin-bottom:16px;}
+    .card-title{font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
+    .field{margin-bottom:20px;}
+    .field:last-child{margin-bottom:0;}
+    .field label{display:block;font-weight:700;font-size:.88rem;margin-bottom:8px;color:var(--text);}
+    .field select,.field input[type=number]{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:inherit;font-size:.95rem;color:var(--text);background:var(--bg);transition:border-color .15s;appearance:none;-webkit-appearance:none;}
+    .field select:focus,.field input[type=number]:focus{outline:none;border-color:var(--accent);}
+    .field .hint{font-size:.78rem;color:var(--muted);margin-top:5px;line-height:1.4;}
+    .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+    .chip{border:1.5px solid var(--border);background:var(--bg);color:var(--text);border-radius:999px;padding:7px 14px;font-family:inherit;font-size:.85rem;font-weight:600;cursor:pointer;transition:border-color .15s;}
+    .chip:hover{border-color:var(--accent);}
+    .chip.on{background:var(--accent);border-color:var(--accent);color:#fff;}
+
+    .kit-row{display:grid;grid-template-columns:1fr auto;gap:8px 12px;padding:14px 0;border-top:1px solid var(--border);}
+    .kit-row:first-of-type{border-top:0;padding-top:0;}
+    .kit-name{font-weight:600;font-size:.92rem;line-height:1.3;}
+    .kit-name a{color:inherit;text-decoration:none;}
+    .kit-name a:hover{color:var(--accent);}
+    .kit-sub{font-size:.78rem;color:var(--muted);margin-top:3px;}
+    .kit-warn{display:inline-block;margin-top:4px;font-size:.72rem;font-weight:700;color:#b45309;background:#fef3c7;border-radius:6px;padding:2px 8px;}
+    .kit-price{font-weight:700;font-size:.95rem;text-align:right;white-space:nowrap;}
+    .kit-ctrl{display:flex;align-items:center;gap:10px;}
+    .qty{display:inline-flex;align-items:center;border:1.5px solid var(--border);border-radius:10px;overflow:hidden;background:var(--bg);}
+    .qty button{width:38px;height:38px;border:0;background:transparent;font-size:1.15rem;cursor:pointer;color:var(--text);font-family:inherit;}
+    .qty button:hover{color:var(--accent);}
+    .qty input{width:50px;height:38px;border:0;border-left:1px solid var(--border);border-right:1px solid var(--border);text-align:center;font-family:inherit;font-size:.92rem;font-weight:600;color:var(--text);background:transparent;padding:0;border-radius:0;-moz-appearance:textfield;appearance:textfield;}
+    .qty input::-webkit-outer-spin-button,.qty input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+    .kit-del{border:0;background:none;color:var(--muted);font-family:inherit;font-size:.8rem;text-decoration:underline;cursor:pointer;padding:6px 0;}
+    .kit-del:hover{color:var(--accent);}
+    .kit-empty{padding:12px 0;color:var(--muted);text-align:center;font-size:.9rem;}
+    .add-row{display:grid;grid-template-columns:1fr auto;gap:8px;}
+    .btn-sec{padding:12px 16px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);font-family:inherit;font-size:.9rem;font-weight:700;cursor:pointer;transition:border-color .15s;}
+    .btn-sec:hover:not([disabled]){border-color:var(--accent);color:var(--accent);}
+    .btn-sec[disabled]{opacity:.45;cursor:not-allowed;}
+
+    .total-card{background:var(--surface);border:2px solid var(--accent);border-radius:16px;padding:24px;margin-bottom:16px;}
+    .total-label{font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;}
+    .total-amount{font-family:'DM Mono',monospace;font-size:2.4rem;font-weight:700;color:var(--text);line-height:1;}
+    .total-old{font-size:.95rem;color:var(--muted);text-decoration:line-through;margin-bottom:4px;}
+    .total-disc{display:inline-block;margin-top:10px;font-size:.82rem;font-weight:700;color:var(--wa);background:var(--bg);border:1px solid var(--border);border-radius:20px;padding:4px 12px;}
+    .total-note{font-size:.83rem;color:var(--muted);line-height:1.6;margin-top:14px;padding-top:14px;border-top:1px solid var(--border);}
+    .wa-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;border-radius:10px;background:var(--wa);color:#fff;font-family:inherit;font-size:.95rem;font-weight:700;text-decoration:none;margin-top:16px;transition:opacity .15s;}
+    .wa-btn:hover{opacity:.88;}
+    .wa-btn.off{opacity:.4;pointer-events:none;}
+    .load-msg{color:var(--muted);font-size:.9rem;padding:8px 0;}
+    @media(max-width:500px){
+      .calc-card{padding:20px 16px;}
+      .page-wrap{padding:24px 16px 60px;}
+      .total-amount{font-size:2rem;}
+      .catbar{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+      .catbar-inner{flex-wrap:nowrap;padding:0 16px;gap:6px;}
+      .catbar-item{font-size:.82rem;padding:7px 12px;}
+    }
+  </style>
+</head>
+<body>
+
+{% set active_page = 'calculadora' %}
+{% include '_header.html' %}
+
+<div class="catbar">
+  <div class="catbar-inner">
+    <a class="catbar-item" href="/category/gases-refrigerantes">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M12 3C7 3 3 7 3 12s4 9 9 9 9-4 9-9-4-9-9-9z"/><path d="M3 12h18"/></svg>
+      Gases refrigerantes
+    </a>
+    <a class="catbar-item" href="/category/ar-condicionado">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="6" width="20" height="8" rx="2"/><path d="M7 14v4M12 14v4M17 14v4"/></svg>
+      Ar condicionado
+    </a>
+    <a class="catbar-item" href="/category/geladeira">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M5 10h14"/><path d="M9 6v2M9 14v3"/></svg>
+      Geladeira
+    </a>
+    <a class="catbar-all" href="/catalogo">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      Todas as categorias
+    </a>
+  </div>
+</div>
+
+<div class="page-wrap">
+  <a class="back-link" href="/">← Voltar ao catálogo</a>
+
+  <div class="page-hero">
+    <h1>Calculadora de<br><span>Kit de Instalação</span></h1>
+    <p>Informe a distância entre as unidades, ajuste os itens do kit e peça pelo WhatsApp.</p>
+  </div>
+
+  <div class="calc-card">
+    <div class="field">
+      <label for="metros">Distância entre unidade interna e externa (metros)</label>
+      <input type="number" id="metros" value="3" min="1" max="50" step="1" inputmode="numeric">
+      <div class="chips" id="chips"></div>
+      <div class="hint">Tubo de cobre, cabo PP e dreno são calculados pela metragem. O esponjoso vem em barras de 2 m, então arredondamos para cima.</div>
+    </div>
+  </div>
+
+  <div class="calc-card">
+    <div class="card-title">Itens do kit</div>
+    <div id="kit-list"><div class="load-msg">Carregando preços…</div></div>
+
+    <div class="field" style="margin-top:20px;">
+      <label for="add-item">Adicionar item</label>
+      <div class="add-row">
+        <select id="add-item"></select>
+        <button type="button" class="btn-sec" id="btn-add">Adicionar</button>
+      </div>
+    </div>
+    <div class="field">
+      <label for="add-medida">Outra medida de tubo</label>
+      <div class="add-row">
+        <select id="add-medida"></select>
+        <button type="button" class="btn-sec" id="btn-medida">Adicionar cobre + esponjoso</button>
+      </div>
+      <div class="hint">Adiciona o tubo de cobre e o esponjoso da mesma medida (polegadas).</div>
+    </div>
+  </div>
+
+  <div class="total-card">
+    <div class="total-label">Total do kit</div>
+    <div class="total-old" id="total-old" style="display:none"></div>
+    <div class="total-amount" id="total">R$ 0,00</div>
+    <div class="total-disc" id="total-disc" style="display:none"></div>
+    <div class="total-note">Valor apenas dos materiais, sem mão de obra. A medida correta do tubo depende do modelo do aparelho, confira no manual ou fale com a gente. Disponibilidade e preço final confirmados pelo WhatsApp.</div>
+    <a class="wa-btn wa-track off" id="order-wa" href="#" target="_blank" rel="noopener" data-product="Kit instalação">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+      Pedir kit pelo WhatsApp
+    </a>
+  </div>
+</div>
+
+<a class="wa-float wa-track" href="https://wa.me/{{ wa_number }}?text=Ol%C3%A1%21%20Preciso%20de%20um%20kit%20de%20instala%C3%A7%C3%A3o%20de%20ar-condicionado." target="_blank" rel="noopener" data-product="Calculadora instalação float">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+  <span>Falar no WhatsApp</span>
+</a>
+
+<footer>
+  <div class="footer-main">
+    <div>
+      <div class="footer-col-title">Atendimento</div>
+      <div class="footer-contact-item"><div class="footer-contact-icon">📞</div><div class="footer-contact-val"><a href="tel:+{{ wa_number }}">{{ store_phone }}</a></div></div>
+      <div class="footer-contact-item"><div class="footer-contact-icon">📍</div><div class="footer-contact-val">{{ store_address }}</div></div>
+    </div>
+    <div>
+      <div class="footer-col-title">Nossa equipe</div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:32px;height:32px;border-radius:50%;background:#fff0f4;color:var(--accent);border:1.5px solid #ffd0dc;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;flex-shrink:0;">KS</div>
+          <div><div style="font-size:.88rem;font-weight:700;">Ksenia</div><div style="font-size:.72rem;color:var(--muted);">Desenvolvimento · PDV &amp; sites</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:32px;height:32px;border-radius:50%;background:#f0f7ff;color:#1a6bc4;border:1.5px solid #c6dfff;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;flex-shrink:0;">DO</div>
+          <div><div style="font-size:.88rem;font-weight:700;">Douglas</div><div style="font-size:.72rem;color:var(--muted);">Técnico · Instalação e manutenção</div><a href="https://wa.me/5521965832950" target="_blank" style="font-size:.72rem;color:var(--wa);text-decoration:none;font-weight:600;">(21) 96583-2950</a></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">M.T.F Refrigeração · Rio de Janeiro</div>
+</footer>
+
+{% raw %}
+<script>
+const WA_NUMBER = '{% endraw %}{{ wa_number }}{% raw %}';
+
+/* Kit: cada item aponta para um produto real do catálogo pelo slug (o mesmo de /product/<slug>).
+   Preço, nome e unidade vêm de /api/catalog. Item cujo slug não existe no catálogo é ignorado
+   (aviso no console).
+   rule:  'meters' = quantidade = metragem | 'bars' = barras de 2 m, ceil(metragem/2) | 'one' = 1
+   base:  true = já vem no kit
+   medida/group: liga cobre e esponjoso da mesma medida ("Outra medida de tubo") */
+const KIT = [
+  // ── kit básico ──
+  {key:'cobre_1_4', slug:'tubo-de-cobre-de-1-4', rule:'meters', base:true,  medida:'1/4', group:'cobre'},
+  {key:'cobre_3_8', slug:'tubo-de-cobre-de-3-8', rule:'meters', base:true,  medida:'3/8', group:'cobre'},
+  {key:'esp_1_4',   slug:'tubo-esponjoso-blindado-1-4-2-metros', rule:'bars', base:true, medida:'1/4', group:'esp'},
+  {key:'esp_3_8',   slug:'tubo-esponjoso-blindado-3-8-2-metros', rule:'bars', base:true, medida:'3/8', group:'esp'},
+  {key:'suporte',   slug:'suporte-ar-condicionado-split-7000-12000-btus-40cm-chapa-pintada', rule:'one', base:true},
+  {key:'fita_pvc',  slug:'fita-pvc', rule:'one', base:true},
+  {key:'cabo_pp',   slug:'cabo-pp-4v-x-1-5mm', rule:'meters', base:true},
+  {key:'dreno',     slug:'mangueira-transparente-ar-condicionado', rule:'meters', base:true},
+  // ── opcionais ──
+  {key:'cobre_1_2', slug:'tubo-de-cobre-de-1-2', rule:'meters', base:false, medida:'1/2', group:'cobre'},
+  {key:'cobre_3_4', slug:'tubo-de-cobre-de-3-4', rule:'meters', base:false, medida:'3/4', group:'cobre'},
+  {key:'esp_1_2',   slug:'tubo-esponjoso-blindado-1-2-2-metros', rule:'bars', base:false, medida:'1/2', group:'esp'},
+  {key:'esp_5_8',   slug:'tubo-esponjoso-blindado-5-8-2-metros', rule:'bars', base:false, medida:'5/8', group:'esp'},
+  {key:'esp_3_4',   slug:'tubo-esponjoso-blindado-3-4-2-metros', rule:'bars', base:false, medida:'3/4', group:'esp'},
+  {key:'cabo_pp_25',slug:'cabo-pp-4v-x-2-5mm', rule:'meters', base:false},
+  {key:'suporte_7_30', slug:'suporte-para-instalacao-de-evaporadoras-7-30-mil-btus', rule:'one', base:false},
+];
+
+let CATALOG = {};   // key -> item do kit já com name/price/slug/in_stock
+let metros = 3;
+let discountPct = 0; // desconto do kit (%), definido no admin e lido de /api/kit-config
+let kit = [];       // [{key, qty, auto}]
+
+const brl = n => 'R$ ' + n.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+const cap = s => (s || '').trim().replace(/^./, c => c.toUpperCase());
+
+function autoQty(rule){
+  if (rule === 'meters') return Math.max(1, Math.ceil(metros));
+  if (rule === 'bars')   return Math.max(1, Math.ceil(metros / 2));
+  return 1;
+}
+function unitLabel(it){ return ({meters:'por metro', bars:'por barra de 2 m', one:'por unidade'})[it.rule]; }
+function qtyLabel(it, q){
+  if (it.rule === 'meters') return q + ' m';
+  if (it.rule === 'bars')   return q + (q === 1 ? ' barra' : ' barras');
+  return q + ' un';
+}
+const inKit = key => kit.some(k => k.key === key);
+function addToKit(key){
+  if (inKit(key) || !CATALOG[key]) return;
+  kit.push({key, qty: autoQty(CATALOG[key].rule), auto: true});
+}
+function recalcAuto(){ kit.forEach(k => { if (k.auto) k.qty = autoQty(CATALOG[k.key].rule); }); }
+
+/* As linhas são reaproveitadas (não recriadas) a cada render: se o DOM fosse recriado
+   no "change" do campo, o toque seguinte em +/− ou num chip se perderia. */
+const rowEls = {};
+function makeRow(key){
+  const row = document.createElement('div');
+  row.className = 'kit-row';
+  row.innerHTML =
+    '<div><div class="kit-name"><a target="_blank" rel="noopener"></a></div><div class="kit-sub"></div><div class="kit-warn" style="display:none">Sem estoque no momento — confirme no WhatsApp</div></div>' +
+    '<div class="kit-price"></div>' +
+    '<div class="kit-ctrl"><div class="qty">' +
+      '<button type="button" data-a="dec" aria-label="Diminuir">−</button>' +
+      '<input type="number" inputmode="numeric" min="1" step="1" aria-label="Quantidade">' +
+      '<button type="button" data-a="inc" aria-label="Aumentar">+</button>' +
+    '</div></div>' +
+    '<div style="text-align:right"><button type="button" class="kit-del">Remover</button></div>';
+  const cur = () => kit.find(x => x.key === key);
+  const inp = row.querySelector('input');
+  row.querySelector('[data-a=dec]').onclick = () => { const k = cur(); if (k) setQty(k, k.qty - 1); };
+  row.querySelector('[data-a=inc]').onclick = () => { const k = cur(); if (k) setQty(k, k.qty + 1); };
+  inp.onchange = () => { const k = cur(); if (k) setQty(k, parseInt(inp.value, 10)); };
+  row.querySelector('.kit-del').onclick = () => { kit = kit.filter(x => x.key !== key); render(); };
+  return row;
+}
+
+function render(){
+  const list = document.getElementById('kit-list');
+  let empty = list.querySelector('.kit-empty, .load-msg');
+  if (empty) empty.remove();
+  Object.keys(rowEls).forEach(key => {
+    if (!inKit(key)){ rowEls[key].remove(); delete rowEls[key]; }
+  });
+
+  let total = 0;
+  kit.forEach((k, i) => {
+    const it = CATALOG[k.key];
+    total += it.price * k.qty;
+    let row = rowEls[k.key];
+    if (!row) row = rowEls[k.key] = makeRow(k.key);
+    if (list.children[i] !== row) list.insertBefore(row, list.children[i] || null);
+
+    const a = row.querySelector('.kit-name a');
+    a.textContent = it.name;
+    a.href = '/product/' + it.slug;
+    row.querySelector('.kit-sub').textContent = brl(it.price) + ' ' + unitLabel(it) + (it.regular > it.price ? ' · promoção (de ' + brl(it.regular) + ')' : '');
+    row.querySelector('.kit-warn').style.display = it.in_stock ? 'none' : 'inline-block';
+    row.querySelector('.kit-price').textContent = brl(it.price * k.qty);
+    const inp = row.querySelector('input');
+    if (document.activeElement !== inp || inp.value !== String(k.qty)) inp.value = k.qty;
+  });
+
+  if (!kit.length){
+    const e = document.createElement('div');
+    e.className = 'kit-empty';
+    e.textContent = 'Nenhum item no kit. Adicione abaixo.';
+    list.appendChild(e);
+  }
+
+  const discount = Math.round(total * discountPct) / 100;
+  const final = total - discount;
+  document.getElementById('total').textContent = brl(final);
+  const oldEl = document.getElementById('total-old'), discEl = document.getElementById('total-disc');
+  const hasDisc = discount > 0 && kit.length > 0;
+  oldEl.style.display = discEl.style.display = hasDisc ? '' : 'none';
+  if (hasDisc){
+    oldEl.textContent = brl(total);
+    discEl.textContent = 'Desconto de ' + String(discountPct).replace('.', ',') + '% (− ' + brl(discount) + ')';
+  }
+  renderAddOptions();
+  buildOrder(total, discount, final);
+}
+
+function setQty(k, v){
+  k.qty = (!v || v < 1) ? 1 : v;
+  k.auto = false;           // ajuste manual: a metragem não sobrescreve mais
+  render();
+}
+
+function renderAddOptions(){
+  const sel = document.getElementById('add-item');
+  sel.innerHTML = '';
+  const avail = KIT.filter(i => CATALOG[i.key] && !inKit(i.key));
+  if (!avail.length) sel.innerHTML = '<option value="">Todos os itens já estão no kit</option>';
+  avail.forEach(i => {
+    const it = CATALOG[i.key];
+    const o = document.createElement('option');
+    o.value = i.key;
+    o.textContent = it.name + ' — ' + brl(it.price) + ' ' + unitLabel(it);
+    sel.appendChild(o);
+  });
+  document.getElementById('btn-add').disabled = !avail.length;
+
+  const ms = document.getElementById('add-medida');
+  ms.innerHTML = '';
+  const medidas = [];
+  Object.values(CATALOG).forEach(i => {
+    if (!i.medida || medidas.includes(i.medida)) return;
+    const c = Object.values(CATALOG).find(x => x.medida === i.medida && x.group === 'cobre');
+    const e = Object.values(CATALOG).find(x => x.medida === i.medida && x.group === 'esp');
+    if (c && e && !(inKit(c.key) && inKit(e.key))) medidas.push(i.medida);
+  });
+  if (!medidas.length) ms.innerHTML = '<option value="">Todas as medidas já estão no kit</option>';
+  medidas.forEach(m => {
+    const o = document.createElement('option');
+    o.value = m;
+    o.textContent = 'Medida ' + m + '"';
+    ms.appendChild(o);
+  });
+  document.getElementById('btn-medida').disabled = !medidas.length;
+}
+
+function buildOrder(total, discount, final){
+  const a = document.getElementById('order-wa');
+  if (!kit.length){ a.classList.add('off'); a.href = '#'; return; }
+  a.classList.remove('off');
+  const lines = ['Olá! Quero pedir o kit de instalação de ar-condicionado (' + metros + ' m de tubulação):', ''];
+  kit.forEach(k => {
+    const it = CATALOG[k.key];
+    lines.push('• ' + it.name + ' — ' + qtyLabel(it, k.qty) + ' = ' + brl(it.price * k.qty));
+  });
+  lines.push('');
+  if (discount > 0){
+    lines.push('Subtotal: ' + brl(total));
+    lines.push('Desconto de ' + String(discountPct).replace('.', ',') + '%: − ' + brl(discount));
+  }
+  lines.push('Total: ' + brl(final));
+  a.href = 'https://wa.me/' + WA_NUMBER + '?text=' + encodeURIComponent(lines.join('\n'));
+}
+
+/* metragem */
+const mIn = document.getElementById('metros');
+function setMetros(v){
+  v = parseFloat(String(v).replace(',', '.'));
+  if (!isFinite(v) || v < 1) v = 1;
+  if (v > 50) v = 50;
+  metros = v;
+  recalcAuto(); renderChips(); render();
+}
+mIn.addEventListener('input', () => {
+  const v = parseFloat(String(mIn.value).replace(',', '.'));
+  if (isFinite(v) && v >= 1){ metros = Math.min(v, 50); recalcAuto(); renderChips(); render(); }
+});
+mIn.addEventListener('change', () => {
+  const v = parseFloat(String(mIn.value).replace(',', '.'));
+  if (v === metros) return;               // nada mudou: não refaz a tela
+  setMetros(mIn.value); mIn.value = metros;
+});
+
+/* chips criados uma única vez; depois só muda a marcação */
+const chipsEl = document.getElementById('chips');
+[3, 5, 7, 10, 15].forEach(m => {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'chip';
+  b.dataset.m = m;
+  b.textContent = m + ' m';
+  b.onclick = () => { mIn.value = m; setMetros(m); };
+  chipsEl.appendChild(b);
+});
+function renderChips(){
+  chipsEl.querySelectorAll('.chip').forEach(b => b.classList.toggle('on', Number(b.dataset.m) === metros));
+}
+
+document.getElementById('btn-add').onclick = () => {
+  const key = document.getElementById('add-item').value;
+  if (key){ addToKit(key); render(); }
+};
+document.getElementById('btn-medida').onclick = () => {
+  const m = document.getElementById('add-medida').value;
+  if (!m) return;
+  Object.values(CATALOG).forEach(i => { if (i.medida === m) addToKit(i.key); });
+  render();
+};
+
+/* preços vindos do catálogo */
+Promise.all([
+  fetch('/api/catalog').then(r => r.json()),
+  fetch('/api/kit-config').then(r => r.json()).catch(() => ({discount_percent: 0})),
+]).then(([products, cfg]) => {
+  discountPct = Math.min(Math.max(Number(cfg && cfg.discount_percent) || 0, 0), 100);
+  const bySlug = {};
+  products.forEach(p => { bySlug[p.slug] = p; });
+  KIT.forEach(i => {
+    const p = i.slug ? bySlug[i.slug] : null;
+    if (!p || !p.sale_price){
+      console.warn('calculadora-instalacao: produto indisponível no catálogo:', i.key, i.slug || '(sem slug)');
+      return;
+    }
+    // price = preço de venda atual (já com promoção, se houver); regular = preço cheio
+    CATALOG[i.key] = Object.assign({}, i, {name: cap(p.name), price: (p.price != null ? p.price : p.sale_price), regular: p.sale_price, in_stock: p.in_stock !== false});
+  });
+  KIT.forEach(i => { if (i.base) addToKit(i.key); });
+  renderChips();
+  render();
+}).catch(() => {
+  document.getElementById('kit-list').innerHTML =
+    '<div class="kit-empty">Não foi possível carregar os preços agora. Fale com a gente pelo WhatsApp.</div>';
+});
+
+renderChips();
+
+document.querySelectorAll('.wa-track').forEach(el => {
+  el.addEventListener('click', function(){
+    const product = this.dataset.product || 'Geral';
+    if (typeof gtag !== 'undefined') gtag('event', 'whatsapp_click', {product_name: product});
+    fetch('/api/track/whatsapp', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({product})}).catch(() => {});
+  });
+});
+</script>
+{% endraw %}
+</body>
+</html>
