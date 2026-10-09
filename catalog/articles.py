@@ -29,6 +29,9 @@ ARTICLES = [
         "icon": "❄️",
         "tags": ["geladeira", "frost free", "degelo", "resistência"],
         "template": "blog/geladeira-frost-free-acumula-gelo.html",
+        "products": ["sensor-de-temperatura-2-7k-brastemp-w10531315", "sensor-de-degelo-10k-para-geladeira-electrolux",
+                     "timer-de-degelo-eletrolux-220v", "timer-degelo-electrolux-tmdj812zb9-110v-original",
+                     "placa-geladeira-electrolux-df47-dfn49-df49x-dw50x-64500437"],  # preço visível ao lado do link
         "published": True,
     },
     {
