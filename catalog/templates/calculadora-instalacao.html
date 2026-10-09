@@ -8,12 +8,34 @@
   <meta name="description" content="Monte o kit de instalação do seu ar-condicionado split: tubo de cobre, esponjoso, suporte, fita PVC, cabo PP e dreno. Veja o valor e peça pelo WhatsApp.">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="{{ site_url }}/calculadora-instalacao">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:site_name" content="M.T.F Refrigeração">
+  <meta property="og:title" content="Calculadora de Kit de Instalação de Ar-Condicionado | M.T.F Refrigeração RJ">
+  <meta property="og:description" content="Informe a distância entre as unidades e veja o valor do kit de instalação do seu split: cobre, esponjoso, suporte, fita, cabo e dreno.">
+  <meta property="og:url" content="{{ site_url }}/calculadora-instalacao">
+  <meta property="og:image" content="{{ site_url }}/static/og-catalog.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Calculadora de Kit de Instalação de Ar-Condicionado">
+  <meta name="twitter:description" content="Monte o kit de instalação do seu split e veja o valor dos materiais.">
+  <meta name="twitter:image" content="{{ site_url }}/static/og-catalog.jpg">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebApplication", "name": "Calculadora de Kit de Instalação de Ar-Condicionado", "applicationCategory": "UtilitiesApplication", "operatingSystem": "Web", "inLanguage": "pt-BR", "url": "{{ site_url }}/calculadora-instalacao", "description": "Calcule o kit de instalação do ar-condicionado split pela distância entre as unidades.", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "BRL"}, "publisher": {"@type": "Organization", "name": "M.T.F Refrigeração", "url": "{{ site_url }}/"}}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Quanto de tubulação preciso para instalar meu split?", "acceptedAnswer": {"@type": "Answer", "text": "Meça o caminho real que o tubo vai percorrer entre a unidade interna e a externa, contornando paredes, vigas e curvas, e não a distância em linha reta. Some uma sobra de 1 a 2 metros para as curvas e para a conexão nas duas pontas."}}, {"@type": "Question", "name": "Qual a diferença entre tubo de cobre 1/4, 3/8, 1/2 e 5/8?", "acceptedAnswer": {"@type": "Answer", "text": "Todo split usa dois tubos: o mais fino (1/4) leva o gás líquido e o mais grosso leva o gás de retorno. Em aparelhos de 9.000 a 12.000 BTUs o par mais comum é 1/4 e 3/8; em 18.000 BTUs costuma ser 1/4 e 1/2; em 24.000 BTUs ou mais, 1/4 e 5/8. Confira sempre no manual ou na etiqueta do aparelho."}}, {"@type": "Question", "name": "Quando preciso escolher outra medida de tubo?", "acceptedAnswer": {"@type": "Answer", "text": "Quando o seu modelo não usa o par padrão da calculadora. Nesse caso use o campo “Outra medida de tubo”, que adiciona o cobre e o esponjoso da mesma bitola. Na dúvida, mande o modelo do aparelho pelo WhatsApp que a gente confirma."}}, {"@type": "Question", "name": "O valor da calculadora inclui a instalação?", "acceptedAnswer": {"@type": "Answer", "text": "Não. O valor mostrado é apenas dos materiais do kit. A mão de obra é orçada à parte; veja a página de serviços ou fale com a gente pelo WhatsApp."}}, {"@type": "Question", "name": "Posso comprar só alguns itens do kit?", "acceptedAnswer": {"@type": "Answer", "text": "Pode. Remova ou ajuste qualquer item na lista antes de pedir. Se você já tem suporte ou fita PVC, por exemplo, basta tirar da lista e o total é recalculado."}}]}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Início", "item": "{{ site_url }}/"}, {"@type": "ListItem", "position": 2, "name": "Calculadora de kit de instalação", "item": "{{ site_url }}/calculadora-instalacao"}]}</script>
   {% if ga_id %}
   <script async src="https://www.googletagmanager.com/gtag/js?id={{ ga_id }}"></script>
   <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","{{ ga_id }}");</script>
   {% endif %}
   {% include '_header_styles.html' %}
   <style>
+    .seo-text{margin-top:40px;padding-top:28px;border-top:1px solid var(--border);}
+    .seo-text h2{font-size:1.1rem;font-weight:700;margin:22px 0 8px;letter-spacing:-.01em;}
+    .seo-text p{color:var(--muted);font-size:.93rem;line-height:1.7;margin-bottom:10px;}
+    .seo-text a{color:var(--accent);font-weight:600;}
+    .faq-item{border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;background:var(--surface);}
+    .faq-item summary{cursor:pointer;font-weight:600;font-size:.92rem;}
+    .faq-item p{margin:8px 0 0;}
+    .svc-link{display:block;margin-top:14px;text-align:center;font-size:.88rem;font-weight:700;color:var(--accent);text-decoration:none;}
     .page-wrap{max-width:680px;margin:0 auto;padding:40px 20px 80px;}
     .back-link{display:inline-flex;align-items:center;gap:6px;color:var(--muted);text-decoration:none;font-size:.88rem;font-weight:500;margin-bottom:28px;}
     .back-link:hover{color:var(--accent);}
@@ -103,11 +125,11 @@
 </div>
 
 <div class="page-wrap">
-  <a class="back-link" href="/">← Voltar ao catálogo</a>
+  <nav class="back-link" aria-label="Breadcrumb" style="gap:6px"><a href="/" style="color:inherit;text-decoration:none">Início</a> › <span>Calculadora de kit de instalação</span></nav>
 
   <div class="page-hero">
     <h1>Calculadora de<br><span>Kit de Instalação</span></h1>
-    <p>Informe a distância entre as unidades, ajuste os itens do kit e peça pelo WhatsApp.</p>
+    <p>Peças para instalar o seu ar-condicionado split (só os materiais, sem mão de obra). Informe a distância entre as unidades, ajuste os itens do kit e peça pelo WhatsApp.</p>
   </div>
 
   <div class="calc-card">
@@ -151,6 +173,18 @@
       Pedir kit pelo WhatsApp
     </a>
   </div>
+
+  <section class="seo-text" aria-labelledby="seo-h2">
+    <h2 id="seo-h2">O que vem no kit de instalação de ar-condicionado split</h2>
+    <p>O kit de instalação reúne os materiais que ficam entre a unidade interna e a unidade externa do split: <strong>tubo de cobre</strong> (duas bitolas), <strong>isolamento esponjoso</strong> para cada tubo, <strong>suporte</strong> da condensadora, <strong>fita PVC</strong> para acabamento, <strong>cabo PP</strong> para a ligação elétrica e <strong>mangueira de dreno</strong> para escoar a água do evaporador. A calculadora monta essa lista pelo tamanho do seu percurso e mostra o valor dos materiais com os preços atuais da loja.</p>
+    <h2>Como medir a distância entre as unidades</h2>
+    <p>Use uma trena ou um barbante e acompanhe o caminho real da tubulação: sai da unidade interna, atravessa a parede, desce ou sobe pela fachada e chega à condensadora. Não meça em linha reta. Some de 1 a 2 metros de sobra para curvas e conexões e digite o total no campo de metros. Com esse número a calculadora ajusta a quantidade de tubo de cobre, esponjoso, cabo PP e dreno.</p>
+    <h2>Tubo de cobre 1/4 e 3/8: qual escolher?</h2>
+    <p>O par <strong>1/4 e 3/8</strong> atende a maioria dos splits de 9.000 e 12.000 BTUs. Aparelhos de 18.000 BTUs normalmente pedem 1/4 e 1/2, e os de 24.000 BTUs ou mais, 1/4 e 5/8. Se o seu modelo usar outra combinação, escolha a medida no campo “Outra medida de tubo” e o sistema soma o cobre e o esponjoso na bitola correta. O fabricante informa as bitolas no manual e na etiqueta da unidade.</p>
+    <p>Precisa de ajuda para escolher? <a href="https://wa.me/{{ wa_number }}?text=Ol%C3%A1%21%20Preciso%20de%20ajuda%20para%20escolher%20o%20kit%20de%20instala%C3%A7%C3%A3o." rel="noopener">Chame a gente no WhatsApp</a>. Também temos <a href="/category/ar-condicionado">peças e acessórios para ar-condicionado</a> e a <a href="/calculadora-gas">calculadora de gás refrigerante</a>.</p>
+    <h2>Perguntas frequentes</h2>
+    <div class="faq"><details class="faq-item"><summary>Quanto de tubulação preciso para instalar meu split?</summary><p>Meça o caminho real que o tubo vai percorrer entre a unidade interna e a externa, contornando paredes, vigas e curvas, e não a distância em linha reta. Some uma sobra de 1 a 2 metros para as curvas e para a conexão nas duas pontas.</p></details><details class="faq-item"><summary>Qual a diferença entre tubo de cobre 1/4, 3/8, 1/2 e 5/8?</summary><p>Todo split usa dois tubos: o mais fino (1/4) leva o gás líquido e o mais grosso leva o gás de retorno. Em aparelhos de 9.000 a 12.000 BTUs o par mais comum é 1/4 e 3/8; em 18.000 BTUs costuma ser 1/4 e 1/2; em 24.000 BTUs ou mais, 1/4 e 5/8. Confira sempre no manual ou na etiqueta do aparelho.</p></details><details class="faq-item"><summary>Quando preciso escolher outra medida de tubo?</summary><p>Quando o seu modelo não usa o par padrão da calculadora. Nesse caso use o campo “Outra medida de tubo”, que adiciona o cobre e o esponjoso da mesma bitola. Na dúvida, mande o modelo do aparelho pelo WhatsApp que a gente confirma.</p></details><details class="faq-item"><summary>O valor da calculadora inclui a instalação?</summary><p>Não. O valor mostrado é apenas dos materiais do kit. A mão de obra é orçada à parte; veja a página de serviços ou fale com a gente pelo WhatsApp.</p></details><details class="faq-item"><summary>Posso comprar só alguns itens do kit?</summary><p>Pode. Remova ou ajuste qualquer item na lista antes de pedir. Se você já tem suporte ou fita PVC, por exemplo, basta tirar da lista e o total é recalculado.</p></details></div>
+  </section>
 </div>
 
 <a class="wa-float wa-track" href="https://wa.me/{{ wa_number }}?text=Ol%C3%A1%21%20Preciso%20de%20um%20kit%20de%20instala%C3%A7%C3%A3o%20de%20ar-condicionado." target="_blank" rel="noopener" data-product="Calculadora instalação float">
@@ -411,30 +445,53 @@ document.getElementById('btn-medida').onclick = () => {
   render();
 };
 
-/* preços vindos do catálogo */
-Promise.all([
-  fetch('/api/catalog').then(r => r.json()),
-  fetch('/api/kit-config').then(r => r.json()).catch(() => ({discount_percent: 0})),
-]).then(([products, cfg]) => {
-  discountPct = Math.min(Math.max(Number(cfg && cfg.discount_percent) || 0, 0), 100);
-  const bySlug = {};
-  products.forEach(p => { bySlug[p.slug] = p; });
-  KIT.forEach(i => {
-    const p = i.slug ? bySlug[i.slug] : null;
-    if (!p || !p.sale_price){
-      console.warn('calculadora-instalacao: produto indisponível no catálogo:', i.key, i.slug || '(sem slug)');
-      return;
-    }
-    // price = preço de venda atual (já com promoção, se houver); regular = preço cheio
-    CATALOG[i.key] = Object.assign({}, i, {name: cap(p.name), price: (p.price != null ? p.price : p.sale_price), regular: p.sale_price, in_stock: p.in_stock !== false});
-  });
-  KIT.forEach(i => { if (i.base) addToKit(i.key); });
-  renderChips();
-  render();
-}).catch(() => {
+/* preços vindos do catálogo (com nova tentativa se falhar ou vier vazio) */
+let loadTries = 0;
+function showLoadError(){
   document.getElementById('kit-list').innerHTML =
-    '<div class="kit-empty">Não foi possível carregar os preços agora. Fale com a gente pelo WhatsApp.</div>';
-});
+    '<div class="kit-empty">Não foi possível carregar os preços agora. <a href="#" id="retry-load">Tentar de novo</a> ou fale com a gente pelo WhatsApp.</div>';
+  const r = document.getElementById('retry-load');
+  if (r) r.onclick = e => { e.preventDefault(); loadTries = 0; document.getElementById('kit-list').innerHTML = '<div class="load-msg">Carregando preços…</div>'; loadCatalog(); };
+}
+function loadCatalog(){
+  loadTries++;
+  Promise.all([
+    fetch('/api/catalog', {cache:'no-store'}).then(r => { if (!r.ok) throw new Error('catalog ' + r.status); return r.json(); }),
+    fetch('/api/kit-config', {cache:'no-store'}).then(r => r.json()).catch(() => ({discount_percent: 0})),
+  ]).then(([products, cfg]) => {
+    discountPct = Math.min(Math.max(Number(cfg && cfg.discount_percent) || 0, 0), 100);
+    const bySlug = {};
+    products.forEach(p => { bySlug[p.slug] = p; });
+    CATALOG = {};
+    KIT.forEach(i => {
+      const p = i.slug ? bySlug[i.slug] : null;
+      if (!p || !p.sale_price){
+        console.warn('calculadora-instalacao: produto indisponível no catálogo:', i.key, i.slug || '(sem slug)');
+        return;
+      }
+      // price = preço de venda atual (já com promoção, se houver); regular = preço cheio
+      CATALOG[i.key] = Object.assign({}, i, {name: cap(p.name), price: (p.price != null ? p.price : p.sale_price), regular: p.sale_price, in_stock: p.in_stock !== false});
+    });
+    if (!Object.keys(CATALOG).length) throw new Error('catalogo vazio');
+    kit = [];
+    KIT.forEach(i => { if (i.base) addToKit(i.key); });
+    renderChips();
+    render();
+  }).catch(err => {
+    console.warn('calculadora-instalacao: falha ao carregar', err);
+    if (loadTries < 3) setTimeout(loadCatalog, 1200 * loadTries);
+    else showLoadError();
+  });
+}
+/* o navegador pode restaurar o valor do campo após recarregar: usa o que está na tela */
+(function(){
+  const v = parseFloat(String(mIn.value).replace(',', '.'));
+  metros = (isFinite(v) && v >= 1) ? Math.min(v, 50) : 3;
+  mIn.value = metros;
+})();
+loadCatalog();
+/* voltar/avançar pelo histórico (cache do navegador): recarrega se ficou vazio */
+window.addEventListener('pageshow', e => { if (e.persisted && !kit.length){ loadTries = 0; loadCatalog(); } });
 
 renderChips();
 

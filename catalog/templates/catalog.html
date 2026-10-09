@@ -402,11 +402,23 @@
 </div>
 {% endif %}
 
+<!-- CALCULADORA DE INSTALAÇÃO -->
+<div class="section-wrap" style="padding-bottom:24px;">
+  <a href="/calculadora-instalacao" style="display:flex;align-items:center;gap:16px;text-decoration:none;color:inherit;background:var(--surface);border:1.5px solid var(--accent);border-radius:16px;padding:18px 20px;">
+    <div style="font-size:2rem;">🧮</div>
+    <div style="flex:1;">
+      <div style="font-weight:700;font-size:1.02rem;">Peças para instalar seu ar-condicionado</div>
+      <div style="font-size:.85rem;color:var(--muted);margin-top:2px;line-height:1.5;">Calcule o kit de peças pela distância entre as unidades: tubo de cobre, esponjoso, suporte, cabo e dreno. Só os materiais, sem mão de obra.</div>
+    </div>
+    <div style="font-weight:700;color:var(--accent);white-space:nowrap;">Calcular →</div>
+  </a>
+</div>
+
 <!-- CATEGORIAS -->
 <div class="section-wrap">
   <div class="section-title">Categorias</div>
   <div class="cats-grid">
-    {% for cat in categories[:3] %}
+    {% for cat in categories[:5] %}
     <a class="cat-card" href="/category/{{ cat.slug }}">
       <div class="cat-card-name">{{ cat.name }}</div>
       <div class="cat-card-count">{{ cat.total }} produto{% if cat.total != 1 %}s{% endif %}</div>
@@ -417,28 +429,6 @@
   <a href="/categories" style="display:inline-flex;align-items:center;gap:6px;margin-top:14px;font-size:.88rem;font-weight:700;color:var(--accent);text-decoration:none;border:1.5px solid var(--accent);border-radius:10px;padding:9px 18px;transition:background .15s;" onmouseover="this.style.background='#fff5f7'" onmouseout="this.style.background='transparent'">
     Ver todas as categorias →
   </a>
-</div>
-
-<!-- SERVIÇOS -->
-<div class="section-wrap">
-  <div class="section-title">Serviços técnicos</div>
-  <div class="services-grid">
-    <a class="service-card" href="/servicos">
-      <div class="service-icon">❄️</div>
-      <div class="service-name">Ar-condicionado</div>
-      <div class="service-desc">Instalação, manutenção e recarga de gás.</div>
-    </a>
-    <a class="service-card" href="/servicos">
-      <div class="service-icon">🧊</div>
-      <div class="service-name">Geladeira e freezer</div>
-      <div class="service-desc">Reparo, troca de peças e recarga.</div>
-    </a>
-    <a class="service-card" href="/servicos">
-      <div class="service-icon">🔧</div>
-      <div class="service-name">Solicitar serviço</div>
-      <div class="service-desc">Descreva o problema e fale com o técnico.</div>
-    </a>
-  </div>
 </div>
 
 <!-- GUIAS -->
