@@ -69,7 +69,7 @@
       "@type": "Offer",
       "priceCurrency": "BRL",
       {% if product.sale_price %}
-      "price": "{{ '%.2f'|format(product.sale_price) }}",
+      "price": "{{ '%.2f'|format(product.price) }}",
       {% endif %}
       "availability": "https://schema.org/InStock",
       "url": "{{ site_url }}/product/{{ product.slug }}",
@@ -136,6 +136,9 @@
     }
 
     .product-img-wrap{position:sticky;top:80px;}
+    .promo-sticker{position:absolute;top:12px;left:12px;z-index:2;background:#E2144A;color:#fff;font-size:.78rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;padding:5px 12px;border-radius:8px;line-height:1.3;box-shadow:0 2px 8px rgba(226,20,74,.3);}
+    .price-old{font-family:"DM Mono",monospace;font-size:1.05rem;color:var(--muted);text-decoration:line-through;}
+    .price-off{display:inline-block;margin-left:8px;font-size:.78rem;font-weight:800;color:#fff;background:#E2144A;border-radius:6px;padding:2px 8px;vertical-align:middle;}
     .product-img{
       width:100%;
       aspect-ratio:1;
@@ -551,10 +554,11 @@
   <span>{{ product.name }}</span>
 </nav>
 
-{% set wa_msg = "Olá! Tenho interesse no produto: " + product.name + " (" + product.unit + ")" + (". Preço: R$ " + ('%.2f'|format(product.sale_price)|replace('.', ',')) if product.sale_price else "") + ". Está disponível?" %}
+{% set wa_msg = "Olá! Tenho interesse no produto: " + product.name + " (" + product.unit + ")" + (". Preço: R$ " + ('%.2f'|format(product.price)|replace('.', ',')) if product.sale_price else "") + ". Está disponível?" %}
 
 <div class="product-page">
   <div class="product-img-wrap">
+    {% if product.on_promo %}<span class="promo-sticker">Promoção</span>{% endif %}
     {% if product.image %}
     <img class="product-img" src="{{ product.image }}" alt="{{ product.name }}" loading="eager">
     {% else %}
@@ -600,7 +604,10 @@
     <div class="price-block" style="border:2px solid var(--accent);background:linear-gradient(135deg,#fff5f7 0%,#fff 100%);">
       <div class="price-label">Preço</div>
       {% if product.sale_price %}
-      <div class="price-value" style="font-size:2.4rem;color:var(--accent);">R$ {{ "%.2f"|format(product.sale_price)|replace('.', ',') }}{% if product.unit == 'kg' %}<span style="font-size:1.1rem;font-weight:400;color:var(--muted);">/kg</span>{% endif %}</div>
+      {% if product.on_promo %}
+      <div><span class="price-old">R$ {{ "%.2f"|format(product.sale_price)|replace('.', ',') }}</span><span class="price-off">-{{ ((1 - product.price / product.sale_price) * 100)|round|int }}%</span></div>
+      {% endif %}
+      <div class="price-value" style="font-size:2.4rem;color:var(--accent);">R$ {{ "%.2f"|format(product.price)|replace('.', ',') }}{% if product.unit == 'kg' %}<span style="font-size:1.1rem;font-weight:400;color:var(--muted);">/kg</span>{% endif %}</div>
       <div style="font-size:.8rem;color:var(--muted);margin-top:2px;">por {{ product.unit }} · Rio de Janeiro</div>
       {% else %}
       <div class="price-consult">Consulte disponibilidade</div>
@@ -633,7 +640,7 @@
 
     {% if product.sale_price %}
     <button class="add-cart-btn" title="Adicionar ao carrinho"
-      onclick='addToCart({{ product.id }}, {{ product.name|tojson }}, {{ product.sale_price|float }}, {{ product.unit|tojson }}, this)'>
+      onclick='addToCart({{ product.id }}, {{ product.name|tojson }}, {{ product.price|float }}, {{ product.unit|tojson }}, this)'>
       🛒 Adicionar ao carrinho
     </button>
     {% endif %}
@@ -715,7 +722,7 @@
       <span class="related-name">{{ r.name }} <span style="color:var(--muted);font-size:.8rem;">({{ r.unit }})</span></span>
 
       {% if r.sale_price %}
-      <span class="related-price">R$ {{ "%.2f"|format(r.sale_price)|replace('.', ',') }}</span>
+      <span class="related-price">{% if r.on_promo %}<span style="text-decoration:line-through;font-size:.75rem;margin-right:5px;">R$ {{ "%.2f"|format(r.sale_price)|replace('.', ',') }}</span><span style="color:var(--accent);font-weight:700;">R$ {{ "%.2f"|format(r.price)|replace('.', ',') }}</span>{% else %}R$ {{ "%.2f"|format(r.price)|replace('.', ',') }}{% endif %}</span>
       {% else %}
       <span class="related-price" style="font-family:inherit;font-size:.82rem;">Consulte</span>
       {% endif %}
@@ -992,7 +999,9 @@ async function quickSearchHandler(q) {
     }
     box.innerHTML = filtered.map(p => {
       const slug = p.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\w\s-]/g,' ').replace(/[\s_]+/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');
-      const price = p.sale_price ? `<span style="font-family:'DM Mono',monospace;font-weight:700;color:var(--accent);font-size:.88rem;white-space:nowrap;">R$ ${p.sale_price.toFixed(2).replace('.',',')}</span>` : `<span style="color:var(--muted);font-size:.82rem;">Consulte</span>`;
+      const eff = (p.price != null ? p.price : p.sale_price);
+      const oldp = p.on_promo ? `<span style="display:block;font-size:.7rem;font-weight:400;color:var(--muted);text-decoration:line-through;text-align:right;">R$ ${p.sale_price.toFixed(2).replace('.',',')}</span>` : '';
+      const price = p.sale_price ? `<span style="text-align:right;white-space:nowrap;">${oldp}<span style="font-family:'DM Mono',monospace;font-weight:700;color:var(--accent);font-size:.88rem;">R$ ${eff.toFixed(2).replace('.',',')}</span></span>` : `<span style="color:var(--muted);font-size:.82rem;">Consulte</span>`;
       const img = p.image ? `<img src="${p.image}" style="width:36px;height:36px;object-fit:contain;border-radius:6px;border:1px solid var(--border);background:var(--bg);flex-shrink:0;">` : `<div style="width:36px;height:36px;border-radius:6px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;">📦</div>`;
       return `<a href="/product/${slug}" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);text-decoration:none;color:inherit;">${img}<div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</div><div style="font-size:.75rem;color:var(--muted);">${p.category} · ${p.unit}</div></div>${price}</a>`;
     }).join('') + `<a href="/catalogo" style="display:block;padding:10px 16px;text-align:center;font-size:.82rem;color:var(--accent);font-weight:700;text-decoration:none;border-top:1px solid var(--border);">Ver catálogo completo →</a>`;
