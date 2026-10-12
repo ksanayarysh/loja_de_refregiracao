@@ -393,6 +393,7 @@ async def _get_products(conn):
     await _ensure_promo_column()
     res = await conn.execute(text("""
         SELECT p.id, p.name, p.sale_price, p.promo_price, p.unit, p.image, p.description,
+               p.google_category,
                COALESCE(c.name, 'Outro') AS category_name,
                c2.name AS category2_name,
                GREATEST(0, COALESCE(SUM(sm.qty), 0)) AS current_stock
@@ -402,7 +403,7 @@ async def _get_products(conn):
         LEFT JOIN stock_movements sm ON sm.product_id = p.id
         WHERE p.active = TRUE
         GROUP BY p.id, p.name, p.sale_price, p.promo_price, p.unit, p.image, p.description,
-               c.name, c2.name
+               p.google_category, c.name, c2.name
         ORDER BY
             CASE WHEN c.name ILIKE '%gas%' OR c.name ILIKE '%gás%' THEN 0 ELSE 1 END,
             c.name NULLS LAST,
@@ -1225,6 +1226,9 @@ async def product_feed():
 
         price_str = f"{price:.2f} BRL"
         sale_tag  = (f"\n    <g:sale_price>{r['promo_price']:.2f} BRL</g:sale_price>" if r.get("on_promo") else "")
+        # google_category из БД (ID таксономии Google); пусто — тег не выводим, Google определит сам
+        gcat      = (r.get("google_category") or "").strip()
+        gcat_tag  = (f"\n    <g:google_product_category>{escape(gcat)}</g:google_product_category>" if gcat else "")
         link = f"{base}/product/{sl}"
 
         item = f"""
@@ -1237,8 +1241,7 @@ async def product_feed():
     <g:price>{price_str}</g:price>{sale_tag}
     <g:availability>{availability}</g:availability>
     <g:condition>new</g:condition>
-    <g:brand>MTF Refrigeração</g:brand>
-    <g:google_product_category>Electronics &gt; Parts</g:google_product_category>
+    <g:brand>MTF Refrigeração</g:brand>{gcat_tag}
     <g:product_type>{escape(category)}</g:product_type>
   </item>"""
         items.append(item)
