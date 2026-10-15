@@ -1241,7 +1241,8 @@ async def product_feed():
     <g:price>{price_str}</g:price>{sale_tag}
     <g:availability>{availability}</g:availability>
     <g:condition>new</g:condition>
-    <g:brand>MTF Refrigeração</g:brand>{gcat_tag}
+    <g:brand>MTF Refrigeração</g:brand>
+    <g:identifier_exists>no</g:identifier_exists>{gcat_tag}
     <g:product_type>{escape(category)}</g:product_type>
   </item>"""
         items.append(item)
