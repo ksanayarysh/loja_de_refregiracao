@@ -385,11 +385,19 @@ async def products_list(
     per_page: int = Query(25, ge=5, le=200),
     sort: str = Query("name"),
     direction: str = Query("asc"),
+    cat: str = Query(""),
     _=Depends(basic_auth),
 ):
     sort_col      = SORT_FIELDS.get(sort, SORT_FIELDS["name"])
     direction_sql = "DESC" if direction.lower() == "desc" else "ASC"
-    offset        = (page - 1) * per_page
+
+    # Фильтр по категории — на сервере, до LIMIT/OFFSET (иначе фильтруется только текущая страница)
+    cat_q = cat.strip()
+    where = "p.active = TRUE"
+    fparams: dict = {}
+    if cat_q:
+        where += " AND LOWER(COALESCE(c.name, 'Outro')) LIKE LOWER(:cat)"
+        fparams["cat"] = f"%{cat_q}%"
 
     async with engine.begin() as conn:
         await _ensure_shelf_code_column(conn)
@@ -397,8 +405,16 @@ async def products_list(
         await _ensure_promo_column(conn)
 
     async with engine.connect() as conn:
-        total       = await conn.execute(text("SELECT COUNT(*) FROM products p WHERE p.active = TRUE"))
+        total = await conn.execute(
+            text(f"""SELECT COUNT(*) FROM products p
+                     LEFT JOIN categories c ON c.id = p.category_id
+                     WHERE {where}"""),
+            fparams,
+        )
         total_count = int(total.scalar() or 0)
+        total_pages = max(1, ceil(total_count / per_page))
+        page        = min(page, total_pages)
+        offset      = (page - 1) * per_page
 
         rows_res = await conn.execute(
             text(f"""
@@ -410,25 +426,23 @@ async def products_list(
                 FROM products p
                 LEFT JOIN categories c ON c.id = p.category_id
                 LEFT JOIN stock_movements sm ON sm.product_id = p.id
-                WHERE p.active = TRUE
+                WHERE {where}
                 GROUP BY p.id, p.name, p.sale_price, p.promo_price, p.cost_price, p.unit, p.min_stock, p.image, p.shelf_code,
                          p.linked_product_id, c.name
                 ORDER BY LOWER(COALESCE(c.name, 'Outro')) ASC, {sort_col} {direction_sql}
                 LIMIT :limit OFFSET :offset
             """),
-            {"limit": per_page, "offset": offset},
+            {**fparams, "limit": per_page, "offset": offset},
         )
         # sale_price = preço efetivo (promo se houver); regular_price = preço normal
         rows = [{**dict(r), **_eff_price(r["sale_price"], r["promo_price"])} for r in rows_res.mappings().all()]
         categories = await _get_categories(conn)
 
-    total_pages = max(1, ceil(total_count / per_page))
-    page        = min(page, total_pages)
-
     return templates.TemplateResponse("products_list.html", {
         "request": request, "rows": rows, "page": page, "per_page": per_page,
         "total_pages": total_pages, "total_count": total_count,
         "categories": categories,
+        "cat_filter": cat_q,
         "sort": sort if sort in SORT_FIELDS else "name",
         "direction": "desc" if direction.lower() == "desc" else "asc",
         "deleted": request.query_params.get("deleted") == "1",

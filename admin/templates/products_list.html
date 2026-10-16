@@ -119,7 +119,7 @@
   {% set base = "/products" %}
   {% set dir_toggle = "desc" if direction == "asc" else "asc" %}
   {% macro url(p, sort_key=None, dir_key=None) -%}
-    {{ base }}?page={{ p }}&per_page={{ per_page }}&sort={{ sort_key or sort }}&direction={{ dir_key or direction }}
+    {{ base }}?page={{ p }}&per_page={{ per_page }}&sort={{ sort_key or sort }}&direction={{ dir_key or direction }}{% if cat_filter %}&cat={{ cat_filter|urlencode }}{% endif %}
   {%- endmacro %}
 
   <div class="topbar">
@@ -136,6 +136,7 @@
         <input type="hidden" name="page" value="1">
         <input type="hidden" name="sort" value="{{ sort }}">
         <input type="hidden" name="direction" value="{{ direction }}">
+        <input type="hidden" name="cat" value="{{ cat_filter }}">
         <label style="font-weight:800;font-size:.88rem;">Por página</label>
         <select name="per_page" onchange="this.form.submit()">
           {% for n in [10,25,50,100,200] %}<option value="{{ n }}" {% if per_page==n %}selected{% endif %}>{{ n }}</option>{% endfor %}
@@ -167,14 +168,21 @@
   </div>
   {# ─────────────────────────────────────────────────────────────────────── #}
 
-  <div class="cat-filter-wrap">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-    <input type="text" class="cat-filter-input" id="cat-filter" placeholder="Filtrar por categoria..." oninput="filterCategories()">
-  </div>
-  <div class="cat-no-match" id="cat-no-match">Nenhuma categoria encontrada.</div>
+  <form method="get" action="/products" class="cat-filter-wrap" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+    <input type="hidden" name="page" value="1">
+    <input type="hidden" name="per_page" value="{{ per_page }}">
+    <input type="hidden" name="sort" value="{{ sort }}">
+    <input type="hidden" name="direction" value="{{ direction }}">
+    <div style="position:relative;flex:1;max-width:320px;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" class="cat-filter-input" id="cat-filter" name="cat" value="{{ cat_filter }}" placeholder="Filtrar por categoria...">
+    </div>
+    <button class="search-button" type="submit">Filtrar</button>
+    {% if cat_filter %}<a class="model-clear-btn" style="text-decoration:none;" href="/products?per_page={{ per_page }}&sort={{ sort }}&direction={{ direction }}">✕ Limpar</a>{% endif %}
+  </form>
 
   {% if not rows or rows|length == 0 %}
-    <div class="empty">Nenhum produto cadastrado ainda.</div>
+    <div class="empty">{% if cat_filter %}Nenhum produto na categoria "{{ cat_filter }}".{% else %}Nenhum produto cadastrado ainda.{% endif %}</div>
   {% else %}
     <div class="pager" style="margin-top:0;margin-bottom:12px;">
       <div class="pages">
@@ -263,13 +271,6 @@
 {% block scripts %}
 {{ super() }}
 <script>
-function filterCategories() {
-  const q = document.getElementById('cat-filter').value.toLowerCase().trim();
-  const groups = document.querySelectorAll('.cat-group');
-  let visible = 0;
-  groups.forEach(g => { const show = !q || (g.dataset.cat||'').includes(q); g.style.display = show?'':'none'; if(show) visible++; });
-  document.getElementById('cat-no-match').style.display = (q&&visible===0)?'block':'none';
-}
 let cart = JSON.parse(localStorage.getItem('mtf_cart')||'[]');
 cart = cart.map(i => ({...i, qty: Math.round(parseFloat(i.qty) * 1000) / 1000}));
 function saveCart(){localStorage.setItem('mtf_cart',JSON.stringify(cart));}
