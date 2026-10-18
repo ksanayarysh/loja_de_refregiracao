@@ -1003,8 +1003,15 @@ async def _cep_to_coords(cep: str):
                     _blog_log.info("frete-cep: %s descartado %s %s (%.1f km do bairro %s)",
                                    cep, src, c, _km(c, ref), bairro)
             coords, source = near[0] if near else (ref, "nominatim-bairro")
-        elif candidates:
-            coords, source = candidates[0]
+        else:
+            # sem referência do bairro não dá para conferir; a BrasilAPI costuma devolver
+            # o centro da cidade, então sozinha ela não serve (frete sairia errado)
+            trusted = [(c, src) for c, src in candidates if src != "brasilapi"]
+            if trusted:
+                coords, source = trusted[0]
+            elif candidates:
+                _blog_log.warning("frete-cep: %s só tem brasilapi %s sem bairro para conferir — ignorado",
+                                  cep, candidates[0][0])
 
     if not coords:
         _blog_log.warning("frete-cep: sem coordenadas para %s (%s)", cep, address)
