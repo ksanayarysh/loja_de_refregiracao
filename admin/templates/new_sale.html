@@ -36,6 +36,12 @@
     .msg{padding:12px 14px;border-radius:10px;margin-bottom:14px;font-weight:800;}
     .err{background:#fef2f2;border:1px solid #fecaca;color:#7f1d1d;}
     .ok{background:#ecfdf5;border:1px solid #bbf7d0;color:#065f46;}
+    .pp-box{display:none;position:absolute;left:0;right:0;top:100%;z-index:60;background:#fff;border:1px solid #d6d9e0;border-radius:10px;max-height:300px;overflow-y:auto;box-shadow:0 6px 18px rgba(0,0,0,.12);margin-top:4px;}
+    .pp-item{padding:9px 12px;cursor:pointer;font-size:.92rem;border-bottom:1px solid #f3f4f6;line-height:1.3;}
+    .pp-item:last-child{border-bottom:none;}
+    .pp-item span{color:#888;font-size:.82rem;white-space:nowrap;}
+    .pp-item.act,.pp-item:hover{background:#fff7ed;}
+    .pp-empty{padding:10px 12px;color:#888;}
     .kit-box{margin-top:18px;border:2px solid #fde68a;}
     .kit-box h2{font-size:1.2rem;margin-bottom:10px;}
     .kit-prev{margin-top:10px;padding:12px 14px;background:#f9fafb;border-radius:10px;font-size:.92rem;display:none;}
@@ -64,8 +70,9 @@
         <label for="sold_at">Data</label>
         <input id="sold_at" name="sold_at" type="date" value="{{ today }}" required>
 
-        <label for="product_id">Produto</label>
-        <select id="product_id" name="product_id" required>
+        <label for="product_search">Produto</label>
+        <div><input id="product_search" placeholder="🔍 Digite o nome do produto..."></div>
+        <select id="product_id" name="product_id" style="display:none;">
           <option value="" disabled selected>Selecione...</option>
           {% for p in products %}
             <option value="{{ p['id'] }}"
@@ -256,6 +263,63 @@
 
   updateUnitHint();
   if(priceEl.value.trim()==="") setPriceFromProduct(true);
+
+  // ── busca de produto digitando (sem acento, várias palavras: "tubo 1/4") ──
+  function ppNorm(s) { return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase(); }
+  function ppEsc(s) { return String(s || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+  function attachPicker(input, list, onPick) {
+    list.forEach(p => { p._n = ppNorm(p.name); });
+    const box = document.createElement('div');
+    box.className = 'pp-box';
+    input.parentNode.style.position = 'relative';
+    input.setAttribute('autocomplete', 'off');
+    input.after(box);
+    let hits = [], act = -1;
+    function show() {
+      const words = ppNorm(input.value).split(/\s+/).filter(Boolean);
+      hits = (words.length ? list.filter(p => words.every(w => p._n.includes(w))) : list).slice(0, 40);
+      box.innerHTML = hits.length
+        ? hits.map((p, i) => `<div class="pp-item${i === act ? ' act' : ''}" data-i="${i}">${ppEsc(p.name)}` +
+            ` <span>${ppEsc(p.unit || '')}${p.price != null ? ' · R$ ' + Number(p.price).toFixed(2).replace('.', ',') : ''}</span></div>`).join('')
+        : '<div class="pp-empty">Nada encontrado</div>';
+      box.style.display = 'block';
+      const a = box.querySelector('.act'); if (a) a.scrollIntoView({ block: 'nearest' });
+    }
+    function pick(p) { input.value = p.name; box.style.display = 'none'; onPick(p); }
+    input.addEventListener('focus', () => { input.select(); act = -1; show(); });
+    input.addEventListener('input', () => { act = 0; show(); });
+    input.addEventListener('keydown', e => {
+      if (box.style.display !== 'block') return;
+      if (e.key === 'ArrowDown') { act = Math.min(act + 1, hits.length - 1); show(); e.preventDefault(); }
+      else if (e.key === 'ArrowUp') { act = Math.max(act - 1, 0); show(); e.preventDefault(); }
+      else if (e.key === 'Enter') { const p = hits[act >= 0 ? act : 0]; if (p) pick(p); e.preventDefault(); }
+      else if (e.key === 'Escape') { box.style.display = 'none'; }
+    });
+    box.addEventListener('mousedown', e => {
+      const it = e.target.closest('.pp-item');
+      if (it) { e.preventDefault(); pick(hits[+it.dataset.i]); }
+    });
+    input.addEventListener('blur', () => setTimeout(() => { box.style.display = 'none'; }, 150));
+  }
+
+  // a busca escolhe a opção do <select> escondido (o resto da tela continua igual)
+  const searchEl = document.getElementById('product_search');
+  const PICK_NS = [...productSel.options].filter(o => o.value).map(o => ({
+    id: o.value, name: o.text.replace(/\s*\([^)]*\)\s*$/, '').trim(), unit: o.dataset.unit, price: parseNum(o.dataset.price)
+  }));
+  attachPicker(searchEl, PICK_NS, p => {
+    productSel.value = p.id;
+    productSel.dispatchEvent(new Event('change'));
+    qtyEl.focus();
+  });
+  // produto vindo da URL (?product_id=) ou escolhido por código: mostra o nome na busca
+  productSel.addEventListener('change', () => {
+    const o = selectedOpt();
+    if (o && o.value) searchEl.value = o.text.replace(/\s*\([^)]*\)\s*$/, '').trim();
+  });
+  document.getElementById('saleForm').addEventListener('submit', e => {
+    if (!productSel.value) { e.preventDefault(); alert('Escolha o produto na lista.'); searchEl.focus(); }
+  });
 
   // ── ESTOQUE ──
   let stockLevels = {};
@@ -535,13 +599,14 @@
     const rows = k.items.map(it => {
       const q = Math.round(it.qty * n * 1000) / 1000;
       const warn = it.stock < q ? ` <span class="warn">· estoque ${fmtQty(it.stock, it.unit)}</span>` : '';
-      return `<li><span>${fmtQty(q, it.unit)} ${it.unit} × ${it.name}${warn}</span><span>${brl(Math.round(q * it.kit_price * 100) / 100)}</span></li>`;
+      return `<li><span>${fmtQty(q, it.unit)} ${it.unit} × ${it.name}${warn}</span><span>${brl(Math.round(it.line_total * n * 100) / 100)}</span></li>`;
     }).join('');
-    const total = k.items.reduce((s, it) => s + Math.round(it.qty * n * it.kit_price * 100) / 100, 0);
+    const total = k.items.reduce((s, it) => s + Math.round(it.line_total * n * 100) / 100, 0);
     const full = k.items.reduce((s, it) => s + Math.round(it.qty * n * it.price * 100) / 100, 0);
     box.innerHTML = `<ul style="padding:0;margin:0;">${rows}</ul><div class="tot">` +
-      (k.discount_percent ? `<span class="old">${brl(full)}</span>` : '') + `Total: ${brl(total)}` +
-      (k.discount_percent ? ` <span style="color:#E2144A;">(-${k.discount_percent}%)</span>` : '') + '</div>';
+      (Math.abs(full - total) > 0.004 ? `<span class="old">${brl(full)}</span>` : '') + `Total: ${brl(total)}` +
+      (k.mode === 'fixo' ? ' <span style="color:#E2144A;">(preço fixo)</span>'
+        : k.discount_percent ? ` <span style="color:#E2144A;">(-${k.discount_percent}%)</span>` : '') + '</div>';
     box.style.display = 'block';
   }
   kitSel.addEventListener('change', renderKit);

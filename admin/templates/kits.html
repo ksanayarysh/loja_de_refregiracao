@@ -29,7 +29,17 @@
     .ed-sum{margin-top:12px;padding:12px 14px;background:#f9fafb;border-radius:10px;font-weight:800;}
     .ed-sum .old{color:#9ca3af;text-decoration:line-through;font-weight:600;margin-right:8px;}
     .ed-check{display:flex;gap:8px;align-items:center;font-weight:700;margin-top:12px;}
+    .ed-mode{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:8px;}
+    .ed-mode label{display:flex;gap:6px;align-items:center;margin:0;font-weight:700;cursor:pointer;}
+    .ed-mode input{width:auto;margin:0;}
     .ed-check input{width:auto;margin:0;}
+    .ed-row .pp-wrap input.pp-bad{border-color:#f59e0b;background:#fffbeb;}
+    .pp-box{display:none;position:absolute;left:0;right:0;top:100%;z-index:60;background:#fff;border:1px solid #d6d9e0;border-radius:10px;max-height:300px;overflow-y:auto;box-shadow:0 6px 18px rgba(0,0,0,.12);margin-top:4px;}
+    .pp-item{padding:9px 12px;cursor:pointer;font-size:.92rem;border-bottom:1px solid #f3f4f6;line-height:1.3;}
+    .pp-item:last-child{border-bottom:none;}
+    .pp-item span{color:#888;font-size:.82rem;white-space:nowrap;}
+    .pp-item.act,.pp-item:hover{background:#fff7ed;}
+    .pp-empty{padding:10px 12px;color:#888;}
     @media (max-width:600px){ .ed-row{grid-template-columns:1fr 80px 36px;} }
 {% endblock %}
 
@@ -41,7 +51,7 @@
 
   {% if editing or new %}
   {# ── EDITOR ── #}
-  <div class="card">
+  <div class="card" style="margin-bottom:18px;">
     <h2 style="margin-bottom:12px;">{% if editing %}Editar kit{% else %}Novo kit{% endif %}</h2>
     <form method="post" action="/kits/save" id="kitForm">
       <input type="hidden" name="kit_id" value="{{ editing.id if editing else '' }}">
@@ -51,9 +61,22 @@
       <input id="k-name" name="name" required maxlength="160" value="{{ editing.name if editing else '' }}"
              placeholder="Ex.: Kit instalação split 9000 BTU">
 
-      <label for="k-disc">Desconto do kit (%)</label>
-      <input id="k-disc" name="discount_percent" inputmode="decimal" style="max-width:140px;"
-             value="{{ ('%g' % editing.discount_percent) if editing else '0' }}">
+      <label>Preço do kit</label>
+      <div class="ed-mode">
+        <label><input type="radio" name="price_mode" value="desconto"
+          {% if not editing or editing.mode == 'desconto' %}checked{% endif %}> Desconto (%)</label>
+        <label><input type="radio" name="price_mode" value="fixo"
+          {% if editing and editing.mode == 'fixo' %}checked{% endif %}> Preço fixo (R$)</label>
+      </div>
+      <div id="box-desc">
+        <input id="k-disc" name="discount_percent" inputmode="decimal" style="max-width:140px;" placeholder="Ex.: 10"
+               value="{{ ('%g' % editing.discount_set) if editing else '0' }}">
+      </div>
+      <div id="box-fixo" style="display:none;">
+        <input id="k-fixo" name="fixed_price" inputmode="decimal" style="max-width:180px;" placeholder="Ex.: 149,90"
+               value="{{ (('%.2f' % editing.fixed_price) | replace('.', ',')) if editing and editing.fixed_price else '' }}">
+        <div class="hint">O valor é dividido entre os produtos proporcionalmente ao preço de cada um.</div>
+      </div>
 
       <label style="margin-top:16px;">Produtos</label>
       <div id="ed-rows"></div>
@@ -80,11 +103,12 @@
     <div class="kit-head">
       <div>
         <span class="kit-name">{{ k.name }}</span>
-        {% if k.discount_percent %}<span class="kit-badge">-{{ '%g' % k.discount_percent }}%</span>{% endif %}
+        {% if k.mode == 'fixo' %}<span class="kit-badge">preço fixo{% if k.discount_percent > 0 %} · -{{ '%g' % k.discount_percent }}%{% endif %}</span>
+        {% elif k.discount_percent %}<span class="kit-badge">-{{ '%g' % k.discount_percent }}%</span>{% endif %}
         {% if not k.active %}<span class="kit-badge gray">inativo</span>{% endif %}
       </div>
       <div class="kit-total">
-        {% if k.discount_percent %}<div class="old">R$ {{ ('%.2f' % k.full_total) | replace('.', ',') }}</div>{% endif %}
+        {% if k.full_total != k.total %}<div class="old">R$ {{ ('%.2f' % k.full_total) | replace('.', ',') }}</div>{% endif %}
         <div class="new">R$ {{ ('%.2f' % k.total) | replace('.', ',') }}</div>
       </div>
     </div>
@@ -96,7 +120,7 @@
           {% if it.no_price %}<span class="kit-warn">· sem preço</span>{% endif %}
           {% if it.stock < it.qty %}<span class="kit-warn">· estoque {{ '%g' % it.stock }}</span>{% endif %}
         </span>
-        <span>R$ {{ ('%.2f' % (it.kit_price * it.qty)) | replace('.', ',') }}</span>
+        <span>R$ {{ ('%.2f' % it.line_total) | replace('.', ',') }}</span>
       </li>
       {% endfor %}
     </ul>
@@ -126,51 +150,120 @@
   const money = n => 'R$ ' + n.toFixed(2).replace('.', ',');
   const num = v => { const n = Number(String(v || '').replace(',', '.')); return Number.isFinite(n) ? n : 0; };
 
+  // ── busca de produto digitando (sem acento, várias palavras: "tubo 1/4") ──
+  function ppNorm(s) { return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase(); }
+  function ppEsc(s) { return String(s || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+  function attachPicker(input, list, onPick) {
+    list.forEach(p => { p._n = ppNorm(p.name); });
+    const box = document.createElement('div');
+    box.className = 'pp-box';
+    input.parentNode.style.position = 'relative';
+    input.setAttribute('autocomplete', 'off');
+    input.after(box);
+    let hits = [], act = -1;
+    function show() {
+      const words = ppNorm(input.value).split(/\s+/).filter(Boolean);
+      hits = (words.length ? list.filter(p => words.every(w => p._n.includes(w))) : list).slice(0, 40);
+      box.innerHTML = hits.length
+        ? hits.map((p, i) => `<div class="pp-item${i === act ? ' act' : ''}" data-i="${i}">${ppEsc(p.name)}` +
+            ` <span>${ppEsc(p.unit || '')}${p.price != null ? ' · R$ ' + Number(p.price).toFixed(2).replace('.', ',') : ''}</span></div>`).join('')
+        : '<div class="pp-empty">Nada encontrado</div>';
+      box.style.display = 'block';
+      const a = box.querySelector('.act'); if (a) a.scrollIntoView({ block: 'nearest' });
+    }
+    function pick(p) { input.value = p.name; box.style.display = 'none'; onPick(p); }
+    input.addEventListener('focus', () => { input.select(); act = -1; show(); });
+    input.addEventListener('input', () => { act = 0; show(); });
+    input.addEventListener('keydown', e => {
+      if (box.style.display !== 'block') return;
+      if (e.key === 'ArrowDown') { act = Math.min(act + 1, hits.length - 1); show(); e.preventDefault(); }
+      else if (e.key === 'ArrowUp') { act = Math.max(act - 1, 0); show(); e.preventDefault(); }
+      else if (e.key === 'Enter') { const p = hits[act >= 0 ? act : 0]; if (p) pick(p); e.preventDefault(); }
+      else if (e.key === 'Escape') { box.style.display = 'none'; }
+    });
+    box.addEventListener('mousedown', e => {
+      const it = e.target.closest('.pp-item');
+      if (it) { e.preventDefault(); pick(hits[+it.dataset.i]); }
+    });
+    input.addEventListener('blur', () => setTimeout(() => { box.style.display = 'none'; }, 150));
+  }
+
+  const PICK = PRODUCTS.map(p => ({ id: p.id, name: p.name, unit: p.unit, price: p.sale_price }));
+
   function addRow(pid, qty) {
     const row = document.createElement('div');
     row.className = 'ed-row';
-    const opts = ['<option value="">Selecione o produto...</option>'].concat(PRODUCTS.map(p =>
-      `<option value="${p.id}" ${p.id === pid ? 'selected' : ''}>${p.name.replace(/</g, '&lt;')}${p.unit ? ' (' + p.unit + ')' : ''} — R$ ${p.sale_price.toFixed(2).replace('.', ',')}</option>`
-    ));
-    row.innerHTML = `<select>${opts.join('')}</select>
+    const p0 = PRODUCTS.find(p => p.id === pid);
+    row.dataset.pid = p0 ? p0.id : '';
+    row.innerHTML = `<div class="pp-wrap"><input placeholder="Digite o nome do produto..." value="${p0 ? ppEsc(p0.name) : ''}"></div>
       <input inputmode="decimal" placeholder="Qtd" value="${qty != null ? qty : 1}">
       <button type="button" class="ed-del" title="Remover">✕</button>`;
+    const [nameEl, qtyEl] = row.querySelectorAll('input');
+    attachPicker(nameEl, PICK, p => { row.dataset.pid = p.id; nameEl.classList.remove('pp-bad'); recalc(); qtyEl.focus(); qtyEl.select(); });
+    nameEl.addEventListener('input', () => { row.dataset.pid = ''; recalc(); });
+    nameEl.addEventListener('blur', () => setTimeout(() => nameEl.classList.toggle('pp-bad', !row.dataset.pid && nameEl.value.trim() !== ''), 200));
     row.querySelector('.ed-del').onclick = () => { row.remove(); recalc(); };
-    row.querySelector('select').onchange = recalc;
-    row.querySelector('input').oninput = recalc;
+    qtyEl.oninput = recalc;
     rowsEl.appendChild(row);
+    if (!p0) nameEl.focus();
     recalc();
   }
 
   function collect() {
     return [...rowsEl.querySelectorAll('.ed-row')].map(r => ({
-      product_id: Number(r.querySelector('select').value), qty: num(r.querySelector('input').value)
+      product_id: Number(r.dataset.pid), qty: num(r.querySelectorAll('input')[1].value)
     })).filter(i => i.product_id && i.qty > 0);
   }
 
+  const fixoEl = document.getElementById('k-fixo');
+  const brlNum = v => num(String(v || '').replace(/\.(?=\d{3}(\D|$))/g, ''));   // "1.234,50" -> 1234.5
+  const mode = () => document.querySelector('input[name=price_mode]:checked').value;
+  function showMode() {
+    document.getElementById('box-desc').style.display = mode() === 'desconto' ? '' : 'none';
+    document.getElementById('box-fixo').style.display = mode() === 'fixo' ? '' : 'none';
+    recalc();
+  }
+  document.querySelectorAll('input[name=price_mode]').forEach(r => r.onchange = showMode);
+  fixoEl.oninput = () => recalc();
+
   function recalc() {
-    const pct = Math.min(Math.max(num(discEl.value), 0), 90);
-    let full = 0, total = 0;
-    for (const i of collect()) {
+    let full = 0;
+    const its = collect().map(i => {
       const p = PRODUCTS.find(x => x.id === i.product_id);
-      if (!p) continue;
-      const kp = Math.round(p.sale_price * (100 - pct)) / 100;     // mesmo arredondamento do servidor
-      full += Math.round(i.qty * p.sale_price * 100) / 100;
-      total += Math.round(i.qty * kp * 100) / 100;
+      const price = p ? p.sale_price : 0;
+      const lf = Math.round(i.qty * price * 100) / 100;
+      full += lf;
+      return { ...i, price, lf };
+    });
+    let total;
+    if (mode() === 'fixo') {
+      total = brlNum(fixoEl.value);
+    } else {
+      const pct = Math.min(Math.max(num(discEl.value), 0), 90);
+      total = its.reduce((s, i) => s + Math.round(i.qty * (Math.round(i.price * (100 - pct)) / 100) * 100) / 100, 0);
     }
-    document.getElementById('ed-sum').innerHTML = collect().length
-      ? (pct ? `<span class="old">${money(full)}</span>` : '') + `Preço do kit: ${money(total)}`
-      : 'Adicione os produtos do kit.';
+    const sum = document.getElementById('ed-sum');
+    if (!its.length) { sum.innerHTML = 'Adicione os produtos do kit.'; return; }
+    const off = full > 0 && total > 0 ? Math.round((1 - total / full) * 1000) / 10 : 0;
+    sum.innerHTML = (total !== full ? `<span class="old">${money(full)}</span>` : '') +
+      `Preço do kit: ${money(total || 0)}` +
+      (mode() === 'fixo' && full > 0 && total > 0 ? ` <span style="color:${off >= 0 ? '#E2144A' : '#b45309'};">(${off >= 0 ? '-' : '+'}${Math.abs(off)}%)</span>` : '');
   }
   discEl.oninput = recalc;
 
   document.getElementById('kitForm').onsubmit = e => {
     const items = collect();
+    if ([...rowsEl.querySelectorAll('.ed-row')].some(r => !r.dataset.pid && r.querySelector('input').value.trim())) {
+      e.preventDefault(); alert('Escolha o produto da lista em todas as linhas (destacadas em amarelo).'); return;
+    }
     if (!items.length) { e.preventDefault(); alert('Adicione pelo menos um produto.'); return; }
+    if (mode() === 'fixo' && !(brlNum(fixoEl.value) > 0)) { e.preventDefault(); alert('Informe o preço fixo do kit.'); return; }
     document.getElementById('items_json').value = JSON.stringify(items);
   };
 
   if (START.length) START.forEach(i => addRow(i.product_id, i.qty)); else addRow();
+  document.getElementById('k-name').focus();
+  showMode();
 </script>
 {% endif %}
 {% endblock %}

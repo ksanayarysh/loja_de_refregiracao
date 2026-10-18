@@ -60,6 +60,8 @@ async def _ensure_tables():
             )
         """))
         await conn.execute(text("CREATE INDEX IF NOT EXISTS ix_kit_items_kit ON kit_items(kit_id)"))
+        # preço fixo do kit (opcional). Se preenchido, vale ele; senão, o desconto em %.
+        await conn.execute(text("ALTER TABLE kits ADD COLUMN IF NOT EXISTS fixed_price NUMERIC(10,2)"))
     _ready = True
 
 
@@ -87,26 +89,50 @@ async def _load_kits(conn, only_active: bool = False, kit_id: int | None = None)
     for r in rows:
         by_kit.setdefault(r["kit_id"], []).append(dict(r))
     for k in kits:
+        k.pop("created_at", None)          # datetime não vai para JSON
         pct = Decimal(str(k["discount_percent"] or 0))
-        factor = (Decimal(100) - pct) / Decimal(100)
-        full = total = Decimal(0)
-        items = []
+        fixed = Decimal(str(k["fixed_price"])) if k.get("fixed_price") is not None else None
+        raw = []
+        full = Decimal(0)
         for it in by_kit.get(k["id"], []):
             price = Decimal(str(it["sale_price"] or 0))
-            kprice = _money(price * factor)
             qty = Decimal(str(it["qty"]))
-            full += _money(qty * price)
-            total += _money(qty * kprice)
+            line_full = _money(qty * price)
+            full += line_full
+            raw.append((it, price, qty, line_full))
+
+        # total de cada linha (para 1 kit). Preço fixo: rateado pelo valor de cada produto,
+        # a última linha absorve os centavos -> a soma dá exatamente o preço fixo.
+        lines = []
+        if fixed is not None and full > 0:
+            acc = Decimal(0)
+            for i, (it, price, qty, line_full) in enumerate(raw):
+                lt = fixed - acc if i == len(raw) - 1 else _money(fixed * line_full / full)
+                acc += lt
+                lines.append(lt)
+            eff_pct = ((full - fixed) / full * 100).quantize(Decimal("0.1"))
+        else:
+            factor = (Decimal(100) - pct) / Decimal(100)
+            lines = [_money(qty * _money(price * factor)) for it, price, qty, _ in raw]
+            eff_pct = pct
+
+        items = []
+        for (it, price, qty, line_full), lt in zip(raw, lines):
             items.append({
                 "product_id": it["product_id"], "name": it["name"], "unit": it["unit"] or "un",
-                "qty": float(qty), "price": float(price), "kit_price": float(kprice),
+                "qty": float(qty), "price": float(price),
+                "kit_price": float(_money(lt / qty)) if qty else 0.0,   # preço unitário (informativo)
+                "line_total": float(lt),                                # total da linha para 1 kit
                 "stock": float(it["stock"] or 0), "product_active": bool(it["active"]),
                 "no_price": not it["sale_price"],
             })
-        k["discount_percent"] = float(pct)
+        k["mode"] = "fixo" if fixed is not None else "desconto"
+        k["fixed_price"] = float(fixed) if fixed is not None else None
+        k["discount_percent"] = float(eff_pct)
+        k["discount_set"] = float(pct)
         k["items"] = items
         k["full_total"] = float(full)
-        k["total"] = float(total)
+        k["total"] = float(sum(lines, Decimal(0)))
     return kits
 
 
@@ -134,18 +160,30 @@ async def kits_save(
     kit_id: str = Form(""),
     name: str = Form(...),
     discount_percent: str = Form("0"),
+    price_mode: str = Form("desconto"),
+    fixed_price: str = Form(""),
     active: str = Form(""),
     items_json: str = Form("[]"),
     _=Depends(basic_auth),
 ):
     await _ensure_tables()
     name = name.strip()[:160]
-    try:
-        pct = Decimal(discount_percent.replace(",", ".") or "0")
-        if pct < 0 or pct > 90:
-            raise ValueError
-    except Exception:
-        return _go("/kits", err="Desconto inválido (0–90%)")
+    fixed = None
+    pct = Decimal(0)
+    if price_mode == "fixo":
+        try:
+            fixed = _money(fixed_price.replace(".", "").replace(",", ".") if "," in fixed_price else fixed_price)
+            if fixed <= 0:
+                raise ValueError
+        except Exception:
+            return _go("/kits", err="Preço fixo inválido. Ex.: 150 ou 149,90")
+    else:
+        try:
+            pct = Decimal(discount_percent.replace(",", ".") or "0")
+            if pct < 0 or pct > 90:
+                raise ValueError
+        except Exception:
+            return _go("/kits", err="Desconto inválido (0–90%)")
     try:
         raw = json.loads(items_json)
         items = []
@@ -163,13 +201,13 @@ async def kits_save(
         if kit_id.strip():
             kid = int(kit_id)
             await conn.execute(text(
-                "UPDATE kits SET name = :n, discount_percent = :d, active = :a WHERE id = :id"
-            ), {"n": name, "d": pct, "a": bool(active), "id": kid})
+                "UPDATE kits SET name = :n, discount_percent = :d, fixed_price = :f, active = :a WHERE id = :id"
+            ), {"n": name, "d": pct, "f": fixed, "a": bool(active), "id": kid})
             await conn.execute(text("DELETE FROM kit_items WHERE kit_id = :id"), {"id": kid})
         else:
             kid = (await conn.execute(text(
-                "INSERT INTO kits (name, discount_percent, active) VALUES (:n, :d, :a) RETURNING id"
-            ), {"n": name, "d": pct, "a": bool(active)})).scalar()
+                "INSERT INTO kits (name, discount_percent, fixed_price, active) VALUES (:n, :d, :f, :a) RETURNING id"
+            ), {"n": name, "d": pct, "f": fixed, "a": bool(active)})).scalar()
         for pid, q in items:
             await conn.execute(text(
                 "INSERT INTO kit_items (kit_id, product_id, qty) VALUES (:k, :p, :q)"
@@ -224,8 +262,11 @@ async def sales_kit(
         if not kits or not kits[0]["items"]:
             return _go("/sales/new", kit_err="Kit não encontrado ou vazio")
         kit = kits[0]
-        pct = Decimal(str(kit["discount_percent"]))
-        tag = f"Kit: {kit['name']}" + (f" (-{pct.normalize():f}%)" if pct else "")
+        pct = Decimal(str(kit["discount_set"]))
+        if kit["mode"] == "fixo":
+            tag = f"Kit: {kit['name']} (preço fixo R$ {kit['fixed_price']:.2f})".replace(".", ",")
+        else:
+            tag = f"Kit: {kit['name']}" + (f" (-{pct.normalize():f}%)" if pct else "")
         line_note = f"{tag} · {note.strip()}" if note.strip() else tag
 
         cost_map = {r["id"]: Decimal(str(r["cost_price"] or 0)) for r in (await conn.execute(text(
@@ -236,8 +277,8 @@ async def sales_kit(
         tg_items = []
         for it in kit["items"]:
             qty = (Decimal(str(it["qty"])) * n).quantize(Decimal("0.001"))
-            price = _money(it["kit_price"])
-            line_total = _money(qty * price)
+            line_total = _money(Decimal(str(it["line_total"])) * n)   # soma das linhas = preço do kit × n
+            price = _money(line_total / qty) if qty else Decimal(0)
             grand_total += line_total
             total_cost += qty * cost_map.get(it["product_id"], Decimal(0))
             await conn.exec_driver_sql(
