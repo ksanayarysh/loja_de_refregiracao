@@ -540,6 +540,20 @@ async def catalog_page(request: Request):
             banners_raw.append(r)
 
         promo_product = await _get_promo_product(conn)
+        all_rows = await _get_products_cached(conn)
+
+    # produtos em promoção (promo_price < sale_price), maior desconto primeiro
+    promos = []
+    for r in all_rows:
+        if r.get("on_promo") and r.get("sale_price"):
+            off = round((1 - r["price"] / r["sale_price"]) * 100)
+            promos.append({
+                "id": r["id"], "name": r["name"], "slug": slugify(r["name"]), "image": r.get("image") or "",
+                "unit": r.get("unit") or "", "sale_price": r["sale_price"], "price": r["price"], "off": off,
+                "in_stock": float(r.get("current_stock") or 0) > 0,
+            })
+    promos.sort(key=lambda x: (not x["in_stock"], -x["off"]))
+    promos = promos[:12]
 
     categories = [
         {"name": c["name"], "total": c["total"], "slug": slugify(c["name"])}
@@ -547,7 +561,7 @@ async def catalog_page(request: Request):
     ]
 
     clean = _json.loads(_json.dumps(
-        {"categories": categories, "banners": banners_raw, "promo_product": promo_product},
+        {"categories": categories, "banners": banners_raw, "promo_product": promo_product, "promos": promos},
         default=str
     ))
 
@@ -556,6 +570,7 @@ async def catalog_page(request: Request):
         "categories":    clean["categories"],
         "banners":       clean["banners"],
         "promo_product": clean["promo_product"],
+        "promos":        clean["promos"],
         "ga_id":         GA_ID,
         "site_url":      SITE_URL,
         "store_address": STORE_ADDRESS,

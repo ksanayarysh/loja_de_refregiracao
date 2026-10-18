@@ -325,7 +325,7 @@
 <!-- HERO -->
 <div class="hero">
   <div class="hero-text">
-    <h1>Loja de peças e gases para<br><span>refrigeração no RJ</span></h1>
+    <h1>Loja de peças e gases para<br><span>refrigeração, climatização e máquinas de lavar no RJ</span></h1>
     <p>Loja especializada em peças para geladeira, máquina de lavar e ar-condicionado. Refil e varejo de gases refrigerantes: R22, R32, R134a, R290, R410A, R404A, R600a. Av. Brasil, 6818 — Rio de Janeiro.</p>
     <div class="hero-btns">
       <a class="btn-hero-wa wa-track" href="https://wa.me/{{ wa_number }}?text=Ol%C3%A1%21%20Quero%20comprar%20uma%20pe%C3%A7a." target="_blank" rel="noopener" data-product="Hero WA">
@@ -360,7 +360,7 @@
         </a>
         <div class="hero-banner-info">
           <a href="/product/{{ b.slug }}" style="text-decoration:none;color:inherit;">
-            <div class="hero-banner-name">{{ b.name }}</div>
+            <div class="hero-banner-name">{% if b.on_promo %}<span class="promo-pill">Promoção</span>{% endif %}{{ b.name }}</div>
             <div class="hero-banner-cat">{{ b.category_name }}</div>
           </a>
         </div>
@@ -404,6 +404,75 @@
   </div>
 </div>
 {% endif %}
+
+<!-- PROMOÇÕES (produtos com promo_price na admin) -->
+{% if promos %}
+<style>
+  .promo-pill{display:inline-block;background:var(--accent);color:#fff;font-size:.62rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:5px;margin-right:6px;vertical-align:middle;line-height:1.4;}
+  .promos-row{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(200px,230px);gap:12px;overflow-x:auto;padding:12px 2px 10px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;}
+  .promo-card{scroll-snap-align:start;background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px;position:relative;text-decoration:none;color:inherit;transition:border-color .15s,box-shadow .15s;}
+  .promo-card:hover{border-color:var(--accent);box-shadow:0 4px 16px rgba(226,20,74,.1);}
+  .promo-off{position:absolute;top:-9px;left:10px;background:var(--accent);color:#fff;font-weight:800;font-size:.78rem;padding:3px 9px;border-radius:999px;box-shadow:0 2px 6px rgba(226,20,74,.3);}
+  .promo-img{width:100%;height:120px;object-fit:contain;border-radius:10px;background:#fff;}
+  .promo-img-ph{width:100%;height:120px;border-radius:10px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:2rem;}
+  .promo-name{font-weight:600;font-size:.88rem;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.6em;}
+  .promo-old{font-size:.76rem;color:var(--muted);text-decoration:line-through;}
+  .promo-new{font-family:'DM Mono',monospace;font-weight:700;font-size:1.15rem;color:var(--accent);}
+  .promo-add{margin-top:auto;padding:9px;border-radius:9px;border:none;background:var(--accent);color:#fff;font-weight:700;font-size:.85rem;font-family:inherit;cursor:pointer;}
+  .promo-out{margin-top:auto;font-size:.78rem;color:var(--muted);text-align:center;padding:9px;}
+</style>
+<div class="section-wrap">
+  <div class="section-title">🔥 Promoções</div>
+  <div class="promos-row">
+    {% for p in promos %}
+    <div class="promo-card">
+      <div class="promo-off">-{{ p.off }}%</div>
+      <a href="/product/{{ p.slug }}" style="display:contents;color:inherit;text-decoration:none;">
+        {% if p.image %}<img class="promo-img" src="{{ p.image | imgurl(240) }}" alt="{{ p.name }}" loading="lazy">{% else %}<div class="promo-img-ph">📦</div>{% endif %}
+        <div class="promo-name">{{ p.name }}</div>
+        <div>
+          <div class="promo-old">R$ {{ ("%.2f"|format(p.sale_price))|replace(".", ",") }}</div>
+          <div class="promo-new">R$ {{ ("%.2f"|format(p.price))|replace(".", ",") }}{% if p.unit %}<span style="font-size:.72rem;color:var(--muted);font-weight:400;"> / {{ p.unit }}</span>{% endif %}</div>
+        </div>
+      </a>
+      {% if p.in_stock %}
+      <button class="promo-add" onclick='addToCart({{ p.id }}, {{ p.name | tojson }}, {{ p.price }}, {{ p.image | tojson }})'>🛒 Adicionar</button>
+      {% else %}
+      <div class="promo-out">Sem estoque no momento</div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- KITS (montados na admin em /kits, marcados "mostrar no site") -->
+<style>
+  .kits-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;}
+  .kit-card{background:var(--surface);border:1.5px solid var(--border);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px;position:relative;transition:border-color .15s,box-shadow .15s;}
+  .kit-card:hover{border-color:var(--accent);box-shadow:0 6px 20px rgba(226,20,74,.08);}
+  .kit-save{position:absolute;top:-10px;right:14px;background:var(--accent);color:#fff;font-size:.74rem;font-weight:800;padding:4px 10px;border-radius:999px;box-shadow:0 2px 6px rgba(226,20,74,.3);}
+  .kit-name{font-weight:800;font-size:1.05rem;line-height:1.3;padding-right:70px;}
+  .kit-desc{font-size:.85rem;color:var(--muted);line-height:1.45;margin-top:-6px;}
+  .kit-thumbs{display:flex;gap:6px;flex-wrap:wrap;}
+  .kit-thumbs img,.kit-thumbs .kt-ph{width:46px;height:46px;border-radius:8px;object-fit:contain;background:#fff;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.1rem;}
+  .kit-list{list-style:none;margin:0;padding:0;font-size:.86rem;display:flex;flex-direction:column;gap:4px;}
+  .kit-list li{display:flex;gap:6px;align-items:baseline;}
+  .kit-list .q{font-family:'DM Mono',monospace;font-weight:700;color:var(--text);white-space:nowrap;}
+  .kit-gift{display:inline-block;background:#f0fdf4;border:1px solid #bbf7d0;color:#15803d;font-size:.7rem;font-weight:800;padding:1px 7px;border-radius:999px;margin-left:4px;}
+  .kit-price-row{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin-top:auto;}
+  .kit-old{font-size:.8rem;color:var(--muted);text-decoration:line-through;}
+  .kit-price{font-family:'DM Mono',monospace;font-weight:700;font-size:1.5rem;color:var(--accent);line-height:1.1;}
+  .kit-car{font-size:.74rem;color:var(--muted);}
+  .kit-btns{display:flex;gap:8px;}
+  .kit-btns button{flex:1;padding:11px 10px;border-radius:10px;font-weight:700;font-size:.88rem;font-family:inherit;cursor:pointer;}
+  .kit-add{background:var(--surface);color:var(--text);border:1.5px solid var(--text);}
+  .kit-buy{background:var(--accent);color:#fff;border:none;}
+</style>
+<div class="section-wrap" id="kits-wrap" style="display:none;">
+  <div class="section-title">🧰 Kits com desconto</div>
+  <div class="kits-grid" id="kits-grid"></div>
+</div>
 
 <!-- CALCULADORA DE INSTALAÇÃO -->
 <div class="section-wrap" style="padding-bottom:24px;">
@@ -693,6 +762,56 @@ function cartClose() {
 }
 
 cartUpdateUI();
+
+// ===== KITS =====
+let SITE_KITS = [];
+function kitEsc(s) { return String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+function kitBRL(n) { return 'R$ ' + Number(n).toFixed(2).replace('.', ','); }
+function kitQty(q) { const r = Math.round(q * 1000) / 1000; return String(r).replace('.', ','); }
+function kitToCartSite(id, go) {
+  const k = SITE_KITS.find(x => x.id === id);
+  if (!k) return;
+  const ex = cart.find(i => i.kit_id === k.id);
+  if (ex) ex.qty++;
+  else cart.push({
+    id: 'kit-' + k.id, kit_id: k.id, name: '🧰 ' + (/^kit\b/i.test(k.name) ? k.name : 'Kit ' + k.name), price: k.total, unit: 'kit', qty: 1,
+    car_only: k.car_only, image: (k.items.find(i => i.image) || {}).image || '',
+    items: k.items.map(i => ({ name: i.name, qty: i.qty, unit: i.unit, is_gift: i.is_gift })),
+  });
+  cartSave(); cartUpdateUI();
+  if (typeof gtag === 'function') gtag('event', 'add_to_cart', { currency: 'BRL', value: k.total, items: [{ item_id: 'kit-' + k.id, item_name: 'Kit: ' + k.name, price: k.total, quantity: 1 }] });
+  if (go) { location.href = '/checkout'; return; }
+  cartOpen(); cartRender();
+}
+fetch('/api/kits-site').then(r => r.json()).then(kits => {
+  SITE_KITS = kits || [];
+  if (!SITE_KITS.length) return;
+  document.getElementById('kits-grid').innerHTML = SITE_KITS.map(k => {
+    const thumbs = k.items.slice(0, 6).map(i => i.image
+      ? `<img loading="lazy" src="${imgProxy(i.image, 92)}" alt="${kitEsc(i.name)}" title="${kitEsc(i.name)}">`
+      : `<div class="kt-ph" title="${kitEsc(i.name)}">📦</div>`).join('');
+    const list = k.items.map(i => `<li><span class="q">${kitQty(i.qty)} ${kitEsc(i.unit)}</span><span>${kitEsc(i.name)}${i.is_gift ? '<span class="kit-gift">🎁 Brinde</span>' : ''}</span></li>`).join('');
+    return `<div class="kit-card">
+      ${k.save >= 1 ? `<div class="kit-save">Economize ${kitBRL(k.save)}</div>` : ''}
+      <div class="kit-name">${kitEsc(k.name)}</div>
+      ${k.description ? `<div class="kit-desc">${kitEsc(k.description)}</div>` : ''}
+      <div class="kit-thumbs">${thumbs}</div>
+      <ul class="kit-list">${list}</ul>
+      <div class="kit-price-row">
+        <div>
+          ${k.save >= 0.01 ? `<div class="kit-old">Separado: ${kitBRL(k.full_total)}</div>` : ''}
+          <div class="kit-price">${kitBRL(k.total)}</div>
+        </div>
+        ${k.car_only ? '<div class="kit-car">🚗 Entrega de carro</div>' : ''}
+      </div>
+      <div class="kit-btns">
+        <button class="kit-add" onclick="kitToCartSite(${k.id})">🛒 Adicionar</button>
+        <button class="kit-buy" onclick="kitToCartSite(${k.id}, true)">Comprar agora</button>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('kits-wrap').style.display = '';
+}).catch(() => {});
 
 // ===== BUSCA: sugestões quando nada é encontrado (typo/similaridade) =====
 function _normStr(s) {

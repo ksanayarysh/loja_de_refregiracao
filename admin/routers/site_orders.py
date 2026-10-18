@@ -169,11 +169,15 @@ async def site_order_register_sale(order_id: int, _=Depends(basic_auth)):
             if it.get("components"):
                 kq = Decimal(str(it["qty"]))
                 pct = it.get("discount_pct") or 0
-                tag = f"{note} (kit -{pct:g}%)" if pct else f"{note} (kit)"
+                if it.get("kit_name"):          # kit montado na admin (/kits)
+                    tag = f"{note} (Kit: {it['kit_name']})"
+                else:
+                    tag = f"{note} (kit -{pct:g}%)" if pct else f"{note} (kit)"
                 for c in it["components"]:
                     q = _money(Decimal(str(c["qty"])) * kq)
                     t = _money(Decimal(str(c["line_total"])) * kq)
-                    lines.append((int(c["id"]), q, _money(t / q) if q else _money(0), t, tag))
+                    ctag = f"{tag} · 🎁 brinde" if c.get("is_gift") else tag
+                    lines.append((int(c["id"]), q, _money(t / q) if q else _money(0), t, ctag))
             else:
                 q = _money(it["qty"])
                 p = _money(it["price"])

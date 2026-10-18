@@ -62,6 +62,12 @@ async def _ensure_tables():
         await conn.execute(text("CREATE INDEX IF NOT EXISTS ix_kit_items_kit ON kit_items(kit_id)"))
         # preço fixo do kit (opcional). Se preenchido, vale ele; senão, o desconto em %.
         await conn.execute(text("ALTER TABLE kits ADD COLUMN IF NOT EXISTS fixed_price NUMERIC(10,2)"))
+        # brinde: vai no kit de graça, mas baixa estoque e entra no custo (margem)
+        await conn.execute(text("ALTER TABLE kit_items ADD COLUMN IF NOT EXISTS is_gift BOOLEAN NOT NULL DEFAULT FALSE"))
+        # site: mostrar na página inicial, texto curto, e se só vai de carro (moto não leva)
+        await conn.execute(text("ALTER TABLE kits ADD COLUMN IF NOT EXISTS show_on_site BOOLEAN NOT NULL DEFAULT FALSE"))
+        await conn.execute(text("ALTER TABLE kits ADD COLUMN IF NOT EXISTS description TEXT"))
+        await conn.execute(text("ALTER TABLE kits ADD COLUMN IF NOT EXISTS car_only BOOLEAN NOT NULL DEFAULT FALSE"))
     _ready = True
 
 
@@ -79,7 +85,7 @@ async def _load_kits(conn, only_active: bool = False, kit_id: int | None = None)
     if not kits:
         return []
     rows = (await conn.execute(text("""
-        SELECT ki.kit_id, ki.product_id, ki.qty, p.name, p.unit, p.sale_price, p.active,
+        SELECT ki.kit_id, ki.product_id, ki.qty, ki.is_gift, p.name, p.unit, p.sale_price, p.cost_price, p.active,
                COALESCE((SELECT SUM(sm.qty) FROM stock_movements sm WHERE sm.product_id = p.id), 0) AS stock
         FROM kit_items ki JOIN products p ON p.id = ki.product_id
         WHERE ki.kit_id = ANY(:ids)
@@ -93,46 +99,62 @@ async def _load_kits(conn, only_active: bool = False, kit_id: int | None = None)
         pct = Decimal(str(k["discount_percent"] or 0))
         fixed = Decimal(str(k["fixed_price"])) if k.get("fixed_price") is not None else None
         raw = []
-        full = Decimal(0)
+        full = gift_value = cost_total = Decimal(0)
         for it in by_kit.get(k["id"], []):
             price = Decimal(str(it["sale_price"] or 0))
+            cost = Decimal(str(it["cost_price"] or 0))
             qty = Decimal(str(it["qty"]))
+            gift = bool(it.get("is_gift"))
             line_full = _money(qty * price)
-            full += line_full
-            raw.append((it, price, qty, line_full))
+            if gift:
+                gift_value += line_full
+            else:
+                full += line_full
+            cost_total += qty * cost
+            raw.append((it, price, cost, qty, gift, line_full))
 
-        # total de cada linha (para 1 kit). Preço fixo: rateado pelo valor de cada produto,
-        # a última linha absorve os centavos -> a soma dá exatamente o preço fixo.
-        lines = []
+        # total de cada linha (1 kit). Brinde = 0. Preço fixo: rateado entre os itens pagos pelo
+        # valor de cada um; o último item pago absorve os centavos -> soma = preço fixo exato.
+        paid_idx = [i for i, r in enumerate(raw) if not r[4]]
+        lines = [Decimal(0)] * len(raw)
         if fixed is not None and full > 0:
             acc = Decimal(0)
-            for i, (it, price, qty, line_full) in enumerate(raw):
-                lt = fixed - acc if i == len(raw) - 1 else _money(fixed * line_full / full)
+            for n_, i in enumerate(paid_idx):
+                line_full = raw[i][5]
+                lt = fixed - acc if n_ == len(paid_idx) - 1 else _money(fixed * line_full / full)
                 acc += lt
-                lines.append(lt)
+                lines[i] = lt
             eff_pct = ((full - fixed) / full * 100).quantize(Decimal("0.1"))
         else:
             factor = (Decimal(100) - pct) / Decimal(100)
-            lines = [_money(qty * _money(price * factor)) for it, price, qty, _ in raw]
+            for i in paid_idx:
+                it, price, cost, qty, gift, line_full = raw[i]
+                lines[i] = _money(qty * _money(price * factor))
             eff_pct = pct
 
         items = []
-        for (it, price, qty, line_full), lt in zip(raw, lines):
+        for (it, price, cost, qty, gift, line_full), lt in zip(raw, lines):
             items.append({
                 "product_id": it["product_id"], "name": it["name"], "unit": it["unit"] or "un",
-                "qty": float(qty), "price": float(price),
+                "qty": float(qty), "price": float(price), "cost": float(cost), "is_gift": gift,
                 "kit_price": float(_money(lt / qty)) if qty else 0.0,   # preço unitário (informativo)
                 "line_total": float(lt),                                # total da linha para 1 kit
                 "stock": float(it["stock"] or 0), "product_active": bool(it["active"]),
-                "no_price": not it["sale_price"],
+                "no_price": not it["sale_price"], "no_cost": it["cost_price"] is None,
             })
+        total = sum(lines, Decimal(0))
         k["mode"] = "fixo" if fixed is not None else "desconto"
         k["fixed_price"] = float(fixed) if fixed is not None else None
         k["discount_percent"] = float(eff_pct)
         k["discount_set"] = float(pct)
         k["items"] = items
         k["full_total"] = float(full)
-        k["total"] = float(sum(lines, Decimal(0)))
+        k["gift_value"] = float(gift_value)
+        k["total"] = float(total)
+        k["cost_total"] = float(_money(cost_total))
+        k["profit"] = float(_money(total - cost_total))
+        k["margin"] = float((total - cost_total) / total * 100) if total > 0 else 0.0
+        k["cost_missing"] = any(i["no_cost"] for i in items)
     return kits
 
 
@@ -143,10 +165,11 @@ async def kits_page(request: Request, edit: int | None = None, _=Depends(basic_a
     async with engine.connect() as conn:
         kits = await _load_kits(conn)
         products = [dict(r) for r in (await conn.execute(text(
-            "SELECT id, name, unit, sale_price FROM products WHERE active = TRUE ORDER BY name"
+            "SELECT id, name, unit, sale_price, cost_price FROM products WHERE active = TRUE ORDER BY name"
         ))).mappings().all()]
     for p in products:
         p["sale_price"] = float(p["sale_price"] or 0)
+        p["cost_price"] = float(p["cost_price"]) if p["cost_price"] is not None else None
     editing = next((k for k in kits if k["id"] == edit), None) if edit else None
     return templates.TemplateResponse("kits.html", {
         "request": request, "active_page": "kits", "kits": kits, "products": products,
@@ -163,6 +186,9 @@ async def kits_save(
     price_mode: str = Form("desconto"),
     fixed_price: str = Form(""),
     active: str = Form(""),
+    show_on_site: str = Form(""),
+    car_only: str = Form(""),
+    description: str = Form(""),
     items_json: str = Form("[]"),
     _=Depends(basic_auth),
 ):
@@ -191,27 +217,33 @@ async def kits_save(
             pid = int(it["product_id"])
             q = Decimal(str(it["qty"]).replace(",", "."))
             if q > 0:
-                items.append((pid, q))
+                items.append((pid, q, bool(it.get("gift"))))
     except Exception:
         return _go("/kits", err="Itens inválidos")
-    if not name or not items:
+    if not name or not any(not g for _, _, g in items):
+        if name and items:
+            return _go("/kits", err="O kit precisa de pelo menos um produto pago (não só brindes)")
         return _go("/kits", err="Informe o nome e pelo menos um produto")
 
     async with engine.begin() as conn:
         if kit_id.strip():
             kid = int(kit_id)
             await conn.execute(text(
-                "UPDATE kits SET name = :n, discount_percent = :d, fixed_price = :f, active = :a WHERE id = :id"
-            ), {"n": name, "d": pct, "f": fixed, "a": bool(active), "id": kid})
+                "UPDATE kits SET name = :n, discount_percent = :d, fixed_price = :f, active = :a, "
+                "show_on_site = :s, car_only = :c, description = :ds WHERE id = :id"
+            ), {"n": name, "d": pct, "f": fixed, "a": bool(active), "s": bool(show_on_site),
+                "c": bool(car_only), "ds": description.strip()[:300] or None, "id": kid})
             await conn.execute(text("DELETE FROM kit_items WHERE kit_id = :id"), {"id": kid})
         else:
             kid = (await conn.execute(text(
-                "INSERT INTO kits (name, discount_percent, fixed_price, active) VALUES (:n, :d, :f, :a) RETURNING id"
-            ), {"n": name, "d": pct, "f": fixed, "a": bool(active)})).scalar()
-        for pid, q in items:
+                "INSERT INTO kits (name, discount_percent, fixed_price, active, show_on_site, car_only, description) "
+                "VALUES (:n, :d, :f, :a, :s, :c, :ds) RETURNING id"
+            ), {"n": name, "d": pct, "f": fixed, "a": bool(active), "s": bool(show_on_site),
+                "c": bool(car_only), "ds": description.strip()[:300] or None})).scalar()
+        for pid, q, gift in items:
             await conn.execute(text(
-                "INSERT INTO kit_items (kit_id, product_id, qty) VALUES (:k, :p, :q)"
-            ), {"k": kid, "p": pid, "q": q})
+                "INSERT INTO kit_items (kit_id, product_id, qty, is_gift) VALUES (:k, :p, :q, :g)"
+            ), {"k": kid, "p": pid, "q": q, "g": gift})
     return _go("/kits", ok=f"Kit “{name}” salvo")
 
 
@@ -284,14 +316,15 @@ async def sales_kit(
             await conn.exec_driver_sql(
                 "INSERT INTO sales (sold_at, product_id, qty, unit_price, total, note, payment_type, client_id) "
                 "VALUES ($1,$2,$3,$4,$5,$6,$7,$8)",
-                (sold_at_date, it["product_id"], qty, price, line_total, line_note, payment_type, cid),
+                (sold_at_date, it["product_id"], qty, price, line_total,
+                 f"{line_note} · 🎁 brinde" if it["is_gift"] else line_note, payment_type, cid),
             )
             sale_id = (await conn.execute(text("SELECT lastval()"))).scalar()
             await conn.execute(text("""
                 INSERT INTO stock_movements (product_id, qty, movement_type, note, sale_id, moved_at)
                 VALUES (:pid, :qty, 'venda', :note, :sid, :dt)
             """), {"pid": it["product_id"], "qty": -qty, "note": tag, "sid": sale_id, "dt": sold_at_date})
-            tg_items.append({"product_id": it["product_id"], "name": it["name"], "qty": qty,
+            tg_items.append({"product_id": it["product_id"], "name": it["name"] + (" 🎁" if it["is_gift"] else ""), "qty": qty,
                              "unit_price": price, "_discounted_price": price, "_discounted_total": line_total})
 
         if payment_type == "saldo" and cid:

@@ -195,7 +195,7 @@ function renderSummary() {
   if (!cart.length) { $('co-main').classList.add('co-hidden'); $('co-empty').classList.remove('co-hidden'); return; }
   $('sum-items').innerHTML = cart.map(i => `
     <div class="co-item">
-      <div class="co-item-name">${esc(i.name)}${i.kit ? ' <span class="co-kit">kit</span>' : ''} <div class="co-item-qty">${i.qty} × ${brl(i.price)}${i.unit ? ' / ' + esc(i.unit) : ''}</div></div>
+      <div class="co-item-name">${esc(i.name)}${i.kit ? ' <span class="co-kit">kit</span>' : ''} <div class="co-item-qty">${i.qty} × ${brl(i.price)}${i.unit ? ' / ' + esc(i.unit) : ''}</div>${i.items ? `<div class="co-item-qty">${i.items.map(c => esc(c.qty + ' ' + c.unit + ' ' + c.name) + (c.is_gift ? ' 🎁' : '')).join(' · ')}</div>` : ''}</div>
       <div class="co-money">${brl(i.price * i.qty)}</div>
     </div>`).join('');
   const sub = subtotal();
@@ -255,15 +255,15 @@ async function calcFrete() {
     }
     $('frete-msg').innerHTML = `<div class="co-local">📍 ${lugar} · ${d.distance_km.toFixed(1).replace('.', ',')} km · entrega via <strong>Lalamove</strong></div>`;
     // kit de instalação (tubos, suporte) não vai de moto
-    const hasKit = cart.some(i => i.kit);
+    const hasKit = cart.some(i => i.kit || i.car_only);
     const opts = hasKit ? d.options.filter(o => !KIT_BLOCKED.includes(o.service)) : d.options;
     if (!opts.length) {
-      const wa = encodeURIComponent('Olá! Quero o kit de instalação com entrega para o CEP ' + $('f-cep').value + '. Qual o valor do frete?');
-      $('frete-msg').innerHTML += `<div class="co-msg"><strong>Para o kit de instalação, o frete é combinado com o vendedor.</strong><br>
+      const wa = encodeURIComponent('Olá! Quero o kit com entrega para o CEP ' + $('f-cep').value + '. Qual o valor do frete?');
+      $('frete-msg').innerHTML += `<div class="co-msg"><strong>Para este kit, o frete é combinado com o vendedor.</strong><br>
         <a class="co-wa-link" href="https://wa.me/${WA_NUMBER}?text=${wa}" target="_blank" rel="noopener">Falar com o vendedor →</a></div>`;
       return;
     }
-    if (hasKit) $('frete-msg').innerHTML += '<div class="co-note" style="margin-bottom:8px;">O kit de instalação vai de carro (tubos e suporte não cabem na moto).</div>';
+    if (hasKit) $('frete-msg').innerHTML += '<div class="co-note" style="margin-bottom:8px;">O kit vai de carro (as peças não cabem na moto).</div>';
     $('frete-opts').innerHTML = opts.map((o, idx) => `
       <label class="co-opt">
         <input type="radio" name="service" value="${esc(o.service)}" data-price="${o.price}" ${idx === 0 ? 'checked' : ''}>
@@ -313,7 +313,7 @@ async function pagar() {
   try {
     const r = await fetch('/api/checkout/pix', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, phone, email, delivery, items: cart.map(i => ({ id: i.id, qty: i.qty, kit: !!i.kit })) }),
+      body: JSON.stringify({ name, phone, email, delivery, items: cart.map(i => i.kit_id ? { kit_id: i.kit_id, qty: i.qty } : { id: i.id, qty: i.qty, kit: !!i.kit }) }),
     });
     const d = await r.json();
     if (!r.ok) throw new Error(d.error || 'Não foi possível gerar o Pix.');

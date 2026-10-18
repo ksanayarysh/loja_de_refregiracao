@@ -138,7 +138,16 @@ async def _load_items(raw_items: list) -> tuple[list, float]:
     Linhas marcadas kit:true (vindas da calculadora) recebem o desconto do kit,
     mas só se o produto estiver em KIT_SLUGS; senão vão pelo preço normal."""
     qty_by_key = {}   # (id, is_kit) -> qty
+    kit_qty = {}      # kit montado na admin (kits_public) -> quantidade
     for it in raw_items or []:
+        if isinstance(it, dict) and it.get("kit_id"):
+            try:
+                kid, kq = int(it["kit_id"]), int(it.get("qty"))
+            except (TypeError, ValueError):
+                continue
+            if kid > 0 and 0 < kq <= 20:
+                kit_qty[kid] = kit_qty.get(kid, 0) + kq
+            continue
         try:
             pid, qty = int(it.get("id")), int(it.get("qty"))
         except (TypeError, ValueError, AttributeError):
@@ -146,13 +155,31 @@ async def _load_items(raw_items: list) -> tuple[list, float]:
         if pid > 0 and 0 < qty <= 100:
             key = (pid, bool(it.get("kit")))
             qty_by_key[key] = qty_by_key.get(key, 0) + qty
-    if not qty_by_key:
+    if not qty_by_key and not kit_qty:
         return [], 0.0
+
+    items, subtotal = [], 0.0
+    if kit_qty:
+        # preço do kit sempre recalculado do banco (mesma conta da admin)
+        from kits_public import load_site_kits
+        for k in await load_site_kits(list(kit_qty)):
+            n = kit_qty[k["id"]]
+            items.append({
+                "id": -k["id"], "kit_id": k["id"], "unit": "kit",
+                "name": k["name"] if k["name"].lower().startswith("kit") else f"Kit {k['name']}",
+                "price": k["total"], "qty": n, "subtotal": round(k["total"] * n, 2),
+                "kit_name": k["name"], "car_only": k["car_only"],
+                # a admin (Registrar venda) transforma em uma venda por produto
+                "components": [{"id": c["id"], "name": c["name"], "unit": c["unit"], "qty": c["qty"],
+                                "line_total": c["line_total"], "is_gift": c["is_gift"]} for c in k["items"]],
+            })
+            subtotal += k["total"] * n
+    if not qty_by_key:
+        return items, round(subtotal, 2)
 
     products = await _fetch_products({pid for pid, _ in qty_by_key})
     pct = await _kit_discount_pct() if any(k for _, k in qty_by_key) else 0.0
 
-    items, subtotal = [], 0.0
     for (pid, is_kit), qty in qty_by_key.items():
         r = products.get(pid)
         if not r:
@@ -416,6 +443,11 @@ async def checkout_pix(request: Request):
         return JSONResponse({"error": "Seu carrinho está vazio."}, status_code=400)
     asked = {int(i["id"]) for i in (body.get("items") or []) if str(i.get("id", "")).isdigit()}
     missing = asked - {i["id"] for i in items}
+    asked_kits = {int(i["kit_id"]) for i in (body.get("items") or [])
+                  if isinstance(i, dict) and str(i.get("kit_id", "")).isdigit()}
+    if asked_kits - {i.get("kit_id") for i in items}:
+        return JSONResponse({"error": "Um kit do carrinho não está mais disponível. "
+                                      "Remova-o do carrinho ou fale conosco no WhatsApp."}, status_code=409)
     if missing:
         return JSONResponse({"error": "Algum produto do carrinho não está mais disponível. "
                                       "Remova-o do carrinho ou fale conosco no WhatsApp.",
@@ -428,7 +460,7 @@ async def checkout_pix(request: Request):
     if dtype == "lalamove":
         cep = re.sub(r"\D", "", str(delivery.get("cep", "")))
         service = str(delivery.get("service", ""))
-        if service in KIT_BLOCKED_SERVICES and any(i.get("kit") for i in items):
+        if service in KIT_BLOCKED_SERVICES and any(i.get("kit") or i.get("car_only") for i in items):
             return JSONResponse({"error": "O kit de instalação não cabe na moto. Escolha a entrega de carro."},
                                 status_code=400)
         numero = str(delivery.get("numero", "")).strip()[:20]
@@ -454,7 +486,7 @@ async def checkout_pix(request: Request):
         except Exception:
             _blog_log.exception("checkout: geocode do endereço falhou")
             exact = None
-        if exact and _km(exact, (geo["lat"], geo["lng"])) <= 8:
+        if exact and _km(exact, (geo["lat"], geo["lng"])) <= 4:
             geo["lat"], geo["lng"] = exact
         elif exact:
             _blog_log.warning("checkout: pino %s longe demais do CEP %s — mantido o do CEP", exact, cep)

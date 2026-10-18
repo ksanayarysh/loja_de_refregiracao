@@ -22,7 +22,17 @@
     .kit-warn{color:#b45309;font-weight:800;font-size:.82rem;}
     .kit-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
     .kit-actions form{margin:0;}
-    .ed-row{display:grid;grid-template-columns:1fr 110px 36px;gap:8px;align-items:center;margin-bottom:8px;}
+    .ed-row{display:grid;grid-template-columns:1fr 100px auto 36px;gap:8px;align-items:center;margin-bottom:8px;}
+    .ed-gift{display:flex;align-items:center;gap:4px;margin:0;font-weight:700;font-size:.85rem;white-space:nowrap;cursor:pointer;border:1px solid #e5e7eb;border-radius:8px;padding:0 8px;height:38px;background:#fff;}
+    .ed-gift input{width:auto;margin:0;}
+    .ed-info{grid-column:1 / -1;margin:-4px 0 4px 4px;font-size:.82rem;color:#6b7280;}
+    .ed-info b{color:#111;}
+    .kit-items .pr{color:#6b7280;font-size:.82rem;}
+    .kit-items .pr s{color:#9ca3af;}
+    .ed-row.gift .pp-wrap input{background:#f0fdf4;}
+    .kit-margin{margin-top:10px;padding:8px 12px;border-radius:10px;background:#f0fdf4;color:#166534;font-weight:800;font-size:.9rem;display:flex;gap:14px;flex-wrap:wrap;}
+    .kit-margin.loss{background:#fef2f2;color:#991b1b;}
+    .kit-gift{color:#16a34a;font-weight:800;font-size:.82rem;}
     .ed-row select,.ed-row input{margin:0;}
     .ed-del{border:1px solid #e5e7eb;background:#fff;border-radius:8px;height:38px;cursor:pointer;}
     .ed-del:hover{border-color:#dc2626;background:#fef2f2;}
@@ -40,7 +50,7 @@
     .pp-item span{color:#888;font-size:.82rem;white-space:nowrap;}
     .pp-item.act,.pp-item:hover{background:#fff7ed;}
     .pp-empty{padding:10px 12px;color:#888;}
-    @media (max-width:600px){ .ed-row{grid-template-columns:1fr 80px 36px;} }
+    @media (max-width:600px){ .ed-row{grid-template-columns:1fr 70px auto 36px;} .ed-gift span{display:none;} }
 {% endblock %}
 
 {% block content %}
@@ -86,6 +96,13 @@
 
       <label class="ed-check"><input type="checkbox" name="active" value="1"
         {% if not editing or editing.active %}checked{% endif %}> Ativo (aparece na venda)</label>
+      <label class="ed-check"><input type="checkbox" name="show_on_site" value="1"
+        {% if editing and editing.show_on_site %}checked{% endif %}> 🌐 Mostrar no site (página inicial)</label>
+      <label class="ed-check"><input type="checkbox" name="car_only" value="1"
+        {% if editing and editing.car_only %}checked{% endif %}> 🚗 Só entrega de carro (não cabe na moto)</label>
+      <label for="k-desc" style="margin-top:12px;">Texto para o site (opcional)</label>
+      <input id="k-desc" name="description" maxlength="300" value="{{ (editing.description or '') if editing else '' }}"
+             placeholder="Ex.: Tudo para instalar um split 9.000–12.000 BTU até 3 m">
 
       <div class="btns" style="margin-top:16px;">
         <button class="btn-primary" type="submit">Salvar kit</button>
@@ -106,6 +123,8 @@
         {% if k.mode == 'fixo' %}<span class="kit-badge">preço fixo{% if k.discount_percent > 0 %} · -{{ '%g' % k.discount_percent }}%{% endif %}</span>
         {% elif k.discount_percent %}<span class="kit-badge">-{{ '%g' % k.discount_percent }}%</span>{% endif %}
         {% if not k.active %}<span class="kit-badge gray">inativo</span>{% endif %}
+        {% if k.show_on_site %}<span class="kit-badge" style="background:#eff6ff;color:#1e40af;">🌐 no site</span>{% endif %}
+        {% if k.car_only %}<span class="kit-badge gray">🚗 só carro</span>{% endif %}
       </div>
       <div class="kit-total">
         {% if k.full_total != k.total %}<div class="old">R$ {{ ('%.2f' % k.full_total) | replace('.', ',') }}</div>{% endif %}
@@ -116,14 +135,23 @@
       {% for it in k['items'] %}
       <li>
         <span>{{ '%g' % it.qty }} {{ it.unit }} × {{ it.name }}
+          <span class="pr">· {% if it.is_gift %}<s>R$ {{ ('%.2f' % it.price) | replace('.', ',') }}</s> grátis/{{ it.unit }}{% else %}{% if it.kit_price != it.price %}<s>R$ {{ ('%.2f' % it.price) | replace('.', ',') }}</s> {% endif %}R$ {{ ('%.2f' % it.kit_price) | replace('.', ',') }}/{{ it.unit }}{% endif %}{% if it.no_cost %} · <span style="color:#b45309;">sem custo</span>{% else %} · custo R$ {{ ('%.2f' % it.cost) | replace('.', ',') }}/{{ it.unit }}{% endif %}</span>
+          {% if it.is_gift %}<span class="kit-gift">🎁 brinde</span>{% endif %}
           {% if not it.product_active %}<span class="kit-warn">· produto inativo</span>{% endif %}
           {% if it.no_price %}<span class="kit-warn">· sem preço</span>{% endif %}
           {% if it.stock < it.qty %}<span class="kit-warn">· estoque {{ '%g' % it.stock }}</span>{% endif %}
         </span>
-        <span>R$ {{ ('%.2f' % it.line_total) | replace('.', ',') }}</span>
+        <span>{% if it.is_gift %}<span class="kit-gift">grátis</span>{% else %}R$ {{ ('%.2f' % it.line_total) | replace('.', ',') }}{% endif %}</span>
       </li>
       {% endfor %}
     </ul>
+    <div class="kit-margin {% if k.profit < 0 %}loss{% endif %}">
+      <span>Custo: R$ {{ ('%.2f' % k.cost_total) | replace('.', ',') }}</span>
+      <span>Lucro: R$ {{ ('%.2f' % k.profit) | replace('.', ',') }}</span>
+      <span>Margem: {{ ('%.1f' % k.margin) | replace('.', ',') }}%</span>
+      {% if k.gift_value %}<span>🎁 Brindes: R$ {{ ('%.2f' % k.gift_value) | replace('.', ',') }}</span>{% endif %}
+      {% if k.cost_missing %}<span style="color:#b45309;">⚠️ produto sem custo cadastrado</span>{% endif %}
+    </div>
     <div class="kit-actions">
       <a class="btn-secondary" href="/kits?edit={{ k.id }}">✏️ Editar</a>
       <a class="btn-secondary" href="/sales/new?kit={{ k.id }}#kit-box">🛒 Vender</a>
@@ -190,14 +218,19 @@
 
   const PICK = PRODUCTS.map(p => ({ id: p.id, name: p.name, unit: p.unit, price: p.sale_price }));
 
-  function addRow(pid, qty) {
+  function addRow(pid, qty, gift) {
     const row = document.createElement('div');
     row.className = 'ed-row';
     const p0 = PRODUCTS.find(p => p.id === pid);
     row.dataset.pid = p0 ? p0.id : '';
     row.innerHTML = `<div class="pp-wrap"><input placeholder="Digite o nome do produto..." value="${p0 ? ppEsc(p0.name) : ''}"></div>
       <input inputmode="decimal" placeholder="Qtd" value="${qty != null ? qty : 1}">
-      <button type="button" class="ed-del" title="Remover">✕</button>`;
+      <label class="ed-gift" title="Vai de graça no kit (baixa estoque, entra no custo)"><input type="checkbox" ${gift ? 'checked' : ''}>🎁<span> brinde</span></label>
+      <button type="button" class="ed-del" title="Remover">✕</button>
+      <div class="ed-info"></div>`;
+    const giftEl = row.querySelector('.ed-gift input');
+    row.classList.toggle('gift', !!gift);
+    giftEl.onchange = () => { row.classList.toggle('gift', giftEl.checked); recalc(); };
     const [nameEl, qtyEl] = row.querySelectorAll('input');
     attachPicker(nameEl, PICK, p => { row.dataset.pid = p.id; nameEl.classList.remove('pp-bad'); recalc(); qtyEl.focus(); qtyEl.select(); });
     nameEl.addEventListener('input', () => { row.dataset.pid = ''; recalc(); });
@@ -211,7 +244,8 @@
 
   function collect() {
     return [...rowsEl.querySelectorAll('.ed-row')].map(r => ({
-      product_id: Number(r.dataset.pid), qty: num(r.querySelectorAll('input')[1].value)
+      product_id: Number(r.dataset.pid), qty: num(r.querySelectorAll('input')[1].value),
+      gift: r.querySelector('.ed-gift input').checked, row: r
     })).filter(i => i.product_id && i.qty > 0);
   }
 
@@ -227,12 +261,13 @@
   fixoEl.oninput = () => recalc();
 
   function recalc() {
-    let full = 0;
+    let full = 0, cost = 0, giftVal = 0, noCost = false;
     const its = collect().map(i => {
       const p = PRODUCTS.find(x => x.id === i.product_id);
       const price = p ? p.sale_price : 0;
       const lf = Math.round(i.qty * price * 100) / 100;
-      full += lf;
+      if (i.gift) giftVal += lf; else full += lf;
+      if (p && p.cost_price != null) cost += i.qty * p.cost_price; else noCost = true;
       return { ...i, price, lf };
     });
     let total;
@@ -240,14 +275,39 @@
       total = brlNum(fixoEl.value);
     } else {
       const pct = Math.min(Math.max(num(discEl.value), 0), 90);
-      total = its.reduce((s, i) => s + Math.round(i.qty * (Math.round(i.price * (100 - pct)) / 100) * 100) / 100, 0);
+      total = its.filter(i => !i.gift)
+        .reduce((s, i) => s + Math.round(i.qty * (Math.round(i.price * (100 - pct)) / 100) * 100) / 100, 0);
     }
+    // preço de cada produto: tabela -> no kit (desconto ou rateio do preço fixo)
+    rowsEl.querySelectorAll('.ed-info').forEach(el => { el.innerHTML = ''; });
+    const pctNow = Math.min(Math.max(num(discEl.value), 0), 90);
+    its.forEach(i => {
+      const p = PRODUCTS.find(x => x.id === i.product_id);
+      if (!p) return;
+      let unitKit;
+      if (i.gift) unitKit = 0;
+      else if (mode() === 'fixo') unitKit = full > 0 && total > 0 ? i.price * total / full : i.price;
+      else unitKit = Math.round(i.price * (100 - pctNow)) / 100;
+      const u = p.unit || 'un';
+      const parts = [];
+      parts.push(unitKit !== i.price ? `<s>${money(i.price)}</s> <b>${i.gift ? 'grátis' : money(unitKit)}</b>/${u}` : `<b>${money(i.price)}</b>/${u}`);
+      if (!i.gift) parts.push(`linha ${money(unitKit * i.qty)}`);
+      if (p.cost_price != null) parts.push(`custo ${money(p.cost_price)}/${u}`);
+      else parts.push('<span style="color:#b45309;">sem custo</span>');
+      i.row.querySelector('.ed-info').innerHTML = parts.join(' · ');
+    });
     const sum = document.getElementById('ed-sum');
     if (!its.length) { sum.innerHTML = 'Adicione os produtos do kit.'; return; }
     const off = full > 0 && total > 0 ? Math.round((1 - total / full) * 1000) / 10 : 0;
+    const profit = total - cost, margin = total > 0 ? profit / total * 100 : 0;
     sum.innerHTML = (total !== full ? `<span class="old">${money(full)}</span>` : '') +
       `Preço do kit: ${money(total || 0)}` +
-      (mode() === 'fixo' && full > 0 && total > 0 ? ` <span style="color:${off >= 0 ? '#E2144A' : '#b45309'};">(${off >= 0 ? '-' : '+'}${Math.abs(off)}%)</span>` : '');
+      (mode() === 'fixo' && full > 0 && total > 0 ? ` <span style="color:${off >= 0 ? '#E2144A' : '#b45309'};">(${off >= 0 ? '-' : '+'}${Math.abs(off)}%)</span>` : '') +
+      `<div class="kit-margin ${profit < 0 ? 'loss' : ''}" style="margin-top:8px;">` +
+      `<span>Custo: ${money(cost)}</span><span>Lucro: ${money(profit)}</span>` +
+      `<span>Margem: ${margin.toFixed(1).replace('.', ',')}%</span>` +
+      (giftVal ? `<span>🎁 Brindes: ${money(giftVal)}</span>` : '') +
+      (noCost ? '<span style="color:#b45309;">⚠️ produto sem custo cadastrado</span>' : '') + '</div>';
   }
   discEl.oninput = recalc;
 
@@ -257,11 +317,12 @@
       e.preventDefault(); alert('Escolha o produto da lista em todas as linhas (destacadas em amarelo).'); return;
     }
     if (!items.length) { e.preventDefault(); alert('Adicione pelo menos um produto.'); return; }
+    if (items.every(i => i.gift)) { e.preventDefault(); alert('O kit precisa de pelo menos um produto pago (não só brindes).'); return; }
     if (mode() === 'fixo' && !(brlNum(fixoEl.value) > 0)) { e.preventDefault(); alert('Informe o preço fixo do kit.'); return; }
-    document.getElementById('items_json').value = JSON.stringify(items);
+    document.getElementById('items_json').value = JSON.stringify(items.map(({ row, ...i }) => i));
   };
 
-  if (START.length) START.forEach(i => addRow(i.product_id, i.qty)); else addRow();
+  if (START.length) START.forEach(i => addRow(i.product_id, i.qty, i.is_gift)); else addRow();
   document.getElementById('k-name').focus();
   showMode();
 </script>

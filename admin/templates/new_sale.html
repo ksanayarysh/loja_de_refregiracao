@@ -50,6 +50,9 @@
     .kit-prev .warn{color:#b45309;font-weight:800;font-size:.82rem;}
     .kit-prev .tot{margin-top:8px;font-weight:900;font-size:1.05rem;text-align:right;}
     .kit-prev .old{color:#9ca3af;text-decoration:line-through;font-weight:600;margin-right:8px;}
+    .kit-prev .gift{color:#16a34a;font-weight:800;font-size:.82rem;}
+    .kit-prev .mg{margin-top:8px;padding:8px 12px;border-radius:10px;background:#f0fdf4;color:#166534;font-weight:800;font-size:.88rem;display:flex;gap:14px;flex-wrap:wrap;}
+    .kit-prev .mg.loss{background:#fef2f2;color:#991b1b;}
 {% endblock %}
 
 {% block head %}
@@ -599,14 +602,23 @@
     const rows = k.items.map(it => {
       const q = Math.round(it.qty * n * 1000) / 1000;
       const warn = it.stock < q ? ` <span class="warn">· estoque ${fmtQty(it.stock, it.unit)}</span>` : '';
-      return `<li><span>${fmtQty(q, it.unit)} ${it.unit} × ${it.name}${warn}</span><span>${brl(Math.round(it.line_total * n * 100) / 100)}</span></li>`;
+      const val = it.is_gift ? '<span class="gift">grátis</span>' : brl(Math.round(it.line_total * n * 100) / 100);
+      const pr = it.is_gift ? '' : ` <span style="color:#6b7280;font-size:.82rem;">· ${it.kit_price !== it.price ? `<s>${brl(it.price)}</s> ` : ''}${brl(it.kit_price)}/${it.unit}</span>`;
+      return `<li><span>${fmtQty(q, it.unit)} ${it.unit} × ${it.name}${pr}${it.is_gift ? ' <span class="gift">🎁 brinde</span>' : ''}${warn}</span><span>${val}</span></li>`;
     }).join('');
     const total = k.items.reduce((s, it) => s + Math.round(it.line_total * n * 100) / 100, 0);
-    const full = k.items.reduce((s, it) => s + Math.round(it.qty * n * it.price * 100) / 100, 0);
+    const full = k.items.filter(it => !it.is_gift).reduce((s, it) => s + Math.round(it.qty * n * it.price * 100) / 100, 0);
+    const cost = k.items.reduce((s, it) => s + it.qty * n * (it.cost || 0), 0);
+    const profit = total - cost, margin = total > 0 ? profit / total * 100 : 0;
+    const gifts = k.gift_value * n;
     box.innerHTML = `<ul style="padding:0;margin:0;">${rows}</ul><div class="tot">` +
       (Math.abs(full - total) > 0.004 ? `<span class="old">${brl(full)}</span>` : '') + `Total: ${brl(total)}` +
       (k.mode === 'fixo' ? ' <span style="color:#E2144A;">(preço fixo)</span>'
-        : k.discount_percent ? ` <span style="color:#E2144A;">(-${k.discount_percent}%)</span>` : '') + '</div>';
+        : k.discount_percent ? ` <span style="color:#E2144A;">(-${k.discount_percent}%)</span>` : '') + '</div>' +
+      `<div class="mg ${profit < 0 ? 'loss' : ''}"><span>Custo: ${brl(cost)}</span><span>Lucro: ${brl(profit)}</span>` +
+      `<span>Margem: ${margin.toFixed(1).replace('.', ',')}%</span>` +
+      (gifts ? `<span>🎁 Brindes: ${brl(gifts)}</span>` : '') +
+      (k.cost_missing ? '<span style="color:#b45309;">⚠️ produto sem custo</span>' : '') + '</div>';
     box.style.display = 'block';
   }
   kitSel.addEventListener('change', renderKit);
@@ -626,7 +638,7 @@
     let cart = JSON.parse(localStorage.getItem('mtf_cart') || '[]');
     for (const it of k.items) {
       // linha separada (não junta com o mesmo produto avulso: o preço do kit é outro)
-      cart.push({ id: it.product_id, name: `${it.name} [kit ${k.name}]`, price: it.kit_price,
+      cart.push({ id: it.product_id, name: `${it.name} [${it.is_gift ? '🎁 brinde ' : ''}kit ${k.name}]`, price: it.kit_price,
                   unit: it.unit, qty: Math.round(it.qty * n * 1000) / 1000, kit: k.name });
     }
     localStorage.setItem('mtf_cart', JSON.stringify(cart));
