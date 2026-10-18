@@ -30,7 +30,7 @@
     .hero-text h1{max-width:900px;}
     .hero-sub{max-width:760px;}
     .hero-sub{font-size:1.02rem!important;}
-    .hero-cat-link{display:inline-block;margin-top:10px;color:var(--accent);font-weight:700;font-size:.95rem;text-decoration:none;border-bottom:1.5px solid var(--accent-b);}
+    .hero-cat-link{display:inline-block;margin-top:4px;padding:10px 0 6px;color:var(--accent);font-weight:700;font-size:.95rem;text-decoration:none;border-bottom:1.5px solid var(--accent-b);}
     .hero-cat-link:hover{border-color:var(--accent);}
     .hero-banners{display:flex;flex-direction:column;gap:10px;min-width:320px;max-width:460px;}
     .hero-text h1{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:700;line-height:1.15;letter-spacing:-.03em;}
@@ -178,8 +178,9 @@
 
       /* promo banner */
       .promo-banner{flex-direction:column;}
-      .promo-img-side{flex:0 0 160px;width:100%;}
-      .promo-img-side img{width:100%;height:160px;object-fit:cover;}
+      .promo-img-side{flex:0 0 150px;width:100%;background:rgba(255,255,255,.1);}
+      .promo-img-side img{width:100%;height:150px;object-fit:contain;padding:10px;}
+      .promo-img-side.no-img{display:none;}
       .promo-text-side{padding:18px 20px;}
       .promo-title{font-size:1.3rem;}
       .promo-price{font-size:1.5rem;}
@@ -408,7 +409,7 @@
 {% set pp_msg = "Olá! Vi a promoção do " + promo_product.name + " por R$ " + pp_price|replace(".", ",") + ". Ainda está disponível?" %}
 <div class="promo-wrap">
   <div class="promo-banner">
-    <div class="promo-img-side">
+    <div class="promo-img-side{% if not promo_product.image %} no-img{% endif %}">
       {% if promo_product.image %}<img loading="eager" fetchpriority="high" src="{{ promo_product.image | imgurl(200) }}" alt="{{ promo_product.name }}">{% endif %}
       <div class="promo-ribbon">{% if promo_product.on_promo %}PROMOÇÃO{% else %}DESTAQUE{% endif %}</div>
     </div>
@@ -420,7 +421,7 @@
       {% if promo_product.on_promo %}<div style="display:inline-block;align-self:flex-start;background:#fde68a;color:#7f0a26;font-weight:900;font-size:.85rem;padding:3px 10px;border-radius:999px;margin-top:6px;">-{{ ((1 - promo_product.price / promo_product.sale_price) * 100) | round | int }}%</div>{% endif %}
       <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:12px;">
         <button class="promo-btn" style="margin-top:0;border:none;cursor:pointer;font-family:inherit;" onclick='addToCart({{ promo_product.id }}, {{ promo_product.name | tojson }}, {{ promo_product.price }}, {{ (promo_product.image or "") | tojson }}); location.href="/checkout";'>Comprar agora →</button>
-        <a class="wa-track" href="https://wa.me/{{ wa_number }}?text={{ pp_msg | urlencode }}" target="_blank" rel="noopener" data-product="{{ promo_product.name }}" style="color:#fff;opacity:.85;font-size:.85rem;font-weight:600;">ou pergunte no WhatsApp</a>
+        <a class="wa-track" href="https://wa.me/{{ wa_number }}?text={{ pp_msg | urlencode }}" target="_blank" rel="noopener" data-product="{{ promo_product.name }}" style="color:#fff;opacity:.85;font-size:.85rem;font-weight:600;display:inline-block;padding:10px 0;">ou pergunte no WhatsApp</a>
       </div>
     </div>
   </div>
@@ -525,7 +526,8 @@
   .guide-card{display:flex;align-items:center;gap:16px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;text-decoration:none;color:inherit;transition:border-color .15s,box-shadow .15s;}
   .guide-icon{width:48px;height:48px;background:var(--accent-l);border:1px solid var(--accent-b);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;}
   .guides-grid{display:flex;flex-direction:column;gap:10px;}
-  .guides-all{display:inline-flex;align-items:center;gap:6px;color:var(--accent);font-weight:700;font-size:.9rem;text-decoration:none;margin-top:12px;padding:8px 0;}
+  .guides-all{display:inline-flex;align-items:center;gap:6px;color:var(--accent);font-weight:700;font-size:.9rem;text-decoration:none;padding:8px 0;}
+  @media(max-width:600px){.guide-card{gap:12px;padding:14px;} .guide-card>div:last-child{display:none;} .guide-icon{width:42px;height:42px;}}
   .guides-all:hover{opacity:.8;}
 </style>
 <div class="section-wrap">
