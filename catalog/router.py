@@ -1012,6 +1012,43 @@ async def geocode_endereco(rua: str, numero: str, bairro: str, cidade: str, uf: 
     return None
 
 
+async def _cep_address(client, cep: str):
+    """(rua, bairro, cidade, uf) do CEP. None = CEP inexistente.
+    Levanta RuntimeError se NENHUMA fonte respondeu (aí o site mostra "tente novamente")."""
+    not_found = 0
+    sources = [
+        ("viacep", f"https://viacep.com.br/ws/{cep}/json/",
+         lambda j: None if j.get("erro") else (j.get("logradouro"), j.get("bairro"), j.get("localidade"), j.get("uf"))),
+        ("brasilapi", f"https://brasilapi.com.br/api/cep/v2/{cep}",
+         lambda j: (j.get("street"), j.get("neighborhood"), j.get("city"), j.get("state")) if j.get("city") else None),
+        ("awesomeapi", f"https://cep.awesomeapi.com.br/json/{cep}",
+         lambda j: (j.get("address"), j.get("district"), j.get("city"), j.get("state")) if j.get("city") else None),
+    ]
+    for name, url, parse in sources:
+        try:
+            r = await client.get(url)
+        except Exception as e:
+            _blog_log.warning("frete-cep: %s fora do ar (%s): %s", name, cep, type(e).__name__)
+            continue
+        if r.status_code in (400, 404):
+            not_found += 1
+            continue
+        if r.status_code != 200:
+            _blog_log.warning("frete-cep: %s respondeu %s (%s)", name, r.status_code, cep)
+            continue
+        try:
+            got = parse(r.json())
+        except Exception:
+            continue
+        if got is None:
+            not_found += 1
+            continue
+        return tuple((x or "").strip() for x in got)
+    if not_found:
+        return None
+    raise RuntimeError(f"nenhuma fonte de CEP respondeu para {cep}")
+
+
 async def _cep_to_coords(cep: str):
     """CEP -> endereço (ViaCEP) + coordenadas: Google Geocoding; reserva AwesomeAPI/BrasilAPI/Nominatim conferidos pelo bairro."""
     if cep in _geo_cache:
@@ -1025,13 +1062,11 @@ async def _cep_to_coords(cep: str):
             return None
 
     async with httpx.AsyncClient(timeout=8, headers={"User-Agent": "MTF-Refrigeracao/1.0 (frete)"}) as client:
-        # 1. ViaCEP — endereço
-        r = await client.get(f"https://viacep.com.br/ws/{cep}/json/")
-        v = r.json() if r.status_code == 200 else {}
-        if not v or v.get("erro"):
-            return None
-        street, bairro = v.get("logradouro") or "", v.get("bairro") or ""
-        cidade, uf = v.get("localidade") or "", v.get("uf") or ""
+        # 1. Endereço: ViaCEP -> BrasilAPI -> AwesomeAPI (qualquer um pode cair; não dependemos de um só)
+        addr = await _cep_address(client, cep)
+        if addr is None:
+            return None                      # CEP não existe (as fontes responderam "não encontrado")
+        street, bairro, cidade, uf = addr
         address = ", ".join(x for x in [street, bairro, f"{cidade} - {uf}", f"{cep[:5]}-{cep[5:]}"] if x)
 
         coords, source = None, None
