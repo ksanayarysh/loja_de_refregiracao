@@ -7,7 +7,7 @@ from zoneinfo import ZoneInfo
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, PlainTextResponse, JSONResponse, Response
 from sqlalchemy import text
-from lalamove import get_cities, get_quote, LalamoveError
+from lalamove import get_quote, LalamoveError
 
 from dependencies import engine, templates
 from articles import ARTICLES, ARTICLES_BY_SLUG
@@ -866,31 +866,9 @@ async def api_kit_config():
 
 
 # ── LALAMOVE: FRETE ───────────────────────────────────────────────────────────
-LALA_DEBUG_TOKEN = os.environ.get("LALA_DEBUG_TOKEN", "")
+LALA_DEBUG_TOKEN = os.environ.get("LALA_DEBUG_TOKEN", "")  # usado só pelo simular-pago (checkout.py)
 LALA_SERVICES = set(os.environ.get("LALA_SERVICES", "LALAGO,LALAPRO,HATCHBACK").split(","))
 _frete_hits: dict = {}  # ip -> [timestamps], anti-abuso
-
-@router.get("/api/lalamove/cities")
-async def lalamove_cities(token: str = ""):
-    """Debug: какие serviceType доступны в Рио. Удалить после теста."""
-    if not LALA_DEBUG_TOKEN or token != LALA_DEBUG_TOKEN:
-        return JSONResponse({"error": "forbidden"}, status_code=403)
-    try:
-        data = await get_cities()
-    except LalamoveError as e:
-        return JSONResponse({"error": e.payload}, status_code=502)
-    rio = [c for c in data.get("data", []) if "rio" in str(c.get("name", "")).lower()]
-    return JSONResponse(rio or data)
-
-@router.get("/api/lalamove/test-quote")
-async def lalamove_test_quote(lat: float, lng: float, service: str = "LALAGO", token: str = ""):
-    """Debug: котировка из браузера телефона. Удалить после теста."""
-    if not LALA_DEBUG_TOKEN or token != LALA_DEBUG_TOKEN:
-        return JSONResponse({"error": "forbidden"}, status_code=403)
-    try:
-        return JSONResponse(await get_quote(lat, lng, "Teste", service))
-    except LalamoveError as e:
-        return JSONResponse({"error": e.payload}, status_code=502)
 
 @router.post("/api/frete")
 async def api_frete(request: Request):
@@ -939,6 +917,17 @@ def _frete_rate_ok(ip: str) -> bool:
     _frete_hits[ip] = hits
     return True
 
+GEO_MAX_KM_FROM_BAIRRO = 5.0   # bairros grandes (Campo Grande) precisam de folga
+
+
+def _km(a, b) -> float:
+    """Distância em linha reta (km) entre (lat, lng)."""
+    import math
+    la1, lo1, la2, lo2 = map(math.radians, (a[0], a[1], b[0], b[1]))
+    h = math.sin((la2 - la1) / 2) ** 2 + math.cos(la1) * math.cos(la2) * math.sin((lo2 - lo1) / 2) ** 2
+    return 6371 * 2 * math.asin(math.sqrt(h))
+
+
 async def _cep_to_coords(cep: str):
     """CEP -> endereço (ViaCEP) + coordenadas (AwesomeAPI -> BrasilAPI -> Nominatim). Tudo grátis, sem chave."""
     if cep in _geo_cache:
@@ -962,39 +951,60 @@ async def _cep_to_coords(cep: str):
         address = ", ".join(x for x in [street, bairro, f"{cidade} - {uf}", f"{cep[:5]}-{cep[5:]}"] if x)
 
         coords, source = None, None
+        candidates = []   # (coords, fonte) na ordem de preferência
+
+        async def _nominatim(params):
+            try:
+                n = await client.get("https://nominatim.openstreetmap.org/search",
+                                     params={**params, "format": "json", "limit": 1, "countrycodes": "br"})
+                if n.status_code == 200 and n.json():
+                    return _ok(n.json()[0].get("lat"), n.json()[0].get("lon"))
+            except Exception:
+                pass
+            return None
 
         # 2. AwesomeAPI
         try:
             a = await client.get(f"https://cep.awesomeapi.com.br/json/{cep}")
             if a.status_code == 200:
                 aj = a.json()
-                coords, source = _ok(aj.get("lat"), aj.get("lng")), "awesomeapi"
+                c = _ok(aj.get("lat"), aj.get("lng"))
+                if c:
+                    candidates.append((c, "awesomeapi"))
         except Exception:
             pass
 
         # 3. BrasilAPI v2
-        if not coords:
-            try:
-                b = await client.get(f"https://brasilapi.com.br/api/cep/v2/{cep}")
-                if b.status_code == 200:
-                    c = ((b.json().get("location") or {}).get("coordinates") or {})
-                    coords, source = _ok(c.get("latitude"), c.get("longitude")), "brasilapi"
-            except Exception:
-                pass
+        try:
+            b = await client.get(f"https://brasilapi.com.br/api/cep/v2/{cep}")
+            if b.status_code == 200:
+                loc = ((b.json().get("location") or {}).get("coordinates") or {})
+                c = _ok(loc.get("latitude"), loc.get("longitude"))
+                if c:
+                    candidates.append((c, "brasilapi"))
+        except Exception:
+            pass
 
-        # 4. Nominatim (OpenStreetMap) — pela rua; sem rua, pelo bairro
-        if not coords:
-            params = {"city": cidade, "state": uf, "country": "Brasil", "format": "json", "limit": 1}
-            if street:
-                params["street"] = street
-            else:
-                params = {"q": f"{bairro}, {cidade}, {uf}, Brasil", "format": "json", "limit": 1}
-            try:
-                n = await client.get("https://nominatim.openstreetmap.org/search", params=params)
-                if n.status_code == 200 and n.json():
-                    coords, source = _ok(n.json()[0].get("lat"), n.json()[0].get("lon")), "nominatim"
-            except Exception:
-                pass
+        # 4. Nominatim (OpenStreetMap) pela rua
+        if street:
+            c = await _nominatim({"street": street, "city": cidade, "state": uf})
+            if c:
+                candidates.append((c, "nominatim-rua"))
+
+        # 5. Referência: centro do bairro. As APIs de CEP às vezes devolvem o centro da
+        #    cidade (Rio -> Centro), o que dá frete errado. Só aceitamos ponto perto do bairro.
+        ref = None
+        if bairro:
+            ref = await _nominatim({"q": f"{bairro}, {cidade}, {uf}, Brasil"})
+        if ref:
+            near = [(c, src) for c, src in candidates if _km(c, ref) <= GEO_MAX_KM_FROM_BAIRRO]
+            for c, src in candidates:
+                if (c, src) not in near:
+                    _blog_log.info("frete-cep: %s descartado %s %s (%.1f km do bairro %s)",
+                                   cep, src, c, _km(c, ref), bairro)
+            coords, source = near[0] if near else (ref, "nominatim-bairro")
+        elif candidates:
+            coords, source = candidates[0]
 
     if not coords:
         _blog_log.warning("frete-cep: sem coordenadas para %s (%s)", cep, address)
