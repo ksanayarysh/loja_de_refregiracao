@@ -1,0 +1,176 @@
+{% extends '_base_admin.html' %}
+{% block title %}Kits — M.T.F{% endblock %}
+
+{% block extra_styles %}
+    .kits-wrap{max-width:900px;}
+    h1{font-size:1.5rem;margin-bottom:16px;color:#111;}
+    .msg{padding:12px 14px;border-radius:10px;margin-bottom:14px;font-weight:800;}
+    .msg.err{background:#fef2f2;border:1px solid #fecaca;color:#7f1d1d;}
+    .msg.ok{background:#ecfdf5;border:1px solid #bbf7d0;color:#065f46;}
+    .kit-card{background:#fff;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.08);padding:16px 18px;margin-bottom:14px;}
+    .kit-card.off{opacity:.55;}
+    .kit-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;}
+    .kit-name{font-size:1.1rem;font-weight:900;}
+    .kit-badge{display:inline-block;padding:3px 9px;border-radius:999px;font-size:.78rem;font-weight:800;background:#fef2f2;color:#E2144A;margin-left:6px;}
+    .kit-badge.gray{background:#f3f4f6;color:#6b7280;}
+    .kit-total{text-align:right;}
+    .kit-total .old{color:#9ca3af;text-decoration:line-through;font-size:.85rem;}
+    .kit-total .new{font-weight:900;font-size:1.15rem;color:#111;}
+    .kit-items{margin:10px 0 0;padding:0;list-style:none;font-size:.92rem;}
+    .kit-items li{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px solid #f3f4f6;}
+    .kit-items li:last-child{border-bottom:none;}
+    .kit-warn{color:#b45309;font-weight:800;font-size:.82rem;}
+    .kit-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
+    .kit-actions form{margin:0;}
+    .ed-row{display:grid;grid-template-columns:1fr 110px 36px;gap:8px;align-items:center;margin-bottom:8px;}
+    .ed-row select,.ed-row input{margin:0;}
+    .ed-del{border:1px solid #e5e7eb;background:#fff;border-radius:8px;height:38px;cursor:pointer;}
+    .ed-del:hover{border-color:#dc2626;background:#fef2f2;}
+    .ed-sum{margin-top:12px;padding:12px 14px;background:#f9fafb;border-radius:10px;font-weight:800;}
+    .ed-sum .old{color:#9ca3af;text-decoration:line-through;font-weight:600;margin-right:8px;}
+    .ed-check{display:flex;gap:8px;align-items:center;font-weight:700;margin-top:12px;}
+    .ed-check input{width:auto;margin:0;}
+    @media (max-width:600px){ .ed-row{grid-template-columns:1fr 80px 36px;} }
+{% endblock %}
+
+{% block content %}
+<div class="kits-wrap">
+  <h1>🧰 Kits</h1>
+  {% if err %}<div class="msg err">{{ err }}</div>{% endif %}
+  {% if ok %}<div class="msg ok">{{ ok }}</div>{% endif %}
+
+  {% if editing or new %}
+  {# ── EDITOR ── #}
+  <div class="card">
+    <h2 style="margin-bottom:12px;">{% if editing %}Editar kit{% else %}Novo kit{% endif %}</h2>
+    <form method="post" action="/kits/save" id="kitForm">
+      <input type="hidden" name="kit_id" value="{{ editing.id if editing else '' }}">
+      <input type="hidden" name="items_json" id="items_json">
+
+      <label for="k-name">Nome do kit</label>
+      <input id="k-name" name="name" required maxlength="160" value="{{ editing.name if editing else '' }}"
+             placeholder="Ex.: Kit instalação split 9000 BTU">
+
+      <label for="k-disc">Desconto do kit (%)</label>
+      <input id="k-disc" name="discount_percent" inputmode="decimal" style="max-width:140px;"
+             value="{{ ('%g' % editing.discount_percent) if editing else '0' }}">
+
+      <label style="margin-top:16px;">Produtos</label>
+      <div id="ed-rows"></div>
+      <button type="button" class="btn-secondary" onclick="addRow()">+ Adicionar produto</button>
+
+      <div class="ed-sum" id="ed-sum"></div>
+
+      <label class="ed-check"><input type="checkbox" name="active" value="1"
+        {% if not editing or editing.active %}checked{% endif %}> Ativo (aparece na venda)</label>
+
+      <div class="btns" style="margin-top:16px;">
+        <button class="btn-primary" type="submit">Salvar kit</button>
+        <a class="btn-secondary" href="/kits">Cancelar</a>
+      </div>
+    </form>
+  </div>
+  {% else %}
+  <p style="margin-bottom:14px;"><a class="btn-primary" href="/kits?new=1">+ Novo kit</a></p>
+  {% endif %}
+
+  {# ── LISTA ── #}
+  {% for k in kits %}
+  <div class="kit-card {% if not k.active %}off{% endif %}">
+    <div class="kit-head">
+      <div>
+        <span class="kit-name">{{ k.name }}</span>
+        {% if k.discount_percent %}<span class="kit-badge">-{{ '%g' % k.discount_percent }}%</span>{% endif %}
+        {% if not k.active %}<span class="kit-badge gray">inativo</span>{% endif %}
+      </div>
+      <div class="kit-total">
+        {% if k.discount_percent %}<div class="old">R$ {{ ('%.2f' % k.full_total) | replace('.', ',') }}</div>{% endif %}
+        <div class="new">R$ {{ ('%.2f' % k.total) | replace('.', ',') }}</div>
+      </div>
+    </div>
+    <ul class="kit-items">
+      {% for it in k['items'] %}
+      <li>
+        <span>{{ '%g' % it.qty }} {{ it.unit }} × {{ it.name }}
+          {% if not it.product_active %}<span class="kit-warn">· produto inativo</span>{% endif %}
+          {% if it.no_price %}<span class="kit-warn">· sem preço</span>{% endif %}
+          {% if it.stock < it.qty %}<span class="kit-warn">· estoque {{ '%g' % it.stock }}</span>{% endif %}
+        </span>
+        <span>R$ {{ ('%.2f' % (it.kit_price * it.qty)) | replace('.', ',') }}</span>
+      </li>
+      {% endfor %}
+    </ul>
+    <div class="kit-actions">
+      <a class="btn-secondary" href="/kits?edit={{ k.id }}">✏️ Editar</a>
+      <a class="btn-secondary" href="/sales/new?kit={{ k.id }}#kit-box">🛒 Vender</a>
+      <form method="post" action="/kits/{{ k.id }}/delete"
+            onsubmit="return confirm('Excluir o kit “{{ k.name }}”? Vendas já feitas não mudam.');">
+        <button class="btn-danger" type="submit">🗑 Excluir</button>
+      </form>
+    </div>
+  </div>
+  {% else %}
+  {% if not new %}<div class="card" style="color:#6b7280;">Nenhum kit ainda. Crie o primeiro em “+ Novo kit”.</div>{% endif %}
+  {% endfor %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{% if editing or new %}
+<script>
+  const PRODUCTS = {{ products | tojson }};
+  const START = {{ (editing['items'] if editing else []) | tojson }};
+  const rowsEl = document.getElementById('ed-rows');
+  const discEl = document.getElementById('k-disc');
+  const money = n => 'R$ ' + n.toFixed(2).replace('.', ',');
+  const num = v => { const n = Number(String(v || '').replace(',', '.')); return Number.isFinite(n) ? n : 0; };
+
+  function addRow(pid, qty) {
+    const row = document.createElement('div');
+    row.className = 'ed-row';
+    const opts = ['<option value="">Selecione o produto...</option>'].concat(PRODUCTS.map(p =>
+      `<option value="${p.id}" ${p.id === pid ? 'selected' : ''}>${p.name.replace(/</g, '&lt;')}${p.unit ? ' (' + p.unit + ')' : ''} — R$ ${p.sale_price.toFixed(2).replace('.', ',')}</option>`
+    ));
+    row.innerHTML = `<select>${opts.join('')}</select>
+      <input inputmode="decimal" placeholder="Qtd" value="${qty != null ? qty : 1}">
+      <button type="button" class="ed-del" title="Remover">✕</button>`;
+    row.querySelector('.ed-del').onclick = () => { row.remove(); recalc(); };
+    row.querySelector('select').onchange = recalc;
+    row.querySelector('input').oninput = recalc;
+    rowsEl.appendChild(row);
+    recalc();
+  }
+
+  function collect() {
+    return [...rowsEl.querySelectorAll('.ed-row')].map(r => ({
+      product_id: Number(r.querySelector('select').value), qty: num(r.querySelector('input').value)
+    })).filter(i => i.product_id && i.qty > 0);
+  }
+
+  function recalc() {
+    const pct = Math.min(Math.max(num(discEl.value), 0), 90);
+    let full = 0, total = 0;
+    for (const i of collect()) {
+      const p = PRODUCTS.find(x => x.id === i.product_id);
+      if (!p) continue;
+      const kp = Math.round(p.sale_price * (100 - pct)) / 100;     // mesmo arredondamento do servidor
+      full += Math.round(i.qty * p.sale_price * 100) / 100;
+      total += Math.round(i.qty * kp * 100) / 100;
+    }
+    document.getElementById('ed-sum').innerHTML = collect().length
+      ? (pct ? `<span class="old">${money(full)}</span>` : '') + `Preço do kit: ${money(total)}`
+      : 'Adicione os produtos do kit.';
+  }
+  discEl.oninput = recalc;
+
+  document.getElementById('kitForm').onsubmit = e => {
+    const items = collect();
+    if (!items.length) { e.preventDefault(); alert('Adicione pelo menos um produto.'); return; }
+    document.getElementById('items_json').value = JSON.stringify(items);
+  };
+
+  if (START.length) START.forEach(i => addRow(i.product_id, i.qty)); else addRow();
+</script>
+{% endif %}
+{% endblock %}

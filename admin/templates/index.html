@@ -1,71 +1,13 @@
-<!DOCTYPE HTML>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- app no celular (PWA) -->
-  <link rel="manifest" href="/manifest.webmanifest">
-  <meta name="theme-color" content="#E2144A">
-  <link rel="apple-touch-icon" href="/pwa/apple-touch-icon.png">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="MTF Admin">
-  <title>M.T.F Refrigeração</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: Arial, Helvetica, sans-serif; background-color: bisque; min-height: 100vh; }
+{% extends '_base_admin.html' %}
+{% set active_page = 'home' %}
+{% block title %}M.T.F Refrigeração{% endblock %}
 
-    h1 { color: black; text-align: center; padding: 18px 0 10px; font-size: 1.8rem; }
-
-    /* NAVBAR */
-    .navbar {
-      background-color: bisque; padding: 10px 16px;
-      display: flex; justify-content: space-between; align-items: center;
-      border-bottom: 1px solid #ccc; gap: 16px; flex-wrap: wrap;
-      position: relative; z-index: 100;
-    }
-    .navbar-left { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; position: relative; }
+{% block extra_styles %}
+    /* página inicial */
+    .content { display: flex; flex-direction: column; gap: 24px; }
     .search-container { display: flex; align-items: center; position: relative; }
-    .search-input { padding: 8px; border: 1px solid #ccc; border-radius: 4px 0 0 4px; outline: none; font-size: .95rem; width: 220px; }
-    .search-button { padding: 8px 12px; border: none; background-color: #007bff; color: white; border-radius: 0 4px 4px 0; cursor: pointer; font-size: .95rem; }
-    .search-button:hover { background-color: #0056b3; }
-
-    .nav-links { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-right: auto; }
-    .nav-links a { color: #E2144A; text-decoration: none; font-weight: 700; font-size: .95rem; }
-    .nav-links a:hover { text-decoration: underline; }
-    .nav-links a.active { color: #111; font-weight: 900; }
-    .sidebar ul li a.active { color: #111; font-weight: 900; background: #f5f5f5; }
-
-    /* CART ICON */
-    .cart-icon-btn {
-      position: relative; padding: 11px 20px; background: #111827; color: #fff;
-      border: none; border-radius: 10px; cursor: pointer; font-size: 1.05rem;
-      font-weight: 900; font-family: inherit; display: flex; align-items: center; gap: 8px;
-    }
-    .cart-icon-btn:hover { background: #374151; }
-    .cart-badge {
-      position: absolute; top: -7px; right: -7px;
-      background: #E2144A; color: #fff; border-radius: 50%;
-      width: 22px; height: 22px; font-size: .75rem; font-weight: 900;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .cart-badge.hidden { display: none; }
-
-    /* LAYOUT */
-    .layout { display: flex; gap: 0; min-height: calc(100vh - 120px); }
-
-    /* SIDEBAR */
-    .sidebar { width: 160px; flex-shrink: 0; border-right: 1px solid #ccc; padding: 16px 0; background: bisque; }
-    .sidebar ul { list-style: none; padding: 0; margin: 0; width: 100%; }
-    .sidebar ul li { position: relative; }
-    .sidebar ul li a { display: block; text-decoration: none; color: #E2144A; background: #fff; padding: 7px 10px; border: 1px solid #ccc; border-left: none; font-size: .9rem; }
-    .sidebar ul li a:hover { text-decoration: underline; font-weight: bold; background: #ccc; }
-    .sidebar .submenu { display: none; position: absolute; left: 149px; top: 0; width: 150px; z-index: 10; }
-    .sidebar ul li:hover .submenu { display: block; }
-
-    /* CONTENT */
-    .content { flex: 1; padding: 24px; display: flex; flex-direction: column; gap: 24px; overflow-x: auto; }
-
+    .search-input { padding: 10px 12px; border: 1px solid #ccc; border-radius: 8px; outline: none; font-size: 1rem; width: 100%; max-width: 420px; }
+    .cart-kit { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 999px; background: #fef3c7; color: #92400e; font-size: .72rem; font-weight: 800; vertical-align: middle; }
     /* QUICK LINKS */
     .quick-links { display: flex; gap: 10px; flex-wrap: wrap; }
     .quick-links a { padding: 10px 18px; background: #fff; border: 1px solid #ccc; border-radius: 4px; text-decoration: none; color: #E2144A; font-weight: bold; font-size: .9rem; transition: background .2s; }
@@ -151,15 +93,9 @@
     .cart-qty { width: 95px; padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; text-align: center; font-family: inherit; }
 
     @media (max-width: 600px) {
-      .layout { flex-direction: column; }
-      .sidebar { width: 100%; border-right: none; border-bottom: 1px solid #ccc; }
-      .sidebar .submenu { left: 0; top: 100%; }
 
       /* Поиск над сайдбаром */
       .search-input { width: 100% !important; font-size: 1.1rem; padding: 12px; }
-      .navbar { flex-wrap: wrap; gap: 10px; }
-      .navbar-left { width: 100%; }
-      .nav-links { gap: 10px; width: 100%; }
       .search-container { width: 100%; }
 
       /* Результаты поиска — плитки на мобильном */
@@ -183,98 +119,14 @@
 
 
 
-    /* Pedidos do site: pisca quando há pedido pago em aberto */
-    @keyframes so-blink { 0%,100% { background: #fff; } 50% { background: #ffd6e0; } }
-    a.so-alert { animation: so-blink 1s ease-in-out infinite; color: #E2144A !important; font-weight: 900 !important; }
-    .nav-links a.so-alert { padding: 2px 8px; border-radius: 6px; }
-    .so-count { display: inline-block; min-width: 18px; padding: 0 5px; margin-left: 4px; border-radius: 999px; background: #E2144A; color: #fff; font-size: .72rem; line-height: 18px; text-align: center; }
-  </style>
-</head>
-<body>
+{% endblock %}
 
-<h1>M.T.F Refrigeração</h1>
-
-<!-- NAVBAR -->
-<header class="navbar">
-  <div class="navbar-left">
+{% block content %}
     <div class="search-container">
-      <input type="text" id="search-input" placeholder="pesquisar produto..." class="search-input"
-             style="border-radius:4px; width:260px;"
+      <input type="text" id="search-input" placeholder="🔍 pesquisar produto..." class="search-input"
              oninput="debouncedSearch()" onkeydown="if(event.key==='Escape') clearSearch(); if(event.key==='Enter') searchProducts()">
-
     </div>
-  </div>
-  <div class="nav-links">
-    <a href="/products" {% if active_page == 'products' %}class="active"{% endif %}>Produtos</a>
-    <a href="/sales" {% if active_page == 'sales' %}class="active"{% endif %}>Vendas</a>
-    <a href="/stock" {% if active_page == 'stock' %}class="active"{% endif %}>Estoque</a>
-    <a href="/reports" {% if active_page == 'reports' %}class="active"{% endif %}>Relatórios</a>
-    <a href="/clients" {% if active_page == 'clients' %}class="active"{% endif %}>Clientes</a>
-    <a href="/site-orders" {% if active_page == 'site_orders' %}class="active"{% endif %}>🌐 Pedidos site</a>
-    <a href="/calc" {% if active_page == 'calc' %}class="active"{% endif %}>Calculadora</a>
-  </div>
-  <button class="cart-icon-btn" onclick="openCart()">
-    🛒 Carrinho
-    <span class="cart-badge hidden" id="cart-badge">0</span>
-  </button>
-</header>
-
-<div class="layout">
-  <!-- SIDEBAR -->
-  <nav class="sidebar">
-    <ul>
-      <li><a href="/" {% if active_page == 'home' %}class="active"{% endif %}>Início</a></li>
-      <li>
-        <a href="#">Produtos ▸</a>
-        <ul class="submenu">
-          <li><a href="/products">Lista</a></li>
-          <li><a href="/products/new">+ Cadastrar</a></li>
-        </ul>
-      </li>
-      <li>
-        <a href="#">Vendas ▸</a>
-        <ul class="submenu">
-          <li><a href="/sales">Lista</a></li>
-          <li><a href="/sales/new">+ Nova venda</a></li>
-          <li><a href="/checkout">Carrinho</a></li>
-        </ul>
-      </li>
-      <li>
-        <a href="#">Estoque ▸</a>
-        <ul class="submenu">
-          <li><a href="/stock">Saldo</a></li>
-          <li><a href="/stock/history">Histórico</a></li>
-          <li><a href="/stock/new">+ Entrada</a></li>
-        </ul>
-      </li>
-      <li>
-        <a href="#">Relatórios ▸</a>
-        <ul class="submenu">
-          <li><a href="/reports">Geral</a></li>
-          <li><a href="/reports/monthly-sales">Vendas mensais</a></li>
-          <li><a href="/reports/stock-alert">Alerta estoque</a></li>
-          <li><a href="/reports/stock-forecast">Previsão estoque</a></li>
-          <li><a href="/reports/price-history">Histórico preços</a></li>
-          <li><a href="/reports/product-sales-history">Vendas por produto</a></li>
-          <li><a href="/reports/purchases-history">Histórico compras</a></li>
-          <li><a href="/reports/product-views">👁 Visualizações</a></li>
-        </ul>
-      </li>
-      <li>
-        <a href="#">Clientes ▸</a>
-        <ul class="submenu">
-          <li><a href="/clients">Lista</a></li>
-          <li><a href="/clients/new">+ Novo</a></li>
-        </ul>
-      </li>
-      <li><a href="/site-orders" {% if active_page == 'site_orders' %}class="active"{% endif %}>🌐 Pedidos site</a></li>
-      <li><a href="/calc" {% if active_page == 'calc' %}class="active"{% endif %}>Calculadora</a></li>
-    </ul>
-  </nav>
-
-  <!-- CONTENT -->
-  <main class="content">
-    <div id="search-results" style="display:none;margin:-24px -24px 0;padding:16px 24px;background:#fff;border-bottom:1px solid #ddd;">
+    <div id="search-results" style="display:none;padding:16px 20px;background:#fff;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.08);">
       <div style="font-size:.75rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#999;margin-bottom:10px;">Resultados:</div>
       <div id="results-list"></div>
     </div>
@@ -284,6 +136,7 @@
       <a href="/products">Lista de produtos</a>
       <a href="/sales">Lista de vendas</a>
       <a href="/site-orders">🌐 Pedidos do site</a>
+      <a href="/kits">🧰 Kits</a>
     </div>
 
 
@@ -297,8 +150,6 @@
         </table>
       </div>
     </div>
-  </main>
-</div>
 
 <!-- CART OVERLAY -->
 <div class="cart-overlay" id="cart-overlay" onclick="closeCart()"></div>
@@ -321,6 +172,10 @@
   </div>
 </div>
 
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
 <script>
 // ── CART ──
 let cart = JSON.parse(localStorage.getItem('mtf_cart') || '[]');
@@ -330,17 +185,14 @@ cart = cart.map(i => ({...i, qty: Math.round(parseFloat(i.qty) * 1000) / 1000}))
 function saveCart() { localStorage.setItem('mtf_cart', JSON.stringify(cart)); }
 
 function updateBadge() {
-  const badge = document.getElementById('cart-badge');
-  const total = cart.length;
-  badge.textContent = total;
-  badge.classList.toggle('hidden', total === 0);
-  // Показываем сумму на кнопке
-  const btn = document.querySelector('.cart-icon-btn');
+  // contador do carrinho no topo (vem do _base_admin.html)
+  const badge = document.getElementById('nav-cart-count');
+  const btn = document.getElementById('nav-cart-btn');
+  if (!badge || !btn) return;
   const totalValue = cart.reduce((s, i) => s + Math.round(i.price * 100) * Math.round(i.qty * 1000) / 100000, 0);
-  const btnText = total > 0
-    ? `🛒 Carrinho · R$ ${totalValue.toFixed(2)}`
-    : '🛒 Carrinho';
-  btn.childNodes[0].textContent = btnText;
+  badge.textContent = cart.length;
+  badge.style.display = cart.length ? 'inline' : 'none';
+  btn.title = cart.length ? `${cart.length} item(s) — R$ ${totalValue.toFixed(2)}` : '';
 }
 
 function roundQty(qty) {
@@ -349,7 +201,8 @@ function roundQty(qty) {
 
 function addToCart(id, name, price, unit, qty = 1) {
   qty = roundQty(qty);
-  const existing = cart.find(i => i.id === id);
+  // junta só com a mesma peça AVULSA (linha de kit tem outro preço)
+  const existing = cart.find(i => i.id === id && !i.kit);
   if (existing) {
     existing.qty = roundQty(existing.qty + qty);
   } else {
@@ -362,15 +215,16 @@ function addToCart(id, name, price, unit, qty = 1) {
   openCart();
 }
 
-function removeFromCart(id) {
-  cart = cart.filter(i => i.id !== id);
+// operações pelo número da linha: o mesmo produto pode estar avulso e dentro de um kit
+function removeFromCart(idx) {
+  cart.splice(idx, 1);
   saveCart();
   updateBadge();
   renderCart();
 }
 
-function updateQty(id, qty) {
-  const item = cart.find(i => i.id === id);
+function updateQty(idx, qty) {
+  const item = cart[idx];
   if (item) { item.qty = Math.max(0.001, roundQty(qty) || 1); }
   saveCart();
   updateBadge();
@@ -398,22 +252,22 @@ function renderCart() {
     return;
   }
   footer.style.display = 'block';
-  body.innerHTML = cart.map(item => {
+  body.innerHTML = cart.map((item, idx) => {
     const qtyDisplay = fmtQtyCart(item.qty, item.unit);
     const itemTotal = (Math.round(item.price * 100) * Math.round(item.qty * 1000) / 100000).toFixed(2);
     return `
     <div class="cart-item">
       <div class="cart-item-info">
-        <div class="cart-item-name">${item.name}</div>
+        <div class="cart-item-name">${item.name}${item.kit ? '<span class="cart-kit">KIT</span>' : ''}</div>
         <div class="cart-item-detail">
           R$ ${item.price.toFixed(2)} / ${item.unit} &nbsp;·&nbsp;
           Qtd: <input class="cart-qty" type="number" value="${qtyDisplay}" min="0.001" step="any"
-            onchange="updateQty(${item.id}, this.value)">
+            onchange="updateQty(${idx}, this.value)">
         </div>
       </div>
       <div style="text-align:right">
         <div class="cart-item-price">R$ ${itemTotal}</div>
-        <button class="cart-item-remove" onclick="removeFromCart(${item.id})">🗑</button>
+        <button class="cart-item-remove" onclick="removeFromCart(${idx})">🗑</button>
       </div>
     </div>
   `}).join('');
@@ -728,32 +582,8 @@ if (_savedSearch) {
   inp.value = _savedSearch;
   searchProducts();
 }
+
+// no início o botão do carrinho do topo abre a gaveta (nas outras páginas ele vai para /checkout)
+document.getElementById('nav-cart-btn')?.addEventListener('click', e => { e.preventDefault(); openCart(); });
 </script>
-<script>
-  // app no celular: registra o service worker (instalação + notificações)
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js').catch(() => {});
-  }
-  // Pedidos do site: menu pisca enquanto houver pedido pago em aberto (checa a cada 60 s)
-  (function () {
-    async function checkSiteOrders() {
-      try {
-        const r = await fetch('/site-orders/count', { cache: 'no-store' });
-        if (!r.ok) return;
-        const n = (await r.json()).open || 0;
-        document.querySelectorAll('a[href="/site-orders"]').forEach(a => {
-          a.classList.toggle('so-alert', n > 0);
-          let b = a.querySelector('.so-count');
-          if (n > 0) {
-            if (!b) { b = document.createElement('span'); b.className = 'so-count'; a.appendChild(b); }
-            b.textContent = n;
-          } else if (b) { b.remove(); }
-        });
-      } catch (e) {}
-    }
-    checkSiteOrders();
-    setInterval(checkSiteOrders, 60000);
-  })();
-</script>
-</body>
-</html>
+{% endblock %}

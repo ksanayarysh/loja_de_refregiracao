@@ -36,6 +36,14 @@
     .msg{padding:12px 14px;border-radius:10px;margin-bottom:14px;font-weight:800;}
     .err{background:#fef2f2;border:1px solid #fecaca;color:#7f1d1d;}
     .ok{background:#ecfdf5;border:1px solid #bbf7d0;color:#065f46;}
+    .kit-box{margin-top:18px;border:2px solid #fde68a;}
+    .kit-box h2{font-size:1.2rem;margin-bottom:10px;}
+    .kit-prev{margin-top:10px;padding:12px 14px;background:#f9fafb;border-radius:10px;font-size:.92rem;display:none;}
+    .kit-prev li{display:flex;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px solid #eee;list-style:none;}
+    .kit-prev li:last-child{border-bottom:none;}
+    .kit-prev .warn{color:#b45309;font-weight:800;font-size:.82rem;}
+    .kit-prev .tot{margin-top:8px;font-weight:900;font-size:1.05rem;text-align:right;}
+    .kit-prev .old{color:#9ca3af;text-decoration:line-through;font-weight:600;margin-right:8px;}
 {% endblock %}
 
 {% block head %}
@@ -118,6 +126,47 @@
           <a class="btn-secondary" href="/sales">Ver vendas</a>
         </div>
         <div class="cart-added" id="cart-added">✅ Adicionado ao carrinho!</div>
+      </form>
+    </div>
+
+    <!-- ── KIT ── -->
+    <div class="card kit-box" id="kit-box">
+      <h2>🧰 Vender kit</h2>
+      <div class="msg ok" id="kitOk" style="display:none;"></div>
+      <div class="msg err" id="kitErr" style="display:none;"></div>
+      <form method="post" action="/sales/kit" id="kitSaleForm">
+        <input type="hidden" name="sold_at" id="kit_sold_at">
+        <div class="row">
+          <div>
+            <label for="kit_id">Kit</label>
+            <select id="kit_id" name="kit_id" required>
+              <option value="" disabled selected>Carregando...</option>
+            </select>
+          </div>
+          <div>
+            <label for="kit_qty">Quantidade de kits</label>
+            <input id="kit_qty" name="kit_qty" inputmode="numeric" value="1" required>
+          </div>
+        </div>
+        <div class="kit-prev" id="kitPrev"></div>
+
+        <label for="kit_payment">Forma de pagamento</label>
+        <select id="kit_payment" name="payment_type" required>
+          <option value="dinheiro">💵 Dinheiro</option>
+          <option value="pix">📱 Pix</option>
+          <option value="cartao_credito">💳 Cartão de crédito</option>
+          <option value="cartao_debito">💳 Cartão de débito</option>
+        </select>
+
+        <label for="kit_note">Observação (opcional)</label>
+        <input id="kit_note" name="note" placeholder="Ex: cliente, instalação...">
+
+        <div class="btns">
+          <button class="btn-primary" type="submit">Registrar venda do kit</button>
+          <button class="btn-cart" type="button" onclick="kitToCart()">🛒 Kit no carrinho</button>
+          <a class="btn-secondary" href="/kits">Gerenciar kits</a>
+        </div>
+        <div class="hint">Cada produto do kit vira uma linha na venda, com o desconto do kit, e baixa do estoque.</div>
       </form>
     </div>
 {% endblock %}
@@ -337,7 +386,7 @@
     const unit  = opt.dataset.unit || 'un';
 
     let cart = JSON.parse(localStorage.getItem('mtf_cart') || '[]');
-    const existing = cart.find(i => i.id === id);
+    const existing = cart.find(i => i.id === id && !i.kit);   // linha de kit tem outro preço
     if (existing) {
       existing.qty += qty;
       if (isUnitUn(unit)) existing.qty = Math.trunc(existing.qty);
@@ -460,6 +509,74 @@
 
   // Also recalc troco when total changes
   document.getElementById('total').addEventListener('input', calcTroco);
+
+  // ── KITS ──
+  let KITS = [];
+  const kitSel = document.getElementById('kit_id');
+  const kitQtyEl = document.getElementById('kit_qty');
+  const brl = n => 'R$ ' + n.toFixed(2).replace('.', ',');
+  const kitQty = () => { const n = parseInt(kitQtyEl.value, 10); return n > 0 ? n : 0; };
+
+  fetch('/api/kits', { cache: 'no-store' }).then(r => r.json()).then(data => {
+    KITS = data;
+    kitSel.innerHTML = KITS.length
+      ? '<option value="" disabled selected>Selecione o kit...</option>' +
+        KITS.map(k => `<option value="${k.id}">${k.name.replace(/</g, '&lt;')} — ${brl(k.total)}</option>`).join('')
+      : '<option value="" disabled selected>Nenhum kit — crie em Gerenciar kits</option>';
+    const pre = new URLSearchParams(location.search).get('kit');
+    if (pre && KITS.some(k => String(k.id) === pre)) { kitSel.value = pre; renderKit(); }
+  }).catch(() => { kitSel.innerHTML = '<option value="" disabled selected>Erro ao carregar kits</option>'; });
+
+  function currentKit() { return KITS.find(k => String(k.id) === kitSel.value); }
+
+  function renderKit() {
+    const k = currentKit(), n = kitQty(), box = document.getElementById('kitPrev');
+    if (!k || !n) { box.style.display = 'none'; return; }
+    const rows = k.items.map(it => {
+      const q = Math.round(it.qty * n * 1000) / 1000;
+      const warn = it.stock < q ? ` <span class="warn">· estoque ${fmtQty(it.stock, it.unit)}</span>` : '';
+      return `<li><span>${fmtQty(q, it.unit)} ${it.unit} × ${it.name}${warn}</span><span>${brl(Math.round(q * it.kit_price * 100) / 100)}</span></li>`;
+    }).join('');
+    const total = k.items.reduce((s, it) => s + Math.round(it.qty * n * it.kit_price * 100) / 100, 0);
+    const full = k.items.reduce((s, it) => s + Math.round(it.qty * n * it.price * 100) / 100, 0);
+    box.innerHTML = `<ul style="padding:0;margin:0;">${rows}</ul><div class="tot">` +
+      (k.discount_percent ? `<span class="old">${brl(full)}</span>` : '') + `Total: ${brl(total)}` +
+      (k.discount_percent ? ` <span style="color:#E2144A;">(-${k.discount_percent}%)</span>` : '') + '</div>';
+    box.style.display = 'block';
+  }
+  kitSel.addEventListener('change', renderKit);
+  kitQtyEl.addEventListener('input', renderKit);
+
+  document.getElementById('kitSaleForm').addEventListener('submit', e => {
+    const k = currentKit();
+    if (!k || !kitQty()) { e.preventDefault(); alert('Escolha o kit e a quantidade.'); return; }
+    if (k.items.some(it => it.stock < it.qty * kitQty()) &&
+        !confirm('Algum produto do kit não tem estoque suficiente. Registrar mesmo assim?')) { e.preventDefault(); return; }
+    document.getElementById('kit_sold_at').value = document.getElementById('sold_at').value;
+  });
+
+  function kitToCart() {
+    const k = currentKit(), n = kitQty();
+    if (!k || !n) { alert('Escolha o kit e a quantidade.'); return; }
+    let cart = JSON.parse(localStorage.getItem('mtf_cart') || '[]');
+    for (const it of k.items) {
+      // linha separada (não junta com o mesmo produto avulso: o preço do kit é outro)
+      cart.push({ id: it.product_id, name: `${it.name} [kit ${k.name}]`, price: it.kit_price,
+                  unit: it.unit, qty: Math.round(it.qty * n * 1000) / 1000, kit: k.name });
+    }
+    localStorage.setItem('mtf_cart', JSON.stringify(cart));
+    updateNavCart();
+    const ok = document.getElementById('kitOk');
+    ok.innerHTML = `✅ ${n}× ${k.name} no carrinho. <a href="/checkout" style="color:#065f46;font-weight:900;">Ver carrinho →</a>`;
+    ok.style.display = 'block';
+  }
+
+  (function () {
+    const p = new URLSearchParams(location.search);
+    if (p.get('kit_ok')) { const el = document.getElementById('kitOk'); el.textContent = '✅ ' + p.get('kit_ok'); el.style.display = 'block'; }
+    if (p.get('kit_err')) { const el = document.getElementById('kitErr'); el.textContent = p.get('kit_err'); el.style.display = 'block'; }
+    if (p.get('kit') || p.get('kit_ok') || p.get('kit_err')) setTimeout(() => document.getElementById('kit-box').scrollIntoView({ behavior: 'smooth' }), 200);
+  })();
 
 </script>
 {% endblock %}
