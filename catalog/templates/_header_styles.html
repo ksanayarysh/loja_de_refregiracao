@@ -171,11 +171,17 @@ window.addEventListener('load', function() {
   html body .btn-foto{background:transparent;border-color:rgba(37,211,102,.7);color:#7ee2a8;}
   html body .btn-foto:hover{background:rgba(37,211,102,.12);}
 
+  /* ── "Continuar comprando" na gaveta do carrinho ── */
+  .cart-continue-btn{display:flex;align-items:center;justify-content:center;width:100%;padding:12px;margin:0 0 8px;border-radius:10px;border:1.5px solid var(--accent);background:var(--surface);color:var(--accent);font-family:inherit;font-size:.95rem;font-weight:700;cursor:pointer;}
+  .cart-continue-btn:hover{background:var(--accent-l);}
+
   /* ── BARRA DO CARRINHO (celular) ── */
   .cart-bar{display:none;position:fixed;left:12px;right:12px;bottom:12px;z-index:250;background:var(--navy);color:#fff;border-radius:14px;padding:12px 14px;align-items:center;justify-content:space-between;gap:10px;box-shadow:0 8px 24px rgba(11,37,69,.35);text-decoration:none;font-weight:700;font-size:.95rem;}
   .cart-bar b{font-family:'DM Mono',monospace;}
   .cart-bar .go{background:var(--promo);padding:9px 14px;border-radius:10px;white-space:nowrap;}
   @media(max-width:700px){ .cart-bar.show{display:flex;} body.has-cart-bar .wa-float{bottom:84px;} body.has-cart-bar{padding-bottom:76px;} }
+  /* no computador: "pílula" fixa no canto inferior esquerdo (o WhatsApp fica à direita) */
+  @media(min-width:701px){ .cart-bar.show{display:flex;left:24px;right:auto;bottom:24px;gap:16px;padding:10px 12px 10px 18px;} }
 
   /* ── RESPONSIVE ── */
   @media(max-width:380px){

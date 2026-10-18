@@ -35,14 +35,14 @@
     .co-btn-sec:disabled{opacity:.6;cursor:default;}
 
     .co-opt{display:flex;align-items:center;gap:12px;padding:13px 14px;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;margin-bottom:8px;background:var(--bg);}
-    .co-opt:has(input:checked){border-color:var(--accent);background:var(--accent-l);}
+    .co-opt:has(input:checked){border-color:var(--accent);background:#fff5f7;}
     .co-opt input{accent-color:var(--accent);width:18px;height:18px;flex-shrink:0;}
     .co-opt-main{flex:1;}
     .co-opt-name{font-weight:700;font-size:.95rem;}
     .co-opt-hint{font-size:.78rem;color:var(--muted);margin-top:2px;}
     .co-opt-price{font-family:"DM Mono",monospace;font-weight:700;white-space:nowrap;}
     .co-free{color:var(--green);}
-    .co-kit{display:inline-block;margin-left:4px;padding:0 7px;border-radius:999px;background:var(--accent-l);color:var(--accent);border:1px solid var(--accent-b);font-size:.7rem;font-weight:800;}
+    .co-kit{display:inline-block;margin-left:4px;padding:0 7px;border-radius:999px;background:#fff0f4;color:var(--accent);border:1px solid #ffd0dc;font-size:.7rem;font-weight:800;}
 
     .co-msg{font-size:.85rem;margin:6px 0 10px;}
     .co-err{color:var(--accent);}
@@ -77,6 +77,7 @@
 
 {% include '_header.html' %}
 
+<div style="max-width:1000px;margin:16px auto 0;padding:0 20px;"><a href="/" onclick="if(document.referrer && document.referrer.indexOf(location.host) > -1){history.back();return false;}" style="color:var(--accent);font-weight:700;text-decoration:none;font-size:.92rem;">← Continuar comprando</a></div>
 <h1 class="co-title">Finalizar pedido</h1>
 
 <div id="co-empty" class="co-empty co-hidden">

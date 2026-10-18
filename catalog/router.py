@@ -604,6 +604,7 @@ async def catalog_page(request: Request):
         "banners":       clean["banners"],
         "promo_product": clean["promo_product"],
         "promos":        clean["promos"],
+        "total_products": len(all_rows),
         "ga_id":         GA_ID,
         "site_url":      SITE_URL,
         "store_address": STORE_ADDRESS,

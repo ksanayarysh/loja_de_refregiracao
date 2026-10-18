@@ -42,7 +42,7 @@
 </header>
 
 <!-- Barra do carrinho no celular (todas as páginas): aparece quando há itens -->
-<a class="cart-bar" id="cartBar" href="/checkout"><span>🛒 <span id="cartBarN">0</span> · <b id="cartBarT">R$ 0,00</b></span><span class="go">Pagar com Pix →</span></a>
+<a class="cart-bar" id="cartBar" href="/checkout"><span>🛒 <span id="cartBarN">0</span> · <b id="cartBarT">R$ 0,00</b></span><span class="go">Finalizar compra →</span></a>
 <script>
 (function () {
   if (/^\/(checkout|pedido)/.test(location.pathname)) return;   // já está pagando
@@ -65,4 +65,25 @@
   window.addEventListener('storage', e => { if (e.key === 'mtf_cart') render(); });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', render); else render();
 })();
+</script>
+
+<!-- "Continuar comprando" na gaveta do carrinho de todas as páginas (fecha a gaveta) -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('a.cart-pay-btn').forEach(function (pay) {
+    if (pay.parentNode.querySelector('.cart-continue-btn')) return;
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'cart-continue-btn';
+    b.textContent = '← Continuar comprando';
+    b.addEventListener('click', function () {
+      var drawer = pay.closest('.cart-drawer') || document;
+      var x = drawer.querySelector('.cart-close');
+      if (x) x.click();
+      else if (typeof cartClose === 'function') cartClose();
+      else if (typeof closeCart === 'function') closeCart();
+    });
+    pay.insertAdjacentElement('afterend', b);
+  });
+});
 </script>

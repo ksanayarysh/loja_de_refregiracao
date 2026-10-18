@@ -25,7 +25,13 @@
   {% include '_header_styles.html' %}
   <style>
     /* ── CATALOG-SPECIFIC STYLES ── */
-    .hero{max-width:1100px;margin:0 auto;padding:48px 20px 32px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:40px;align-items:start;}
+    .hero{max-width:1100px;margin:0 auto;padding:40px 20px 28px;display:grid;grid-template-columns:minmax(0,1fr);gap:24px;align-items:start;}
+    .hero-text{max-width:none;}
+    .hero-text h1{max-width:900px;}
+    .hero-sub{max-width:760px;}
+    .hero-sub{font-size:1.02rem!important;}
+    .hero-cat-link{display:inline-block;margin-top:10px;color:var(--accent);font-weight:700;font-size:.95rem;text-decoration:none;border-bottom:1.5px solid var(--accent-b);}
+    .hero-cat-link:hover{border-color:var(--accent);}
     .hero-banners{display:flex;flex-direction:column;gap:10px;min-width:320px;max-width:460px;}
     .hero-text h1{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:700;line-height:1.15;letter-spacing:-.03em;}
     .hero-text h1 span{color:var(--accent);}
@@ -155,7 +161,7 @@
       .search-bar-inner{padding:0 16px;gap:8px;flex-wrap:wrap;}
       .search-bar-inner .header-search{flex:1 1 100%;}
       .btn-foto{width:100%;justify-content:center;}
-      .btn-ligue{display:flex;width:100%;justify-content:center;}
+      .btn-ligue{display:none;}  /* telefone já está na faixa do topo */
 
       /* hero */
       .hero{grid-template-columns:minmax(0,1fr);padding:24px 16px 20px;gap:24px;}
@@ -334,7 +340,8 @@
 <div class="hero">
   <div class="hero-text">
     <h1>Loja de peças e gases para<br><span>refrigeração, climatização e máquinas de lavar no RJ</span></h1>
-    <p>Loja especializada em peças para geladeira, máquina de lavar e ar-condicionado. Refil e varejo de gases refrigerantes: R22, R32, R134a, R290, R410A, R404A, R600a. Av. Brasil, 6818 — Rio de Janeiro.</p>
+    <p class="hero-sub">Peças para geladeira, ar-condicionado e máquina de lavar, gases refrigerantes, ferramentas e kits de instalação. Compre online com Pix, retire hoje na Av. Brasil ou receba em casa.</p>
+    <a class="hero-cat-link" href="/catalogo">Ver catálogo completo{% if total_products %} · {{ total_products }} produtos{% endif %} →</a>
     <div class="hero-btns">
       <a class="btn-hero-buy" href="/catalogo">🛒 Comprar online</a>
       <a class="btn-hero-wa btn-hero-wa2 wa-track" href="https://wa.me/{{ wa_number }}?text=Ol%C3%A1%21%20Quero%20comprar%20uma%20pe%C3%A7a." target="_blank" rel="noopener" data-product="Hero WA">
@@ -342,12 +349,6 @@
         WhatsApp
       </a>
 
-      <a href="tel:{{ store_phone }}" class="btn-hero-phone phone-track"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.81a16 16 0 0 0 6.29 6.29l.95-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg> Ligue agora</a>
-    </div>
-    <div class="hero-badges">
-      <span class="badge">R134a · R410A · R22 · R32 · R290 · R404A · R600a</span>
-      <span class="badge">Refil e varejo</span>
-      <a class="badge" href="https://maps.google.com/?q=MTF+Refrigera%C3%A7%C3%A3o+Rio+de+Janeiro" target="_blank" rel="noopener" style="text-decoration:none;color:var(--accent);border-color:var(--accent);">📍 Av. Brasil, 6818 — RJ · <span style="font-weight:700;">Ver no mapa →</span></a>
     </div>
     <div class="hero-trust">
       <span>✅ Pague com <b>Pix</b> no site</span>
@@ -357,43 +358,49 @@
     </div>
 
   </div>
-  <div class="hero-banners">
-    {% for b in banners %}
-    <div class="hero-banner-card hbc-item" style="position:relative;">
-      <div class="hero-banner-top">
-        <a href="/product/{{ b.slug }}" style="display:contents;text-decoration:none;color:inherit;">
-          {% if b.image %}
-          {% if loop.first %}
-          <img class="hero-banner-img" src="{{ b.image | imgurl(162) }}" alt="{{ b.name }}" loading="eager" fetchpriority="high">
-          {% else %}
-          <img class="hero-banner-img" src="{{ b.image | imgurl(96) }}" alt="{{ b.name }}" loading="lazy">
-          {% endif %}
-          {% else %}
-          <div class="hero-banner-img-ph">📦</div>
-          {% endif %}
-        </a>
-        <div class="hero-banner-info">
-          <a href="/product/{{ b.slug }}" style="text-decoration:none;color:inherit;">
-            <div class="hero-banner-name">{% if b.on_promo %}<span class="promo-pill">Promoção</span>{% endif %}{{ b.name }}</div>
-            <div class="hero-banner-cat">{{ b.category_name }}</div>
-          </a>
-        </div>
-      </div>
-      {% if b.sale_price %}
-      <div class="hero-banner-bottom">
-        <div class="hero-banner-price">{% if b.on_promo %}<span class="prod-price-old">R$ {{ ("%.2f"|format(b.sale_price))|replace(".", ",") }}</span>{% endif %}R$ {{ ("%.2f"|format(b.price))|replace(".", ",") }}</div>
-        <div style="display:flex;align-items:center;gap:8px;margin-left:auto;">
-          <button class="hb-buy" onclick='addToCart({{ b.id }}, {{ b.name | tojson }}, {{ b.price }}, {{ (b.image or "") | tojson }}); location.href="/checkout";'>Comprar</button>
-          <button class="add-cart-btn" data-id="{{ b.id }}" data-name="{{ b.name|e }}" data-price="{{ b.price }}" data-image="{{ b.image or '' }}">🛒</button>
-        </div>
-      </div>
-      {% endif %}
-    </div>
-    {% endfor %}
+</div>
+
+<!-- KITS (montados na admin em /kits, marcados "mostrar no site") -->
+<style>
+  .kits-calc-link{margin-left:auto;display:inline-flex;align-items:center;gap:6px;text-transform:none;letter-spacing:0;font-size:.88rem;font-weight:700;color:var(--accent);text-decoration:none;background:var(--accent-l);border:1.5px solid var(--accent-b);border-radius:999px;padding:7px 14px;transition:background .15s,border-color .15s;}
+  .kits-calc-link:hover{background:#d6edf4;border-color:var(--accent);}
+  .kits-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px;align-items:stretch;}
+  .kits-grid.n1{grid-template-columns:minmax(0,560px);}
+  .kit-card{background:var(--surface);border:1.5px solid var(--border);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px;position:relative;transition:border-color .15s,box-shadow .15s;}
+  .kit-card:hover{border-color:var(--accent);box-shadow:0 6px 20px rgba(14,124,153,.12);}
+  .kit-save{position:absolute;top:-10px;right:14px;background:var(--accent);color:#fff;font-size:.74rem;font-weight:800;padding:4px 10px;border-radius:999px;box-shadow:0 2px 6px rgba(226,20,74,.3);}
+  .kit-name{font-weight:800;font-size:1.05rem;line-height:1.3;padding-right:70px;}
+  .kit-desc{font-size:.85rem;color:var(--muted);line-height:1.45;margin-top:-6px;}
+  .kit-thumbs{display:flex;gap:6px;flex-wrap:wrap;}
+  .kit-thumbs img,.kit-thumbs .kt-ph{width:46px;height:46px;border-radius:8px;object-fit:contain;background:#fff;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.1rem;}
+  .kit-list{list-style:none;margin:0;padding:0;font-size:.86rem;display:flex;flex-direction:column;gap:4px;}
+  .kit-list li{display:grid;grid-template-columns:52px 1fr;gap:8px;align-items:baseline;}
+  .kit-list .q{text-align:right;}
+  .kit-list .q{font-family:'DM Mono',monospace;font-weight:700;color:var(--text);white-space:nowrap;}
+  .kit-gift{display:inline-block;background:#f0fdf4;border:1px solid #bbf7d0;color:#15803d;font-size:.7rem;font-weight:800;padding:1px 7px;border-radius:999px;margin-left:4px;}
+  .kit-price-row{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin-top:auto;}
+  .kit-old{font-size:.8rem;color:var(--muted);text-decoration:line-through;}
+  .kit-price{font-family:'DM Mono',monospace;font-weight:700;font-size:1.5rem;color:var(--accent);line-height:1.1;}
+  .kit-car{font-size:.74rem;color:var(--muted);}
+  .kit-btns{display:flex;gap:8px;}
+  .kit-btns button{flex:1;padding:11px 10px;border-radius:10px;font-weight:700;font-size:.88rem;font-family:inherit;cursor:pointer;}
+  .kit-add{background:var(--surface);color:var(--text);border:1.5px solid var(--text);}
+  .kit-buy{background:var(--accent);color:#fff;border:none;}
+  @media(max-width:600px){
+    .kits-grid{grid-auto-flow:column;grid-template-columns:none;grid-auto-columns:86%;overflow-x:auto;scroll-snap-type:x mandatory;padding:12px 2px 8px;-webkit-overflow-scrolling:touch;}
+    .kit-card{scroll-snap-align:start;}
+  }
+</style>
+<div class="section-wrap" id="kits-wrap" style="display:none;">
+  <div class="section-title" style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;">
+    <span>🧰 Kits com desconto</span>
+    <a href="/calculadora-instalacao" class="kits-calc-link">🧮 Monte o kit de instalação pela distância →</a>
   </div>
+  <div class="kits-grid" id="kits-grid"></div>
 </div>
 
 <!-- PROMO BANNER R32 -->
+{% if promo_product or promos %}<div class="section-wrap" style="padding-bottom:0;"><div class="section-title">🔥 Promoções</div></div>{% endif %}
 {% if promo_product %}
 {% set pp_price = "%.2f"|format(promo_product.price) %}
 {% set pp_reais = pp_price.split('.')[0] %}
@@ -438,7 +445,6 @@
   .promo-out{margin-top:auto;font-size:.78rem;color:var(--muted);text-align:center;padding:9px;}
 </style>
 <div class="section-wrap">
-  <div class="section-title">🔥 Promoções</div>
   <div class="promos-row">
     {% for p in promos %}
     <div class="promo-card">
@@ -462,34 +468,6 @@
   </div>
 </div>
 {% endif %}
-
-<!-- KITS (montados na admin em /kits, marcados "mostrar no site") -->
-<style>
-  .kits-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;}
-  .kit-card{background:var(--surface);border:1.5px solid var(--border);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px;position:relative;transition:border-color .15s,box-shadow .15s;}
-  .kit-card:hover{border-color:var(--accent);box-shadow:0 6px 20px rgba(14,124,153,.12);}
-  .kit-save{position:absolute;top:-10px;right:14px;background:var(--accent);color:#fff;font-size:.74rem;font-weight:800;padding:4px 10px;border-radius:999px;box-shadow:0 2px 6px rgba(226,20,74,.3);}
-  .kit-name{font-weight:800;font-size:1.05rem;line-height:1.3;padding-right:70px;}
-  .kit-desc{font-size:.85rem;color:var(--muted);line-height:1.45;margin-top:-6px;}
-  .kit-thumbs{display:flex;gap:6px;flex-wrap:wrap;}
-  .kit-thumbs img,.kit-thumbs .kt-ph{width:46px;height:46px;border-radius:8px;object-fit:contain;background:#fff;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.1rem;}
-  .kit-list{list-style:none;margin:0;padding:0;font-size:.86rem;display:flex;flex-direction:column;gap:4px;}
-  .kit-list li{display:flex;gap:6px;align-items:baseline;}
-  .kit-list .q{font-family:'DM Mono',monospace;font-weight:700;color:var(--text);white-space:nowrap;}
-  .kit-gift{display:inline-block;background:#f0fdf4;border:1px solid #bbf7d0;color:#15803d;font-size:.7rem;font-weight:800;padding:1px 7px;border-radius:999px;margin-left:4px;}
-  .kit-price-row{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin-top:auto;}
-  .kit-old{font-size:.8rem;color:var(--muted);text-decoration:line-through;}
-  .kit-price{font-family:'DM Mono',monospace;font-weight:700;font-size:1.5rem;color:var(--accent);line-height:1.1;}
-  .kit-car{font-size:.74rem;color:var(--muted);}
-  .kit-btns{display:flex;gap:8px;}
-  .kit-btns button{flex:1;padding:11px 10px;border-radius:10px;font-weight:700;font-size:.88rem;font-family:inherit;cursor:pointer;}
-  .kit-add{background:var(--surface);color:var(--text);border:1.5px solid var(--text);}
-  .kit-buy{background:var(--accent);color:#fff;border:none;}
-</style>
-<div class="section-wrap" id="kits-wrap" style="display:none;">
-  <div class="section-title">🧰 Kits com desconto</div>
-  <div class="kits-grid" id="kits-grid"></div>
-</div>
 
 <!-- FRETE: quanto custa a entrega (usa /api/frete-cep, igual à página do produto) -->
 <style>
@@ -523,18 +501,6 @@
     </div>
     <div class="hf-r" id="hfRes"></div>
   </div>
-</div>
-
-<!-- CALCULADORA DE INSTALAÇÃO -->
-<div class="section-wrap" style="padding-bottom:24px;">
-  <a href="/calculadora-instalacao" style="display:flex;align-items:center;gap:16px;text-decoration:none;color:inherit;background:var(--surface);border:1.5px solid var(--accent);border-radius:16px;padding:18px 20px;">
-    <div style="font-size:2rem;">🧮</div>
-    <div style="flex:1;">
-      <div style="font-weight:700;font-size:1.02rem;">Peças para instalar seu ar-condicionado</div>
-      <div style="font-size:.85rem;color:var(--muted);margin-top:2px;line-height:1.5;">Calcule o kit de peças pela distância entre as unidades: tubo de cobre, esponjoso, suporte, cabo e dreno. Só os materiais, sem mão de obra.</div>
-    </div>
-    <div style="font-weight:700;color:var(--accent);white-space:nowrap;">Calcular →</div>
-  </a>
 </div>
 
 <!-- CATEGORIAS -->
@@ -900,6 +866,7 @@ fetch('/api/kits-site').then(r => r.json()).then(kits => {
       </div>
     </div>`;
   }).join('');
+  document.getElementById('kits-grid').classList.toggle('n1', SITE_KITS.length === 1);
   document.getElementById('kits-wrap').style.display = '';
 }).catch(() => {});
 
