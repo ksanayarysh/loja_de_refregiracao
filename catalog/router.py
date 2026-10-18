@@ -938,7 +938,7 @@ _GOOGLE_GOOD = {"street_address", "premise", "subpremise", "route", "postal_code
 
 
 async def _google_geocode(client, address: str, cep: str = "", precise: bool = False):
-    """Google Geocoding -> ((lat, lng), location_type) ou None.
+    """Google Geocoding -> ((lat, lng), location_type, types) ou None.
     Recusa resultado que seja só a cidade (o problema do "centro do Rio").
     precise=True: só aceita endereço com número (ROOFTOP / RANGE_INTERPOLATED)."""
     key = _google_key()
@@ -968,12 +968,12 @@ async def _google_geocode(client, address: str, cep: str = "", precise: bool = F
         loc_type = res0["geometry"].get("location_type", "")
         if (types & _GOOGLE_VAGUE) and not (types & _GOOGLE_GOOD):
             _blog_log.warning("geo: google impreciso %s (%s)", sorted(types), address)
-            return None
+            continue          # tenta a próxima variante (sem filtro de CEP)
         if precise and loc_type not in ("ROOFTOP", "RANGE_INTERPOLATED"):
-            return None
+            continue          # ex.: cliente errou 1 dígito do CEP -> sem filtro acha o número exato
         loc = res0["geometry"]["location"]
         try:
-            return (float(loc["lat"]), float(loc["lng"])), loc_type
+            return (float(loc["lat"]), float(loc["lng"])), loc_type, types
         except (KeyError, TypeError, ValueError):
             return None
     return None
@@ -1026,15 +1026,39 @@ async def _cep_to_coords(cep: str):
                 pass
             return None
 
-        # 1b. Google Geocoding — o mais confiável. Se achar a rua, usamos direto.
-        g = await _google_geocode(client, address, cep)
-        if g:
-            c, loc_type = g
-            _blog_log.info("frete-cep: %s -> %s via google (%s)", cep, c, loc_type)
-            res = {"lat": c[0], "lng": c[1], "address": address, "rua": street,
-                   "bairro": bairro, "cidade": cidade, "uf": uf}
-            _geo_cache[cep] = res
-            return res
+        # 1b. Google. Rua sozinha NÃO serve: para avenida longa (Av. Brasil = 58 km) o Google devolve
+        #     o meio da avenida inteira. Por isso: (a) o próprio CEP, (b) a rua, conferidos pelo bairro.
+        if _google_key():
+            cep_fmt = f"{cep[:5]}-{cep[5:]}"
+            g_bairro = await _google_geocode(client, f"{bairro}, {cidade} - {uf}") if bairro else None
+            ref_g = g_bairro[0] if g_bairro and g_bairro[2] & {"neighborhood", "sublocality", "sublocality_level_1"} else None
+            picks = []
+            g_cep = await _google_geocode(client, f"{cep_fmt}, {cidade} - {uf}, Brasil", cep)
+            if g_cep and g_cep[2] & {"postal_code", "street_address", "premise"}:
+                picks.append((g_cep[0], f"google-cep ({g_cep[1]})"))
+            if street:
+                g_rua = await _google_geocode(client, address, cep)
+                if g_rua:
+                    picks.append((g_rua[0], f"google-rua ({g_rua[1]})"))
+            chosen = None
+            for c, src in picks:
+                if ref_g and _km(c, ref_g) > GEO_MAX_KM_FROM_BAIRRO:
+                    _blog_log.info("frete-cep: %s descartado %s %s (%.1f km do bairro %s)",
+                                   cep, src, c, _km(c, ref_g), bairro)
+                    continue
+                if not ref_g and src.startswith("google-rua"):
+                    continue      # sem bairro para conferir, rua é arriscado
+                chosen = (c, src)
+                break
+            if not chosen and ref_g:
+                chosen = (ref_g, "google-bairro")
+            if chosen:
+                c, src = chosen
+                _blog_log.info("frete-cep: %s -> %s via %s", cep, c, src)
+                res = {"lat": c[0], "lng": c[1], "address": address, "rua": street,
+                       "bairro": bairro, "cidade": cidade, "uf": uf}
+                _geo_cache[cep] = res
+                return res
 
         # 2. AwesomeAPI (reserva, se o Google falhar)
         try:
@@ -1095,10 +1119,10 @@ async def _cep_to_coords(cep: str):
     _geo_cache[cep] = res
     return res
 
-FRETE_OPTIONS = {
+FRETE_OPTIONS = {   # a ordem aqui é a ordem na tela
     "LALAGO":    ("Motoboy",      "Peças pequenas"),
-    "LALAPRO":   ("Moto com baú", "Caixas médias, protegidas da chuva"),
     "HATCHBACK": ("Carro",        "Peças grandes ou pesadas"),
+    "LALAPRO":   ("Moto com baú", "Caixas médias, protegidas da chuva"),
 }
 
 FRETE_MAX_KM = float(os.environ.get("FRETE_MAX_KM", "50"))
@@ -1151,7 +1175,6 @@ async def api_frete_cep(request: Request, cep: str = ""):
         _quote_cache[cep] = (time.time(), data)
         return JSONResponse(data, headers={"Cache-Control": "no-store"})
 
-    options.sort(key=lambda o: o["price"])
     data = {
         "rua": geo.get("rua", ""), "bairro": geo["bairro"], "cidade": geo["cidade"],
         "distance_km": round(distance_m / 1000, 1), "options": options,
