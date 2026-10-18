@@ -56,6 +56,16 @@
     .co-item-name{flex:1;min-width:0;}
     .co-item-qty{color:var(--muted);font-size:.85rem;}
     .co-money{font-family:"DM Mono",monospace;white-space:nowrap;}
+    .co-item-r{display:flex;flex-direction:column;align-items:flex-end;gap:6px;}
+    .co-stepper{display:inline-flex;align-items:center;border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+    .co-stepper button{width:32px;height:32px;border:none;background:var(--bg);color:var(--text);font-size:1rem;font-weight:700;cursor:pointer;font-family:inherit;}
+    .co-stepper button:hover{background:var(--accent-l);color:var(--accent);}
+    .co-stepper span{min-width:30px;text-align:center;font-size:.9rem;font-weight:700;}
+    .co-rm{background:none;border:none;color:var(--muted);font-size:.8rem;cursor:pointer;padding:4px 0;font-family:inherit;text-decoration:underline;}
+    .co-rm:hover{color:var(--promo);}
+    .co-summary .co-card{scroll-margin-top:90px;}
+    .co-flash{animation:coFlash 1.2s ease;}
+    @keyframes coFlash{0%,100%{box-shadow:none;}30%{box-shadow:0 0 0 3px var(--accent);}}
     .co-line{display:flex;justify-content:space-between;font-size:.95rem;margin-top:8px;}
     .co-total{display:flex;justify-content:space-between;font-size:1.25rem;font-weight:800;margin-top:14px;padding-top:14px;border-top:2px solid var(--border);}
     .co-pay{width:100%;margin-top:16px;padding:16px;border:none;border-radius:12px;background:var(--accent);color:#fff;font-family:inherit;font-size:1.08rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 6px 20px rgba(226,20,74,.25);}
@@ -181,12 +191,31 @@ const brl = v => 'R$ ' + v.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?
 function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 // шапка
-function cartOpen() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
-(function () {
+// o carrinho aqui é o próprio Resumo: o botão da шапки leva até ele
+function cartOpen() {
+  const box = document.querySelector('.co-summary .co-card');
+  if (!box || !cart.length) { location.href = '/catalogo'; return; }
+  box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  box.classList.remove('co-flash'); void box.offsetWidth; box.classList.add('co-flash');
+}
+function updateCount() {
   const n = cart.reduce((s, i) => s + (i.qty || 0), 0);
   const c = $('cartCount');
   if (c) { c.textContent = n; c.style.display = n > 0 ? 'inline-flex' : 'none'; }
-})();
+}
+updateCount();
+function cartQty(idx, d) {
+  const it = cart[idx]; if (!it) return;
+  const hadKit = cart.some(i => i.kit || i.car_only);
+  it.qty = (it.qty || 0) + d;
+  if (it.qty <= 0) cart.splice(idx, 1);
+  try { localStorage.setItem('mtf_cart', JSON.stringify(cart)); } catch (e) {}
+  updateCount();
+  renderSummary();
+  // kit entrou/saiu: as opções de frete mudam (kit só de carro)
+  if (cart.length && dtype() === 'lalamove' && hadKit !== cart.some(i => i.kit || i.car_only) && $('f-cep').value) calcFrete();
+}
+function cartRemove(idx) { const it = cart[idx]; if (it) cartQty(idx, -it.qty); }
 
 // ── resumo ──
 function subtotal() { return cart.reduce((s, i) => s + i.price * i.qty, 0); }
@@ -194,10 +223,14 @@ function dtype() { return document.querySelector('input[name="dtype"]:checked').
 
 function renderSummary() {
   if (!cart.length) { $('co-main').classList.add('co-hidden'); $('co-empty').classList.remove('co-hidden'); return; }
-  $('sum-items').innerHTML = cart.map(i => `
+  $('sum-items').innerHTML = cart.map((i, idx) => `
     <div class="co-item">
       <div class="co-item-name">${esc(i.name)}${i.kit ? ' <span class="co-kit">kit</span>' : ''} <div class="co-item-qty">${i.qty} × ${brl(i.price)}${i.unit ? ' / ' + esc(i.unit) : ''}</div>${i.items ? `<div class="co-item-qty">${i.items.map(c => esc(c.qty + ' ' + c.unit + ' ' + c.name) + (c.is_gift ? ' 🎁' : '')).join(' · ')}</div>` : ''}</div>
-      <div class="co-money">${brl(i.price * i.qty)}</div>
+      <div class="co-item-r">
+        <div class="co-money">${brl(i.price * i.qty)}</div>
+        <div class="co-stepper"><button type="button" onclick="cartQty(${idx},-1)" aria-label="Diminuir">−</button><span>${i.qty}</span><button type="button" onclick="cartQty(${idx},1)" aria-label="Aumentar">+</button></div>
+        <button type="button" class="co-rm" onclick="cartRemove(${idx})">Remover</button>
+      </div>
     </div>`).join('');
   const sub = subtotal();
   const fr = dtype() === 'lalamove' ? (frete ? frete.price : null) : 0;
