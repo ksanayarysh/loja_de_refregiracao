@@ -118,7 +118,7 @@ async def _fetch_products(ids: list) -> dict:
         return {}
     async with engine.connect() as conn:
         res = await conn.execute(text("""
-            SELECT id, name, unit, sale_price, promo_price
+            SELECT id, name, unit, sale_price, promo_price, promo_until
             FROM products
             WHERE active = TRUE AND id = ANY(:ids)
         """), {"ids": list(ids)})

@@ -118,6 +118,9 @@
         <input id="promo_price" name="promo_price" inputmode="decimal" value="{% if product.promo_price %}{{ '%.2f'|format(product.promo_price) }}{% endif %}" placeholder="Ex.: 29,90">
         <div class="hint">Vazio = sem promoção. Preenchido: o site mostra o selo "Promoção" e o preço de venda riscado. Precisa ser menor que o preço de venda.</div>
         <div class="hint" id="promo-hint"></div>
+    <label for="promo_until">Promoção válida até — opcional</label>
+    <input id="promo_until" name="promo_until" type="date" value="{{ product.promo_until.isoformat() if product.promo_until else '' }}" style="max-width:220px;">
+    <div class="hint">Último dia da promoção. Depois dessa data o preço normal volta sozinho (site e vendas). O site mostra "Termina em X dias". Vazio = sem prazo.</div>
 
 
 

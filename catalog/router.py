@@ -371,6 +371,8 @@ async def _ensure_promo_column():
             ))).first()
             if not exists:
                 await conn.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS promo_price NUMERIC(10,2)"))
+            # validade da promoção (opcional): depois desta data volta o preço normal sozinho
+            await conn.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS promo_until DATE"))
         _promo_col_ready = True
     except Exception:
         _blog_log.exception("promo_price: não foi possível garantir a coluna")
@@ -379,13 +381,38 @@ async def _ensure_promo_column():
 async def _startup_promo_column():
     await _ensure_promo_column()
 
+# ── nomes bonitos no site (o banco fica como está) ───────────────────────────
+import re as _re_nome
+_GAS_RE = _re_nome.compile(r"\b[rR]-?(\d{2,3}[a-zA-Z]?)\b")
+
+def _nice_name(name: str) -> str:
+    """'gas refrigerante r32 3kg HULTER' -> 'Gas refrigerante R32 3kg HULTER'.
+    Só a 1ª letra maiúscula + códigos de gás em maiúsculas; o slug não muda (slugify ignora maiúsculas)."""
+    n = " ".join((name or "").split())
+    n = _GAS_RE.sub(lambda m: "R" + m.group(0)[1:].upper(), n)
+    return n[:1].upper() + n[1:] if n else n
+
+
 def _apply_promo(r: dict) -> dict:
     """promo_price -> float; on_promo = промо действует (promo < sale); price = цена, по которой продаём сейчас."""
     sale, promo = r.get("sale_price"), r.get("promo_price")
     promo = float(promo) if promo is not None else None
     r["promo_price"] = promo
     r["on_promo"] = bool(promo and sale and promo < sale)
+    # promo_until (DATE, opcional): vale até o fim desse dia no horário do Rio
+    until = r.get("promo_until")
+    r["promo_days_left"] = None
+    if r["on_promo"] and until:
+        left = (until - datetime.now(BRT).date()).days
+        if left < 0:
+            r["on_promo"] = False          # acabou: preço normal, sem precisar mexer na admin
+        else:
+            r["promo_days_left"] = left
+    if hasattr(until, "isoformat"):
+        r["promo_until"] = until.isoformat()
     r["price"] = promo if r["on_promo"] else sale
+    if r.get("name"):
+        r["name"] = _nice_name(r["name"])
     return r
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -393,7 +420,7 @@ def _apply_promo(r: dict) -> dict:
 async def _get_products(conn):
     await _ensure_promo_column()
     res = await conn.execute(text("""
-        SELECT p.id, p.name, p.sale_price, p.promo_price, p.unit, p.image, p.description,
+        SELECT p.id, p.name, p.sale_price, p.promo_price, p.promo_until, p.unit, p.image, p.description,
                p.google_category,
                COALESCE(c.name, 'Outro') AS category_name,
                c2.name AS category2_name,
@@ -403,7 +430,7 @@ async def _get_products(conn):
         LEFT JOIN categories c2 ON c2.id = p.category2_id
         LEFT JOIN stock_movements sm ON sm.product_id = p.id
         WHERE p.active = TRUE
-        GROUP BY p.id, p.name, p.sale_price, p.promo_price, p.unit, p.image, p.description,
+        GROUP BY p.id, p.name, p.sale_price, p.promo_price, p.promo_until, p.unit, p.image, p.description,
                p.google_category, c.name, c2.name
         ORDER BY
             CASE WHEN c.name ILIKE '%gas%' OR c.name ILIKE '%gás%' THEN 0 ELSE 1 END,
@@ -428,7 +455,7 @@ async def _get_products(conn):
 async def _get_banner_product(conn):
     await _ensure_promo_column()
     res = await conn.execute(text("""
-        SELECT p.id, p.name, p.sale_price, p.promo_price, p.unit, p.image,
+        SELECT p.id, p.name, p.sale_price, p.promo_price, p.promo_until, p.unit, p.image,
                COALESCE(c.name, 'Outro') AS category_name
         FROM products p
         LEFT JOIN categories c ON c.id = p.category_id
@@ -464,7 +491,7 @@ async def _get_promo_product(conn):
     """Товар для промо-баннера — ищет Gas R32 3kg по имени."""
     await _ensure_promo_column()
     res = await conn.execute(text("""
-        SELECT p.id, p.name, p.sale_price, p.promo_price, p.unit, p.image,
+        SELECT p.id, p.name, p.sale_price, p.promo_price, p.promo_until, p.unit, p.image,
                COALESCE(c.name, 'Outro') AS category_name
         FROM products p
         LEFT JOIN categories c ON c.id = p.category_id
@@ -509,6 +536,7 @@ def _promo_list(rows, limit: int = 12) -> list:
                 "id": r["id"], "name": r["name"], "slug": slugify(r["name"]), "image": r.get("image") or "",
                 "unit": r.get("unit") or "", "sale_price": r["sale_price"], "price": r["price"],
                 "off": round((1 - r["price"] / r["sale_price"]) * 100),
+                "days_left": r.get("promo_days_left"),
                 "in_stock": float(r.get("current_stock") or 0) > 0,
             })
     promos.sort(key=lambda x: (not x["in_stock"], -x["off"]))
@@ -534,12 +562,13 @@ async def catalog_page(request: Request):
 
         # 3 случайных товара с картинками для баннеров
         banners_res = await conn.execute(text("""
-            SELECT p.id, p.name, p.sale_price, p.promo_price, p.unit, p.image,
+            SELECT p.id, p.name, p.sale_price, p.promo_price, p.promo_until, p.unit, p.image,
                    COALESCE(c.name, 'Outro') AS category_name
             FROM products p
             LEFT JOIN categories c ON c.id = p.category_id
             WHERE p.active = TRUE AND p.image IS NOT NULL AND p.sale_price IS NOT NULL
-            ORDER BY RANDOM()
+            ORDER BY (p.promo_price IS NOT NULL AND p.promo_price < p.sale_price
+                      AND (p.promo_until IS NULL OR p.promo_until >= CURRENT_DATE)) DESC, RANDOM()
             LIMIT 3
         """))
         banners_raw = []
@@ -1599,6 +1628,9 @@ async def product_feed():
 
         price_str = f"{price:.2f} BRL"
         sale_tag  = (f"\n    <g:sale_price>{r['promo_price']:.2f} BRL</g:sale_price>" if r.get("on_promo") else "")
+        if r.get("on_promo") and r.get("promo_until"):
+            sale_tag += (f"\n    <g:sale_price_effective_date>{datetime.now(BRT).date().isoformat()}T00:00-03:00/"
+                         f"{r['promo_until']}T23:59-03:00</g:sale_price_effective_date>")
         # google_category из БД (ID таксономии Google); пусто — тег не выводим, Google определит сам
         gcat      = (r.get("google_category") or "").strip()
         gcat_tag  = (f"\n    <g:google_product_category>{escape(gcat)}</g:google_product_category>" if gcat else "")

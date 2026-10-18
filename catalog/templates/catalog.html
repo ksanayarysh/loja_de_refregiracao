@@ -33,13 +33,17 @@
     .hero-btns{display:flex;gap:10px;margin-top:24px;flex-wrap:nowrap;align-items:center;}
     .btn-hero-wa{display:inline-flex;align-items:center;gap:8px;background:var(--wa);color:#fff;padding:12px 18px;border-radius:10px;font-weight:700;font-size:.92rem;text-decoration:none;transition:opacity .15s;white-space:nowrap;flex-shrink:0;}
     .btn-hero-wa:hover{opacity:.88;}
+    .btn-hero-buy{display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:#fff;padding:12px 22px;border-radius:10px;font-weight:700;font-size:.95rem;text-decoration:none;white-space:nowrap;flex-shrink:0;box-shadow:0 4px 14px rgba(14,124,153,.25);}
+    .btn-hero-buy:hover{background:var(--accent-d);}
+    .btn-hero-wa2{background:#fff;color:#128c4a;border:1.5px solid var(--wa);}
+    .btn-hero-wa2:hover{background:var(--green-l);opacity:1;}
     .btn-hero-cat{display:inline-flex;align-items:center;gap:8px;background:var(--surface);color:var(--text);padding:12px 18px;border-radius:10px;font-weight:700;font-size:.92rem;text-decoration:none;border:1.5px solid var(--border);transition:border-color .15s,color .15s;white-space:nowrap;flex-shrink:0;}
     .btn-hero-cat:hover{border-color:var(--accent);color:var(--accent);}
     .btn-hero-phone{display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:#fff;padding:12px 18px;border-radius:10px;font-weight:700;font-size:.92rem;text-decoration:none;white-space:nowrap;flex-shrink:0;}
     .hero-badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px;min-height:36px;}
     .badge{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:.78rem;color:var(--muted);font-weight:500;white-space:nowrap;}
     .hero-banner-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;text-decoration:none;color:inherit;transition:box-shadow .15s,border-color .15s;}
-    .hero-banner-card:hover{border-color:var(--accent);box-shadow:0 4px 16px rgba(226,20,74,.08);}
+    .hero-banner-card:hover{border-color:var(--accent);box-shadow:0 4px 16px rgba(14,124,153,.12);}
     .hero-banner-top{display:flex;align-items:center;gap:10px;min-width:0;}
     .hero-banner-img{width:48px;height:48px;object-fit:contain;border-radius:8px;border:1px solid var(--border);background:var(--bg);flex-shrink:0;display:block;}
     .hero-banner-img-ph{width:48px;height:48px;border-radius:8px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;}
@@ -49,8 +53,12 @@
     .hero-banner-bottom{display:flex;align-items:center;justify-content:space-between;gap:8px;}
 
     /* ── PROMOÇÃO ── */
-    .promo-sticker{position:absolute;top:8px;left:8px;z-index:2;background:#E2144A;color:#fff;font-size:.62rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:6px;line-height:1.3;box-shadow:0 2px 6px rgba(226,20,74,.3);}
+    .promo-sticker{position:absolute;top:8px;left:8px;z-index:2;background:var(--accent);color:#fff;font-size:.62rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:6px;line-height:1.3;box-shadow:0 2px 6px rgba(226,20,74,.3);}
     .prod-price-old{display:block;font-family:'DM Sans',sans-serif;font-size:.74rem;font-weight:400;color:var(--muted);text-decoration:line-through;line-height:1.2;}
+    .hero-trust{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:14px;font-size:.86rem;color:var(--text);}
+    .hero-trust span{display:inline-flex;align-items:center;gap:4px;}
+    .hb-buy{display:inline-flex;align-items:center;gap:5px;background:var(--accent);color:#fff;border:none;padding:7px 12px;border-radius:8px;font-weight:700;font-size:.8rem;font-family:inherit;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+    .hb-buy:hover{background:var(--accent-d);}
     .hero-banner-price{font-family:'DM Mono',monospace;font-weight:700;font-size:.95rem;color:var(--accent);white-space:nowrap;}
     .search-wrap{max-width:1000px;margin:0 auto;padding:0 20px 28px;}
     .search-row{display:flex;gap:12px;align-items:stretch;flex-wrap:wrap;}
@@ -62,7 +70,7 @@
     .btn-foto{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:#fff;border:1.5px solid var(--wa);color:var(--wa);padding:13px 18px;border-radius:10px;font-weight:700;font-size:.88rem;text-decoration:none;white-space:nowrap;transition:background .15s;flex:0 0 auto;}
     .btn-foto:hover{background:var(--green-l);}
     .btn-ligue{display:none;align-items:center;justify-content:center;gap:8px;background:#fff;border:1.5px solid var(--accent);color:var(--accent);padding:13px 18px;border-radius:10px;font-weight:700;font-size:.88rem;text-decoration:none;white-space:nowrap;transition:background .15s;flex:0 0 auto;}
-    .btn-ligue:hover{background:#fff5f7;}
+    .btn-ligue:hover{background:var(--accent-l);}
     .search-results{display:none;margin-top:8px;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.08);}
     .search-result-item{display:flex;align-items:center;gap:10px;padding:10px 14px;text-decoration:none;color:inherit;border-bottom:1px solid var(--border);transition:background .1s;}
     .search-result-item:last-child{border-bottom:none;}
@@ -71,7 +79,7 @@
     .section-title{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding-bottom:12px;border-bottom:1px solid var(--border);margin-bottom:20px;}
     .cats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;}
     .cat-card{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:18px 16px;text-decoration:none;color:inherit;transition:border-color .15s,box-shadow .15s;display:flex;flex-direction:column;gap:6px;}
-    .cat-card:hover{border-color:var(--accent);box-shadow:0 4px 16px rgba(226,20,74,.08);}
+    .cat-card:hover{border-color:var(--accent);box-shadow:0 4px 16px rgba(14,124,153,.12);}
     .cat-card-name{font-weight:700;font-size:.95rem;}
     .cat-card-count{font-size:.78rem;color:var(--muted);}
     .cat-card-arrow{font-size:.75rem;color:var(--accent);margin-top:4px;font-weight:700;}
@@ -79,7 +87,7 @@
     .promo-banner{background:linear-gradient(135deg,#e2144a 0%,#b01038 60%,#7f0a26 100%);border-radius:16px;display:flex;overflow:hidden;min-height:180px;box-shadow:0 8px 32px rgba(226,20,74,.25);}
     .promo-img-side{flex:0 0 200px;position:relative;overflow:hidden;}
     .promo-img-side img{width:100%;height:100%;object-fit:cover;}
-    .promo-ribbon{position:absolute;top:12px;left:-24px;background:#fff;color:var(--accent);font-size:.65rem;font-weight:900;padding:4px 28px;transform:rotate(-45deg);letter-spacing:.08em;}
+    .promo-ribbon{position:absolute;top:12px;left:-24px;background:#fff;color:var(--promo);font-size:.65rem;font-weight:900;padding:4px 28px;transform:rotate(-45deg);letter-spacing:.08em;}
     .promo-text-side{flex:1;padding:24px 28px;display:flex;flex-direction:column;justify-content:center;}
     .promo-tag{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.7);margin-bottom:6px;}
     .promo-title{font-size:1.6rem;font-weight:700;color:#fff;line-height:1.1;}
@@ -90,7 +98,7 @@
     .promo-btn:hover{opacity:.9;}
     .services-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;}
     .service-card{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:20px 16px;text-decoration:none;color:inherit;transition:border-color .15s,box-shadow .15s;}
-    .service-card:hover{border-color:var(--accent);box-shadow:0 4px 16px rgba(226,20,74,.08);}
+    .service-card:hover{border-color:var(--accent);box-shadow:0 4px 16px rgba(14,124,153,.12);}
     .service-icon{font-size:1.8rem;margin-bottom:10px;}
     .service-name{font-weight:700;font-size:.95rem;margin-bottom:4px;}
     .service-desc{font-size:.82rem;color:var(--muted);line-height:1.5;}
@@ -122,12 +130,12 @@
     .catbar{background:var(--surface);border-bottom:1px solid var(--border);padding:8px 0;position:relative;}
     .catbar::after{content:'';position:absolute;top:0;right:0;width:48px;height:100%;background:linear-gradient(to right,transparent,var(--surface));pointer-events:none;}
     .catbar-inner{max-width:1100px;margin:0 auto;padding:0 20px;display:flex;align-items:center;gap:8px;}
-    .catbar-item{display:inline-flex;align-items:center;gap:8px;padding:9px 18px;text-decoration:none;color:var(--text);font-size:.92rem;font-weight:600;border:1.5px solid var(--border);border-radius:10px;background:#f3f2ef;transition:border-color .15s,background .15s,color .15s;white-space:nowrap;}
-    .catbar-item:hover{border-color:#aaa9a4;background:#e8e7e3;color:var(--text);}
+    .catbar-item{display:inline-flex;align-items:center;gap:8px;padding:9px 18px;text-decoration:none;color:var(--text);font-size:.92rem;font-weight:600;border:1.5px solid var(--border);border-radius:10px;background:var(--accent-l);transition:border-color .15s,background .15s,color .15s;white-space:nowrap;}
+    .catbar-item:hover{border-color:var(--accent);background:#d6edf4;color:var(--text);}
     .catbar-item:hover svg{stroke:var(--text);}
     .catbar-item svg{flex-shrink:0;stroke:var(--text);}
-    .catbar-all{margin-left:auto;display:inline-flex;align-items:center;gap:6px;padding:9px 16px;text-decoration:none;color:var(--muted);font-size:.88rem;font-weight:600;border:1.5px solid var(--border);border-radius:10px;background:#f3f2ef;transition:border-color .15s,color .15s;white-space:nowrap;}
-    .catbar-all:hover{border-color:#aaa9a4;color:var(--text);}
+    .catbar-all{margin-left:auto;display:inline-flex;align-items:center;gap:6px;padding:9px 16px;text-decoration:none;color:var(--muted);font-size:.88rem;font-weight:600;border:1.5px solid var(--border);border-radius:10px;background:var(--accent-l);transition:border-color .15s,color .15s;white-space:nowrap;}
+    .catbar-all:hover{border-color:var(--accent);color:var(--text);}
 
     /* ── MOBILE ── */
     @media(max-width:900px){.nav-links{display:none;}}
@@ -150,14 +158,14 @@
       .btn-ligue{display:flex;width:100%;justify-content:center;}
 
       /* hero */
-      .hero{grid-template-columns:1fr;padding:24px 16px 20px;gap:24px;}
+      .hero{grid-template-columns:minmax(0,1fr);padding:24px 16px 20px;gap:24px;}
       .hero-text{order:2;}
       .hero-banners{order:1;min-width:0;max-width:100%;}
       .hero-banners{display:flex;flex-direction:column;gap:8px;}
       .hero-text h1{font-size:clamp(1.6rem,7vw,2.2rem);}
       .hero-text p{font-size:.92rem;}
       .hero-btns{flex-direction:column;gap:8px;}
-      .btn-hero-wa,.btn-hero-cat,.btn-hero-phone{width:100%;justify-content:center;padding:14px 20px;font-size:.95rem;}
+      .btn-hero-buy,.btn-hero-wa,.btn-hero-cat,.btn-hero-phone{width:100%;justify-content:center;padding:14px 20px;font-size:.95rem;}
       .btn-hero-phone{display:none !important;}
       .trust-row{width:100%;}
       .hero-badges{min-height:72px;}
@@ -199,7 +207,7 @@
     .equipe-person{display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:8px 12px;transition:border-color .15s;}
     .equipe-person:hover{border-color:var(--accent);}
     .equipe-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;flex-shrink:0;letter-spacing:-.02em;}
-    .equipe-avatar-k{background:#fff0f4;color:var(--accent);border:1.5px solid #ffd0dc;}
+    .equipe-avatar-k{background:var(--accent-l);color:var(--accent);border:1.5px solid var(--accent-b);}
     .equipe-avatar-d{background:#f0f7ff;color:#1a6bc4;border:1.5px solid #c6dfff;}
     .equipe-info{display:flex;flex-direction:column;gap:1px;}
     .equipe-name{font-size:.88rem;font-weight:700;color:var(--text);line-height:1.2;}
@@ -239,7 +247,7 @@
     .cart-total-val{font-family:'DM Mono',monospace;font-weight:700;font-size:1.1rem;color:var(--accent);}
     .cart-wa-btn{display:flex;align-items:center;justify-content:center;gap:8px;background:var(--wa);color:#fff;padding:13px 20px;border-radius:10px;font-weight:700;font-size:.95rem;text-decoration:none;transition:opacity .15s;width:100%;}
     .cart-wa-btn:hover{opacity:.88;}
-    .cart-kit-tag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;background:#fff0f4;color:var(--accent);border:1px solid #ffd0dc;font-size:.7rem;font-weight:800;vertical-align:middle;}
+    .cart-kit-tag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;background:var(--accent-l);color:var(--accent);border:1px solid var(--accent-b);font-size:.7rem;font-weight:800;vertical-align:middle;}
     .cart-pay-btn{display:flex;align-items:center;justify-content:center;width:100%;padding:15px;border-radius:10px;background:var(--accent);color:#fff;font-size:1.02rem;font-weight:800;text-decoration:none;margin-bottom:8px;}.cart-pay-btn:hover{opacity:.92;}
     .cart-wa-secondary{background:#effaf3;color:#128c4a;border:1.5px solid var(--wa);padding:11px 20px;font-size:.9rem;}
     .add-cart-btn{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;background:var(--surface);color:var(--text);border:1.5px solid var(--border);border-radius:8px;cursor:pointer;flex-shrink:0;transition:border-color .15s;font-size:.9rem;}
@@ -328,11 +336,11 @@
     <h1>Loja de peças e gases para<br><span>refrigeração, climatização e máquinas de lavar no RJ</span></h1>
     <p>Loja especializada em peças para geladeira, máquina de lavar e ar-condicionado. Refil e varejo de gases refrigerantes: R22, R32, R134a, R290, R410A, R404A, R600a. Av. Brasil, 6818 — Rio de Janeiro.</p>
     <div class="hero-btns">
-      <a class="btn-hero-wa wa-track" href="https://wa.me/{{ wa_number }}?text=Ol%C3%A1%21%20Quero%20comprar%20uma%20pe%C3%A7a." target="_blank" rel="noopener" data-product="Hero WA">
+      <a class="btn-hero-buy" href="/catalogo">🛒 Comprar online</a>
+      <a class="btn-hero-wa btn-hero-wa2 wa-track" href="https://wa.me/{{ wa_number }}?text=Ol%C3%A1%21%20Quero%20comprar%20uma%20pe%C3%A7a." target="_blank" rel="noopener" data-product="Hero WA">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
-        Comprar pelo WhatsApp
+        WhatsApp
       </a>
-      <a class="btn-hero-cat" href="/catalogo">Ver catálogo →</a>
 
       <a href="tel:{{ store_phone }}" class="btn-hero-phone phone-track"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.81a16 16 0 0 0 6.29 6.29l.95-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg> Ligue agora</a>
     </div>
@@ -340,6 +348,12 @@
       <span class="badge">R134a · R410A · R22 · R32 · R290 · R404A · R600a</span>
       <span class="badge">Refil e varejo</span>
       <a class="badge" href="https://maps.google.com/?q=MTF+Refrigera%C3%A7%C3%A3o+Rio+de+Janeiro" target="_blank" rel="noopener" style="text-decoration:none;color:var(--accent);border-color:var(--accent);">📍 Av. Brasil, 6818 — RJ · <span style="font-weight:700;">Ver no mapa →</span></a>
+    </div>
+    <div class="hero-trust">
+      <span>✅ Pague com <b>Pix</b> no site</span>
+      <span>🛵 Entrega <b>no mesmo dia</b> no RJ</span>
+      <span>★ <b>5.0</b> no Google</span>
+      <span>🏪 Retire na loja hoje</span>
     </div>
 
   </div>
@@ -369,7 +383,7 @@
       <div class="hero-banner-bottom">
         <div class="hero-banner-price">{% if b.on_promo %}<span class="prod-price-old">R$ {{ ("%.2f"|format(b.sale_price))|replace(".", ",") }}</span>{% endif %}R$ {{ ("%.2f"|format(b.price))|replace(".", ",") }}</div>
         <div style="display:flex;align-items:center;gap:8px;margin-left:auto;">
-          <a class="wa-track" href="https://wa.me/{{ wa_number }}?text=Quero%20comprar%3A%20{{ b.name|urlencode }}" target="_blank" rel="noopener" data-product="Banner comprar" style="display:inline-flex;align-items:center;gap:5px;background:var(--wa);color:#fff;padding:6px 10px;border-radius:8px;font-weight:700;font-size:.78rem;text-decoration:none;white-space:nowrap;flex-shrink:0;">Comprar</a>
+          <button class="hb-buy" onclick='addToCart({{ b.id }}, {{ b.name | tojson }}, {{ b.price }}, {{ (b.image or "") | tojson }}); location.href="/checkout";'>Comprar</button>
           <button class="add-cart-btn" data-id="{{ b.id }}" data-name="{{ b.name|e }}" data-price="{{ b.price }}" data-image="{{ b.image or '' }}">🛒</button>
         </div>
       </div>
@@ -389,17 +403,18 @@
   <div class="promo-banner">
     <div class="promo-img-side">
       {% if promo_product.image %}<img loading="eager" fetchpriority="high" src="{{ promo_product.image | imgurl(200) }}" alt="{{ promo_product.name }}">{% endif %}
-      <div class="promo-ribbon">PROMOÇÃO</div>
+      <div class="promo-ribbon">{% if promo_product.on_promo %}PROMOÇÃO{% else %}DESTAQUE{% endif %}</div>
     </div>
     <div class="promo-text-side">
-      <div class="promo-tag">🔥 Oferta especial</div>
+      <div class="promo-tag">🔥 Oferta especial{% if promo_product.on_promo and promo_product.promo_days_left is not none %} · ⏳ {% if promo_product.promo_days_left == 0 %}termina hoje{% elif promo_product.promo_days_left == 1 %}termina amanhã{% else %}termina em {{ promo_product.promo_days_left }} dias{% endif %}{% endif %}</div>
       <div class="promo-title">{{ promo_product.name }}</div>
       <div class="promo-sub">{{ promo_product.unit }} · Cilindro</div>
       <div class="promo-price">{% if promo_product.on_promo %}<span style="display:block;font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:400;color:rgba(255,255,255,.7);text-decoration:line-through;margin-bottom:2px;">R$ {{ ("%.2f"|format(promo_product.sale_price))|replace(".", ",") }}</span>{% endif %}R$ {{ pp_reais }}<span class="promo-cents">,{{ pp_cents }}</span></div>
-      <a class="promo-btn wa-track" href="https://wa.me/{{ wa_number }}?text={{ pp_msg | urlencode }}" target="_blank" rel="noopener" data-product="{{ promo_product.name }}">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
-        Quero esse! Comprar agora →
-      </a>
+      {% if promo_product.on_promo %}<div style="display:inline-block;align-self:flex-start;background:#fde68a;color:#7f0a26;font-weight:900;font-size:.85rem;padding:3px 10px;border-radius:999px;margin-top:6px;">-{{ ((1 - promo_product.price / promo_product.sale_price) * 100) | round | int }}%</div>{% endif %}
+      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:12px;">
+        <button class="promo-btn" style="margin-top:0;border:none;cursor:pointer;font-family:inherit;" onclick='addToCart({{ promo_product.id }}, {{ promo_product.name | tojson }}, {{ promo_product.price }}, {{ (promo_product.image or "") | tojson }}); location.href="/checkout";'>Comprar agora →</button>
+        <a class="wa-track" href="https://wa.me/{{ wa_number }}?text={{ pp_msg | urlencode }}" target="_blank" rel="noopener" data-product="{{ promo_product.name }}" style="color:#fff;opacity:.85;font-size:.85rem;font-weight:600;">ou pergunte no WhatsApp</a>
+      </div>
     </div>
   </div>
 </div>
@@ -411,7 +426,7 @@
   .promo-pill{display:inline-block;background:var(--accent);color:#fff;font-size:.62rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:5px;margin-right:6px;vertical-align:middle;line-height:1.4;}
   .promos-row{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(200px,230px);gap:12px;overflow-x:auto;padding:12px 2px 10px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;}
   .promo-card{scroll-snap-align:start;background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px;position:relative;text-decoration:none;color:inherit;transition:border-color .15s,box-shadow .15s;}
-  .promo-card:hover{border-color:var(--accent);box-shadow:0 4px 16px rgba(226,20,74,.1);}
+  .promo-card:hover{border-color:var(--accent);box-shadow:0 4px 16px rgba(14,124,153,.12);}
   .promo-off{position:absolute;top:-9px;left:10px;background:var(--accent);color:#fff;font-weight:800;font-size:.78rem;padding:3px 9px;border-radius:999px;box-shadow:0 2px 6px rgba(226,20,74,.3);}
   .promo-img{width:100%;height:120px;object-fit:contain;border-radius:10px;background:#fff;}
   .promo-img-ph{width:100%;height:120px;border-radius:10px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:2rem;}
@@ -419,6 +434,7 @@
   .promo-old{font-size:.76rem;color:var(--muted);text-decoration:line-through;}
   .promo-new{font-family:'DM Mono',monospace;font-weight:700;font-size:1.15rem;color:var(--accent);}
   .promo-add{margin-top:auto;padding:9px;border-radius:9px;border:none;background:var(--accent);color:#fff;font-weight:700;font-size:.85rem;font-family:inherit;cursor:pointer;}
+  .promo-left{font-size:.74rem;font-weight:700;color:var(--promo);}
   .promo-out{margin-top:auto;font-size:.78rem;color:var(--muted);text-align:center;padding:9px;}
 </style>
 <div class="section-wrap">
@@ -430,6 +446,7 @@
       <a href="/product/{{ p.slug }}" style="display:contents;color:inherit;text-decoration:none;">
         {% if p.image %}<img class="promo-img" src="{{ p.image | imgurl(240) }}" alt="{{ p.name }}" loading="lazy">{% else %}<div class="promo-img-ph">📦</div>{% endif %}
         <div class="promo-name">{{ p.name }}</div>
+        {% if p.days_left is not none %}<div class="promo-left">⏳ {% if p.days_left == 0 %}Termina hoje{% elif p.days_left == 1 %}Termina amanhã{% else %}Termina em {{ p.days_left }} dias{% endif %}</div>{% endif %}
         <div>
           <div class="promo-old">R$ {{ ("%.2f"|format(p.sale_price))|replace(".", ",") }}</div>
           <div class="promo-new">R$ {{ ("%.2f"|format(p.price))|replace(".", ",") }}{% if p.unit %}<span style="font-size:.72rem;color:var(--muted);font-weight:400;"> / {{ p.unit }}</span>{% endif %}</div>
@@ -450,7 +467,7 @@
 <style>
   .kits-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;}
   .kit-card{background:var(--surface);border:1.5px solid var(--border);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px;position:relative;transition:border-color .15s,box-shadow .15s;}
-  .kit-card:hover{border-color:var(--accent);box-shadow:0 6px 20px rgba(226,20,74,.08);}
+  .kit-card:hover{border-color:var(--accent);box-shadow:0 6px 20px rgba(14,124,153,.12);}
   .kit-save{position:absolute;top:-10px;right:14px;background:var(--accent);color:#fff;font-size:.74rem;font-weight:800;padding:4px 10px;border-radius:999px;box-shadow:0 2px 6px rgba(226,20,74,.3);}
   .kit-name{font-weight:800;font-size:1.05rem;line-height:1.3;padding-right:70px;}
   .kit-desc{font-size:.85rem;color:var(--muted);line-height:1.45;margin-top:-6px;}
@@ -472,6 +489,40 @@
 <div class="section-wrap" id="kits-wrap" style="display:none;">
   <div class="section-title">🧰 Kits com desconto</div>
   <div class="kits-grid" id="kits-grid"></div>
+</div>
+
+<!-- FRETE: quanto custa a entrega (usa /api/frete-cep, igual à página do produto) -->
+<style>
+  .hf{background:linear-gradient(135deg,var(--navy) 0%,#123a63 100%);border-radius:16px;padding:20px 22px;color:#fff;display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap;}
+  .hf-l{flex:1 1 260px;}
+  .hf h3{font-size:1.1rem;font-weight:800;margin-bottom:4px;}
+  .hf p{font-size:.86rem;color:#c9dbe6;line-height:1.5;}
+  .hf-form{display:flex;gap:8px;margin-top:12px;max-width:360px;}
+  .hf-form input{flex:1;min-width:0;padding:12px 14px;border-radius:10px;border:none;font-family:'DM Mono',monospace;font-size:1rem;}
+  .hf-form button{padding:12px 18px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-weight:700;font-family:inherit;cursor:pointer;}
+  .hf-r{flex:1 1 300px;min-width:0;}
+  .hf-local{font-size:.82rem;color:#9fc3d6;margin-bottom:8px;}
+  .hf-opt{display:flex;justify-content:space-between;gap:10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:9px 12px;margin-bottom:6px;font-size:.88rem;}
+  .hf-opt b{font-family:'DM Mono',monospace;}
+  .hf-sub{font-size:.74rem;color:#9fc3d6;}
+  .hf-err{color:#fecaca;font-size:.88rem;}
+  .hf-note{font-size:.74rem;color:#9fc3d6;margin-top:6px;}
+  .hf a{color:#7ee2a8;font-weight:700;}
+  .hf-l,.hf-r{min-width:0;}
+  @media(max-width:600px){ .hf{padding:16px;gap:14px;} .hf-l,.hf-r{flex-basis:100%;} .hf-form{max-width:none;} .hf-form button{padding:12px 14px;} }
+</style>
+<div class="section-wrap" style="padding-bottom:24px;">
+  <div class="hf">
+    <div class="hf-l">
+      <h3>🛵 Quanto custa a entrega?</h3>
+      <p>Entregamos no Rio de Janeiro no mesmo dia (seg. a sáb., 8h30–18h). Digite seu CEP e veja na hora.</p>
+      <div class="hf-form">
+        <input id="hfCep" inputmode="numeric" maxlength="9" placeholder="00000-000" autocomplete="postal-code">
+        <button id="hfBtn" type="button" onclick="hfCalc()">Calcular</button>
+      </div>
+    </div>
+    <div class="hf-r" id="hfRes"></div>
+  </div>
 </div>
 
 <!-- CALCULADORA DE INSTALAÇÃO -->
@@ -498,7 +549,7 @@
     </a>
     {% endfor %}
   </div>
-  <a href="/categories" style="display:inline-flex;align-items:center;gap:6px;margin-top:14px;font-size:.88rem;font-weight:700;color:var(--accent);text-decoration:none;border:1.5px solid var(--accent);border-radius:10px;padding:9px 18px;transition:background .15s;" onmouseover="this.style.background='#fff5f7'" onmouseout="this.style.background='transparent'">
+  <a href="/categories" style="display:inline-flex;align-items:center;gap:6px;margin-top:14px;font-size:.88rem;font-weight:700;color:var(--accent);text-decoration:none;border:1.5px solid var(--accent);border-radius:10px;padding:9px 18px;transition:background .15s;" onmouseover="this.style.background='var(--accent-l)'" onmouseout="this.style.background='transparent'">
     Ver todas as categorias →
   </a>
 </div>
@@ -506,7 +557,7 @@
 <!-- GUIAS -->
 <style>
   .guide-card{display:flex;align-items:center;gap:16px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;text-decoration:none;color:inherit;transition:border-color .15s,box-shadow .15s;}
-  .guide-icon{width:48px;height:48px;background:#fff7f9;border:1px solid #ffd9e4;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;}
+  .guide-icon{width:48px;height:48px;background:var(--accent-l);border:1px solid var(--accent-b);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;}
   .guides-grid{display:flex;flex-direction:column;gap:10px;}
   .guides-all{display:inline-flex;align-items:center;gap:6px;color:var(--accent);font-weight:700;font-size:.9rem;text-decoration:none;margin-top:12px;padding:8px 0;}
   .guides-all:hover{opacity:.8;}
@@ -517,17 +568,17 @@
     <a href="/blog" class="guides-all">Ver todos →</a>
   </div>
   <div class="guides-grid">
-    <a href="/blog/geladeira-nao-gela-embaixo" class="guide-card" onmouseover="this.style.borderColor='var(--accent)';this.style.boxShadow='0 4px 16px rgba(226,20,74,.08)'" onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='none'">
+    <a href="/blog/geladeira-nao-gela-embaixo" class="guide-card" onmouseover="this.style.borderColor='var(--accent)';this.style.boxShadow='0 4px 16px rgba(14,124,153,.12)'" onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='none'">
       <div class="guide-icon">🧊</div>
       <div style="flex:1;min-width:0;"><div style="font-weight:700;font-size:.95rem;line-height:1.3;">Geladeira não gela embaixo? Causas e peças para resolver</div><div style="font-size:.82rem;color:var(--muted);margin-top:4px;">Freezer funciona mas a parte de baixo não resfria? Veja as causas mais comuns.</div></div>
       <div style="font-size:.82rem;color:var(--accent);font-weight:700;white-space:nowrap;flex-shrink:0;">Ler guia →</div>
     </a>
-    <a href="/blog/maquina-de-lavar-vazando-agua" class="guide-card" onmouseover="this.style.borderColor='var(--accent)';this.style.boxShadow='0 4px 16px rgba(226,20,74,.08)'" onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='none'">
+    <a href="/blog/maquina-de-lavar-vazando-agua" class="guide-card" onmouseover="this.style.borderColor='var(--accent)';this.style.boxShadow='0 4px 16px rgba(14,124,153,.12)'" onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='none'">
       <div class="guide-icon">🫧</div>
       <div style="flex:1;min-width:0;"><div style="font-weight:700;font-size:.95rem;line-height:1.3;">Máquina de lavar vazando água: onde está o problema?</div><div style="font-size:.82rem;color:var(--muted);margin-top:4px;">Água no chão durante a lavagem? Veja as causas mais comuns e como identificar.</div></div>
       <div style="font-size:.82rem;color:var(--accent);font-weight:700;white-space:nowrap;flex-shrink:0;">Ler guia →</div>
     </a>
-    <a href="/blog/maquina-de-lavar-nao-liga" class="guide-card" onmouseover="this.style.borderColor='var(--accent)';this.style.boxShadow='0 4px 16px rgba(226,20,74,.08)'" onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='none'">
+    <a href="/blog/maquina-de-lavar-nao-liga" class="guide-card" onmouseover="this.style.borderColor='var(--accent)';this.style.boxShadow='0 4px 16px rgba(14,124,153,.12)'" onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='none'">
       <div class="guide-icon">🔌</div>
       <div style="flex:1;min-width:0;"><div style="font-weight:700;font-size:.95rem;line-height:1.3;">Máquina de lavar não liga: o que verificar antes de chamar o técnico</div><div style="font-size:.82rem;color:var(--muted);margin-top:4px;">Antes de chamar o técnico, veja os pontos simples que podem estar impedindo a partida.</div></div>
       <div style="font-size:.82rem;color:var(--accent);font-weight:700;white-space:nowrap;flex-shrink:0;">Ler guia →</div>
@@ -574,7 +625,7 @@
 </div>
 
 <div style="max-width:900px;margin:0 auto;padding:0 20px 32px;">
-  <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;"><span style="display:inline-flex;align-items:center;gap:5px;background:#f0fdf4;border:1.5px solid var(--green);color:var(--green);font-size:.78rem;font-weight:700;padding:5px 11px;border-radius:20px;">&#128205; Retire na loja hoje</span><span style="display:inline-flex;align-items:center;gap:5px;background:#f0f7ff;border:1.5px solid #1a6bc4;color:#1a6bc4;font-size:.78rem;font-weight:700;padding:5px 11px;border-radius:20px;">&#128757; Entrega no RJ</span><span style="display:inline-flex;align-items:center;gap:5px;background:#fff7f9;border:1.5px solid var(--accent);color:var(--accent);font-size:.78rem;font-weight:700;padding:5px 11px;border-radius:20px;">&#9889; Atendimento imediato</span><span style="display:inline-flex;align-items:center;gap:5px;background:#f0f7ff;border:1.5px solid #1a6bc4;color:#1a6bc4;font-size:.78rem;font-weight:700;padding:5px 11px;border-radius:20px;">&#9733; 5.0 no Google</span><span style="display:inline-flex;align-items:center;gap:5px;background:#f8f7f4;border:1.5px solid #8a8580;color:#5f5e5a;font-size:.78rem;font-weight:700;padding:5px 11px;border-radius:20px;">&#128197; 4 anos no mercado</span></div>
+  <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;"><span style="display:inline-flex;align-items:center;gap:5px;background:#f0fdf4;border:1.5px solid var(--green);color:var(--green);font-size:.78rem;font-weight:700;padding:5px 11px;border-radius:20px;">&#128205; Retire na loja hoje</span><span style="display:inline-flex;align-items:center;gap:5px;background:#f0f7ff;border:1.5px solid #1a6bc4;color:#1a6bc4;font-size:.78rem;font-weight:700;padding:5px 11px;border-radius:20px;">&#128757; Entrega no RJ</span><span style="display:inline-flex;align-items:center;gap:5px;background:var(--accent-l);border:1.5px solid var(--accent);color:var(--accent);font-size:.78rem;font-weight:700;padding:5px 11px;border-radius:20px;">&#9889; Atendimento imediato</span><span style="display:inline-flex;align-items:center;gap:5px;background:#f0f7ff;border:1.5px solid #1a6bc4;color:#1a6bc4;font-size:.78rem;font-weight:700;padding:5px 11px;border-radius:20px;">&#9733; 5.0 no Google</span><span style="display:inline-flex;align-items:center;gap:5px;background:var(--bg);border:1.5px solid #8a8580;color:#5f5e5a;font-size:.78rem;font-weight:700;padding:5px 11px;border-radius:20px;">&#128197; 4 anos no mercado</span></div>
 </div>
 
 <footer>
@@ -620,7 +671,7 @@
       <div class="footer-col-title">Nossa equipe</div>
       <div style="display:flex;flex-direction:column;gap:14px;">
         <div style="display:flex;align-items:center;gap:10px;">
-          <div style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;flex-shrink:0;background:#fff0f4;color:var(--accent);border:1.5px solid #ffd0dc;">KS</div>
+          <div style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;flex-shrink:0;background:var(--accent-l);color:var(--accent);border:1.5px solid var(--accent-b);">KS</div>
           <div>
             <div style="font-size:.88rem;font-weight:700;">Ksenia</div>
             <div style="font-size:.72rem;color:var(--muted);">Desenvolvimento · PDV &amp; sites</div>
@@ -679,6 +730,7 @@
   </div>
   <div class="footer-bottom">M.T.F Refrigeração · Rio de Janeiro</div>
 </footer>
+
 
 <script>
 const WA_NUMBER = '{{ wa_number }}';
@@ -763,6 +815,44 @@ function cartClose() {
 
 cartUpdateUI();
 
+
+// ===== FRETE NA HOME =====
+(function () {
+  const inp = document.getElementById('hfCep');
+  if (!inp) return;
+  try { const c = localStorage.getItem('mtf_cep'); if (c) inp.value = c; } catch (e) {}
+  inp.addEventListener('input', () => { let v = inp.value.replace(/\D/g, '').slice(0, 8); if (v.length > 5) v = v.slice(0, 5) + '-' + v.slice(5); inp.value = v; });
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') hfCalc(); });
+})();
+async function hfCalc() {
+  const inp = document.getElementById('hfCep'), btn = document.getElementById('hfBtn'), box = document.getElementById('hfRes');
+  const cep = inp.value.replace(/\D/g, '');
+  const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const brl = n => 'R$ ' + Number(n).toFixed(2).replace('.', ',');
+  if (cep.length !== 8) { box.innerHTML = '<div class="hf-err">Digite um CEP válido (8 dígitos).</div>'; return; }
+  btn.disabled = true; btn.textContent = '...'; box.innerHTML = '';
+  try {
+    const r = await fetch('/api/frete-cep?cep=' + cep);
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Não foi possível calcular agora.');
+    try { localStorage.setItem('mtf_cep', inp.value); } catch (e) {}
+    const lugar = [d.bairro, d.cidade, d.uf].filter(Boolean).map(esc).join(', ');
+    if (d.combinar) {
+      const wa = encodeURIComponent('Olá! Quero saber o valor da entrega para o CEP ' + inp.value + '.');
+      box.innerHTML = `<div class="hf-local">📍 ${lugar}</div><div class="hf-opt">Para este endereço o frete é combinado com o vendedor.</div>
+        <a href="https://wa.me/${WA_NUMBER}?text=${wa}" target="_blank" rel="noopener">Falar no WhatsApp →</a>`;
+      return;
+    }
+    box.innerHTML = `<div class="hf-local">📍 ${lugar} · ${d.distance_km.toFixed(1).replace('.', ',')} km</div>` +
+      d.options.map(o => `<div class="hf-opt"><span>${esc(o.label)}<div class="hf-sub">${esc(o.hint)}</div></span><b>${brl(o.price)}</b></div>`).join('') +
+      `<div class="hf-opt"><span>Retirada na loja<div class="hf-sub">Av. Brasil, 6818</div></span><b style="color:#7ee2a8;">Grátis</b></div>
+       <div class="hf-note">Via Lalamove. Valores estimados, confirmados no pagamento.</div>`;
+    if (typeof gtag === 'function') gtag('event', 'calcular_frete', { cep_prefix: cep.slice(0, 5), page: 'home' });
+  } catch (e) {
+    const wa = encodeURIComponent('Olá! Quero saber sobre entrega para o CEP ' + inp.value + '.');
+    box.innerHTML = `<div class="hf-err">${esc(e.message)}</div><a href="https://wa.me/${WA_NUMBER}?text=${wa}" target="_blank" rel="noopener">Perguntar no WhatsApp →</a>`;
+  } finally { btn.disabled = false; btn.textContent = 'Calcular'; }
+}
 // ===== KITS =====
 let SITE_KITS = [];
 function kitEsc(s) { return String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }

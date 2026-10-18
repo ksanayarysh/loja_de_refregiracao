@@ -20,7 +20,7 @@
     <nav class="nav-links">
       <a href="/catalogo" {% if active_page == 'catalogo' %}class="active"{% endif %}>Catálogo completo</a>
       <a href="/servicos" {% if active_page == 'servicos' %}class="active"{% endif %}>Serviços</a>
-      <a href="/calculadora-instalacao" style="white-space:nowrap;background:#fff0f4;color:var(--accent);border:1.5px solid #ffd0dc;border-radius:999px;padding:6px 12px;font-weight:700;" {% if active_page == 'calculadora' %}class="active"{% endif %}>🎉 Calculadora de kit para instalação <span style="background:var(--accent);color:#fff;font-size:.6rem;font-weight:700;letter-spacing:.04em;padding:2px 6px;border-radius:999px;margin-left:4px;vertical-align:middle;">NOVO</span></a>
+      <a href="/calculadora-instalacao" style="white-space:nowrap;background:rgba(159,224,242,.14);color:#bfeaf6;border:1.5px solid rgba(159,224,242,.35);border-radius:999px;padding:6px 12px;font-weight:700;" {% if active_page == 'calculadora' %}class="active"{% endif %}>🎉 Calculadora de kit para instalação <span style="background:var(--promo);color:#fff;font-size:.6rem;font-weight:700;letter-spacing:.04em;padding:2px 6px;border-radius:999px;margin-left:4px;vertical-align:middle;">NOVO</span></a>
       <a href="/blog" {% if active_page == 'blog' %}class="active"{% endif %}>Guias</a>
       <a href="/sobre" {% if active_page == 'sobre' %}class="active"{% endif %}>Sobre nós</a>
     </nav>
@@ -40,3 +40,29 @@
     </div>
   </div>
 </header>
+
+<!-- Barra do carrinho no celular (todas as páginas): aparece quando há itens -->
+<a class="cart-bar" id="cartBar" href="/checkout"><span>🛒 <span id="cartBarN">0</span> · <b id="cartBarT">R$ 0,00</b></span><span class="go">Pagar com Pix →</span></a>
+<script>
+(function () {
+  if (/^\/(checkout|pedido)/.test(location.pathname)) return;   // já está pagando
+  const bar = document.getElementById('cartBar');
+  function render() {
+    let cart = [];
+    try { cart = JSON.parse(localStorage.getItem('mtf_cart') || '[]'); } catch (e) {}
+    const n = cart.reduce((s, i) => s + (Number(i.qty) || 0), 0);
+    const t = cart.reduce((s, i) => s + (Number(i.price) || 0) * (Number(i.qty) || 0), 0);
+    document.getElementById('cartBarN').textContent = n + (n === 1 ? ' item' : ' itens');
+    document.getElementById('cartBarT').textContent = 'R$ ' + t.toFixed(2).replace('.', ',');
+    bar.classList.toggle('show', n > 0);
+    document.body.classList.toggle('has-cart-bar', n > 0);
+  }
+  // cada página salva o carrinho do seu jeito; observamos a gravação em mtf_cart
+  try {
+    const orig = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (k, v) { orig.apply(this, arguments); if (k === 'mtf_cart') setTimeout(render, 0); };
+  } catch (e) {}
+  window.addEventListener('storage', e => { if (e.key === 'mtf_cart') render(); });
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', render); else render();
+})();
+</script>
