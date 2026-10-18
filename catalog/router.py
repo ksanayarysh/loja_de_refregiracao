@@ -500,6 +500,21 @@ async def redirect_gas_r32():
     return _Redirect("/product/gas-r32-3kg-hulter", status_code=301)
 
 
+def _promo_list(rows, limit: int = 12) -> list:
+    """Produtos em promoção (promo_price < sale_price): em estoque primeiro, maior desconto primeiro."""
+    promos = []
+    for r in rows:
+        if r.get("on_promo") and r.get("sale_price"):
+            promos.append({
+                "id": r["id"], "name": r["name"], "slug": slugify(r["name"]), "image": r.get("image") or "",
+                "unit": r.get("unit") or "", "sale_price": r["sale_price"], "price": r["price"],
+                "off": round((1 - r["price"] / r["sale_price"]) * 100),
+                "in_stock": float(r.get("current_stock") or 0) > 0,
+            })
+    promos.sort(key=lambda x: (not x["in_stock"], -x["off"]))
+    return promos[:limit]
+
+
 @router.get("/", response_class=HTMLResponse)
 async def catalog_page(request: Request):
     await _ensure_promo_column()
@@ -542,18 +557,7 @@ async def catalog_page(request: Request):
         promo_product = await _get_promo_product(conn)
         all_rows = await _get_products_cached(conn)
 
-    # produtos em promoção (promo_price < sale_price), maior desconto primeiro
-    promos = []
-    for r in all_rows:
-        if r.get("on_promo") and r.get("sale_price"):
-            off = round((1 - r["price"] / r["sale_price"]) * 100)
-            promos.append({
-                "id": r["id"], "name": r["name"], "slug": slugify(r["name"]), "image": r.get("image") or "",
-                "unit": r.get("unit") or "", "sale_price": r["sale_price"], "price": r["price"], "off": off,
-                "in_stock": float(r.get("current_stock") or 0) > 0,
-            })
-    promos.sort(key=lambda x: (not x["in_stock"], -x["off"]))
-    promos = promos[:12]
+    promos = _promo_list(all_rows)
 
     categories = [
         {"name": c["name"], "total": c["total"], "slug": slugify(c["name"])}
@@ -722,7 +726,8 @@ async def catalogo_page(request: Request):
     cat_slugs = {cat: slugify(cat) for cat in groups.keys()}
 
     clean = _json.loads(_json.dumps(
-        {"groups": groups, "cat_slugs": cat_slugs, "banner_product": banner_product, "promo_product": promo_product},
+        {"groups": groups, "cat_slugs": cat_slugs, "banner_product": banner_product, "promo_product": promo_product,
+         "promos": _promo_list(rows)},
         default=str
     ))
 
@@ -747,6 +752,7 @@ async def catalogo_page(request: Request):
         "wa_number":      WA_OWNER_NUMBER,
         "banner_product": clean["banner_product"],
         "promo_product":  clean["promo_product"],
+        "promos":         clean["promos"],
     })
 
 

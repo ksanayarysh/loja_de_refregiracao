@@ -593,6 +593,50 @@
 </div>
 
 
+<!-- PROMOÇÕES (produtos com promo_price na admin) -->
+{% if promos %}
+<style>
+  .promos-block{max-width:900px;margin:0 auto;padding:0 20px 24px;}
+  .promos-title{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding-bottom:10px;border-bottom:1px solid var(--border);}
+  .promos-row{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(170px,200px);gap:12px;overflow-x:auto;padding:14px 2px 8px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;}
+  .promo-card{scroll-snap-align:start;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:6px;position:relative;transition:border-color .15s,box-shadow .15s;}
+  .promo-card:hover{border-color:var(--accent);box-shadow:0 4px 16px rgba(226,20,74,.1);}
+  .promo-off{position:absolute;top:-9px;left:10px;z-index:2;background:var(--accent);color:#fff;font-weight:800;font-size:.76rem;padding:3px 9px;border-radius:999px;box-shadow:0 2px 6px rgba(226,20,74,.3);}
+  .promo-img{width:100%;height:110px;object-fit:contain;border-radius:8px;background:#fff;}
+  .promo-img-ph{width:100%;height:110px;border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:2rem;}
+  .promo-name{font-weight:600;font-size:.84rem;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.6em;}
+  .promo-old{font-size:.74rem;color:var(--muted);text-decoration:line-through;}
+  .promo-new{font-family:'DM Mono',monospace;font-weight:700;font-size:1.05rem;color:var(--accent);}
+  .promo-add{margin-top:auto;padding:8px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-weight:700;font-size:.82rem;font-family:inherit;cursor:pointer;}
+  .promo-add.added{background:var(--green);}
+  .promo-out{margin-top:auto;font-size:.76rem;color:var(--muted);text-align:center;padding:8px;}
+  @media (max-width:480px){ .promos-block{padding:0 16px 20px;} }
+</style>
+<div class="promos-block" id="promos-block">
+  <div class="promos-title">🔥 Promoções</div>
+  <div class="promos-row">
+    {% for p in promos %}
+    <div class="promo-card">
+      <div class="promo-off">-{{ p.off }}%</div>
+      <a href="/product/{{ p.slug }}" style="display:contents;color:inherit;text-decoration:none;">
+        {% if p.image %}<img class="promo-img" src="{{ p.image | imgurl(220) }}" alt="{{ p.name }}" loading="lazy">{% else %}<div class="promo-img-ph">📦</div>{% endif %}
+        <div class="promo-name">{{ p.name }}</div>
+        <div>
+          <div class="promo-old">R$ {{ ("%.2f"|format(p.sale_price))|replace(".", ",") }}</div>
+          <div class="promo-new">R$ {{ ("%.2f"|format(p.price))|replace(".", ",") }}{% if p.unit %}<span style="font-size:.7rem;color:var(--muted);font-weight:400;"> / {{ p.unit }}</span>{% endif %}</div>
+        </div>
+      </a>
+      {% if p.in_stock %}
+      <button class="promo-add" onclick='addToCart({{ p.id }}, {{ p.name | tojson }}, {{ p.price }}, {{ p.unit | tojson }}); this.classList.add("added"); this.textContent="✓ No carrinho"; setTimeout(() => { this.classList.remove("added"); this.textContent="🛒 Adicionar"; }, 1400);'>🛒 Adicionar</button>
+      {% else %}
+      <div class="promo-out">Sem estoque no momento</div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
 <div id="search-results-block" style="display:none; max-width:900px; margin:0 auto; padding:0 20px 24px;">
   <div id="search-results-list"></div>
 </div>
@@ -972,12 +1016,14 @@ async function filterProducts() {
   const searchList = document.getElementById('search-results-list');
   const statsBar = document.querySelector('.stats-bar');
   const promoWrap = document.querySelector('.promo-wrap');
+  const promosBlock = document.getElementById('promos-block');
 
   if (q.length < 2) {
     // режим: показать обычный каталог
     searchBlock.style.display = 'none';
     catalogEl.style.display = '';
     if (promoWrap) promoWrap.style.display = '';
+    if (promosBlock) promosBlock.style.display = '';
     statsBar.innerHTML = `<b>{{ total }}</b> produtos disponíveis`;
     // сбросить фильтр категорий
     document.querySelectorAll('.cat-group').forEach(g => g.style.display = '');
@@ -1004,6 +1050,7 @@ async function filterProducts() {
     // скрыть обычный каталог, показать результаты
     catalogEl.style.display = 'none';
     if (promoWrap) promoWrap.style.display = 'none';
+    if (promosBlock) promosBlock.style.display = 'none';
     searchBlock.style.display = '';
 
     if (!filtered.length) {
