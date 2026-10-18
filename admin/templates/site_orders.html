@@ -1,0 +1,272 @@
+{% extends "_base_admin.html" %}
+{% block title %}Pedidos do site — M.T.F{% endblock %}
+
+{% block extra_styles %}
+    .so-tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+    .so-tab { padding: 8px 14px; border-radius: 999px; border: 1px solid #ccc; background: #fff; color: #E2144A; font-weight: 800; text-decoration: none; font-size: .9rem; }
+    .so-tab.active { background: #111827; color: #fff; border-color: #111827; }
+    .so-table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 14px; overflow: hidden; box-shadow: 0 4px 14px rgba(0,0,0,.08); }
+    .so-table th, .so-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #eee; font-size: .92rem; vertical-align: top; }
+    .so-table th { background: #f9fafb; font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; color: #6b7280; }
+    .so-table tr:hover td { background: #fffaf3; }
+    .so-table a { color: #E2144A; font-weight: 800; text-decoration: none; }
+    .so-badge { display: inline-block; padding: 3px 9px; border-radius: 999px; font-size: .78rem; font-weight: 800; white-space: nowrap; }
+    .b-paid { background: #ecfdf5; color: #065f46; }
+    .b-pending { background: #fefce8; color: #854d0e; }
+    .b-expired, .b-error, .b-cancelled { background: #f3f4f6; color: #6b7280; }
+    .b-refunded { background: #fef2f2; color: #991b1b; }
+    .so-del { background: none; border: 1px solid #e5e7eb; border-radius: 8px; padding: 4px 8px; cursor: pointer; font-size: .9rem; }
+    .so-del:hover { border-color: #dc2626; background: #fef2f2; }
+    .so-danger-zone { margin-top: 18px; padding-top: 14px; border-top: 1px dashed #e5e7eb; }
+    .so-danger-zone .btn-danger { width: 100%; }
+    .so-check { display: flex; gap: 8px; align-items: flex-start; font-weight: 600; margin: 10px 0; }
+    .so-check input { width: auto; margin-top: 3px; }
+    .b-ful { background: #eff6ff; color: #1e40af; }
+    .so-money { font-family: monospace; white-space: nowrap; }
+    .so-empty { padding: 30px; text-align: center; color: #6b7280; }
+    .so-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 16px; align-items: start; }
+    .so-card h2 { font-size: 1.05rem; margin-bottom: 12px; }
+    .so-line { display: flex; justify-content: space-between; gap: 10px; padding: 7px 0; border-bottom: 1px solid #f1f1f1; }
+    .so-line:last-child { border-bottom: none; }
+    .so-total { font-weight: 900; font-size: 1.1rem; }
+    .so-muted { color: #6b7280; font-size: .88rem; }
+    .so-actions form { margin-bottom: 10px; }
+    .so-actions .btn-primary, .so-actions .btn-green, .so-actions .btn-secondary { width: 100%; text-align: center; }
+    .so-done { background: #ecfdf5; color: #065f46; border-radius: 10px; padding: 10px 12px; font-weight: 800; margin-bottom: 10px; }
+    @media (max-width: 800px) { .so-grid { grid-template-columns: 1fr; } .so-hide-m { display: none; } }
+{% endblock %}
+
+{% block content %}
+
+{% if order %}
+{# ── DETALHE ── #}
+<p style="margin-bottom:12px;"><a href="/site-orders" style="color:#E2144A;font-weight:800;text-decoration:none;">← Pedidos do site</a></p>
+{% if ok %}<div class="msg-ok">{{ ok }}</div>{% endif %}
+{% if err %}<div class="msg-err">{{ err }}</div>{% endif %}
+
+<div class="so-grid">
+  <div>
+    <div class="card so-card" style="margin-bottom:16px;">
+      <h2>Pedido #{{ order.id }}
+        <span class="so-badge b-{{ order.status }}">{{ {'paid':'Pago','pending':'Aguardando Pix','expired':'Pix expirado','error':'Erro','cancelled':'Cancelado','refunded':'Estornado'}.get(order.status, order.status) }}</span>
+        <span class="so-badge b-ful">{{ order.fulfillment_label }}</span>
+      </h2>
+      <div class="so-muted">Criado {{ order.created_brt }}{% if order.paid_brt %} · Pago {{ order.paid_brt }}{% endif %}</div>
+
+      <div style="margin-top:14px;">
+        {% for i in order["items"] %}
+        <div class="so-line"><span>{{ i.name }} × {{ i.qty }}{% if i.kit %} <span class="so-badge b-ful">kit{% if i.discount_pct %} -{{ i.discount_pct|round(1) }}%{% endif %}</span>{% endif %}
+          {% for c in i.components or [] %}<br><span class="so-muted">– {{ c.name }} × {{ c.qty }}</span>{% endfor %}</span>
+          <span class="so-money">R$ {{ "%.2f"|format(i.subtotal)|replace('.', ',') }}</span></div>
+        {% endfor %}
+        <div class="so-line"><span>{% if order.delivery_type == 'lalamove' %}Frete · {{ order.service_label }}{% else %}Retirada na loja{% endif %}</span>
+          <span class="so-money">{% if order.frete %}R$ {{ "%.2f"|format(order.frete)|replace('.', ',') }}{% else %}—{% endif %}</span></div>
+        <div class="so-line so-total"><span>Total</span><span class="so-money">R$ {{ "%.2f"|format(order.total)|replace('.', ',') }}</span></div>
+      </div>
+    </div>
+
+    <div class="card so-card">
+      <h2>Cliente</h2>
+      <div class="so-line"><span class="so-muted">Nome</span><span>{{ order.customer_name }}</span></div>
+      <div class="so-line"><span class="so-muted">WhatsApp</span>
+        <a href="https://wa.me/{{ order.wa_phone }}" target="_blank" rel="noopener" style="color:#16a34a;font-weight:800;">{{ order.customer_phone }}</a></div>
+      <div class="so-line"><span class="so-muted">E-mail</span><span>{{ order.customer_email }}</span></div>
+      {% if order.delivery_type == 'lalamove' %}
+      <div class="so-line"><span class="so-muted">Endereço</span>
+        <span style="text-align:right;">{{ order.address }}, nº {{ order.numero }}{% if order.complemento %} — {{ order.complemento }}{% endif %}</span></div>
+      {% endif %}
+      {% if order.mp_payment_id %}
+      <div class="so-line"><span class="so-muted">Mercado Pago</span><span class="so-money">#{{ order.mp_payment_id }}</span></div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card so-card so-actions">
+    <h2>Ações</h2>
+    {% if order.status != 'paid' %}
+      <p class="so-muted">O pedido ainda não foi pago — nenhuma ação disponível.</p>
+    {% else %}
+
+      {% if order.sale_registered %}
+        <div class="so-done">✓ Venda registrada, estoque atualizado</div>
+      {% else %}
+        <form method="post" action="/site-orders/{{ order.id }}/registrar-venda"
+              onsubmit="return confirm('Registrar a venda e dar baixa no estoque?');">
+          <button class="btn-green" type="submit">Registrar venda (baixa no estoque)</button>
+        </form>
+      {% endif %}
+
+      {% if order.delivery_type == 'lalamove' %}
+        {% if order.lalamove_order_id %}
+          <div class="so-done">🛵 Lalamove chamado · #{{ order.lalamove_order_id }}</div>
+          {% if order.lalamove_link %}<p style="margin-bottom:10px;"><a class="btn-secondary" href="{{ order.lalamove_link }}" target="_blank" rel="noopener">Acompanhar entrega</a></p>{% endif %}
+          <form method="post" action="/site-orders/{{ order.id }}/lalamove-status">
+            <button class="btn-secondary" type="submit">🔄 Atualizar status Lalamove</button>
+          </form>
+          <form method="post" action="/site-orders/{{ order.id }}/lalamove-cancel"
+                onsubmit="return confirm('Cancelar o entregador Lalamove? Só é possível enquanto procura motorista ou até 5 min depois de aceitar.');">
+            <button class="btn-danger" type="submit" style="width:100%;">✕ Cancelar entregador</button>
+          </form>
+        {% else %}
+          <form method="post" action="/site-orders/{{ order.id }}/lalamove"
+                onsubmit="return confirm('Chamar o entregador agora? O pedido já está separado?');">
+            <button class="btn-primary" type="submit">🛵 Chamar Lalamove ({{ order.service_label }})</button>
+          </form>
+          <p class="so-muted" style="margin-bottom:12px;">Chame só com o pedido separado — o entregador vem na hora.</p>
+        {% endif %}
+      {% endif %}
+
+      <form method="post" action="/site-orders/{{ order.id }}/status" style="margin-top:8px;">
+        <label for="fulfillment">Status do pedido</label>
+        <select name="fulfillment" id="fulfillment">
+          {% for k, v in fulfillment.items() %}
+          <option value="{{ k }}" {% if order.fulfillment == k %}selected{% endif %}>{{ v }}</option>
+          {% endfor %}
+        </select>
+        <label for="admin_note">Observação interna</label>
+        <textarea name="admin_note" id="admin_note">{{ order.admin_note or '' }}</textarea>
+        <div class="btns"><button class="btn-secondary" type="submit">Salvar</button></div>
+      </form>
+
+      <p style="margin-top:14px;">
+        <a class="btn-secondary" target="_blank" rel="noopener"
+           href="https://wa.me/{{ order.wa_phone }}?text={{ ('Olá, ' ~ order.customer_name ~ '! Recebemos o pagamento do seu pedido #' ~ order.id ~ ' na M.T.F Refrigeração.') | urlencode }}">
+          💬 Avisar cliente no WhatsApp</a>
+      </p>
+    {% endif %}
+
+    <div class="so-danger-zone">
+      {% if order.can_cancel %}
+      <form method="post" action="/site-orders/{{ order.id }}/cancelar"
+            onsubmit="return confirm('Cancelar o pedido #{{ order.id }}?{% if order.lalamove_order_id %} O entregador também será cancelado.{% endif %}{% if order.sale_registered %} As vendas serão removidas e o estoque devolvido.{% endif %}');">
+        {% if order.status == 'paid' %}
+        <label class="so-check"><input type="checkbox" name="refund" value="1" checked>
+          Devolver R$ {{ "%.2f"|format(order.total)|replace('.', ',') }} ao cliente (estorno do Pix no Mercado Pago)</label>
+        {% endif %}
+        <button class="btn-danger" type="submit">Cancelar pedido</button>
+      </form>
+      {% endif %}
+      {% if order.can_delete %}
+      <form method="post" action="/site-orders/{{ order.id }}/delete" style="margin-top:10px;"
+            onsubmit="return confirm('Excluir o pedido #{{ order.id }} de vez? Não dá para desfazer.');">
+        <button class="btn-secondary" type="submit" style="width:100%;color:#6b7280;">🗑 Excluir pedido</button>
+      </form>
+      {% else %}
+      <p class="so-muted" style="margin-top:10px;">Para excluir, cancele o pedido primeiro (tem venda registrada ou entregador chamado).</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% else %}
+{# ── LISTA ── #}
+<h1 style="font-size:1.4rem;margin-bottom:14px;">🌐 Pedidos do site</h1>
+<div class="card" id="push-card" style="padding:14px 16px;margin-bottom:14px;display:none;">
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+    <div style="flex:1;min-width:200px;">
+      <div style="font-weight:900;">🔔 Notificações neste aparelho</div>
+      <div class="hint" id="push-status">Receba um aviso quando um pedido for pago.</div>
+    </div>
+    <button class="btn-primary" id="push-on" type="button" style="display:none;" onclick="pushEnable()">Ativar</button>
+    <button class="btn-secondary" id="push-test" type="button" style="display:none;" onclick="pushTest()">Testar</button>
+    <button class="btn-secondary" id="push-off" type="button" style="display:none;color:#6b7280;" onclick="pushDisable()">Desativar</button>
+  </div>
+</div>
+<div class="so-tabs">
+  <a class="so-tab {% if filtro == 'pagos' %}active{% endif %}" href="/site-orders?filtro=pagos">Pagos em aberto</a>
+  <a class="so-tab {% if filtro == 'pendentes' %}active{% endif %}" href="/site-orders?filtro=pendentes">Aguardando Pix</a>
+  <a class="so-tab {% if filtro == 'todos' %}active{% endif %}" href="/site-orders?filtro=todos">Todos</a>
+</div>
+
+{% if orders %}
+<table class="so-table">
+  <thead>
+    <tr><th>#</th><th>Data</th><th>Cliente</th><th class="so-hide-m">Entrega</th><th>Total</th><th>Status</th><th></th></tr>
+  </thead>
+  <tbody>
+    {% for o in orders %}
+    <tr onclick="location.href='/site-orders/{{ o.id }}'" style="cursor:pointer;">
+      <td><a href="/site-orders/{{ o.id }}">#{{ o.id }}</a></td>
+      <td>{{ o.created_brt }}</td>
+      <td>{{ o.customer_name }}</td>
+      <td class="so-hide-m">{% if o.delivery_type == 'lalamove' %}🛵 {{ o.service_label }}{% else %}🏪 Retirada{% endif %}</td>
+      <td class="so-money">R$ {{ "%.2f"|format(o.total)|replace('.', ',') }}</td>
+      <td>
+        <span class="so-badge b-{{ o.status }}">{{ {'paid':'Pago','pending':'Aguardando','expired':'Expirado','error':'Erro','cancelled':'Cancelado','refunded':'Estornado'}.get(o.status, o.status) }}</span>
+        {% if o.status == 'paid' %}<span class="so-badge b-ful">{{ o.fulfillment_label }}</span>{% endif %}
+      </td>
+      <td onclick="event.stopPropagation();">
+        {% if o.can_delete %}
+        <form method="post" action="/site-orders/{{ o.id }}/delete"
+              onsubmit="return confirm('Excluir o pedido #{{ o.id }} de vez?');">
+          <button class="so-del" type="submit" title="Excluir">🗑</button>
+        </form>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<div class="card so-empty">Nenhum pedido aqui.</div>
+{% endif %}
+{% endif %}
+
+
+{% if not order %}
+<script>
+(function () {
+  const card = document.getElementById('push-card');
+  if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
+    card.style.display = '';
+    document.getElementById('push-status').textContent =
+      'Este navegador não suporta notificações. No iPhone, instale a admin na Tela de Início primeiro (Compartilhar → Adicionar à Tela de Início).';
+    return;
+  }
+  card.style.display = '';
+  const $ = id => document.getElementById(id);
+  const show = (on) => { $('push-on').style.display = on ? 'none' : ''; $('push-test').style.display = on ? '' : 'none'; $('push-off').style.display = on ? '' : 'none'; };
+  const b64ToBytes = s => { const p = '='.repeat((4 - s.length % 4) % 4); const r = atob((s + p).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from([...r].map(c => c.charCodeAt(0))); };
+
+  async function current() { const reg = await navigator.serviceWorker.ready; return reg.pushManager.getSubscription(); }
+
+  window.pushEnable = async function () {
+    try {
+      const cfg = await (await fetch('/push/public-key')).json();
+      if (!cfg.enabled) { $('push-status').textContent = 'Faltam as chaves VAPID no servidor (VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY).'; return; }
+      const perm = await Notification.requestPermission();
+      if (perm !== 'granted') { $('push-status').textContent = 'Permissão negada. Libere as notificações nas configurações do navegador.'; return; }
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(cfg.key) });
+      const label = (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || '';
+      const r = await fetch('/push/subscribe', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                                                 body: JSON.stringify({ subscription: sub.toJSON(), label }) });
+      if (!r.ok) throw new Error('falha ao salvar');
+      $('push-status').textContent = '✓ Ativado. Você será avisado quando um pedido for pago.';
+      show(true);
+    } catch (e) { $('push-status').textContent = 'Não foi possível ativar: ' + e.message; }
+  };
+  window.pushTest = async function () {
+    $('push-status').textContent = 'Enviando…';
+    try {
+      const r = await (await fetch('/push/test', { method: 'POST' })).json();
+      $('push-status').textContent = r.ok ? `✓ Enviado para ${r.ok} aparelho(s). Deve chegar em segundos.` : 'Nenhum aparelho recebeu. Desative e ative de novo.';
+    } catch (e) { $('push-status').textContent = 'Erro ao enviar teste.'; }
+  };
+  window.pushDisable = async function () {
+    const sub = await current();
+    if (sub) {
+      await fetch('/push/unsubscribe', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ endpoint: sub.endpoint }) });
+      await sub.unsubscribe();
+    }
+    $('push-status').textContent = 'Desativado neste aparelho.';
+    show(false);
+  };
+  current().then(sub => {
+    show(!!sub && Notification.permission === 'granted');
+    if (sub && Notification.permission === 'granted') $('push-status').textContent = '✓ Ativado neste aparelho.';
+  }).catch(() => show(false));
+})();
+</script>
+{% endif %}
+{% endblock %}

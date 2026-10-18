@@ -1,0 +1,106 @@
+{% extends '_base_admin.html' %}
+{% block title %}Desconto do kit — M.T.F{% endblock %}
+
+{% block extra_styles %}
+    .card{max-width:640px;}
+    h1{font-size:1.5rem;margin-bottom:6px;color:#111;}
+    .sub{color:#6b7280;font-size:.92rem;margin-bottom:16px;line-height:1.5;}
+    .pct-row{display:flex;gap:10px;align-items:center;}
+    .pct-row input{max-width:140px;font-size:1.2rem;font-weight:800;text-align:right;}
+    .pct-row span{font-size:1.2rem;font-weight:800;}
+    .tbl-wrap{overflow-x:auto;margin-top:8px;}
+    table.kit{width:100%;border-collapse:collapse;font-size:.92rem;}
+    table.kit th{text-align:right;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;color:#6b7280;padding:8px 6px;border-bottom:2px solid #e5e7eb;white-space:nowrap;}
+    table.kit th:first-child,table.kit td:first-child{text-align:left;}
+    table.kit td{text-align:right;padding:10px 6px;border-bottom:1px solid #f0f0f0;white-space:nowrap;}
+    table.kit td.m{font-weight:900;}
+    table.kit tr.low td{background:#fef2f2;}
+    .mg{font-weight:900;}
+    .warn-list{margin-top:10px;}
+    @media (max-width:600px){ table.kit .opt{display:none;} table.kit{font-size:.85rem;} table.kit td,table.kit th{padding-left:4px;padding-right:4px;} table.kit th{white-space:normal;letter-spacing:0;font-size:.68rem;line-height:1.2;vertical-align:bottom;} }
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <h1>Desconto do kit de instalação</h1>
+  <div class="sub">Vale para o kit montado na calculadora do site (<b>/calculadora-instalacao</b>). 0 = sem desconto.</div>
+
+  {% if request.query_params.get('ok') %}<div class="msg-ok">✅ Desconto salvo. Já vale no site.</div>{% endif %}
+  {% if error %}<div class="msg-err">⚠️ {{ error }}</div>{% endif %}
+  <div class="msg-err" id="kit-warn" style="display:none;"></div>
+
+  <form method="post" action="/kit-discount">
+    <label for="discount_percent">Desconto no kit (%)</label>
+    <div class="pct-row">
+      <input id="discount_percent" name="discount_percent" inputmode="decimal" value="{{ pct_input }}" autocomplete="off">
+      <span>%</span>
+    </div>
+    <div class="hint">Máximo {{ ('%g' % max_discount)|replace('.', ',') }}%. Aviso vermelho se a margem do kit cair abaixo de {{ ('%g' % min_margin)|replace('.', ',') }}%.</div>
+
+    <label style="margin-top:22px;">Margem do kit com esse desconto</label>
+    <div class="tbl-wrap">
+      <table class="kit">
+        <thead>
+          <tr><th>Distância</th><th class="opt">Sem desc. (R$)</th><th class="opt">Custo (R$)</th><th>Com desc. (R$)</th><th>Lucro (R$)</th><th>Margem</th></tr>
+        </thead>
+        <tbody id="kit-rows"></tbody>
+      </table>
+    </div>
+
+    <div class="warn-list">
+      {% if no_cost %}<div class="hint">⚠️ Custo não cadastrado (R$ 0) em: {{ no_cost|join(', ') }}. A margem acima está maior que a real.</div>{% endif %}
+      {% if missing %}<div class="hint">⚠️ Fora da conta (produto não encontrado no catálogo): {{ missing|join(', ') }}.</div>{% endif %}
+    </div>
+
+    <div class="btns"><button class="btn-primary" type="submit">Salvar desconto</button></div>
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+const KIT = {{ table|tojson }};
+const MIN_MARGIN = {{ min_margin }};
+const MAX_DISCOUNT = {{ max_discount }};
+const brl = n => n.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+const input = document.getElementById('discount_percent');
+
+function render(){
+  let pct = parseFloat(String(input.value).replace('%', '').replace(',', '.'));
+  if (!isFinite(pct) || pct < 0) pct = 0;
+  const bad = [];
+  const rows = KIT.map(k => {
+    // mesma conta da página do site: desconto arredondado em centavos
+    const disc = Math.round(k.sale * pct) / 100;
+    const final = k.sale - disc;
+    const profit = final - k.cost;
+    const margin = final > 0 ? profit / final * 100 : 0;
+    const low = margin < MIN_MARGIN;
+    if (low) bad.push(k.m + ' m');
+    const color = low ? '#dc2626' : (margin < 20 ? '#d97706' : '#16a34a');
+    return '<tr class="' + (low ? 'low' : '') + '">' +
+      '<td class="m">' + k.m + ' m</td>' +
+      '<td class="opt">' + brl(k.sale) + '</td>' +
+      '<td class="opt">' + brl(k.cost) + '</td>' +
+      '<td>' + brl(final) + '</td>' +
+      '<td>' + brl(profit) + '</td>' +
+      '<td class="mg" style="color:' + color + '">' + margin.toFixed(1).replace('.', ',') + '%</td></tr>';
+  });
+  document.getElementById('kit-rows').innerHTML = rows.join('');
+
+  const warn = document.getElementById('kit-warn');
+  if (pct > MAX_DISCOUNT){
+    warn.style.display = '';
+    warn.textContent = '⚠️ O máximo permitido é ' + String(MAX_DISCOUNT).replace('.', ',') + '%.';
+  } else if (bad.length){
+    warn.style.display = '';
+    warn.textContent = '⚠️ Com esse desconto a margem fica abaixo de ' + String(MIN_MARGIN).replace('.', ',') + '% em: ' + bad.join(', ') + '.';
+  } else {
+    warn.style.display = 'none';
+  }
+}
+input.addEventListener('input', render);
+render();
+</script>
+{% endblock %}

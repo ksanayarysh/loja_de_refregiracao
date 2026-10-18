@@ -7,6 +7,7 @@ from zoneinfo import ZoneInfo
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, PlainTextResponse, JSONResponse, Response
 from sqlalchemy import text
+from lalamove import get_cities, get_quote, LalamoveError
 
 from dependencies import engine, templates
 from articles import ARTICLES, ARTICLES_BY_SLUG
@@ -864,6 +865,209 @@ async def api_kit_config():
     return JSONResponse({"discount_percent": pct}, headers={"Cache-Control": "no-store"})
 
 
+# ── LALAMOVE: FRETE ───────────────────────────────────────────────────────────
+LALA_DEBUG_TOKEN = os.environ.get("LALA_DEBUG_TOKEN", "")
+LALA_SERVICES = set(os.environ.get("LALA_SERVICES", "LALAGO,LALAPRO,HATCHBACK").split(","))
+_frete_hits: dict = {}  # ip -> [timestamps], anti-abuso
+
+@router.get("/api/lalamove/cities")
+async def lalamove_cities(token: str = ""):
+    """Debug: какие serviceType доступны в Рио. Удалить после теста."""
+    if not LALA_DEBUG_TOKEN or token != LALA_DEBUG_TOKEN:
+        return JSONResponse({"error": "forbidden"}, status_code=403)
+    try:
+        data = await get_cities()
+    except LalamoveError as e:
+        return JSONResponse({"error": e.payload}, status_code=502)
+    rio = [c for c in data.get("data", []) if "rio" in str(c.get("name", "")).lower()]
+    return JSONResponse(rio or data)
+
+@router.get("/api/lalamove/test-quote")
+async def lalamove_test_quote(lat: float, lng: float, service: str = "LALAGO", token: str = ""):
+    """Debug: котировка из браузера телефона. Удалить после теста."""
+    if not LALA_DEBUG_TOKEN or token != LALA_DEBUG_TOKEN:
+        return JSONResponse({"error": "forbidden"}, status_code=403)
+    try:
+        return JSONResponse(await get_quote(lat, lng, "Teste", service))
+    except LalamoveError as e:
+        return JSONResponse({"error": e.payload}, status_code=502)
+
+@router.post("/api/frete")
+async def api_frete(request: Request):
+    import time
+    ip = request.client.host if request.client else "?"
+    now = time.time()
+    hits = [t for t in _frete_hits.get(ip, []) if now - t < 600]
+    if len(hits) >= 10:
+        return JSONResponse({"error": "Muitas consultas. Tente novamente em alguns minutos."}, status_code=429)
+    hits.append(now)
+    _frete_hits[ip] = hits
+
+    try:
+        body = await request.json()
+        lat, lng = float(body["lat"]), float(body["lng"])
+        address = str(body.get("address", ""))[:300]
+    except (KeyError, ValueError, TypeError):
+        return JSONResponse({"error": "Endereço inválido"}, status_code=400)
+    service = body.get("service", "LALAGO")
+    if service not in LALA_SERVICES:
+        return JSONResponse({"error": "Tipo de entrega indisponível"}, status_code=400)
+
+    try:
+        q = await get_quote(lat, lng, address, service)
+    except LalamoveError as e:
+        _blog_log.warning("lalamove quote: %s", e)
+        return JSONResponse({"error": "Não foi possível calcular o frete para este endereço"}, status_code=502)
+
+    return JSONResponse({
+        "price": float(q["price"]),
+        "distance_km": round(int(q["distance_m"] or 0) / 1000, 1),
+        "service": service,
+    }, headers={"Cache-Control": "no-store"})
+
+# ── FRETE POR CEP (página do produto) ─────────────────────────────────────────
+_geo_cache: dict = {}    # cep -> dados do endereço + coordenadas (não muda)
+_quote_cache: dict = {}  # (cep, service) -> (ts, resposta), 10 min
+
+def _frete_rate_ok(ip: str) -> bool:
+    import time
+    now = time.time()
+    hits = [t for t in _frete_hits.get(ip, []) if now - t < 600]
+    if len(hits) >= 10:
+        return False
+    hits.append(now)
+    _frete_hits[ip] = hits
+    return True
+
+async def _cep_to_coords(cep: str):
+    """CEP -> endereço (ViaCEP) + coordenadas (AwesomeAPI -> BrasilAPI -> Nominatim). Tudo grátis, sem chave."""
+    if cep in _geo_cache:
+        return _geo_cache[cep]
+
+    def _ok(lat, lng):
+        try:
+            lat, lng = float(lat), float(lng)
+            return (lat, lng) if lat and lng else None
+        except (TypeError, ValueError):
+            return None
+
+    async with httpx.AsyncClient(timeout=8, headers={"User-Agent": "MTF-Refrigeracao/1.0 (frete)"}) as client:
+        # 1. ViaCEP — endereço
+        r = await client.get(f"https://viacep.com.br/ws/{cep}/json/")
+        v = r.json() if r.status_code == 200 else {}
+        if not v or v.get("erro"):
+            return None
+        street, bairro = v.get("logradouro") or "", v.get("bairro") or ""
+        cidade, uf = v.get("localidade") or "", v.get("uf") or ""
+        address = ", ".join(x for x in [street, bairro, f"{cidade} - {uf}", f"{cep[:5]}-{cep[5:]}"] if x)
+
+        coords, source = None, None
+
+        # 2. AwesomeAPI
+        try:
+            a = await client.get(f"https://cep.awesomeapi.com.br/json/{cep}")
+            if a.status_code == 200:
+                aj = a.json()
+                coords, source = _ok(aj.get("lat"), aj.get("lng")), "awesomeapi"
+        except Exception:
+            pass
+
+        # 3. BrasilAPI v2
+        if not coords:
+            try:
+                b = await client.get(f"https://brasilapi.com.br/api/cep/v2/{cep}")
+                if b.status_code == 200:
+                    c = ((b.json().get("location") or {}).get("coordinates") or {})
+                    coords, source = _ok(c.get("latitude"), c.get("longitude")), "brasilapi"
+            except Exception:
+                pass
+
+        # 4. Nominatim (OpenStreetMap) — pela rua; sem rua, pelo bairro
+        if not coords:
+            params = {"city": cidade, "state": uf, "country": "Brasil", "format": "json", "limit": 1}
+            if street:
+                params["street"] = street
+            else:
+                params = {"q": f"{bairro}, {cidade}, {uf}, Brasil", "format": "json", "limit": 1}
+            try:
+                n = await client.get("https://nominatim.openstreetmap.org/search", params=params)
+                if n.status_code == 200 and n.json():
+                    coords, source = _ok(n.json()[0].get("lat"), n.json()[0].get("lon")), "nominatim"
+            except Exception:
+                pass
+
+    if not coords:
+        _blog_log.warning("frete-cep: sem coordenadas para %s (%s)", cep, address)
+        raise RuntimeError(f"sem coordenadas para {cep}")
+
+    _blog_log.info("frete-cep: %s -> %s via %s", cep, coords, source)
+    res = {"lat": coords[0], "lng": coords[1], "address": address, "rua": street, "bairro": bairro, "cidade": cidade, "uf": uf}
+    _geo_cache[cep] = res
+    return res
+
+FRETE_OPTIONS = {
+    "LALAGO":    ("Motoboy",      "Peças pequenas"),
+    "LALAPRO":   ("Moto com baú", "Caixas médias, protegidas da chuva"),
+    "HATCHBACK": ("Carro",        "Peças grandes ou pesadas"),
+}
+
+FRETE_MAX_KM = float(os.environ.get("FRETE_MAX_KM", "50"))
+
+def _frete_combinar(geo: dict) -> dict:
+    return {"combinar": True, "bairro": geo.get("bairro", ""), "cidade": geo.get("cidade", ""), "uf": geo.get("uf", "")}
+
+@router.get("/api/frete-cep")
+async def api_frete_cep(request: Request, cep: str = ""):
+    import re as _re, time
+    cep = _re.sub(r"\D", "", cep)
+    if len(cep) != 8:
+        return JSONResponse({"error": "Digite um CEP válido (8 dígitos)."}, status_code=400)
+
+    cached = _quote_cache.get(cep)
+    if cached and time.time() - cached[0] < 600:
+        return JSONResponse(cached[1], headers={"Cache-Control": "no-store"})
+
+    ip = request.client.host if request.client else "?"
+    if not _frete_rate_ok(ip):
+        return JSONResponse({"error": "Muitas consultas. Tente novamente em alguns minutos."}, status_code=429)
+
+    try:
+        geo = await _cep_to_coords(cep)
+    except Exception:
+        _blog_log.exception("frete-cep: falha ao buscar CEP %s", cep)
+        return JSONResponse({"error": "Não foi possível calcular o frete agora. Tente novamente."}, status_code=503)
+    if not geo:
+        return JSONResponse({"error": "CEP não encontrado."}, status_code=404)
+    if geo["uf"] != "RJ":
+        return JSONResponse(_frete_combinar(geo), headers={"Cache-Control": "no-store"})
+
+    services = [s for s in FRETE_OPTIONS if s in LALA_SERVICES]
+    results = await asyncio.gather(
+        *(get_quote(geo["lat"], geo["lng"], geo["address"], s) for s in services),
+        return_exceptions=True,
+    )
+
+    options, distance_m = [], 0
+    for s, q in zip(services, results):
+        if isinstance(q, Exception):
+            _blog_log.warning("frete-cep: lalamove %s %s: %s", cep, s, q)
+            continue
+        label, hint = FRETE_OPTIONS[s]
+        options.append({"service": s, "label": label, "hint": hint, "price": float(q["price"])})
+        distance_m = distance_m or int(q["distance_m"] or 0)
+
+    if not options or distance_m / 1000 > FRETE_MAX_KM:
+        data = _frete_combinar(geo)
+        _quote_cache[cep] = (time.time(), data)
+        return JSONResponse(data, headers={"Cache-Control": "no-store"})
+
+    options.sort(key=lambda o: o["price"])
+    data = {
+        "rua": geo.get("rua", ""), "bairro": geo["bairro"], "cidade": geo["cidade"],
+        "distance_km": round(distance_m / 1000, 1), "options": options,
+    }
+    _quote_cache[cep] = (time.time(), data)
+    return JSONResponse(data, headers={"Cache-Control": "no-store"})
 @router.get("/politica-de-devolucao", response_class=HTMLResponse)
 async def politica_page(request: Request):
     return templates.TemplateResponse("/politica-de-devolucao.html", {

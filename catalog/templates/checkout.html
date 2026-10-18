@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <link rel="icon" type="image/png" href="/static/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Finalizar pedido | M.T.F Refrigeração</title>
+  <meta name="robots" content="noindex, nofollow">
+
+  {% if ga_id %}
+  <script async src="https://www.googletagmanager.com/gtag/js?id={{ ga_id }}"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag("js", new Date());
+    gtag("config", "{{ ga_id }}");
+    gtag("config", "AW-18038713780");
+  </script>
+  {% endif %}
+
+  {% include '_header_styles.html' %}
+  <style>
+    .co-wrap{max-width:980px;margin:0 auto;padding:24px 20px 80px;display:grid;grid-template-columns:1.3fr 1fr;gap:28px;align-items:start;}
+    .co-title{max-width:980px;margin:0 auto;padding:24px 20px 0;font-size:1.6rem;font-weight:700;letter-spacing:-.02em;}
+    .co-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px;}
+    .co-card h2{font-size:1.02rem;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+    .co-step{width:24px;height:24px;border-radius:50%;background:var(--text);color:#fff;font-size:.78rem;display:inline-flex;align-items:center;justify-content:center;}
+    .co-field{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
+    .co-field label{font-size:.82rem;font-weight:600;color:var(--muted);}
+    .co-input{padding:12px;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:1rem;background:var(--bg);color:var(--text);width:100%;}
+    .co-input:focus{outline:none;border-color:var(--accent);}
+    .co-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+    .co-row-cep{display:flex;gap:8px;}
+    .co-btn-sec{padding:12px 18px;border:none;border-radius:9px;background:var(--text);color:#fff;font-family:inherit;font-weight:700;cursor:pointer;white-space:nowrap;}
+    .co-btn-sec:disabled{opacity:.6;cursor:default;}
+
+    .co-opt{display:flex;align-items:center;gap:12px;padding:13px 14px;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;margin-bottom:8px;background:var(--bg);}
+    .co-opt:has(input:checked){border-color:var(--accent);background:#fff5f7;}
+    .co-opt input{accent-color:var(--accent);width:18px;height:18px;flex-shrink:0;}
+    .co-opt-main{flex:1;}
+    .co-opt-name{font-weight:700;font-size:.95rem;}
+    .co-opt-hint{font-size:.78rem;color:var(--muted);margin-top:2px;}
+    .co-opt-price{font-family:"DM Mono",monospace;font-weight:700;white-space:nowrap;}
+    .co-free{color:var(--green);}
+    .co-kit{display:inline-block;margin-left:4px;padding:0 7px;border-radius:999px;background:#fff0f4;color:var(--accent);border:1px solid #ffd0dc;font-size:.7rem;font-weight:800;}
+
+    .co-msg{font-size:.85rem;margin:6px 0 10px;}
+    .co-err{color:var(--accent);}
+    .co-local{font-size:.8rem;color:var(--muted);margin:8px 0;}
+    .co-note{font-size:.75rem;color:var(--muted);margin-top:4px;line-height:1.5;}
+    .co-hidden{display:none;}
+
+    .co-summary{position:sticky;top:90px;}
+    .co-item{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);font-size:.95rem;}
+    .co-item:last-of-type{border-bottom:none;}
+    .co-item-name{flex:1;min-width:0;}
+    .co-item-qty{color:var(--muted);font-size:.85rem;}
+    .co-money{font-family:"DM Mono",monospace;white-space:nowrap;}
+    .co-line{display:flex;justify-content:space-between;font-size:.95rem;margin-top:8px;}
+    .co-total{display:flex;justify-content:space-between;font-size:1.25rem;font-weight:800;margin-top:14px;padding-top:14px;border-top:2px solid var(--border);}
+    .co-pay{width:100%;margin-top:16px;padding:16px;border:none;border-radius:12px;background:var(--accent);color:#fff;font-family:inherit;font-size:1.08rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 6px 20px rgba(226,20,74,.25);}
+    .co-pay:disabled{opacity:.55;cursor:default;box-shadow:none;}
+    .co-pix-badge{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;font-weight:700;color:#2e7d32;background:#e8f5e9;border:1px solid #c8e6c9;border-radius:20px;padding:4px 10px;margin-top:12px;}
+    .co-empty{text-align:center;padding:60px 20px;color:var(--muted);}
+    .co-empty a{color:var(--accent);font-weight:700;}
+    .co-wa-link{display:inline-block;margin-top:6px;font-size:.85rem;font-weight:700;color:#128c4a;}
+
+    @media(max-width:760px){
+      .co-wrap{grid-template-columns:1fr;padding:16px 16px 60px;gap:0;}
+      .co-title{padding:16px 16px 0;font-size:1.35rem;}
+      .co-summary{position:static;}
+      .co-row{grid-template-columns:1fr;}
+    }
+  </style>
+</head>
+<body>
+
+{% include '_header.html' %}
+
+<h1 class="co-title">Finalizar pedido</h1>
+
+<div id="co-empty" class="co-empty co-hidden">
+  Seu carrinho está vazio.<br><a href="/catalogo">Ver catálogo →</a>
+</div>
+
+<div class="co-wrap" id="co-main">
+  <div>
+    <div class="co-card">
+      <h2><span class="co-step">1</span> Seus dados</h2>
+      <div class="co-field">
+        <label for="f-name">Nome</label>
+        <input class="co-input" id="f-name" autocomplete="name" maxlength="120">
+      </div>
+      <div class="co-row">
+        <div class="co-field">
+          <label for="f-phone">WhatsApp com DDD</label>
+          <input class="co-input" id="f-phone" inputmode="tel" autocomplete="tel" placeholder="(21) 99999-9999" maxlength="16">
+        </div>
+        <div class="co-field">
+          <label for="f-email">E-mail</label>
+          <input class="co-input" id="f-email" type="email" autocomplete="email" maxlength="160">
+        </div>
+      </div>
+    </div>
+
+    <div class="co-card">
+      <h2><span class="co-step">2</span> Entrega</h2>
+
+      <label class="co-opt">
+        <input type="radio" name="dtype" value="retirada" checked>
+        <div class="co-opt-main">
+          <div class="co-opt-name">Retirada na loja</div>
+          <div class="co-opt-hint">Av. Brasil, 6818 · seg. a sáb., 8h30–18h</div>
+        </div>
+        <div class="co-opt-price co-free">Grátis</div>
+      </label>
+      <label class="co-opt">
+        <input type="radio" name="dtype" value="lalamove">
+        <div class="co-opt-main">
+          <div class="co-opt-name">Entrega no endereço</div>
+          <div class="co-opt-hint">Via Lalamove, no Rio de Janeiro</div>
+        </div>
+      </label>
+
+      <div id="delivery-box" class="co-hidden" style="margin-top:12px;">
+        <div class="co-field">
+          <label for="f-cep">CEP</label>
+          <div class="co-row-cep">
+            <input class="co-input" id="f-cep" inputmode="numeric" placeholder="00000-000" maxlength="9" autocomplete="postal-code">
+            <button class="co-btn-sec" id="cep-btn" type="button" onclick="calcFrete()">Calcular</button>
+          </div>
+        </div>
+        <div id="frete-msg"></div>
+        <div id="frete-opts"></div>
+
+        <div id="addr-box" class="co-hidden">
+          <div class="co-field">
+            <label for="f-rua">Rua</label>
+            <input class="co-input" id="f-rua" autocomplete="address-line1" maxlength="200">
+          </div>
+          <div class="co-row">
+            <div class="co-field">
+              <label for="f-num">Número</label>
+              <input class="co-input" id="f-num" maxlength="20">
+            </div>
+            <div class="co-field">
+              <label for="f-comp">Complemento (opcional)</label>
+              <input class="co-input" id="f-comp" placeholder="Apto, bloco, loja…" maxlength="120">
+            </div>
+          </div>
+          <div class="co-note">Entregas de seg. a sáb., 8h30–18h. Pedidos pagos após 18h saem no próximo dia útil.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="co-summary">
+    <div class="co-card">
+      <h2><span class="co-step">3</span> Resumo</h2>
+      <div id="sum-items"></div>
+      <div class="co-line"><span>Produtos</span><span class="co-money" id="sum-sub">R$ 0,00</span></div>
+      <div class="co-line"><span>Frete</span><span class="co-money" id="sum-frete">Grátis</span></div>
+      <div class="co-total"><span>Total</span><span class="co-money" id="sum-total">R$ 0,00</span></div>
+      <div id="pay-msg" class="co-msg"></div>
+      <button class="co-pay" id="pay-btn" type="button" onclick="pagar()">Pagar com Pix</button>
+      <div style="text-align:center;"><span class="co-pix-badge">⚡ Pix · aprovação na hora</span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const WA_NUMBER = '{{ wa_number }}';
+let cart = [];
+try { cart = JSON.parse(localStorage.getItem('mtf_cart') || '[]'); } catch (e) {}
+let frete = null; // { service, price } quando entrega
+const KIT_BLOCKED = ['LALAGO', 'LALAPRO']; // igual a KIT_BLOCKED_SERVICES em checkout.py
+
+const $ = id => document.getElementById(id);
+const brl = v => 'R$ ' + v.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// шапка
+function cartOpen() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+(function () {
+  const n = cart.reduce((s, i) => s + (i.qty || 0), 0);
+  const c = $('cartCount');
+  if (c) { c.textContent = n; c.style.display = n > 0 ? 'inline-flex' : 'none'; }
+})();
+
+// ── resumo ──
+function subtotal() { return cart.reduce((s, i) => s + i.price * i.qty, 0); }
+function dtype() { return document.querySelector('input[name="dtype"]:checked').value; }
+
+function renderSummary() {
+  if (!cart.length) { $('co-main').classList.add('co-hidden'); $('co-empty').classList.remove('co-hidden'); return; }
+  $('sum-items').innerHTML = cart.map(i => `
+    <div class="co-item">
+      <div class="co-item-name">${esc(i.name)}${i.kit ? ' <span class="co-kit">kit</span>' : ''} <div class="co-item-qty">${i.qty} × ${brl(i.price)}${i.unit ? ' / ' + esc(i.unit) : ''}</div></div>
+      <div class="co-money">${brl(i.price * i.qty)}</div>
+    </div>`).join('');
+  const sub = subtotal();
+  const fr = dtype() === 'lalamove' ? (frete ? frete.price : null) : 0;
+  $('sum-sub').textContent = brl(sub);
+  $('sum-frete').textContent = fr === null ? '—' : (fr === 0 ? 'Grátis' : brl(fr));
+  $('sum-total').textContent = brl(sub + (fr || 0));
+  $('pay-btn').disabled = dtype() === 'lalamove' && !frete;
+}
+
+// ── entrega ──
+document.querySelectorAll('input[name="dtype"]').forEach(r => r.addEventListener('change', () => {
+  $('delivery-box').classList.toggle('co-hidden', dtype() !== 'lalamove');
+  renderSummary();
+}));
+
+$('f-cep').addEventListener('input', e => {
+  let v = e.target.value.replace(/\D/g, '').slice(0, 8);
+  if (v.length > 5) v = v.slice(0, 5) + '-' + v.slice(5);
+  e.target.value = v;
+});
+$('f-cep').addEventListener('keydown', e => { if (e.key === 'Enter') calcFrete(); });
+const DDDS = [11,12,13,14,15,16,17,18,19,21,22,24,27,28,31,32,33,34,35,37,38,41,42,43,44,45,46,47,48,49,
+  51,53,54,55,61,62,63,64,65,66,67,68,69,71,73,74,75,77,79,81,82,83,84,85,86,87,88,89,
+  91,92,93,94,95,96,97,98,99];
+function celOk(v) {
+  let d = String(v || '').replace(/\D/g, '');
+  if (d.length > 11 && d.startsWith('55')) d = d.slice(2);
+  return d.length === 11 && DDDS.includes(+d.slice(0, 2)) && d[2] === '9' && new Set(d.slice(2)).size > 1;
+}
+$('f-phone').addEventListener('input', e => {
+  let v = e.target.value.replace(/\D/g, '');
+  if (v.length > 11 && v.startsWith('55')) v = v.slice(2);   // colou com +55
+  v = v.slice(0, 11);
+  if (v.length > 6) v = `(${v.slice(0, 2)}) ${v.slice(2, v.length - 4)}-${v.slice(-4)}`;
+  else if (v.length > 2) v = `(${v.slice(0, 2)}) ${v.slice(2)}`;
+  e.target.value = v;
+});
+
+async function calcFrete() {
+  const cep = $('f-cep').value.replace(/\D/g, '');
+  frete = null; $('frete-opts').innerHTML = ''; $('addr-box').classList.add('co-hidden'); renderSummary();
+  if (cep.length !== 8) { $('frete-msg').innerHTML = '<div class="co-msg co-err">Digite um CEP válido (8 dígitos).</div>'; return; }
+  const btn = $('cep-btn'); btn.disabled = true; btn.textContent = '...'; $('frete-msg').innerHTML = '';
+  try {
+    const r = await fetch('/api/frete-cep?cep=' + cep);
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Não foi possível calcular o frete.');
+    try { localStorage.setItem('mtf_cep', $('f-cep').value); } catch (e) {}
+    const lugar = [d.bairro, d.cidade, d.uf].filter(Boolean).map(esc).join(', ');
+    if (d.combinar) {
+      const wa = encodeURIComponent('Olá! Quero fazer um pedido com entrega para o CEP ' + $('f-cep').value + '. Qual o valor do frete?');
+      $('frete-msg').innerHTML = `<div class="co-local">📍 ${lugar}</div>
+        <div class="co-msg"><strong>Para este endereço, o frete é combinado com o vendedor.</strong><br>
+        <a class="co-wa-link" href="https://wa.me/${WA_NUMBER}?text=${wa}" target="_blank" rel="noopener">Falar com o vendedor →</a></div>`;
+      return;
+    }
+    $('frete-msg').innerHTML = `<div class="co-local">📍 ${lugar} · ${d.distance_km.toFixed(1).replace('.', ',')} km · entrega via <strong>Lalamove</strong></div>`;
+    // kit de instalação (tubos, suporte) não vai de moto
+    const hasKit = cart.some(i => i.kit);
+    const opts = hasKit ? d.options.filter(o => !KIT_BLOCKED.includes(o.service)) : d.options;
+    if (!opts.length) {
+      const wa = encodeURIComponent('Olá! Quero o kit de instalação com entrega para o CEP ' + $('f-cep').value + '. Qual o valor do frete?');
+      $('frete-msg').innerHTML += `<div class="co-msg"><strong>Para o kit de instalação, o frete é combinado com o vendedor.</strong><br>
+        <a class="co-wa-link" href="https://wa.me/${WA_NUMBER}?text=${wa}" target="_blank" rel="noopener">Falar com o vendedor →</a></div>`;
+      return;
+    }
+    if (hasKit) $('frete-msg').innerHTML += '<div class="co-note" style="margin-bottom:8px;">O kit de instalação vai de carro (tubos e suporte não cabem na moto).</div>';
+    $('frete-opts').innerHTML = opts.map((o, idx) => `
+      <label class="co-opt">
+        <input type="radio" name="service" value="${esc(o.service)}" data-price="${o.price}" ${idx === 0 ? 'checked' : ''}>
+        <div class="co-opt-main"><div class="co-opt-name">${esc(o.label)}</div><div class="co-opt-hint">${esc(o.hint)}</div></div>
+        <div class="co-opt-price">${brl(o.price)}</div>
+      </label>`).join('');
+    document.querySelectorAll('input[name="service"]').forEach(r => r.addEventListener('change', pickService));
+    pickService();
+    if (d.rua && !$('f-rua').value) $('f-rua').value = d.rua;
+    $('addr-box').classList.remove('co-hidden');
+    ($('f-rua').value ? $('f-num') : $('f-rua')).focus();
+  } catch (e) {
+    $('frete-msg').innerHTML = `<div class="co-msg co-err">${esc(e.message)}</div>`;
+  } finally {
+    btn.disabled = false; btn.textContent = 'Calcular';
+  }
+}
+
+function pickService() {
+  const r = document.querySelector('input[name="service"]:checked');
+  frete = r ? { service: r.value, price: parseFloat(r.dataset.price) } : null;
+  renderSummary();
+}
+
+// ── pagamento ──
+async function pagar() {
+  const msg = $('pay-msg'); msg.innerHTML = '';
+  const err = t => { msg.innerHTML = `<span class="co-err">${esc(t)}</span>`; };
+  const name = $('f-name').value.trim(), phone = $('f-phone').value, email = $('f-email').value.trim();
+  if (name.length < 2) return err('Informe seu nome.');
+  if (!celOk(phone)) return err('Informe um celular (WhatsApp) válido com DDD, ex.: (21) 99999-9999.');
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return err('Informe um e-mail válido.');
+
+  const delivery = { type: dtype() };
+  if (delivery.type === 'lalamove') {
+    if (!frete) return err('Calcule o frete para o seu CEP.');
+    Object.assign(delivery, {
+      cep: $('f-cep').value, service: frete.service,
+      rua: $('f-rua').value.trim(), numero: $('f-num').value.trim(), complemento: $('f-comp').value.trim(),
+    });
+    if (!delivery.rua || !delivery.numero) return err('Informe a rua e o número para a entrega.');
+  }
+
+  try { localStorage.setItem('mtf_checkout_dados', JSON.stringify({ name, phone, email })); } catch (e) {}
+
+  const btn = $('pay-btn'); btn.disabled = true; btn.textContent = 'Gerando Pix...';
+  try {
+    const r = await fetch('/api/checkout/pix', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, phone, email, delivery, items: cart.map(i => ({ id: i.id, qty: i.qty, kit: !!i.kit })) }),
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Não foi possível gerar o Pix.');
+    if (typeof gtag !== 'undefined') gtag('event', 'begin_checkout', { value: subtotal() + (frete ? frete.price : 0), currency: 'BRL' });
+    location.href = d.url;
+  } catch (e) {
+    err(e.message);
+    btn.disabled = false; btn.textContent = 'Pagar com Pix';
+  }
+}
+
+// dados salvos de pedidos anteriores
+try {
+  const saved = JSON.parse(localStorage.getItem('mtf_checkout_dados') || 'null');
+  if (saved) { $('f-name').value = saved.name || ''; $('f-phone').value = saved.phone || ''; $('f-email').value = saved.email || ''; }
+  const cep = localStorage.getItem('mtf_cep');
+  if (cep) $('f-cep').value = cep;
+} catch (e) {}
+
+renderSummary();
+</script>
+</body>
+</html>

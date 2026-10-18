@@ -3,3 +3,7 @@
 catalog/.env
 admin/.env
 /script/backup-mtf.ps1
+/script/broken_links.csv
+/script/broken_links.py
+/script/fix_links.py
+/catalog/frete_zonas.py

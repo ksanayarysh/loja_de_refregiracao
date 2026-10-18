@@ -11,9 +11,14 @@ from routers.clients import router as clients_router
 from routers.parceiros import router as parceiros_router
 from routers.product_sales_history import router as product_sales_history_router
 from routers.purchases_history import router as purchases_history_router
+from routers.kit_discount import router as kit_discount_router
+from routers.site_orders import router as site_orders_router
+from routers.pwa import router as pwa_router
 
 app = FastAPI()
 
+app.include_router(site_orders_router)
+app.include_router(pwa_router)
 
 @app.on_event("startup")
 async def _startup():
@@ -28,6 +33,7 @@ app.include_router(stock_router)
 app.include_router(cron_router)
 app.include_router(product_sales_history_router)
 app.include_router(purchases_history_router)
+app.include_router(kit_discount_router)
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request, _=Depends(basic_auth)):
@@ -71,7 +77,7 @@ async def create_category(data: dict, _=Depends(basic_auth)):
 
 
 from fastapi.staticfiles import StaticFiles
-app.mount("/static", StaticFiles(directory="/app/static"), name="static")
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 

@@ -3,6 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- app no celular (PWA) -->
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#E2144A">
+  <link rel="apple-touch-icon" href="/pwa/apple-touch-icon.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="MTF Admin">
   <title>{% block title %}M.T.F Refrigeração{% endblock %}</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -55,6 +62,13 @@
     .msg-err { background: #fef2f2; border: 1px solid #fecaca; color: #7f1d1d; padding: 12px 14px; border-radius: 10px; margin-bottom: 16px; font-weight: 800; }
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 
+
+    /* Pedidos do site: pisca quando há pedido pago em aberto */
+    @keyframes so-blink { 0%,100% { background: #fff; } 50% { background: #ffd6e0; } }
+    a.so-alert { animation: so-blink 1s ease-in-out infinite; color: #E2144A !important; font-weight: 900 !important; }
+    .nav-links a.so-alert { padding: 2px 8px; border-radius: 6px; }
+    .so-count { display: inline-block; min-width: 18px; padding: 0 5px; margin-left: 4px; border-radius: 999px; background: #E2144A; color: #fff; font-size: .72rem; line-height: 18px; text-align: center; }
+
     {% block extra_styles %}{% endblock %}
 
     @media (max-width: 600px) {
@@ -77,6 +91,7 @@
     <a href="/stock" {% if active_page == 'stock' %}class="active"{% endif %}>Estoque</a>
     <a href="/reports" {% if active_page == 'reports' %}class="active"{% endif %}>Relatórios</a>
     <a href="/clients" {% if active_page == 'clients' %}class="active"{% endif %}>Clientes</a>
+    <a href="/site-orders" {% if active_page == 'site_orders' %}class="active"{% endif %}>🌐 Pedidos site</a>
     <a href="/calc" {% if active_page == 'calc' %}class="active"{% endif %}>Calculadora</a>
   </div>
   <a href="/checkout" class="nav-cart-btn" id="nav-cart-btn" style="margin-left:auto">🛒 Carrinho <span class="nav-cart-count" id="nav-cart-count">0</span></a>
@@ -129,6 +144,7 @@
           <li><a href="/clients/new">+ Novo</a></li>
         </ul>
       </li>
+      <li><a href="/site-orders" {% if active_page == 'site_orders' %}class="active"{% endif %}>🌐 Pedidos site</a></li>
       <li><a href="/calc" {% if active_page == 'calc' %}class="active"{% endif %}>Calculadora</a></li>
     </ul>
   </nav>
@@ -151,6 +167,32 @@
   })();
 </script>
 {% endblock %}
+<script>
+  // app no celular: registra o service worker (instalação + notificações)
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  }
+  // Pedidos do site: menu pisca enquanto houver pedido pago em aberto (checa a cada 60 s)
+  (function () {
+    async function checkSiteOrders() {
+      try {
+        const r = await fetch('/site-orders/count', { cache: 'no-store' });
+        if (!r.ok) return;
+        const n = (await r.json()).open || 0;
+        document.querySelectorAll('a[href="/site-orders"]').forEach(a => {
+          a.classList.toggle('so-alert', n > 0);
+          let b = a.querySelector('.so-count');
+          if (n > 0) {
+            if (!b) { b = document.createElement('span'); b.className = 'so-count'; a.appendChild(b); }
+            b.textContent = n;
+          } else if (b) { b.remove(); }
+        });
+      } catch (e) {}
+    }
+    checkSiteOrders();
+    setInterval(checkSiteOrders, 60000);
+  })();
+</script>
 
 </body>
 </html>

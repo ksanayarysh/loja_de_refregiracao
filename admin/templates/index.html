@@ -3,6 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- app no celular (PWA) -->
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#E2144A">
+  <link rel="apple-touch-icon" href="/pwa/apple-touch-icon.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="MTF Admin">
   <title>M.T.F Refrigeração</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -22,6 +29,12 @@
     .search-input { padding: 8px; border: 1px solid #ccc; border-radius: 4px 0 0 4px; outline: none; font-size: .95rem; width: 220px; }
     .search-button { padding: 8px 12px; border: none; background-color: #007bff; color: white; border-radius: 0 4px 4px 0; cursor: pointer; font-size: .95rem; }
     .search-button:hover { background-color: #0056b3; }
+
+    .nav-links { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-right: auto; }
+    .nav-links a { color: #E2144A; text-decoration: none; font-weight: 700; font-size: .95rem; }
+    .nav-links a:hover { text-decoration: underline; }
+    .nav-links a.active { color: #111; font-weight: 900; }
+    .sidebar ul li a.active { color: #111; font-weight: 900; background: #f5f5f5; }
 
     /* CART ICON */
     .cart-icon-btn {
@@ -146,6 +159,7 @@
       .search-input { width: 100% !important; font-size: 1.1rem; padding: 12px; }
       .navbar { flex-wrap: wrap; gap: 10px; }
       .navbar-left { width: 100%; }
+      .nav-links { gap: 10px; width: 100%; }
       .search-container { width: 100%; }
 
       /* Результаты поиска — плитки на мобильном */
@@ -168,6 +182,12 @@
     }
 
 
+
+    /* Pedidos do site: pisca quando há pedido pago em aberto */
+    @keyframes so-blink { 0%,100% { background: #fff; } 50% { background: #ffd6e0; } }
+    a.so-alert { animation: so-blink 1s ease-in-out infinite; color: #E2144A !important; font-weight: 900 !important; }
+    .nav-links a.so-alert { padding: 2px 8px; border-radius: 6px; }
+    .so-count { display: inline-block; min-width: 18px; padding: 0 5px; margin-left: 4px; border-radius: 999px; background: #E2144A; color: #fff; font-size: .72rem; line-height: 18px; text-align: center; }
   </style>
 </head>
 <body>
@@ -184,6 +204,15 @@
 
     </div>
   </div>
+  <div class="nav-links">
+    <a href="/products" {% if active_page == 'products' %}class="active"{% endif %}>Produtos</a>
+    <a href="/sales" {% if active_page == 'sales' %}class="active"{% endif %}>Vendas</a>
+    <a href="/stock" {% if active_page == 'stock' %}class="active"{% endif %}>Estoque</a>
+    <a href="/reports" {% if active_page == 'reports' %}class="active"{% endif %}>Relatórios</a>
+    <a href="/clients" {% if active_page == 'clients' %}class="active"{% endif %}>Clientes</a>
+    <a href="/site-orders" {% if active_page == 'site_orders' %}class="active"{% endif %}>🌐 Pedidos site</a>
+    <a href="/calc" {% if active_page == 'calc' %}class="active"{% endif %}>Calculadora</a>
+  </div>
   <button class="cart-icon-btn" onclick="openCart()">
     🛒 Carrinho
     <span class="cart-badge hidden" id="cart-badge">0</span>
@@ -194,7 +223,7 @@
   <!-- SIDEBAR -->
   <nav class="sidebar">
     <ul>
-      <li><a href="/">Início</a></li>
+      <li><a href="/" {% if active_page == 'home' %}class="active"{% endif %}>Início</a></li>
       <li>
         <a href="#">Produtos ▸</a>
         <ul class="submenu">
@@ -207,16 +236,30 @@
         <ul class="submenu">
           <li><a href="/sales">Lista</a></li>
           <li><a href="/sales/new">+ Nova venda</a></li>
+          <li><a href="/checkout">Carrinho</a></li>
         </ul>
       </li>
       <li>
         <a href="#">Estoque ▸</a>
         <ul class="submenu">
           <li><a href="/stock">Saldo</a></li>
+          <li><a href="/stock/history">Histórico</a></li>
           <li><a href="/stock/new">+ Entrada</a></li>
         </ul>
       </li>
-      <li><a href="/reports">Relatórios</a></li>
+      <li>
+        <a href="#">Relatórios ▸</a>
+        <ul class="submenu">
+          <li><a href="/reports">Geral</a></li>
+          <li><a href="/reports/monthly-sales">Vendas mensais</a></li>
+          <li><a href="/reports/stock-alert">Alerta estoque</a></li>
+          <li><a href="/reports/stock-forecast">Previsão estoque</a></li>
+          <li><a href="/reports/price-history">Histórico preços</a></li>
+          <li><a href="/reports/product-sales-history">Vendas por produto</a></li>
+          <li><a href="/reports/purchases-history">Histórico compras</a></li>
+          <li><a href="/reports/product-views">👁 Visualizações</a></li>
+        </ul>
+      </li>
       <li>
         <a href="#">Clientes ▸</a>
         <ul class="submenu">
@@ -224,6 +267,8 @@
           <li><a href="/clients/new">+ Novo</a></li>
         </ul>
       </li>
+      <li><a href="/site-orders" {% if active_page == 'site_orders' %}class="active"{% endif %}>🌐 Pedidos site</a></li>
+      <li><a href="/calc" {% if active_page == 'calc' %}class="active"{% endif %}>Calculadora</a></li>
     </ul>
   </nav>
 
@@ -238,6 +283,7 @@
       <a href="/sales/new" class="primary">+ Nova venda</a>
       <a href="/products">Lista de produtos</a>
       <a href="/sales">Lista de vendas</a>
+      <a href="/site-orders">🌐 Pedidos do site</a>
     </div>
 
 
@@ -682,6 +728,32 @@ if (_savedSearch) {
   inp.value = _savedSearch;
   searchProducts();
 }
+</script>
+<script>
+  // app no celular: registra o service worker (instalação + notificações)
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  }
+  // Pedidos do site: menu pisca enquanto houver pedido pago em aberto (checa a cada 60 s)
+  (function () {
+    async function checkSiteOrders() {
+      try {
+        const r = await fetch('/site-orders/count', { cache: 'no-store' });
+        if (!r.ok) return;
+        const n = (await r.json()).open || 0;
+        document.querySelectorAll('a[href="/site-orders"]').forEach(a => {
+          a.classList.toggle('so-alert', n > 0);
+          let b = a.querySelector('.so-count');
+          if (n > 0) {
+            if (!b) { b = document.createElement('span'); b.className = 'so-count'; a.appendChild(b); }
+            b.textContent = n;
+          } else if (b) { b.remove(); }
+        });
+      } catch (e) {}
+    }
+    checkSiteOrders();
+    setInterval(checkSiteOrders, 60000);
+  })();
 </script>
 </body>
 </html>

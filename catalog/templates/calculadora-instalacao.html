@@ -87,6 +87,12 @@
     .wa-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;border-radius:10px;background:var(--wa);color:#fff;font-family:inherit;font-size:.95rem;font-weight:700;text-decoration:none;margin-top:16px;transition:opacity .15s;}
     .wa-btn:hover{opacity:.88;}
     .wa-btn.off{opacity:.4;pointer-events:none;}
+    .cart-kit-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:15px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-family:inherit;font-size:1rem;font-weight:800;cursor:pointer;margin-top:16px;transition:opacity .15s;text-decoration:none;}
+    .cart-kit-btn:hover{opacity:.9;}
+    .cart-kit-btn.off{opacity:.4;pointer-events:none;}
+    .cart-kit-btn.added{background:var(--green);}
+    .cart-kit-go{display:none;text-align:center;margin-top:10px;font-size:.9rem;font-weight:700;color:var(--accent);text-decoration:none;}
+    .cart-kit-go.show{display:block;}
     .load-msg{color:var(--muted);font-size:.9rem;padding:8px 0;}
     @media(max-width:500px){
       .calc-card{padding:20px 16px;}
@@ -168,6 +174,8 @@
     <div class="total-amount" id="total">R$ 0,00</div>
     <div class="total-disc" id="total-disc" style="display:none"></div>
     <div class="total-note">Valor apenas dos materiais, sem mão de obra. A medida correta do tubo depende do modelo do aparelho, confira no manual ou fale com a gente. Disponibilidade e preço final confirmados pelo WhatsApp.</div>
+    <button type="button" class="cart-kit-btn off" id="kit-cart-btn" onclick="kitToCart()">🛒 Adicionar kit ao carrinho</button>
+    <a class="cart-kit-go" id="kit-cart-go" href="/checkout">Ir para o pagamento →</a>
     <a class="wa-btn wa-track off" id="order-wa" href="#" target="_blank" rel="noopener" data-product="Kit instalação">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
       Pedir kit pelo WhatsApp
@@ -329,8 +337,8 @@ function render(){
     list.appendChild(e);
   }
 
-  const discount = Math.round(total * discountPct) / 100;
-  const final = total - discount;
+  const final = kit.reduce((s, k) => s + kitUnitPrice(CATALOG[k.key].price) * k.qty, 0);
+  const discount = Math.round((total - final) * 100) / 100;
   document.getElementById('total').textContent = brl(final);
   const oldEl = document.getElementById('total-old'), discEl = document.getElementById('total-disc');
   const hasDisc = discount > 0 && kit.length > 0;
@@ -384,6 +392,8 @@ function renderAddOptions(){
 
 function buildOrder(total, discount, final){
   const a = document.getElementById('order-wa');
+  const cb = document.getElementById('kit-cart-btn');
+  cb.classList.toggle('off', !kit.length);
   if (!kit.length){ a.classList.add('off'); a.href = '#'; return; }
   a.classList.remove('off');
   const lines = ['Olá! Quero pedir o kit de instalação de ar-condicionado (' + metros + ' m de tubulação):', ''];
@@ -399,6 +409,36 @@ function buildOrder(total, discount, final){
   lines.push('Total: ' + brl(final));
   a.href = 'https://wa.me/' + WA_NUMBER + '?text=' + encodeURIComponent(lines.join('\n'));
 }
+
+/* ── carrinho ──
+   Cada item do kit entra no carrinho como uma linha própria, marcada com kit:true e já com o desconto.
+   O servidor recalcula o desconto no pagamento (só para produtos do kit). */
+function readCart(){ try { return JSON.parse(localStorage.getItem('mtf_cart') || '[]'); } catch(e){ return []; } }
+function updateCartCount(){
+  const n = readCart().reduce((s, i) => s + (i.qty || 0), 0);
+  const c = document.getElementById('cartCount');
+  if (c){ c.textContent = n; c.style.display = n > 0 ? 'inline-flex' : 'none'; }
+}
+function cartOpen(){ location.href = '/checkout'; }
+const kitUnitPrice = p => Math.round(p * (100 - discountPct)) / 100;   // mesma conta do servidor
+
+function kitToCart(){
+  if (!kit.length) return;
+  const cart = readCart().filter(i => !i.kit);   // novo kit substitui o anterior; itens avulsos ficam
+  kit.forEach(k => {
+    const it = CATALOG[k.key];
+    cart.push({id: it.id, name: it.name, price: kitUnitPrice(it.price), unit: it.rule === 'meters' ? 'm' : (it.rule === 'bars' ? 'barra 2 m' : 'un'),
+               qty: k.qty, kit: true});
+  });
+  try { localStorage.setItem('mtf_cart', JSON.stringify(cart)); } catch(e){}
+  updateCartCount();
+  const b = document.getElementById('kit-cart-btn');
+  b.classList.add('added'); b.textContent = '✓ Kit no carrinho';
+  document.getElementById('kit-cart-go').classList.add('show');
+  setTimeout(() => { b.classList.remove('added'); b.textContent = '🛒 Atualizar kit no carrinho'; }, 1800);
+  if (typeof gtag !== 'undefined') gtag('event', 'add_to_cart', {item_name: 'Kit instalação'});
+}
+updateCartCount();
 
 /* metragem */
 const mIn = document.getElementById('metros');
@@ -470,7 +510,7 @@ function loadCatalog(){
         return;
       }
       // price = preço de venda atual (já com promoção, se houver); regular = preço cheio
-      CATALOG[i.key] = Object.assign({}, i, {name: cap(p.name), price: (p.price != null ? p.price : p.sale_price), regular: p.sale_price, in_stock: p.in_stock !== false});
+      CATALOG[i.key] = Object.assign({}, i, {id: p.id, name: cap(p.name), price: (p.price != null ? p.price : p.sale_price), regular: p.sale_price, in_stock: p.in_stock !== false});
     });
     if (!Object.keys(CATALOG).length) throw new Error('catalogo vazio');
     kit = [];

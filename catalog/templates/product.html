@@ -439,7 +439,7 @@
     .cart-drawer{position:fixed;top:0;right:-420px;width:400px;max-width:96vw;height:100vh;background:var(--surface);box-shadow:-4px 0 24px rgba(0,0,0,.12);z-index:301;transition:right .28s ease;display:flex;flex-direction:column;}
     .cart-drawer.open{right:0;}
     .cart-head{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:#fafaf8;}
-    .cart-head h2{font-size:1.05rem;font-weight:700;}
+    .cart-head h2{font-size:1.2rem;font-weight:700;}
     .cart-close{background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--muted);line-height:1;padding:2px 6px;border-radius:6px;}
     .cart-close:hover{background:var(--border);}
     .cart-body{flex:1;overflow-y:auto;padding:12px 20px;}
@@ -447,20 +447,24 @@
     .cart-item{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);}
     .cart-item:last-child{border-bottom:none;}
     .cart-item-info{flex:1;min-width:0;}
-    .cart-item-name{font-weight:600;font-size:.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-    .cart-item-unit{font-size:.75rem;color:var(--muted);margin-top:2px;}
-    .cart-item-price{font-family:'DM Mono',monospace;font-size:.88rem;font-weight:600;margin-top:4px;}
+    .cart-item-name{font-weight:600;font-size:1.02rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .cart-item-unit{font-size:.85rem;color:var(--muted);margin-top:2px;}
+    .cart-item-price{font-family:'DM Mono',monospace;font-size:.98rem;font-weight:600;margin-top:4px;}
     .cart-qty-row{display:flex;align-items:center;gap:6px;margin-top:6px;}
-    .qty-btn{width:26px;height:26px;border-radius:6px;border:1.5px solid var(--border);background:var(--surface);font-size:1rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text);transition:border-color .1s;}
+    .qty-btn{width:32px;height:32px;border-radius:6px;border:1.5px solid var(--border);background:var(--surface);font-size:1rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text);transition:border-color .1s;}
     .qty-btn:hover{border-color:var(--accent);color:var(--accent);}
-    .qty-val{font-size:.88rem;font-weight:700;min-width:20px;text-align:center;}
+    .qty-val{font-size:1rem;font-weight:700;min-width:20px;text-align:center;}
     .cart-item-remove{background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.1rem;padding:2px;border-radius:4px;flex-shrink:0;margin-top:2px;}
     .cart-item-remove:hover{color:var(--accent);}
     .cart-foot{padding:16px 20px;border-top:1px solid var(--border);background:#fafaf8;}
-    .cart-total-row{display:flex;justify-content:space-between;font-weight:700;font-size:1.05rem;margin-bottom:14px;}
+    .cart-total-row{display:flex;justify-content:space-between;font-weight:700;font-size:1.2rem;margin-bottom:14px;}
     .cart-total-val{font-family:'DM Mono',monospace;}
     .cart-wa-btn{width:100%;padding:14px;border-radius:10px;border:none;background:var(--wa);color:#fff;font-family:inherit;font-size:.95rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .15s;}
     .cart-wa-btn:hover{opacity:.88;}
+    .cart-pay-btn{display:flex;align-items:center;justify-content:center;width:100%;padding:15px;border-radius:10px;background:var(--accent);color:#fff;font-size:1.02rem;font-weight:800;text-decoration:none;margin-bottom:8px;}
+    .cart-pay-btn:hover{opacity:.92;}
+    .cart-kit-tag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;background:#fff0f4;color:var(--accent);border:1px solid #ffd0dc;font-size:.7rem;font-weight:800;vertical-align:middle;}
+    .cart-wa-secondary{background:#effaf3;color:#128c4a;border:1.5px solid var(--wa);padding:11px;font-size:.9rem;}
     .cart-clear-btn{width:100%;margin-top:8px;padding:10px;border-radius:8px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-family:inherit;font-size:.82rem;font-weight:600;cursor:pointer;transition:border-color .1s,color .1s;}
     .cart-clear-btn:hover{border-color:var(--accent);color:var(--accent);}
     .add-cart-btn{width:100%;padding:14px;border-radius:10px;border:2px solid var(--text);background:transparent;color:var(--text);font-family:inherit;font-size:.95rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .15s;margin-top:10px;}
@@ -495,6 +499,35 @@
     .equipe-link{display:inline-flex;align-items:center;gap:3px;font-size:.72rem;color:var(--muted);text-decoration:none;font-weight:600;}
     .equipe-link:hover{color:var(--accent);}
     .equipe-divider{width:1px;height:40px;background:var(--border);flex-shrink:0;}
+
+        /* ── FRETE ── */
+    .frete-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;}
+    .frete-title{font-size:.82rem;font-weight:700;margin-bottom:10px;}
+    .frete-row{display:flex;gap:8px;}
+    .frete-input{flex:1;min-width:0;padding:11px 12px;border:1.5px solid var(--border);border-radius:9px;font-family:"DM Mono",monospace;font-size:.95rem;background:var(--bg);color:var(--text);}
+    .frete-input:focus{outline:none;border-color:var(--accent);}
+    .frete-btn{padding:11px 18px;border:none;border-radius:9px;background:var(--text);color:#fff;font-family:inherit;font-weight:700;font-size:.88rem;cursor:pointer;}
+    .frete-btn:disabled{opacity:.6;cursor:default;}
+    .frete-result:empty{display:none;}
+    .frete-result{margin-top:10px;}
+    .frete-ok{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:.88rem;}
+    .frete-sub{font-size:.75rem;color:var(--muted);margin-top:2px;}
+    .frete-price{font-family:"DM Mono",monospace;font-weight:700;font-size:1.05rem;color:var(--accent);white-space:nowrap;}
+    .frete-note{font-size:.72rem;color:var(--muted);margin-top:6px;}
+    .frete-err{font-size:.82rem;color:var(--accent);}
+    .frete-help{display:inline-block;margin-top:8px;font-size:.72rem;color:var(--muted);}
+    .frete-local{font-size:.75rem;color:var(--muted);margin-bottom:8px;}
+    .frete-ok + .frete-ok{margin-top:8px;padding-top:8px;border-top:1px solid var(--border);}
+    .frete-free{color:var(--green);}
+    .frete-combinar{font-size:.88rem;font-weight:600;}
+    .entrega-pill{display:inline-flex;align-items:center;gap:5px;font-size:.78rem;font-weight:700;color:#1a6bc4;background:#f0f7ff;border:1px solid #c6dfff;padding:4px 10px;border-radius:10px;text-decoration:none;}
+    .entrega-pill:hover{border-color:#1a6bc4;}
+    #frete-box{scroll-margin-top:90px;}
+    /* ── BOTÕES DE COMPRA ── */
+    .buy-now-btn{width:100%;padding:16px;border-radius:12px;border:none;background:var(--accent);color:#fff;font-family:inherit;font-size:1.05rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 6px 20px rgba(226,20,74,.25);transition:opacity .15s,transform .15s;}
+    .buy-now-btn:hover{opacity:.92;transform:translateY(-1px);}
+    .wa-seller-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:12px;border-radius:10px;border:1.5px solid var(--wa);background:#effaf3;color:#128c4a;font-weight:700;font-size:.92rem;text-decoration:none;margin-top:10px;transition:background .15s;}
+    .wa-seller-btn:hover{background:#dff5e7;}
   
   </style>
 </head>
@@ -590,6 +623,9 @@
       <div style="display:inline-flex;align-items:center;gap:5px;font-size:.78rem;font-weight:700;color:#b45309;background:#fefce8;border:1px solid #fde68a;padding:4px 10px;border-radius:10px;">
         ⚡ Retirada no dia
       </div>
+      <a href="#frete-box" class="entrega-pill" onclick="setTimeout(()=>document.getElementById('frete-cep').focus(),300)">
+        🛵 Entrega no RJ
+      </a>
       {% else %}
       <div style="display:inline-flex;align-items:center;gap:6px;font-size:.8rem;font-weight:700;color:#6b7280;background:#f3f4f6;border:1px solid #d1d5db;padding:5px 12px;border-radius:10px;">
         <svg width="8" height="8" viewBox="0 0 8 8" fill="#9ca3af"><circle cx="4" cy="4" r="4"/></svg>
@@ -629,21 +665,45 @@
     {% endif %}
 
     {% set wa_out_msg = "Olá! Vi o produto " + product.name + " no site mas está sem estoque. Quando volta? Posso reservar?" %}
+    {% set in_stock = product.current_stock and product.current_stock > 0 %}
+    {% if product.sale_price and in_stock %}
+    <div>
+      <button class="buy-now-btn" type="button"
+        onclick='buyNow({{ product.id }}, {{ product.name|tojson }}, {{ product.price|float }}, {{ product.unit|tojson }})'>
+        ⚡ Comprar agora
+      </button>
+      <button class="add-cart-btn" title="Adicionar ao carrinho"
+        onclick='addToCart({{ product.id }}, {{ product.name|tojson }}, {{ product.price|float }}, {{ product.unit|tojson }}, this)'>
+        🛒 Adicionar ao carrinho
+      </button>
+      <a class="wa-seller-btn wa-track"
+         href="https://wa.me/{{ wa_number }}?text={{ wa_msg | urlencode }}"
+         target="_blank" rel="noopener"
+         data-product="{{ product.name }}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+        Falar com o vendedor
+      </a>
+    </div>
+    {% else %}
     <a class="wa-cta wa-track"
-       href="https://wa.me/{{ wa_number }}?text={{ (wa_msg if (product.current_stock and product.current_stock > 0) else wa_out_msg) | urlencode }}"
+       href="https://wa.me/{{ wa_number }}?text={{ (wa_msg if in_stock else wa_out_msg) | urlencode }}"
        target="_blank" rel="noopener"
        data-product="{{ product.name }}"
-       style="font-size:1.1rem;padding:18px 24px;box-shadow:0 6px 24px rgba(37,211,102,.35);{% if not (product.current_stock and product.current_stock > 0) %}background:#6b7280;box-shadow:none;{% endif %}">
+       style="font-size:1.1rem;padding:18px 24px;{% if not in_stock %}background:#6b7280;box-shadow:none;{% endif %}">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
-      {% if product.current_stock and product.current_stock > 0 %}Comprar pelo WhatsApp{% else %}Consultar disponibilidade{% endif %}
+      {% if in_stock %}Comprar pelo WhatsApp{% else %}Consultar disponibilidade{% endif %}
     </a>
-
-    {% if product.sale_price %}
-    <button class="add-cart-btn" title="Adicionar ao carrinho"
-      onclick='addToCart({{ product.id }}, {{ product.name|tojson }}, {{ product.price|float }}, {{ product.unit|tojson }}, this)'>
-      🛒 Adicionar ao carrinho
-    </button>
     {% endif %}
+
+    <div class="frete-box" id="frete-box">
+      <div class="frete-title">🛵 Calcular frete</div>
+      <div class="frete-row">
+        <input id="frete-cep" class="frete-input" type="text" inputmode="numeric" placeholder="Digite seu CEP" maxlength="9" autocomplete="postal-code">
+        <button id="frete-btn" class="frete-btn" type="button" onclick="calcFrete()">Calcular</button>
+      </div>
+      <div id="frete-result" class="frete-result"></div>
+      <a class="frete-help" href="https://buscacepinter.correios.com.br/app/endereco/index.php" target="_blank" rel="noopener">Não sei meu CEP</a>
+    </div>
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
       <div style="display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;">
@@ -688,7 +748,7 @@
       <a href="https://maps.google.com/?q=Av.+Brasil,+6818,+Rio+de+Janeiro" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;">
         📍 <strong>Rio de Janeiro</strong> — {{ store_address }} <span style="color:var(--accent);font-size:.78rem;font-weight:700;">Ver no mapa →</span>
       </a><br>
-      Atendimento via WhatsApp, retirada no local ou entrega a combinar.
+      Retirada na loja ou entrega via Lalamove no Rio de Janeiro. Atendimento via WhatsApp.
     </div>
   </div>
 </div>
@@ -856,7 +916,8 @@
       <span>Total</span>
       <span class="cart-total-val" id="cart-total">R$ 0,00</span>
     </div>
-    <button class="cart-wa-btn" onclick="sendCartWA()">
+    <a class="cart-pay-btn" href="/checkout">Ir para o pagamento →</a>
+    <button class="cart-wa-btn cart-wa-secondary" onclick="sendCartWA()">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
       Enviar pedido no WhatsApp
     </button>
@@ -881,7 +942,7 @@ function closeCart() {
 }
 
 function addToCart(id, name, price, unit, btn) {
-  const existing = cart.find(i => i.id === id);
+  const existing = cart.find(i => i.id === id && !i.kit);
   if (existing) { existing.qty += 1; }
   else { cart.push({ id, name, price, unit, qty: 1 }); }
   saveCart();
@@ -893,16 +954,26 @@ function addToCart(id, name, price, unit, btn) {
   }
 }
 
-function changeQty(id, delta) {
-  const item = cart.find(i => i.id === id);
+function buyNow(id, name, price, unit) {
+  if (!cart.find(i => i.id === id && !i.kit)) {
+    cart.push({ id, name, price, unit, qty: 1 });
+    saveCart();
+    updateBadge();
+  }
+  if (typeof gtag !== 'undefined') gtag('event', 'comprar_agora', { product_name: name });
+  openCart();
+}
+
+function changeQty(idx, delta) {
+  const item = cart[idx];
   if (!item) return;
   item.qty += delta;
-  if (item.qty <= 0) cart = cart.filter(i => i.id !== id);
+  if (item.qty <= 0) cart.splice(idx, 1);
   saveCart(); updateBadge(); renderCart();
 }
 
-function removeFromCart(id) {
-  cart = cart.filter(i => i.id !== id);
+function removeFromCart(idx) {
+  cart.splice(idx, 1);
   saveCart(); updateBadge(); renderCart();
 }
 
@@ -910,12 +981,21 @@ function clearCart() {
   cart = []; saveCart(); updateBadge(); renderCart();
 }
 
+// шапка (_header.html) вызывает cartOpen() и показывает счётчик в #cartCount
+function cartOpen() { openCart(); }
+
 function updateBadge() {
   const total = cart.reduce((s, i) => s + i.qty, 0);
   const badge = document.getElementById('cart-badge');
-  if (!badge) return;
-  badge.textContent = total;
-  badge.classList.toggle('show', total > 0);
+  if (badge) {
+    badge.textContent = total;
+    badge.classList.toggle('show', total > 0);
+  }
+  const count = document.getElementById('cartCount');
+  if (count) {
+    count.textContent = total;
+    count.style.display = total > 0 ? 'inline-flex' : 'none';
+  }
 }
 
 function renderCart() {
@@ -928,22 +1008,22 @@ function renderCart() {
   }
   foot.style.display = 'block';
   let total = 0;
-  body.innerHTML = cart.map(item => {
+  body.innerHTML = cart.map((item, idx) => {
     const subtotal = item.price * item.qty;
     total += subtotal;
     return `
       <div class="cart-item">
         <div class="cart-item-info">
-          <div class="cart-item-name">${item.name}</div>
-          <div class="cart-item-unit">${item.unit}</div>
+          <div class="cart-item-name">${item.name}${item.kit ? ' <span class="cart-kit-tag">kit</span>' : ''}</div>
+          ${item.unit ? `<div class="cart-item-unit">${item.unit}</div>` : ''}
           <div class="cart-item-price">R$ ${item.price.toFixed(2).replace('.', ',')} × ${item.qty} = R$ ${subtotal.toFixed(2).replace('.', ',')}</div>
           <div class="cart-qty-row">
-            <button class="qty-btn" onclick="changeQty(${item.id}, -1)">−</button>
+            <button class="qty-btn" onclick="changeQty(${idx}, -1)">−</button>
             <span class="qty-val">${item.qty}</span>
-            <button class="qty-btn" onclick="changeQty(${item.id}, 1)">+</button>
+            <button class="qty-btn" onclick="changeQty(${idx}, 1)">+</button>
           </div>
         </div>
-        <button class="cart-item-remove" onclick="removeFromCart(${item.id})" title="Remover">✕</button>
+        <button class="cart-item-remove" onclick="removeFromCart(${idx})" title="Remover">✕</button>
       </div>`;
   }).join('');
   document.getElementById('cart-total').textContent = 'R$ ' + total.toFixed(2).replace('.', ',');
@@ -952,7 +1032,7 @@ function renderCart() {
 function sendCartWA() {
   if (!cart.length) return;
   const lines = cart.map(i =>
-    `• ${i.name} (${i.unit}) × ${i.qty} = R$ ${(i.price * i.qty).toFixed(2).replace('.', ',')}`
+    `• ${i.name}${i.unit ? ` (${i.unit})` : ''} × ${i.qty} = R$ ${(i.price * i.qty).toFixed(2).replace('.', ',')}`
   );
   const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
   const msg = `Olá! Gostaria de fazer o seguinte pedido:\n\n${lines.join('\n')}\n\n*Total: R$ ${total.toFixed(2).replace('.', ',')}*\n\nAinda está disponível?`;
@@ -960,6 +1040,62 @@ function sendCartWA() {
 }
 
 updateBadge();
+
+// ── FRETE (Lalamove) ──
+const freteCep = document.getElementById('frete-cep');
+function escHtml(s) { return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+freteCep.addEventListener('input', e => {
+  let v = e.target.value.replace(/\D/g, '').slice(0, 8);
+  if (v.length > 5) v = v.slice(0, 5) + '-' + v.slice(5);
+  e.target.value = v;
+});
+freteCep.addEventListener('keydown', e => { if (e.key === 'Enter') calcFrete(); });
+try { const saved = localStorage.getItem('mtf_cep'); if (saved) freteCep.value = saved; } catch (e) {}
+
+async function calcFrete() {
+  const cep = freteCep.value.replace(/\D/g, '');
+  const box = document.getElementById('frete-result');
+  const btn = document.getElementById('frete-btn');
+  if (cep.length !== 8) { box.innerHTML = '<span class="frete-err">Digite um CEP válido (8 dígitos).</span>'; return; }
+  btn.disabled = true; btn.textContent = '...'; box.innerHTML = '';
+  try {
+    const r = await fetch('/api/frete-cep?cep=' + cep);
+    const d = await r.json();
+    if (!r.ok) { const err = new Error(d.error || 'Não foi possível calcular o frete.'); err.wa = r.status !== 400 || /Rio de Janeiro/.test(d.error || ''); throw err; }
+    try { localStorage.setItem('mtf_cep', freteCep.value); } catch (e) {}
+    if (d.combinar) {
+      const lugar = [d.bairro, d.cidade, d.uf].filter(Boolean).map(escHtml).join(', ');
+      const waTxt = encodeURIComponent('Olá! Quero saber o valor da entrega para o CEP ' + freteCep.value + (d.cidade ? ' (' + d.cidade + '/' + d.uf + ')' : '') + '.');
+      box.innerHTML = `
+        <div class="frete-local">📍 ${lugar}</div>
+        <div class="frete-combinar">Para este endereço, o frete é combinado com o vendedor.</div>
+        <a class="wa-seller-btn" href="https://wa.me/${WA_NUMBER}?text=${waTxt}" target="_blank" rel="noopener">Falar com o vendedor sobre o frete</a>`;
+      return;
+    }
+    const km = d.distance_km.toFixed(1).replace('.', ',');
+    const local = [d.bairro, d.cidade].filter(Boolean).map(escHtml).join(', ');
+    const rows = d.options.map(o => `
+      <div class="frete-ok">
+        <div><strong>${escHtml(o.label)}</strong><div class="frete-sub">${escHtml(o.hint)}</div></div>
+        <div class="frete-price">R$ ${o.price.toFixed(2).replace('.', ',')}</div>
+      </div>`).join('');
+    box.innerHTML = `
+      <div class="frete-local">📍 ${local} · ${km} km</div>
+      ${rows}
+      <div class="frete-ok">
+        <div><strong>Retirada na loja</strong><div class="frete-sub">Av. Brasil, 6818</div></div>
+        <div class="frete-price frete-free">Grátis</div>
+      </div>
+      <div class="frete-note">Entrega via <strong>Lalamove</strong>. Valores estimados, confirmamos no pedido.<br>Entregas de seg. a sáb., 8h30–18h. Pedidos após 18h saem no próximo dia útil.</div>`;
+    if (typeof gtag !== 'undefined') gtag('event', 'calcular_frete', { cep_prefix: cep.slice(0, 5) });
+  } catch (e) {
+    const waTxt = encodeURIComponent('Olá! Quero saber sobre entrega para o CEP ' + freteCep.value + '.');
+    box.innerHTML = `<span class="frete-err">${escHtml(e.message)}</span>` +
+      (e.wa ? ` <a href="https://wa.me/${WA_NUMBER}?text=${waTxt}" target="_blank" rel="noopener" style="font-size:.82rem;font-weight:700;color:#128c4a;">Fale conosco no WhatsApp →</a>` : '');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Calcular';
+  }
+}
 
 document.querySelectorAll('.wa-track').forEach(el => {
   el.addEventListener('click', function() {
