@@ -25,7 +25,7 @@ from sqlalchemy import text
 from dependencies import engine, templates
 from lalamove import get_quote, LalamoveError
 from router import (
-    _apply_promo, _cep_to_coords, _quote_cache, _send_tg, _blog_log, _ensure_kit_settings, slugify,
+    _apply_promo, _cep_to_coords, geocode_endereco, _km, _quote_cache, _send_tg, _blog_log, _ensure_kit_settings, slugify,
     FRETE_MAX_KM, FRETE_OPTIONS, LALA_SERVICES, LALA_DEBUG_TOKEN,
     GA_ID, SITE_URL, STORE_ADDRESS, STORE_PHONE, WA_OWNER_NUMBER, ADMIN_URL,
 )
@@ -447,6 +447,17 @@ async def checkout_pix(request: Request):
             return JSONResponse({"error": geo, "combinar": "combinado" in str(geo)}, status_code=400)
         address = ", ".join(x for x in [rua, geo["bairro"], f'{geo["cidade"]} - {geo["uf"]}',
                                         f"{cep[:5]}-{cep[5:]}"] if x)
+        # Pino exato (rua + número) para o entregador. O preço continua o do CEP, que o cliente viu.
+        geo = dict(geo)
+        try:
+            exact = await geocode_endereco(rua, numero, geo["bairro"], geo["cidade"], geo["uf"], cep)
+        except Exception:
+            _blog_log.exception("checkout: geocode do endereço falhou")
+            exact = None
+        if exact and _km(exact, (geo["lat"], geo["lng"])) <= 8:
+            geo["lat"], geo["lng"] = exact
+        elif exact:
+            _blog_log.warning("checkout: pino %s longe demais do CEP %s — mantido o do CEP", exact, cep)
 
     total = round(subtotal + (frete or 0), 2)
     token = secrets.token_urlsafe(16)

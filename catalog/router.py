@@ -928,8 +928,71 @@ def _km(a, b) -> float:
     return 6371 * 2 * math.asin(math.sqrt(h))
 
 
+def _google_key() -> str:
+    return (os.environ.get("GOOGLE_GEOCODING_KEY") or os.environ.get("GOOGLE_MAPS_KEY") or "").strip()
+
+
+_GOOGLE_VAGUE = {"locality", "administrative_area_level_1", "administrative_area_level_2", "country"}
+_GOOGLE_GOOD = {"street_address", "premise", "subpremise", "route", "postal_code", "sublocality",
+                "sublocality_level_1", "neighborhood", "establishment", "point_of_interest"}
+
+
+async def _google_geocode(client, address: str, cep: str = "", precise: bool = False):
+    """Google Geocoding -> ((lat, lng), location_type) ou None.
+    Recusa resultado que seja só a cidade (o problema do "centro do Rio").
+    precise=True: só aceita endereço com número (ROOFTOP / RANGE_INTERPOLATED)."""
+    key = _google_key()
+    if not key:
+        return None
+    attempts = []
+    if cep:
+        attempts.append(f"country:BR|postal_code:{cep[:5]}-{cep[5:]}")
+    attempts.append("country:BR")
+    for comp in attempts:
+        try:
+            r = await client.get("https://maps.googleapis.com/maps/api/geocode/json", params={
+                "address": address, "components": comp, "language": "pt-BR", "region": "br", "key": key,
+            })
+            j = r.json() if r.status_code == 200 else {}
+        except Exception:
+            _blog_log.exception("geo: google falhou (%s)", address)
+            return None
+        st = j.get("status")
+        if st == "ZERO_RESULTS":
+            continue
+        if st != "OK":
+            _blog_log.warning("geo: google %s %s (%s)", st, (j.get("error_message") or "")[:150], address)
+            return None
+        res0 = j["results"][0]
+        types = set(res0.get("types") or [])
+        loc_type = res0["geometry"].get("location_type", "")
+        if (types & _GOOGLE_VAGUE) and not (types & _GOOGLE_GOOD):
+            _blog_log.warning("geo: google impreciso %s (%s)", sorted(types), address)
+            return None
+        if precise and loc_type not in ("ROOFTOP", "RANGE_INTERPOLATED"):
+            return None
+        loc = res0["geometry"]["location"]
+        try:
+            return (float(loc["lat"]), float(loc["lng"])), loc_type
+        except (KeyError, TypeError, ValueError):
+            return None
+    return None
+
+
+async def geocode_endereco(rua: str, numero: str, bairro: str, cidade: str, uf: str, cep: str):
+    """Endereço completo COM NÚMERO -> (lat, lng) exato para o entregador, ou None.
+    Usado no checkout: o frete é calculado pelo CEP, mas o pino da Lalamove vai na porta do cliente."""
+    address = ", ".join(x for x in [f"{rua}, {numero}", bairro, f"{cidade} - {uf}", f"{cep[:5]}-{cep[5:]}"] if x)
+    async with httpx.AsyncClient(timeout=8) as client:
+        g = await _google_geocode(client, address, cep, precise=True)
+    if g:
+        _blog_log.info("geo: %s -> %s (%s)", address, g[0], g[1])
+        return g[0]
+    return None
+
+
 async def _cep_to_coords(cep: str):
-    """CEP -> endereço (ViaCEP) + coordenadas (AwesomeAPI -> BrasilAPI -> Nominatim). Tudo grátis, sem chave."""
+    """CEP -> endereço (ViaCEP) + coordenadas: Google Geocoding; reserva AwesomeAPI/BrasilAPI/Nominatim conferidos pelo bairro."""
     if cep in _geo_cache:
         return _geo_cache[cep]
 
@@ -963,7 +1026,17 @@ async def _cep_to_coords(cep: str):
                 pass
             return None
 
-        # 2. AwesomeAPI
+        # 1b. Google Geocoding — o mais confiável. Se achar a rua, usamos direto.
+        g = await _google_geocode(client, address, cep)
+        if g:
+            c, loc_type = g
+            _blog_log.info("frete-cep: %s -> %s via google (%s)", cep, c, loc_type)
+            res = {"lat": c[0], "lng": c[1], "address": address, "rua": street,
+                   "bairro": bairro, "cidade": cidade, "uf": uf}
+            _geo_cache[cep] = res
+            return res
+
+        # 2. AwesomeAPI (reserva, se o Google falhar)
         try:
             a = await client.get(f"https://cep.awesomeapi.com.br/json/{cep}")
             if a.status_code == 200:
