@@ -105,7 +105,7 @@
     .product-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.08);transform:translateY(-2px);}
     .prod-img-wrap{position:relative;width:100%;aspect-ratio:1;background:var(--bg);overflow:hidden;}
     /* ── PROMOÇÃO ── */
-    .promo-sticker{position:absolute;top:8px;left:8px;z-index:2;background:#E2144A;color:#fff;font-size:.62rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:6px;line-height:1.3;box-shadow:0 2px 6px rgba(226,20,74,.3);}
+    .promo-sticker{position:absolute;top:8px;left:8px;z-index:2;background:var(--accent);color:#fff;font-size:.62rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:6px;line-height:1.3;box-shadow:0 2px 6px rgba(226,20,74,.3);}
     .prod-price-old{display:block;font-family:'DM Sans',sans-serif;font-size:.74rem;font-weight:400;color:var(--muted);text-decoration:line-through;line-height:1.2;}
 
     .prod-img{width:100%;height:100%;object-fit:contain;padding:8px;}
@@ -166,7 +166,7 @@
     .cart-overlay.open{display:block;}
     .cart-drawer{position:fixed;top:0;right:-420px;width:400px;max-width:96vw;height:100vh;background:var(--surface);box-shadow:-4px 0 24px rgba(0,0,0,.12);z-index:301;transition:right .28s ease;display:flex;flex-direction:column;}
     .cart-drawer.open{right:0;}
-    .cart-head{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:#fafaf8;}
+    .cart-head{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:#f7fbfc;}
     .cart-head h2{font-size:1.2rem;font-weight:700;}
     .cart-close{background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--muted);line-height:1;padding:2px 6px;border-radius:6px;}
     .cart-close:hover{background:var(--border);}
@@ -184,13 +184,13 @@
     .qty-val{font-size:1rem;font-weight:700;min-width:20px;text-align:center;}
     .cart-item-remove{background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.1rem;padding:2px;border-radius:4px;flex-shrink:0;margin-top:2px;}
     .cart-item-remove:hover{color:var(--accent);}
-    .cart-foot{padding:16px 20px;border-top:1px solid var(--border);background:#fafaf8;}
+    .cart-foot{padding:16px 20px;border-top:1px solid var(--border);background:#f7fbfc;}
     .cart-total-row{display:flex;justify-content:space-between;font-weight:700;font-size:1.2rem;margin-bottom:14px;}
     .cart-total-val{font-family:'DM Mono',monospace;}
     .cart-wa-btn{width:100%;padding:14px;border-radius:10px;border:none;background:var(--wa);color:#fff;font-family:inherit;font-size:.95rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .15s;}
     .cart-wa-btn:hover{opacity:.88;}
     .cart-clear-btn{width:100%;margin-top:8px;padding:10px;border-radius:8px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-family:inherit;font-size:.82rem;font-weight:600;cursor:pointer;}
-    .cart-kit-tag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;background:#fff0f4;color:var(--accent);border:1px solid #ffd0dc;font-size:.7rem;font-weight:800;vertical-align:middle;}
+    .cart-kit-tag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;background:var(--accent-l);color:var(--accent);border:1px solid var(--accent-b);font-size:.7rem;font-weight:800;vertical-align:middle;}
     .cart-pay-btn{display:flex;align-items:center;justify-content:center;width:100%;padding:15px;border-radius:10px;background:var(--accent);color:#fff;font-size:1.02rem;font-weight:800;text-decoration:none;margin-bottom:8px;}.cart-pay-btn:hover{opacity:.92;}
     .cart-wa-secondary{background:#effaf3;color:#128c4a;border:1.5px solid var(--wa);padding:11px;font-size:.9rem;}
     .cart-clear-btn:hover{border-color:var(--accent);color:var(--accent);}
@@ -292,7 +292,7 @@
 
 {% if cat_slug == 'gases-refrigerantes' %}
 <div style="max-width:900px;margin:0 auto 20px;padding:0 20px;">
-  <a href="/calculadora-gas" style="display:flex;align-items:center;gap:18px;background:linear-gradient(135deg,#fff7f9 0%,#fff 60%);border:1.5px solid #ffd9e4;border-radius:16px;padding:18px 22px;text-decoration:none;color:inherit;transition:border-color .15s,box-shadow .15s,transform .15s;position:relative;overflow:hidden;" onmouseover="this.style.borderColor='var(--accent)';this.style.boxShadow='0 6px 24px rgba(226,20,74,.12)';this.style.transform='translateY(-1px)'" onmouseout="this.style.borderColor='#ffd9e4';this.style.boxShadow='none';this.style.transform='none'">
+  <a href="/calculadora-gas" style="display:flex;align-items:center;gap:18px;background:linear-gradient(135deg,var(--accent-l) 0%,#fff 60%);border:1.5px solid var(--accent-b);border-radius:16px;padding:18px 22px;text-decoration:none;color:inherit;transition:border-color .15s,box-shadow .15s,transform .15s;position:relative;overflow:hidden;" onmouseover="this.style.borderColor='var(--accent)';this.style.boxShadow='0 6px 24px rgba(226,20,74,.12)';this.style.transform='translateY(-1px)'" onmouseout="this.style.borderColor='var(--accent-b)';this.style.boxShadow='none';this.style.transform='none'">
     <div style="position:absolute;right:-10px;top:-10px;font-size:5rem;opacity:.06;pointer-events:none;line-height:1;">🧮</div>
     <div style="width:48px;height:48px;background:var(--accent);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;box-shadow:0 4px 12px rgba(226,20,74,.25);">🧮</div>
     <div style="flex:1;min-width:0;">

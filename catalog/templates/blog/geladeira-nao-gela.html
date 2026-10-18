@@ -97,12 +97,12 @@
 
   <style>
     :root {
-      --bg:      #f8f7f4;
+      --bg:      var(--bg);
       --surface: #ffffff;
       --border:  #e8e5df;
       --text:    #1a1816;
       --muted:   #8a8580;
-      --accent:  #e2144a;
+      --accent:  var(--accent);
       --green:   #16a34a;
       --green-l: #f0fdf4;
       --wa:      #25d366;
@@ -250,8 +250,8 @@
     }
     .article-card a:hover { text-decoration: underline; }
     .lead-box {
-      background: #fff7f9;
-      border: 1px solid #ffd9e4;
+      background: var(--accent-l);
+      border: 1px solid var(--accent-b);
       border-radius: 14px;
       padding: 16px 18px;
       margin-bottom: 18px;

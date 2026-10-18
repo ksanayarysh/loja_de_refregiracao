@@ -136,9 +136,9 @@
     }
 
     .product-img-wrap{position:sticky;top:80px;}
-    .promo-sticker{position:absolute;top:12px;left:12px;z-index:2;background:#E2144A;color:#fff;font-size:.78rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;padding:5px 12px;border-radius:8px;line-height:1.3;box-shadow:0 2px 8px rgba(226,20,74,.3);}
+    .promo-sticker{position:absolute;top:12px;left:12px;z-index:2;background:var(--accent);color:#fff;font-size:.78rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;padding:5px 12px;border-radius:8px;line-height:1.3;box-shadow:0 2px 8px rgba(226,20,74,.3);}
     .price-old{font-family:"DM Mono",monospace;font-size:1.05rem;color:var(--muted);text-decoration:line-through;}
-    .price-off{display:inline-block;margin-left:8px;font-size:.78rem;font-weight:800;color:#fff;background:#E2144A;border-radius:6px;padding:2px 8px;vertical-align:middle;}
+    .price-off{display:inline-block;margin-left:8px;font-size:.78rem;font-weight:800;color:#fff;background:var(--accent);border-radius:6px;padding:2px 8px;vertical-align:middle;}
     .product-img{
       width:100%;
       aspect-ratio:1;
@@ -438,7 +438,7 @@
     .cart-overlay.open{display:block;}
     .cart-drawer{position:fixed;top:0;right:-420px;width:400px;max-width:96vw;height:100vh;background:var(--surface);box-shadow:-4px 0 24px rgba(0,0,0,.12);z-index:301;transition:right .28s ease;display:flex;flex-direction:column;}
     .cart-drawer.open{right:0;}
-    .cart-head{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:#fafaf8;}
+    .cart-head{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:#f7fbfc;}
     .cart-head h2{font-size:1.2rem;font-weight:700;}
     .cart-close{background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--muted);line-height:1;padding:2px 6px;border-radius:6px;}
     .cart-close:hover{background:var(--border);}
@@ -456,14 +456,14 @@
     .qty-val{font-size:1rem;font-weight:700;min-width:20px;text-align:center;}
     .cart-item-remove{background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.1rem;padding:2px;border-radius:4px;flex-shrink:0;margin-top:2px;}
     .cart-item-remove:hover{color:var(--accent);}
-    .cart-foot{padding:16px 20px;border-top:1px solid var(--border);background:#fafaf8;}
+    .cart-foot{padding:16px 20px;border-top:1px solid var(--border);background:#f7fbfc;}
     .cart-total-row{display:flex;justify-content:space-between;font-weight:700;font-size:1.2rem;margin-bottom:14px;}
     .cart-total-val{font-family:'DM Mono',monospace;}
     .cart-wa-btn{width:100%;padding:14px;border-radius:10px;border:none;background:var(--wa);color:#fff;font-family:inherit;font-size:.95rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .15s;}
     .cart-wa-btn:hover{opacity:.88;}
     .cart-pay-btn{display:flex;align-items:center;justify-content:center;width:100%;padding:15px;border-radius:10px;background:var(--accent);color:#fff;font-size:1.02rem;font-weight:800;text-decoration:none;margin-bottom:8px;}
     .cart-pay-btn:hover{opacity:.92;}
-    .cart-kit-tag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;background:#fff0f4;color:var(--accent);border:1px solid #ffd0dc;font-size:.7rem;font-weight:800;vertical-align:middle;}
+    .cart-kit-tag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;background:var(--accent-l);color:var(--accent);border:1px solid var(--accent-b);font-size:.7rem;font-weight:800;vertical-align:middle;}
     .cart-wa-secondary{background:#effaf3;color:#128c4a;border:1.5px solid var(--wa);padding:11px;font-size:.9rem;}
     .cart-clear-btn{width:100%;margin-top:8px;padding:10px;border-radius:8px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-family:inherit;font-size:.82rem;font-weight:600;cursor:pointer;transition:border-color .1s,color .1s;}
     .cart-clear-btn:hover{border-color:var(--accent);color:var(--accent);}
@@ -637,7 +637,7 @@
       {% endif %}
     </div>
 
-    <div class="price-block" style="border:2px solid var(--accent);background:linear-gradient(135deg,#fff5f7 0%,#fff 100%);">
+    <div class="price-block" style="border:2px solid var(--accent);background:linear-gradient(135deg,var(--accent-l) 0%,#fff 100%);">
       <div class="price-label">Preço</div>
       {% if product.sale_price %}
       {% if product.on_promo %}
@@ -883,7 +883,7 @@
       <div style="font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;">Nossa equipe</div>
       <div style="display:flex;flex-direction:column;gap:12px;">
         <div style="display:flex;align-items:center;gap:10px;">
-          <div style="width:32px;height:32px;border-radius:50%;background:#fff0f4;color:var(--accent);border:1.5px solid #ffd0dc;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;flex-shrink:0;">KS</div>
+          <div style="width:32px;height:32px;border-radius:50%;background:var(--accent-l);color:var(--accent);border:1.5px solid var(--accent-b);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;flex-shrink:0;">KS</div>
           <div>
             <div style="font-size:.88rem;font-weight:700;">Ksenia</div>
             <div style="font-size:.72rem;color:var(--muted);">Desenvolvimento · PDV &amp; sites</div>

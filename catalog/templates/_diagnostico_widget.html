@@ -1,5 +1,5 @@
 <style>
-.mtf-diag{--diag-red:#e2144a;--diag-red-bg:#fdf2f5;--diag-red-dark:#b30d39;}
+.mtf-diag{--diag-red:var(--accent);--diag-red-bg:#fdf2f5;--diag-red-dark:#b30d39;}
 .mtf-diag *{box-sizing:border-box;}
 .diag-wrap{background:var(--surface);border:1.5px solid var(--border);border-radius:16px;padding:28px 24px;margin:40px 0;}
 .diag-wrap-inline{background:var(--surface);border:1.5px solid var(--border);border-radius:16px;padding:24px;margin:32px 0;}
@@ -10,7 +10,7 @@
 .symptom-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-bottom:16px;}
 .symptom-btn{background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;cursor:pointer;text-align:left;transition:border-color .15s,background .15s;display:flex;align-items:flex-start;gap:8px;font-family:inherit;}
 .symptom-btn:hover{border-color:var(--accent);background:var(--diag-red-bg,#fdf2f5);}
-.symptom-btn.active{border-color:var(--diag-red,#e2144a);background:var(--diag-red-bg,#fdf2f5);}
+.symptom-btn.active{border-color:var(--diag-red,var(--accent));background:var(--diag-red-bg,#fdf2f5);}
 .symptom-icon{font-size:18px;flex-shrink:0;line-height:1.2;}
 .symptom-label{font-size:.82rem;color:var(--text);line-height:1.35;font-weight:600;}
 .symptom-device{font-size:.74rem;color:var(--muted);margin-top:2px;}
@@ -18,7 +18,7 @@
 .custom-row input{flex:1;font-size:.9rem;padding:9px 13px;border:1.5px solid var(--border);border-radius:10px;background:var(--bg);color:var(--text);font-family:inherit;transition:border-color .15s;}
 .custom-row input:focus{outline:none;border-color:var(--accent);}
 .custom-row input::placeholder{color:var(--muted);}
-.btn-diagnose{background:var(--diag-red,#e2144a);color:#fff;border:none;border-radius:10px;padding:9px 18px;font-size:.88rem;font-weight:700;cursor:pointer;white-space:nowrap;transition:background .15s;font-family:inherit;display:flex;align-items:center;gap:6px;}
+.btn-diagnose{background:var(--diag-red,var(--accent));color:#fff;border:none;border-radius:10px;padding:9px 18px;font-size:.88rem;font-weight:700;cursor:pointer;white-space:nowrap;transition:background .15s;font-family:inherit;display:flex;align-items:center;gap:6px;}
 .btn-diagnose:hover{background:var(--diag-red-dark,#b30d39);}
 .btn-diagnose:disabled{background:var(--border);color:var(--muted);cursor:default;}
 .diag-result{margin-top:20px;display:none;}
@@ -32,11 +32,11 @@
 .cause-item{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:var(--surface);}
 .cause-item.alta{border-color:#e2144a44;background:var(--diag-red-bg,#fdf2f5);}
 .cause-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px;}
-.cause-dot.alta{background:var(--diag-red,#e2144a);}
+.cause-dot.alta{background:var(--diag-red,var(--accent));}
 .cause-dot.media{background:#f59e0b;}
 .cause-dot.baixa{background:var(--muted);}
 .cause-text{font-size:.85rem;color:var(--text);line-height:1.45;}
-.cause-peca{font-size:.78rem;color:var(--diag-red,#e2144a);margin-top:3px;cursor:pointer;font-weight:600;}
+.cause-peca{font-size:.78rem;color:var(--diag-red,var(--accent));margin-top:3px;cursor:pointer;font-weight:600;}
 .cause-peca:hover{text-decoration:underline;}
 .check-list{display:flex;flex-direction:column;gap:5px;}
 .check-item{display:flex;gap:7px;align-items:flex-start;font-size:.85rem;color:var(--text);line-height:1.4;}
@@ -46,7 +46,7 @@
 .alerta-box{margin-top:10px;padding:11px 13px;background:#fff0f0;border:1px solid #f8717133;border-radius:10px;display:flex;gap:9px;align-items:flex-start;font-size:.83rem;color:var(--text);line-height:1.45;}
 .alerta-box strong{font-weight:700;color:#991b1b;}
 .diag-loading{display:flex;align-items:center;gap:10px;padding:14px;font-size:.88rem;color:var(--muted);}
-.diag-spinner{width:16px;height:16px;border-radius:50%;border:2px solid var(--border);border-top-color:var(--diag-red,#e2144a);animation:diagspin .7s linear infinite;flex-shrink:0;}
+.diag-spinner{width:16px;height:16px;border-radius:50%;border:2px solid var(--border);border-top-color:var(--diag-red,var(--accent));animation:diagspin .7s linear infinite;flex-shrink:0;}
 @keyframes diagspin{to{transform:rotate(360deg);}}
 .diag-reset-btn{margin-top:10px;background:transparent;border:1px solid var(--border);border-radius:8px;padding:6px 13px;font-size:.8rem;color:var(--muted);cursor:pointer;font-family:inherit;transition:background .15s;}
 .diag-reset-btn:hover{background:var(--surface);}
