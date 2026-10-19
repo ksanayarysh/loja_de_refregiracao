@@ -1,29 +1,22 @@
-<!doctype html>
-<html lang="pt-BR">
-<head>
-  <meta charset="utf-8">
-  <link rel="icon" type="image/png" href="/static/favicon.png">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Relé de Geladeira Embraco: Tabela de Potências e Peças no RJ | M.T.F Refrigeração</title>
-  <meta name="description" content="Compre relé de geladeira Embraco no Rio de Janeiro. Pronta entrega na Av. Brasil ou peça pelo WhatsApp. Veja PTC, indução e tabela de potências.">
-  <meta name="keywords" content="relé refrigeração RJ, relé Embraco, relé de indução geladeira, relé placa ar condicionado, relé conjugado, onde comprar relé refrigeração rio de janeiro">
-  <meta name="robots" content="index, follow">
-  <link rel="canonical" href="{{ site_url }}/blog/rele-refrigeracao">
-  <meta property="og:type" content="article">
-  <meta property="og:title" content="Relé de Geladeira Embraco: Tabela de Potências e Peças no RJ">
-  <meta property="og:description" content="Relé de geladeira Embraco, PTC, indução e relé de placa. Tabela de potências, sintomas de defeito e peças disponíveis no RJ.">
-  <meta property="og:url" content="{{ site_url }}/blog/rele-refrigeracao">
-  <meta property="og:image" content="{{ site_url }}/static/og-catalog.jpg">
+{% extends 'blog/_article_base.html' %}
+{% import 'blog/_produto.html' as pc with context %}
+
+{% block title %}Relé de geladeira: o que é, para que serve e como testar | M.T.F Refrigeração{% endblock %}
+
+{% block head %}
+  <meta name="description" content="O que é o relé da geladeira, para que serve, onde fica e como saber se queimou. Tipos (PTC, indução, conjugado Embraco), tabela de potências e relés a partir de R$ 8 no RJ.">
+  <meta property="og:title" content="Relé de geladeira: o que é, para que serve e como testar">
+  <meta property="og:description" content="Função do relé, onde fica, sintomas de defeito, tipos e como escolher o certo pela potência do compressor.">
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "Article",
-    "headline": "Relé de Geladeira Embraco: Tabela de Potências e Peças no RJ",
-    "description": "Relé de geladeira Embraco, PTC, relé de indução e relé de placa. Tabela de potências, sintomas de defeito e peças disponíveis no RJ.",
-    "mainEntityOfPage": {"@type": "WebPage", "@id": "{{ site_url }}/blog/rele-refrigeracao"},
-    "author": {"@type": "Organization", "name": "M.T.F Refrigeração", "url": "{{ site_url }}"},
-    "publisher": {"@type": "Organization", "name": "M.T.F Refrigeração", "url": "{{ site_url }}", "logo": {"@type": "ImageObject", "url": "{{ site_url }}/static/og-catalog.jpg"}},
-    "keywords": "relé geladeira RJ, relé Embraco, relé PTC, PTC geladeira, relé de indução, relé conjugado, relé placa ar condicionado, peças refrigeração RJ"
+    "headline": "Relé de geladeira: o que é, para que serve e como testar",
+    "description": "Função do relé da geladeira, onde fica, sintomas de defeito, tipos (PTC, indução, conjugado Embraco) e como escolher pela potência do compressor.",
+    "mainEntityOfPage": {"@type": "WebPage", "@id": "{{ site_url }}/blog/{{ article.slug }}"},
+    "author": {"@type": "Organization", "name": "M.T.F Refrigeração", "url": "{{ site_url }}/"},
+    "publisher": {"@type": "Organization", "name": "M.T.F Refrigeração", "url": "{{ site_url }}/",
+                  "logo": {"@type": "ImageObject", "url": "{{ site_url }}/static/og-catalog.jpg"}}
   }
   </script>
   <script type="application/ld+json">
@@ -31,370 +24,119 @@
     "@context": "https://schema.org",
     "@type": "FAQPage",
     "mainEntity": [
-      {"@type": "Question", "name": "Como saber se o relé da geladeira está com defeito?", "acceptedAnswer": {"@type": "Answer", "text": "Os principais sinais são: compressor não liga, geladeira não gela, barulho de 'click' sem o compressor partir e cheiro de queimado perto do compressor."}},
-      {"@type": "Question", "name": "O que é o relé PTC da geladeira?", "acceptedAnswer": {"@type": "Answer", "text": "O PTC (Positive Temperature Coefficient) é um dispositivo de partida usado em compressores herméticos. Sua resistência aumenta quando aquece, reduzindo a corrente do enrolamento de partida depois que o compressor entra em funcionamento. O modelo correto depende do compressor."}},
-      {"@type": "Question", "name": "Qual a diferença entre PTC, relé de indução e relé conjugado?", "acceptedAnswer": {"@type": "Answer", "text": "O PTC usa uma pastilha de coeficiente de temperatura positivo para controlar a partida. O relé de indução usa um mecanismo eletromagnético e é comum em compressores mais antigos. O relé conjugado reúne relé de partida e protetor térmico no mesmo conjunto."}},
-      {"@type": "Question", "name": "Onde comprar relé para geladeira no RJ?", "acceptedAnswer": {"@type": "Answer", "text": "A M.T.F Refrigeração na Av. Brasil, 6818 vende relés Embraco, PTC e outros componentes de refrigeração. Atendimento pelo WhatsApp."}},
-      {"@type": "Question", "name": "Posso trocar o relé da geladeira eu mesmo?", "acceptedAnswer": {"@type": "Answer", "text": "Antes de substituir, é preciso identificar corretamente o compressor e o dispositivo de partida. Em caso de dúvida, consulte um técnico para evitar usar um componente incompatível."}}
+      {"@type": "Question", "name": "O que é o relé da geladeira?",
+       "acceptedAnswer": {"@type": "Answer", "text": "É o dispositivo de partida do compressor: no momento em que a geladeira liga, ele manda corrente extra para a bobina de partida do motor e depois a desliga. Sem ele o compressor não arranca."}},
+      {"@type": "Question", "name": "Para que serve o relé da geladeira?",
+       "acceptedAnswer": {"@type": "Answer", "text": "Serve para dar a partida no compressor. Muitos modelos (relé conjugado) também têm o protetor térmico, que desliga o compressor se ele esquentar demais."}},
+      {"@type": "Question", "name": "Onde fica o relé da geladeira?",
+       "acceptedAnswer": {"@type": "Answer", "text": "Na parte de trás, embaixo da geladeira, encaixado na lateral do compressor (o motor preto), sob uma tampinha plástica onde chegam os fios."}},
+      {"@type": "Question", "name": "Como saber se o relé da geladeira queimou?",
+       "acceptedAnswer": {"@type": "Answer", "text": "A luz interna acende mas a geladeira não gela, o compressor não liga ou faz um 'clic' a cada poucos minutos sem partir. No relé de indução, ao chacoalhar, ouve-se peça solta dentro."}},
+      {"@type": "Question", "name": "Qual a diferença entre PTC, relé de indução e relé conjugado?",
+       "acceptedAnswer": {"@type": "Answer", "text": "O PTC usa uma pastilha que aquece e corta a partida; o relé de indução usa bobina e um pistão interno (compressores antigos); o relé conjugado Embraco junta relé de partida e protetor térmico em uma peça só."}}
     ]
   }
   </script>
-  {% if ga_id %}
-  <script async src="https://www.googletagmanager.com/gtag/js?id={{ ga_id }}"></script>
-  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","{{ ga_id }}");gtag("config","AW-18038713780");</script>
-  {% endif %}
-  {% include '_header_styles.html' %}
-  <style>
-    .article-wrap{max-width:720px;margin:0 auto;padding:40px 20px 80px;}
-    .breadcrumb-bar{max-width:720px;margin:0 auto;padding:16px 20px 0;display:flex;align-items:center;gap:6px;font-size:.82rem;color:var(--muted);flex-wrap:wrap;}
-    .breadcrumb-bar a{color:var(--muted);text-decoration:none;}.breadcrumb-bar a:hover{color:var(--accent);}
-    .article-header{margin-bottom:36px;}
-    .article-tag{display:inline-block;background:#fff7f0;border:1px solid #ffd9b3;border-radius:20px;padding:4px 12px;font-size:.75rem;font-weight:700;color:#c45c00;margin-bottom:14px;letter-spacing:.04em;text-transform:uppercase;}
-    .article-header h1{font-size:clamp(1.6rem,4vw,2.2rem);font-weight:700;letter-spacing:-.02em;line-height:1.25;margin-bottom:14px;}
-    .article-lead{font-size:1.05rem;color:var(--muted);line-height:1.7;padding-bottom:24px;border-bottom:1px solid var(--border);}
-    .article-section{margin-bottom:32px;}
-    .article-section h2{font-size:1.15rem;font-weight:700;margin-bottom:12px;margin-top:32px;color:var(--text);}
-    .article-section h3{font-size:.98rem;font-weight:700;margin-bottom:8px;margin-top:20px;color:var(--text);}
-    .article-section p{font-size:.95rem;line-height:1.75;color:var(--text);margin-bottom:12px;}
-    .article-section ul,.article-section ol{padding-left:20px;margin-bottom:12px;}
-    .article-section li{font-size:.95rem;line-height:1.75;color:var(--text);margin-bottom:4px;}
-    .product-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:8px 0;padding:7px 0;}
-    .product-thumb{width:52px;height:52px;object-fit:contain;border:1px solid var(--border);border-radius:50%;background:#fff;flex:0 0 52px;}
-    .product-row-info{display:flex;align-items:center;gap:8px;flex:1;min-width:180px;flex-wrap:wrap;}
-    .product-price{font-weight:800;color:var(--text);font-size:.92rem;white-space:nowrap;}
-    .product-name-link{color:var(--accent);font-weight:600;text-decoration:none;font-size:.9rem;}
-    .product-name-link:hover{text-decoration:underline;}
-    .product-wa-btn{display:inline-flex;align-items:center;gap:5px;background:var(--wa);color:#fff;font-weight:700;font-size:.78rem;padding:5px 12px;border-radius:7px;text-decoration:none;transition:opacity .15s;white-space:nowrap;}
-    .product-wa-btn:hover{opacity:.88;}
-    .info-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin:16px 0;}
-    .info-box-title{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
-    .info-box ul{padding-left:16px;margin:0;}
-    .info-box li{font-size:.88rem;color:var(--text);line-height:1.65;margin-bottom:3px;}
-    .warn-box{background:var(--accent-l);border:1px solid var(--accent-b);border-radius:12px;padding:16px 18px;margin:16px 0;}
-    .warn-box p{font-size:.88rem;color:var(--text);margin:0;line-height:1.6;}
-    .tip-box{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px 18px;margin:16px 0;}
-    .tip-box p{font-size:.88rem;color:var(--text);margin:0;line-height:1.6;}
-    .rele-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:.88rem;}
-    .rele-table th{background:var(--bg);padding:8px 12px;text-align:left;font-weight:700;border:1px solid var(--border);}
-    .rele-table td{padding:8px 12px;border:1px solid var(--border);color:var(--text);}
-    .rele-table tr:nth-child(even){background:var(--bg);}
-    .cta-block{background:var(--surface);border:1.5px solid var(--border);border-radius:16px;padding:24px;margin-top:40px;text-align:center;}
-    .cta-block h3{font-size:1.1rem;font-weight:700;margin-bottom:8px;}
-    .cta-block p{color:var(--muted);font-size:.9rem;margin-bottom:20px;line-height:1.55;}
-    .cta-wa{display:inline-flex;align-items:center;gap:8px;background:var(--wa);color:#fff;padding:13px 24px;border-radius:10px;font-weight:700;font-size:.95rem;text-decoration:none;transition:opacity .15s;}
-    .cta-wa:hover{opacity:.88;}
-    .cta-tecnico{display:inline-flex;align-items:center;gap:8px;background:#f0f7ff;color:#1a6bc4;border:1.5px solid #c6dfff;padding:12px 20px;border-radius:10px;font-weight:700;font-size:.92rem;text-decoration:none;margin-top:10px;transition:background .15s;}
-    .cta-tecnico:hover{background:#dbeeff;}
-    .related-articles{margin-top:40px;padding-top:24px;border-top:1px solid var(--border);}
-    .related-title{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:16px;}
-    .related-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-    .related-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;text-decoration:none;color:inherit;transition:border-color .15s;}
-    .related-card:hover{border-color:var(--accent);}
-    .related-card-icon{font-size:1.3rem;margin-bottom:8px;}
-    .related-card-title{font-weight:700;font-size:.88rem;line-height:1.3;color:var(--text);}
-    .related-card-cta{font-size:.78rem;color:var(--accent);font-weight:700;margin-top:6px;}
-    footer{border-top:1px solid var(--border);padding:20px;text-align:center;font-size:.8rem;color:var(--muted);}
-    .wa-float{position:fixed;bottom:24px;right:24px;z-index:200;display:flex;align-items:center;gap:8px;background:var(--wa);color:#fff;padding:12px 20px;border-radius:50px;text-decoration:none;font-weight:700;font-size:.92rem;box-shadow:0 4px 20px rgba(37,211,102,.35);transition:transform .2s;}
-    .wa-float:hover{transform:translateY(-2px);}
-    @media(max-width:500px){
-      .article-wrap{padding:24px 16px 60px;}
-      .related-grid{grid-template-columns:1fr;}
-      .cta-wa,.cta-tecnico{width:100%;justify-content:center;}
-      .wa-float span{display:none;}
-      .wa-float{padding:14px;border-radius:50%;bottom:16px;right:16px;}
-    }
-  </style>
-</head>
-<body>
+{% endblock %}
 
-{% set active_page = 'blog' %}
-{% include '_header.html' %}
+{% block crumb %}Relé de geladeira{% endblock %}
+{% block h1 %}Relé de geladeira: o que é, para que serve e como testar{% endblock %}
+{% block lead %}O relé é a peça que dá a partida no compressor. Quando ele falha, a luz acende mas a geladeira não gela. Veja onde fica, como saber se queimou e qual relé comprar para o seu compressor.{% endblock %}
 
-<div class="breadcrumb-bar">
-  <a href="/">Início</a><span>›</span>
-  <a href="/blog">Guias</a><span>›</span>
-  <span>Relé de refrigeração</span>
-</div>
-
-<div class="article-wrap">
-
-{% set msg_rele_inducao = "Olá! Tenho interesse no relé de indução. Qual o preço e disponibilidade?" %}
-{% set msg_rele_embraco = "Olá! Tenho interesse em relé Embraco. Qual o preço e disponibilidade?" %}
-{% set msg_rele_placa   = "Olá! Tenho interesse no relé 12V 20A para placa de ar-condicionado. Qual o preço e disponibilidade?" %}
-
-  <div class="article-header">
-    <div class="article-tag">⚡ Componentes elétricos</div>
-    <h1>Relé de Geladeira Embraco: Tabela de Potências e Peças no RJ</h1>
-    <p class="article-lead">Precisa trocar o relé da geladeira? Aqui você encontra os principais tipos de dispositivos de partida, incluindo PTC, relé de indução e relé conjugado Embraco, além da tabela de potências e peças disponíveis no Rio de Janeiro. A M.T.F Refrigeração fica na Av. Brasil, 6818.</p>
+{% block content %}
+  <div class="lead-box">
+    <p><strong>Resumo rápido:</strong> o relé fica preso na lateral do compressor (atrás e embaixo da geladeira). Se a geladeira não gela, o compressor não liga ou dá um “clic” a cada poucos minutos, o relé é o primeiro suspeito — é barato e encaixa sem solda. Para escolher o certo, veja a <strong>potência do compressor</strong> (1/4, 1/5, 1/6…) na etiqueta dele.</p>
   </div>
 
-  <div class="article-section">
-    <h2>O que é um relé e qual é a função dele</h2>
-    <p>O relé é um componente eletromecânico que funciona como uma chave. Ele recebe um sinal elétrico e usa esse sinal para abrir ou fechar outro circuito — geralmente de maior potência. Em equipamentos de refrigeração, o relé tem uma função específica e crítica: <strong>dar a partida no compressor</strong>.</p>
-    <p>O compressor precisa de uma corrente de arranque muito alta para sair do zero. O relé fornece essa corrente extra por frações de segundo, até o motor atingir velocidade de operação. Depois, ele desliga o circuito de partida automaticamente. Se o relé falha, o compressor não arranca — e o equipamento para de funcionar.</p>
+  <h2>O que é o relé da geladeira e para que serve</h2>
+  <p>O compressor precisa de um “empurrão” de corrente para sair do zero. O <strong>relé de partida</strong> manda essa corrente extra para a bobina de partida do motor por uma fração de segundo e depois a desliga. Sem ele, o compressor só zumbe ou nem tenta ligar — e a geladeira para de gelar.</p>
+  <p>Na maioria das geladeiras com compressor Embraco, o relé vem junto com o <strong>protetor térmico</strong> (relé conjugado): se o compressor esquentar demais, o protetor desliga tudo para proteger o motor.</p>
 
-    <div class="info-box">
-      <div class="info-box-title">Em quais equipamentos o relé é usado</div>
-      <ul>
-        <li>Geladeiras e freezers domésticos</li>
-        <li>Câmaras frias e expositores refrigerados</li>
-        <li>Ar-condicionado split — relé na placa eletrônica</li>
-        <li>Bebedouros e frigoríficos comerciais</li>
-      </ul>
-    </div>
-  </div>
+  <h2>Onde fica o relé da geladeira</h2>
+  <p>Atrás da geladeira, na parte de baixo, fica o <strong>compressor</strong> (uma “bola” preta de metal). O relé está encaixado na lateral dele, sob uma tampinha plástica onde chegam os fios. Ele sai puxando — não tem solda.</p>
+  <div class="note-box"><strong>⚡ Antes de mexer:</strong> tire a geladeira da tomada. Os terminais do compressor ficam energizados com a geladeira ligada.</div>
 
-  <div class="article-section">
-    <h2>Tipos de relé usados em refrigeração</h2>
+  <h2>Como saber se o relé queimou</h2>
+  <ul>
+    <li>A luz interna acende, mas a geladeira não gela</li>
+    <li>O compressor não liga — sem vibração, sem barulho</li>
+    <li>“Clic” a cada poucos minutos e o compressor não parte (protetor térmico desarmando)</li>
+    <li>Cheiro de queimado ou relé escurecido perto do compressor</li>
+    <li>A geladeira parou de repente depois de uma queda de energia</li>
+  </ul>
+  <div class="tip-box">💡 <strong>Teste rápido:</strong> com a geladeira desligada, tire o relé e chacoalhe perto do ouvido. Barulho de peça solta dentro = relé com defeito (principalmente o de indução). Sem barulho não garante que está bom — o teste com multímetro confirma.</div>
+  <p>Se o relé e o protetor estiverem bons e o compressor continuar sem partir, o problema pode ser o capacitor de partida (em alguns modelos) ou o próprio compressor.</p>
 
-    <h3>1. Relé de indução</h3>
-    <p>O relé de indução é o modelo mais antigo e ainda muito comum no Brasil. Ele usa uma <strong>bobina de cobre</strong> enrolada em torno de um núcleo metálico para criar um campo magnético que aciona o pistão de partida do compressor.</p>
-    <p>É encontrado principalmente em geladeiras mais antigas e em compressores de marcas como Tecumseh e Aspera. Quando você chacoalha um relé de indução e ouve um barulho de "rattling" (peça solta), é sinal de defeito — o pistão interno está quebrado.</p>
+  <h2>Tipos de relé de geladeira</h2>
 
-    <div class="tip-box">
-      <p>💡 Para testar: chacoalhe o relé perto do ouvido. Se ouvir barulho de peça solta dentro, ele está com defeito e precisa ser trocado.</p>
-    </div>
-
-    <p>
-      <span class="product-row">
-        {% if products.get('rele-de-inducao') and products['rele-de-inducao'].image %}
-          <img class="product-thumb" src="{{ products['rele-de-inducao'].image|imgurl(96) }}" alt="Relé de indução" loading="lazy">
-        {% else %}
-          <span class="product-thumb" aria-hidden="true"></span>
-        {% endif %}
-        <span class="product-row-info">
-          <a class="product-name-link" href="/product/rele-de-inducao">Relé de indução</a>
-          {% if products.get('rele-de-inducao') and products['rele-de-inducao'].sale_price %}
-            <span class="product-price">R$ {{ "%.2f"|format(products['rele-de-inducao'].sale_price)|replace('.', ',') }}</span>
-          {% endif %}
-          <a class="product-wa-btn wa-track" href="https://wa.me/{{ wa_number }}?text={{ msg_rele_inducao | urlencode }}" target="_blank" rel="noopener" data-product="Relé de indução"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>Comprar pelo WhatsApp</a>
-        </span>
-      </span>
-    </p>
-
-    <h3>2. Relé PTC (dispositivo de partida)</h3>
-    <p>O <strong>PTC (Positive Temperature Coefficient)</strong> é um dispositivo de partida usado em muitos compressores de geladeira. Ele permite a passagem de corrente para o enrolamento de partida no momento em que o compressor é ligado. Conforme o PTC aquece, sua resistência aumenta e a corrente de partida é reduzida.</p>
-    <p>Por isso, o PTC correto precisa ser compatível com o compressor. Um PTC com especificação inadequada pode impedir a partida do compressor ou provocar funcionamento incorreto.</p>
-    <p>
-      <span class="product-row">
-        {% if products.get('rele-ptc') and products['rele-ptc'].image %}
-          <img class="product-thumb" src="{{ products['rele-ptc'].image|imgurl(96) }}" alt="Relé PTC para compressor de geladeira" loading="lazy">
-        {% else %}
-          <span class="product-thumb" aria-hidden="true"></span>
-        {% endif %}
-        <span class="product-row-info">
-          <a class="product-name-link" href="/product/rele-ptc">Relé PTC</a>
-          {% if products.get('rele-ptc') and products['rele-ptc'].sale_price %}
-            <span class="product-price">R$ {{ "%.2f"|format(products['rele-ptc'].sale_price)|replace('.', ',') }}</span>
-          {% endif %}
-          <a class="product-wa-btn wa-track" href="https://wa.me/{{ wa_number }}?text={{ 'Olá! Tenho interesse no relé PTC para geladeira. Qual o preço e disponibilidade?' | urlencode }}" target="_blank" rel="noopener" data-product="Relé PTC">Comprar pelo WhatsApp</a>
-        </span>
-      </span>
-    </p>
-
-    <h3>3. Relé conjugado Embraco</h3>
-    <p>O relé conjugado é o padrão dos compressores <strong>Embraco</strong>, que equipam a grande maioria das geladeiras domésticas vendidas no Brasil. Ele combina dois componentes em um único corpo: o <strong>relé de partida</strong> e o <strong>protetor térmico</strong> (overload).</p>
-    <p>Os modelos são identificados pela fração que indica a potência do compressor: 1/2, 1/3, 1/4, 1/5, 1/6 e 1/8 HP. É fundamental usar o relé da potência correta — um relé errado pode não acionar o compressor ou danificá-lo ao longo do tempo.</p>
-
-    <table class="rele-table">
-      <tr><th>Modelo</th><th>Compressor</th><th>Aplicação típica</th></tr>
-      <tr><td><strong>Embraco 1/8</strong></td><td>Muito pequeno</td><td>Frigobar, mini geladeira</td></tr>
-      <tr><td><strong>Embraco 1/6</strong></td><td>Pequeno</td><td>Geladeira 120–180 L</td></tr>
-      <tr><td><strong>Embraco 1/5</strong></td><td>Pequeno-médio</td><td>Geladeira 180–250 L</td></tr>
-      <tr><td><strong>Embraco 1/4</strong></td><td>Médio</td><td>Geladeira 250–350 L</td></tr>
-      <tr><td><strong>Embraco 1/3</strong></td><td>Médio-grande</td><td>Geladeira 350–450 L, freezer</td></tr>
-      <tr><td><strong>Embraco 1/2</strong></td><td>Grande</td><td>Freezer vertical, geladeira duplex</td></tr>
+  <h3>1. Relé conjugado Embraco (o mais comum)</h3>
+  <p>Padrão nos compressores <strong>Embraco</strong>, que equipam a maioria das geladeiras brasileiras (Brastemp, Consul, Electrolux e outras). Junta <strong>relé de partida + protetor térmico</strong> em uma peça. É escolhido pela <strong>potência do compressor</strong> e pela <strong>voltagem</strong> (110V ou 220V).</p>
+  <div class="table-wrap">
+    <table class="blog-table">
+      <tr><th>Potência</th><th>Aplicação típica (aproximada)</th></tr>
+      <tr><td><strong>1/8 HP</strong></td><td>Frigobar, mini geladeira</td></tr>
+      <tr><td><strong>1/6 HP</strong></td><td>Geladeira pequena (até ~250 L)</td></tr>
+      <tr><td><strong>1/5 HP</strong></td><td>Geladeira média</td></tr>
+      <tr><td><strong>1/4 HP</strong></td><td>Geladeira grande, duplex, frost free</td></tr>
+      <tr><td><strong>1/3 HP</strong></td><td>Duplex grande, freezer horizontal</td></tr>
+      <tr><td><strong>1/2 HP</strong></td><td>Freezer vertical, expositor, comercial</td></tr>
     </table>
-
-    <div class="warn-box">
-      <p>⚠️ <strong>Atenção:</strong> sempre confira a potência impressa no compressor antes de comprar o relé. A etiqueta fica colada no corpo do compressor, perto dos terminais.</p>
-    </div>
-
-    <p>
-      <span class="product-row">
-        {% if products.get('rele-embraco-conjugado-1-2-220v-hulter') and products['rele-embraco-conjugado-1-2-220v-hulter'].image %}
-          <img class="product-thumb" src="{{ products['rele-embraco-conjugado-1-2-220v-hulter'].image|imgurl(96) }}" alt="Relé Embraco 1/2 220V Hulter" loading="lazy">
-        {% else %}
-          <span class="product-thumb" aria-hidden="true"></span>
-        {% endif %}
-        <span class="product-row-info">
-          <a class="product-name-link" href="/product/rele-embraco-conjugado-1-2-220v-hulter">Relé Embraco 1/2 220V Hulter</a>
-          {% if products.get('rele-embraco-conjugado-1-2-220v-hulter') and products['rele-embraco-conjugado-1-2-220v-hulter'].sale_price %}
-            <span class="product-price">R$ {{ "%.2f"|format(products['rele-embraco-conjugado-1-2-220v-hulter'].sale_price)|replace('.', ',') }}</span>
-          {% endif %}
-          <a class="product-wa-btn wa-track" href="https://wa.me/{{ wa_number }}?text={{ msg_rele_embraco | urlencode }}" target="_blank" rel="noopener" data-product="Relé Embraco 1/2 220V Hulter"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>Comprar pelo WhatsApp</a>
-        </span>
-      </span>
-    </p>
-    <p>
-      <span class="product-row">
-        {% if products.get('rele-embraco-conjugado-1-3-220v-hulter') and products['rele-embraco-conjugado-1-3-220v-hulter'].image %}
-          <img class="product-thumb" src="{{ products['rele-embraco-conjugado-1-3-220v-hulter'].image|imgurl(96) }}" alt="Relé Embraco 1/3 220V Hulter" loading="lazy">
-        {% else %}
-          <span class="product-thumb" aria-hidden="true"></span>
-        {% endif %}
-        <span class="product-row-info">
-          <a class="product-name-link" href="/product/rele-embraco-conjugado-1-3-220v-hulter">Relé Embraco 1/3 220V Hulter</a>
-          {% if products.get('rele-embraco-conjugado-1-3-220v-hulter') and products['rele-embraco-conjugado-1-3-220v-hulter'].sale_price %}
-            <span class="product-price">R$ {{ "%.2f"|format(products['rele-embraco-conjugado-1-3-220v-hulter'].sale_price)|replace('.', ',') }}</span>
-          {% endif %}
-          <a class="product-wa-btn wa-track" href="https://wa.me/{{ wa_number }}?text={{ msg_rele_embraco | urlencode }}" target="_blank" rel="noopener" data-product="Relé Embraco 1/3 220V Hulter"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>Comprar pelo WhatsApp</a>
-        </span>
-      </span>
-    </p>
-    <p>
-      <span class="product-row">
-        {% if products.get('rele-embraco-conjugado-1-5-220v-dugold') and products['rele-embraco-conjugado-1-5-220v-dugold'].image %}
-          <img class="product-thumb" src="{{ products['rele-embraco-conjugado-1-5-220v-dugold'].image|imgurl(96) }}" alt="Relé Embraco 1/5 220V Dugold" loading="lazy">
-        {% else %}
-          <span class="product-thumb" aria-hidden="true"></span>
-        {% endif %}
-        <span class="product-row-info">
-          <a class="product-name-link" href="/product/rele-embraco-conjugado-1-5-220v-dugold">Relé Embraco 1/5 220V Dugold</a>
-          {% if products.get('rele-embraco-conjugado-1-5-220v-dugold') and products['rele-embraco-conjugado-1-5-220v-dugold'].sale_price %}
-            <span class="product-price">R$ {{ "%.2f"|format(products['rele-embraco-conjugado-1-5-220v-dugold'].sale_price)|replace('.', ',') }}</span>
-          {% endif %}
-          <a class="product-wa-btn wa-track" href="https://wa.me/{{ wa_number }}?text={{ msg_rele_embraco | urlencode }}" target="_blank" rel="noopener" data-product="Relé Embraco 1/5 220V Dugold"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>Comprar pelo WhatsApp</a>
-        </span>
-      </span>
-    </p>
-    <p>
-      <span class="product-row">
-        {% if products.get('rele-embraco-conjugado-1-6-110v-eos') and products['rele-embraco-conjugado-1-6-110v-eos'].image %}
-          <img class="product-thumb" src="{{ products['rele-embraco-conjugado-1-6-110v-eos'].image|imgurl(96) }}" alt="Relé Embraco 1/6 110V EOS" loading="lazy">
-        {% else %}
-          <span class="product-thumb" aria-hidden="true"></span>
-        {% endif %}
-        <span class="product-row-info">
-          <a class="product-name-link" href="/product/rele-embraco-conjugado-1-6-110v-eos">Relé Embraco 1/6 110V EOS</a>
-          {% if products.get('rele-embraco-conjugado-1-6-110v-eos') and products['rele-embraco-conjugado-1-6-110v-eos'].sale_price %}
-            <span class="product-price">R$ {{ "%.2f"|format(products['rele-embraco-conjugado-1-6-110v-eos'].sale_price)|replace('.', ',') }}</span>
-          {% endif %}
-          <a class="product-wa-btn wa-track" href="https://wa.me/{{ wa_number }}?text={{ msg_rele_embraco | urlencode }}" target="_blank" rel="noopener" data-product="Relé Embraco 1/6 110V EOS"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>Comprar pelo WhatsApp</a>
-        </span>
-      </span>
-    </p>
-
-    <h3>4. Relé para placa de ar-condicionado (12V 20A)</h3>
-    <p>Diferente dos relés de compressor, este é um <strong>relé eletromecânico de baixa tensão</strong> soldado diretamente na placa eletrônica do ar-condicionado split. Ele opera com bobina de 12V DC e suporta até 20A no circuito de carga.</p>
-    <p>Sua função na placa é chavear a alimentação de componentes como o ventilador, a válvula de expansão e o próprio compressor externo. Quando esse relé queima, o sintoma mais comum é o ar-condicionado ligar mas não resfriar, ou ligar e desligar sozinho sem motivo aparente.</p>
-    <p>É um componente que pode ser trocado com estação de solda — mais barato do que trocar a placa inteira, que pode custar 10 a 20 vezes mais.</p>
-
-    <div class="tip-box">
-      <p>💡 Antes de trocar a placa inteira, peça ao técnico para verificar os relés soldados. Na maioria dos casos, o defeito está em um único componente.</p>
-    </div>
-
-    <p>
-      <span class="product-row">
-        {% if products.get('rele-12v-20a-placa-ar-condicionado-split') and products['rele-12v-20a-placa-ar-condicionado-split'].image %}
-          <img class="product-thumb" src="{{ products['rele-12v-20a-placa-ar-condicionado-split'].image|imgurl(96) }}" alt="Relé 12V 20A para placa de ar-condicionado" loading="lazy">
-        {% else %}
-          <span class="product-thumb" aria-hidden="true"></span>
-        {% endif %}
-        <span class="product-row-info">
-          <a class="product-name-link" href="/product/rele-12v-20a-placa-ar-condicionado-split">Relé 12V 20A para placa de ar-condicionado</a>
-          {% if products.get('rele-12v-20a-placa-ar-condicionado-split') and products['rele-12v-20a-placa-ar-condicionado-split'].sale_price %}
-            <span class="product-price">R$ {{ "%.2f"|format(products['rele-12v-20a-placa-ar-condicionado-split'].sale_price)|replace('.', ',') }}</span>
-          {% endif %}
-          <a class="product-wa-btn wa-track" href="https://wa.me/{{ wa_number }}?text={{ msg_rele_placa | urlencode }}" target="_blank" rel="noopener" data-product="Relé placa AC"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>Comprar pelo WhatsApp</a>
-        </span>
-      </span>
-    </p>
   </div>
+  <div class="note-box">⚠️ A tabela é só uma referência. O que vale é a <strong>potência e a voltagem escritas na etiqueta do compressor</strong>. Relé de potência errada pode não dar partida ou deixar o compressor esquentar.</div>
+  {{ pc.group([
+      'rele-embraco-conjugado-1-8-220v',
+      'rele-embraco-conjugado-1-6-110v-eos',
+      'rele-embraco-conjugado-1-5-220v-dugold',
+      'rele-embraco-conjugado-1-4-220v-hulter',
+      'rele-embraco-conjugado-1-3-220v-hulter',
+      'rele-embraco-conjugado-1-2-220v-hulter'], 'Relé conjugado') }}
+  <p>Também temos o relé Embraco simples (sem protetor) em todas as potências:</p>
+  {{ pc.group([
+      'rele-embraco-1-8', 'rele-embraco-1-6', 'rele-embraco-1-5',
+      'rele-embraco-1-4', 'rele-embraco-1-3', 'rele-embraco-1-2'], 'Relé Embraco') }}
 
-  <div class="article-section">
-    <h2>Como identificar que o relé está com defeito</h2>
-    <p>O relé raramente apresenta defeito visível. Na maioria das vezes, ele simplesmente para de funcionar sem sinais externos. Os sintomas dependem do tipo de equipamento:</p>
+  <h3>2. Relé PTC</h3>
+  <p>O <strong>PTC</strong> tem uma pastilha que esquenta quando a corrente passa: na partida ela deixa a corrente passar e, aquecida, corta a bobina de partida. É comum em compressores mais novos e econômicos. Precisa ser compatível com o compressor.</p>
+  {{ pc.group(['rele-ptc', 'protetor-termico-ptc'], 'PTC') }}
 
-    <h3>Na geladeira</h3>
-    <ul>
-      <li>Geladeira não gela mas a luz interna funciona normalmente</li>
-      <li>Compressor não liga — sem vibração e sem barulho no motor</li>
-      <li>Barulho de "click" repetido sem o compressor partir (sinal de protetor térmico atuando)</li>
-      <li>Cheiro leve de queimado próximo ao compressor</li>
-      <li>Geladeira gelava antes e parou de funcionar de repente</li>
-    </ul>
+  <h3>3. Relé de indução</h3>
+  <p>Modelo mais antigo, com bobina de cobre e um pistão interno. Aparece em geladeiras antigas e compressores de outras marcas. Defeito típico: o pistão quebra e faz barulho de peça solta.</p>
+  {{ pc.card('rele-de-inducao', 'Indução') }}
 
-    <h3>No ar-condicionado</h3>
-    <ul>
-      <li>Liga normalmente mas não resfria — ventilador funciona, compressor não</li>
-      <li>Desliga sozinho poucos minutos após ligar</li>
-      <li>Exibe código de erro na placa (varia por fabricante)</li>
-      <li>Unidade externa não liga mesmo com a interna funcionando</li>
-    </ul>
+  <h3>4. Protetor térmico (overload) e Klixon</h3>
+  <p>Se o relé do seu compressor é separado do protetor, ou se o protetor está desarmando toda hora (“clic” sem partir), troque os dois juntos — costumam falhar juntos.</p>
+  {{ pc.group([
+      'protetor-termico-embraco-1-4-110v',
+      'protetor-termico-embraco-1-3-110v',
+      'rele-klixon-para-compressor-de-geladeira'], 'Protetor térmico') }}
 
-    <div class="info-box">
-      <div class="info-box-title">Teste simples para o relé da geladeira</div>
-      <ul>
-        <li>Desligue a geladeira da tomada</li>
-        <li>Retire o relé do compressor (encaixe simples, sem solda)</li>
-        <li>Chacoalhe o relé perto do ouvido</li>
-        <li>Se ouvir barulho de peça solta: relé com defeito</li>
-        <li>Se não ouvir nada: pode estar ok, mas o teste elétrico confirma</li>
-      </ul>
-    </div>
-  </div>
+  <h3>5. Relé de placa de ar-condicionado (12V 20A)</h3>
+  <p>Outro tipo de relé: fica soldado na placa eletrônica do split e liga o compressor e o ventilador da condensadora. Quando queima, o ar liga mas não gela, ou liga e desliga sozinho. Trocar o relé sai muito mais barato que trocar a placa — mas precisa de estação de solda.</p>
+  {{ pc.card('rele-12v-20a-placa-ar-condicionado-split', 'Placa de ar-condicionado') }}
 
-  <div class="article-section">
-    <h2>Como escolher o relé certo</h2>
-    <p>Comprar o relé errado é o erro mais comum. Antes de comprar, levante as seguintes informações:</p>
-
-    <table class="rele-table">
-      <tr><th>Tipo de equipamento</th><th>O que verificar</th><th>Onde encontrar</th></tr>
-      <tr><td>Geladeira com compressor Embraco</td><td>Potência do compressor (1/4, 1/3, 1/2…)</td><td>Etiqueta colada no compressor</td></tr>
-      <tr><td>Geladeira com compressor antigo</td><td>Modelo do compressor</td><td>Placa de identificação no compressor</td></tr>
-      <tr><td>Ar-condicionado split</td><td>Tensão da bobina (12V) e corrente (20A)</td><td>Serigrafia no corpo do relé ou datasheet da placa</td></tr>
+  <h2>Como escolher o relé certo</h2>
+  <div class="table-wrap">
+    <table class="blog-table">
+      <tr><th>Equipamento</th><th>O que conferir</th><th>Onde ver</th></tr>
+      <tr><td>Geladeira com compressor Embraco</td><td>Potência (1/4, 1/5…) e voltagem</td><td>Etiqueta colada no compressor</td></tr>
+      <tr><td>Geladeira antiga / outra marca</td><td>Modelo do compressor</td><td>Placa de identificação do compressor</td></tr>
+      <tr><td>Ar-condicionado split</td><td>Bobina 12V e corrente 20A</td><td>Escrito no corpo do relé</td></tr>
     </table>
-
-    <div class="warn-box">
-      <p>⚠️ Não use o tamanho físico como critério — relés de potências diferentes podem ter o mesmo encaixe mas especificações elétricas incompatíveis com o compressor.</p>
-    </div>
   </div>
+  <p>Não escolha pelo tamanho: relés de potências diferentes têm o mesmo encaixe. Na dúvida, mande uma foto da etiqueta do compressor no WhatsApp.</p>
 
-  <div class="article-section">
-    <h2>Posso trocar o relé eu mesmo?</h2>
-    <p>Depende do tipo:</p>
-    <p><strong>Relé de geladeira (Embraco ou indução):</strong> sim, a troca é simples. O relé encaixa diretamente nos terminais do compressor sem solda. Basta desligar o equipamento da tomada, retirar o relé antigo e encaixar o novo. O processo leva menos de 5 minutos.</p>
-    <p><strong>Relé de placa de ar-condicionado:</strong> requer estação de solda e alguma experiência com eletrônica. Se não tiver prática, é melhor chamar um técnico — o risco de danificar a placa por excesso de calor é real.</p>
+  <h2>Posso trocar o relé sozinho?</h2>
+  <p><strong>Relé de geladeira:</strong> sim. Desligue da tomada, puxe o relé antigo dos terminais do compressor, encaixe o novo na mesma posição e recoloque a tampinha — leva poucos minutos. <strong>Relé de placa de ar-condicionado:</strong> só com solda; se não tiver prática, chame um técnico.</p>
+{% endblock %}
 
-    <div class="tip-box">
-      <p>💡 Se for trocar o relé da geladeira você mesmo, sempre compre também o protetor térmico (overload). Os dois costumam falhar juntos e a troca preventiva evita uma segunda visita ao técnico.</p>
-    </div>
+{% block cta_text %}Mande uma foto da etiqueta do compressor (potência e voltagem) no WhatsApp: a gente confirma o relé certo. Retire hoje na Av. Brasil, 6818 (Bonsucesso) ou receba no mesmo dia no RJ.{% endblock %}
+
+{% block related %}
+<div class="related">
+  <div class="related-title">Outros guias</div>
+  <div class="related-grid">
+    <a class="related-card" href="/blog/capacitor-de-partida-geladeira"><b>Capacitor de geladeira: sintomas e como escolher</b><span>Ler guia →</span></a>
+    <a class="related-card" href="/blog/geladeira-nao-gela-embaixo"><b>Geladeira não gela embaixo? 5 causas</b><span>Ler guia →</span></a>
   </div>
-
-  <div class="related-articles">
-    <div class="related-title">Outros guias</div>
-    <div class="related-grid">
-      <a class="related-card" href="/blog/gas-refrigerante-rj">
-        <div class="related-card-icon">🧪</div>
-        <div class="related-card-title">Gás refrigerante no RJ: tipos e preços</div>
-        <div class="related-card-cta">Ler guia →</div>
-      </a>
-      <a class="related-card" href="/blog/capacitor-ar-condicionado">
-        <div class="related-card-icon">⚡</div>
-        <div class="related-card-title">Capacitor de ar-condicionado queimado?</div>
-        <div class="related-card-cta">Ler guia →</div>
-      </a>
-    </div>
-  </div>
-
 </div>
-
-<a class="wa-float wa-track" href="https://wa.me/{{ wa_number }}?text=Ol%C3%A1%21%20Tenho%20uma%20d%C3%BAvida%20sobre%20refrigera%C3%A7%C3%A3o." target="_blank" rel="noopener" data-product="Blog WA float">
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
-  <span>Falar no WhatsApp</span>
-</a>
-
-<footer>M.T.F Refrigeração · Rio de Janeiro</footer>
-
-<script>
-document.querySelectorAll('.wa-track').forEach(el=>{
-  el.addEventListener('click',function(){
-    const product=this.dataset.product||'Geral';
-    if(typeof gtag!=='undefined')gtag('event','whatsapp_click',{product_name:product});
-    fetch('/api/track/whatsapp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({product})}).catch(()=>{});
-  });
-});
-</script>
-</body>
-</html>
+{% endblock %}

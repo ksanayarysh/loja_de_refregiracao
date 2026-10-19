@@ -1,218 +1,96 @@
-<!doctype html>
-<html lang="pt-BR">
-<head>
-  <meta charset="utf-8">
-  <link rel="icon" type="image/png" href="/static/favicon.png">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Geladeira fazendo barulho: causas e o que fazer | M.T.F Refrigeração</title>
-  <meta name="description" content="Sua geladeira está fazendo barulho estranho? Veja as causas mais comuns, quando é normal e quais peças podem resolver o problema.">
-  <meta name="robots" content="index, follow">
-  <link rel="canonical" href="{{ site_url }}/blog/geladeira-fazendo-barulho">
-  <meta property="og:type" content="article">
-  <meta property="og:title" content="Geladeira fazendo barulho: causas e o que fazer">
-  <meta property="og:description" content="Sua geladeira está fazendo barulho estranho? Veja as causas mais comuns e quais peças podem resolver o problema.">
-  <meta property="og:image" content="{{ site_url }}/static/og-catalog.jpg">
-  {% if ga_id %}
-  <script async src="https://www.googletagmanager.com/gtag/js?id={{ ga_id }}"></script>
-  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","{{ ga_id }}");</script>
-  {% endif %}
-  {% include '_header_styles.html' %}
-  <style>
-    .article-wrap{max-width:720px;margin:0 auto;padding:40px 20px 80px;}
-    .back-link{display:inline-flex;align-items:center;gap:6px;color:var(--muted);text-decoration:none;font-size:.88rem;font-weight:500;margin-bottom:28px;}
-    .back-link:hover{color:var(--accent);}
-    .breadcrumb-bar{max-width:720px;margin:0 auto;padding:16px 20px 0;display:flex;align-items:center;gap:6px;font-size:.82rem;color:var(--muted);flex-wrap:wrap;}
-    .breadcrumb-bar a{color:var(--muted);text-decoration:none;}.breadcrumb-bar a:hover{color:var(--accent);}
+{% extends 'blog/_article_base.html' %}
+{% import 'blog/_produto.html' as pc with context %}
 
-    .article-header{margin-bottom:36px;}
-    .article-tag{display:inline-block;background:var(--accent-l);border:1px solid var(--accent-b);border-radius:20px;padding:4px 12px;font-size:.75rem;font-weight:700;color:var(--accent);margin-bottom:14px;letter-spacing:.04em;text-transform:uppercase;}
-    .article-header h1{font-size:clamp(1.6rem,4vw,2.2rem);font-weight:700;letter-spacing:-.02em;line-height:1.25;margin-bottom:14px;}
-    .article-lead{font-size:1.05rem;color:var(--muted);line-height:1.7;padding-bottom:24px;border-bottom:1px solid var(--border);}
+{% block title %}Geladeira fazendo barulho: o que pode ser e como resolver | M.T.F Refrigeração{% endblock %}
 
-    .article-section{margin-bottom:32px;}
-    .article-section h2{font-size:1.15rem;font-weight:700;margin-bottom:12px;margin-top:32px;color:var(--text);}
-    .article-section h3{font-size:.98rem;font-weight:700;margin-bottom:8px;margin-top:20px;color:var(--text);}
-    .article-section p{font-size:.95rem;line-height:1.75;color:var(--text);margin-bottom:12px;}
-    .article-section ul,.article-section ol{padding-left:20px;margin-bottom:12px;}
-    .article-section li{font-size:.95rem;line-height:1.75;color:var(--text);margin-bottom:4px;}
+{% block head %}
+  <meta name="description" content="Barulho de raspar, clic, zumbido ou batida na geladeira? Veja quando é normal e quando é o ventilador, o compressor, o relé ou o gelo — e qual peça resolve. Retire hoje no RJ.">
+  <meta property="og:title" content="Geladeira fazendo barulho: o que pode ser e como resolver">
+  <meta property="og:description" content="Identifique o barulho da sua geladeira pelo tipo de som e veja qual peça resolve.">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Geladeira fazendo barulho: o que pode ser e como resolver",
+    "description": "Como identificar o barulho da geladeira pelo tipo de som e qual peça resolve.",
+    "mainEntityOfPage": {"@type": "WebPage", "@id": "{{ site_url }}/blog/{{ article.slug }}"},
+    "author": {"@type": "Organization", "name": "M.T.F Refrigeração", "url": "{{ site_url }}/"},
+    "publisher": {"@type": "Organization", "name": "M.T.F Refrigeração", "url": "{{ site_url }}/",
+                  "logo": {"@type": "ImageObject", "url": "{{ site_url }}/static/og-catalog.jpg"}}
+  }
+  </script>
+{% endblock %}
 
-    .product-link{display:inline-flex;align-items:center;gap:6px;color:var(--accent);font-weight:600;text-decoration:none;font-size:.9rem;background:var(--accent-l);border:1px solid var(--accent-b);border-radius:8px;padding:4px 10px;margin:2px 0;}
-    .product-link:hover{background:#ffe8ef;}
-    .product-link::before{content:'🔗';font-size:.8rem;}
+{% block crumb %}Geladeira fazendo barulho{% endblock %}
+{% block h1 %}Geladeira fazendo barulho: o que pode ser e como resolver{% endblock %}
+{% block lead %}Raspando, “clic” repetido, zumbido alto ou vibração? O tipo de barulho já diz muito sobre a peça com problema. Veja quando é normal e quando precisa trocar algo.{% endblock %}
 
-    .info-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin:16px 0;}
-    .info-box-title{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
-    .info-box ul{padding-left:16px;margin:0;}
-    .info-box li{font-size:.88rem;color:var(--text);line-height:1.65;margin-bottom:3px;}
-    .warn-box{background:var(--accent-l);border:1px solid var(--accent-b);border-radius:12px;padding:16px 18px;margin:16px 0;}
-    .warn-box p{font-size:.88rem;color:var(--text);margin:0;line-height:1.6;}
+{% block content %}
+  <div class="lead-box">
+    <p><strong>Pelo som:</strong> <strong>raspando/batendo</strong> dentro do freezer = ventilador pegando no gelo; <strong>“clic” a cada poucos minutos</strong> sem gelar = relé/protetor do compressor; <strong>zumbido forte ou vibração</strong> atrás = compressor ou geladeira desnivelada; <strong>estalos leves</strong> = normal.</p>
+  </div>
 
-    .cta-block{background:var(--surface);border:1.5px solid var(--border);border-radius:16px;padding:24px;margin-top:40px;text-align:center;}
-    .cta-block h3{font-size:1.1rem;font-weight:700;margin-bottom:8px;}
-    .cta-block p{color:var(--muted);font-size:.9rem;margin-bottom:20px;line-height:1.55;}
-    .cta-wa{display:inline-flex;align-items:center;gap:8px;background:var(--wa);color:#fff;padding:13px 24px;border-radius:10px;font-weight:700;font-size:.95rem;text-decoration:none;transition:opacity .15s;}
-    .cta-wa:hover{opacity:.88;}
-    .cta-tecnico{display:inline-flex;align-items:center;gap:8px;background:#f0f7ff;color:#1a6bc4;border:1.5px solid #c6dfff;padding:12px 20px;border-radius:10px;font-weight:700;font-size:.92rem;text-decoration:none;margin-top:10px;transition:background .15s;}
-    .cta-tecnico:hover{background:#dbeeff;}
+  <h2>Quando o barulho é normal</h2>
+  <ul>
+    <li>Estalos leves (plástico dilatando e contraindo com a temperatura)</li>
+    <li>Zumbido baixo e constante do compressor funcionando</li>
+    <li>Som de líquido correndo (é o gás circulando)</li>
+    <li>Pingos ou chiado durante o degelo automático</li>
+  </ul>
+  <p>Se o som é leve, ocasional e a geladeira gela normalmente, está tudo bem.</p>
 
-    .related-articles{margin-top:40px;padding-top:24px;border-top:1px solid var(--border);}
-    .related-title{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:16px;}
-    .related-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-    .related-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;text-decoration:none;color:inherit;transition:border-color .15s;}
-    .related-card:hover{border-color:var(--accent);}
-    .related-card-icon{font-size:1.3rem;margin-bottom:8px;}
-    .related-card-title{font-weight:700;font-size:.88rem;line-height:1.3;color:var(--text);}
-    .related-card-cta{font-size:.78rem;color:var(--accent);font-weight:700;margin-top:6px;}
+  <h2>1. Raspando ou batendo dentro do freezer: ventilador</h2>
+  <p>Som de “raspando” ou “hélice batendo” vindo do fundo do freezer quase sempre é o <strong>ventilador</strong>: ou o gelo acumulado está encostando nas pás (problema de degelo), ou o motor está gasto e fazendo ruído.</p>
+  <p>Abra o freezer: se o barulho aumenta e há gelo no fundo, veja também o guia <a href="/blog/geladeira-frost-free-acumulando-gelo">frost free acumulando gelo</a>. Se não há gelo e o ruído continua, o motor do ventilador precisa ser trocado.</p>
+  {{ pc.group([
+      'motor-ventilador-brastemp-consul-127v-w11369860-original',
+      'motor-ventilador-geladeira-brastemp-consul-w10399715',
+      'motor-ventilador-rede-eletrica-electrolux-220v-50-60hz-dc46-dc48-dc49x'], 'Motor do ventilador') }}
 
-    footer{border-top:1px solid var(--border);padding:20px;text-align:center;font-size:.8rem;color:var(--muted);}
+  <h2>2. Gelo acumulado: falha no degelo</h2>
+  <p>Quando o degelo não funciona, o gelo cresce até tocar o ventilador e bloquear o ar. A geladeira fica barulhenta e, logo depois, para de gelar embaixo. As peças que mais resolvem:</p>
+  {{ pc.group([
+      'resistencia-evoporador-brm3743-br-cr-kr-225w-127v',
+      'sensor-biometal-eletrolux',
+      'timer-de-degelo-eletrolux-220v'], 'Degelo') }}
 
-    @media(max-width:500px){
-      .article-wrap{padding:24px 16px 60px;}
-      .related-grid{grid-template-columns:1fr;}
-      .cta-wa,.cta-tecnico{width:100%;justify-content:center;}
-    }
-    .product-row{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;margin:4px 0;}
-    .product-name-link{color:var(--accent);font-weight:600;text-decoration:none;font-size:.9rem;}
-    .product-name-link:hover{text-decoration:underline;}
-    .product-wa-btn{display:inline-flex;align-items:center;gap:5px;background:var(--wa);color:#fff;font-weight:700;font-size:.78rem;padding:5px 12px;border-radius:7px;text-decoration:none;transition:opacity .15s;white-space:nowrap;}
-    .product-wa-btn:hover{opacity:.88;}
-  </style>
-</head>
-<body>
+  <h2>3. “Clic” repetido e a geladeira não gela: relé ou protetor térmico</h2>
+  <p>Um “clic” atrás da geladeira a cada poucos minutos, sem o motor pegar, é o <strong>protetor térmico</strong> desarmando porque o compressor não consegue partir — geralmente por <strong>relé</strong> com defeito. É uma troca barata e sem solda. Veja como escolher no guia <a href="/blog/rele-refrigeracao">relé de geladeira</a>.</p>
+  {{ pc.group([
+      'rele-embraco-conjugado-1-4-220v-hulter',
+      'rele-embraco-conjugado-1-6-110v-eos',
+      'rele-ptc'], 'Relé de partida') }}
 
-{% set active_page = 'blog' %}
-{% include '_header.html' %}
+  <h2>4. Zumbido forte ou vibração: compressor</h2>
+  <p>Zumbido muito alto, “ronco” ou vibração forte vindo de trás e de baixo pode ser o compressor desgastado ou solto nos coxins de borracha. Antes de pensar no compressor, confira o item 5 — muitas vezes é só a geladeira desnivelada encostando na parede.</p>
+  <div class="note-box">⚠️ Compressor muito barulhento pode estar perto de parar. Não ignore — principalmente se a geladeira também estiver gelando menos.</div>
+  {{ pc.group([
+      'compressor-embraco-1-4-127v-emr80hlr-gas-r134a',
+      'compressor-embraco-emr70hlr-1-5-hp-r134'], 'Compressor') }}
 
-<div class="breadcrumb-bar">
-  <a href="/">Início</a><span>›</span>
-  <a href="/blog">Guias</a><span>›</span>
-  <span>Geladeira fazendo barulho</span>
+  <h2>5. Geladeira desnivelada ou encostada</h2>
+  <p>A causa mais simples: a geladeira não está nivelada e vibra contra o piso, a parede ou um móvel. Ajuste os pés reguláveis e deixe uns 10 cm de espaço atrás.</p>
+
+  <h2>Passo a passo para descobrir</h2>
+  <ol>
+    <li>Confira o nível e o espaço atrás da geladeira</li>
+    <li>Abra o freezer e escute: o barulho vem do ventilador? Há gelo no fundo?</li>
+    <li>Escute atrás e embaixo: “clic” repetido (relé) ou zumbido forte (compressor)?</li>
+    <li>Anote quando acontece: sempre, ao ligar o motor, à noite</li>
+    <li>Grave um vídeo curto do barulho e mande no WhatsApp — ajuda muito a identificar</li>
+  </ol>
+  <div class="note-box"><strong>⚡ Atenção:</strong> desligue a geladeira da tomada antes de mexer em qualquer peça elétrica.</div>
+{% endblock %}
+
+{% block cta_title %}Não sabe o que é o barulho?{% endblock %}
+{% block cta_text %}Grave um vídeo curto do barulho e mande no WhatsApp com a foto da etiqueta da geladeira: a gente ajuda a identificar a peça antes de você comprar. Retire hoje na Av. Brasil, 6818 (Bonsucesso) ou receba no mesmo dia no RJ.{% endblock %}
+
+{% block related %}
+<div class="related">
+  <div class="related-title">Outros guias</div>
+  <div class="related-grid">
+    <a class="related-card" href="/blog/geladeira-frost-free-acumulando-gelo"><b>Frost free acumulando gelo: causas e solução</b><span>Ler guia →</span></a>
+    <a class="related-card" href="/blog/rele-refrigeracao"><b>Relé de geladeira: o que é e como testar</b><span>Ler guia →</span></a>
+  </div>
 </div>
-
-<div class="article-wrap">
-{% set msg_termostato_wdf20 = "Olá! Tenho interesse em: Termostato de geladeira WDF20. Está disponível?" %}
-{% set msg_termostato_consul = "Olá! Tenho interesse em: Termostato geladeira Consul. Está disponível?" %}
-{% set msg_termostato_electrolux = "Olá! Tenho interesse em: Termostato Electrolux Dc34a. Está disponível?" %}
-{% set msg_sensor = "Olá! Tenho interesse em: Sensor de temperatura 2.7k Brastemp. Está disponível?" %}
-{% set msg_filtro = "Olá! Tenho interesse em: Filtro secador Samsung. Está disponível?" %}
-{% set msg_capacitor = "Olá! Tenho interesse em: Capacitor de partida 270-324uf. Está disponível?" %}
-
-
-  <div class="article-header">
-    <div class="article-tag">🧊 Geladeira</div>
-    <h1>Geladeira fazendo barulho: o que pode ser e como resolver</h1>
-    <p class="article-lead">Sua geladeira está fazendo barulho estranho, zumbido ou batida? Em muitos casos é normal — mas também pode indicar problema em peças como ventilador, compressor ou sistema de degelo.</p>
-  </div>
-
-  <div class="article-section">
-    <h2>Quando o barulho é normal</h2>
-    <p>Nem todo barulho significa defeito. Geladeiras modernas fazem sons como:</p>
-    <ul>
-      <li>Estalos durante expansão e contração do material</li>
-      <li>Zumbido leve do compressor em funcionamento</li>
-      <li>Ruído de circulação de gás no sistema</li>
-      <li>Gotejamento durante o degelo automático</li>
-    </ul>
-    <p>Se o som for leve e ocasional, provavelmente está tudo funcionando normalmente.</p>
-  </div>
-
-  <div class="article-section">
-    <h2>Quando o barulho indica problema</h2>
-
-    <h3>1. Ventilador com defeito</h3>
-    <p>Se o barulho parece um "raspando", "clique repetido" ou "ventilador batendo em algo", pode ser o ventilador interno. Isso acontece quando gelo acumula perto das pás, ou quando o motor começa a falhar.</p>
-    <span class="product-row"><a class="product-name-link" href="https://www.mtfrefrigeracao.com.br/product/termostato-de-geladeira-wdf20">Termostato de geladeira WDF20</a><a class="product-wa-btn wa-track" href="https://wa.me/{{ wa_number }}?text={{ msg_termostato_wdf20 | urlencode }}" target="_blank" rel="noopener" data-product="Termostato de geladeira WDF20"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg> Comprar agora</a></span>
-
-    <h3>2. Compressor muito barulhento</h3>
-    <p>Um zumbido muito alto ou vibração excessiva pode indicar desgaste do compressor ou problemas de fixação. O compressor fica na parte traseira/inferior da geladeira.</p>
-    <div class="warn-box">
-      <p>⚠️ Compressor com barulho excessivo pode indicar falha próxima. Evite ignorar — a substituição preventiva sai mais barata que estragar os alimentos.</p>
-    </div>
-
-    <h3>3. Gelo acumulado no sistema</h3>
-    <p>O gelo pode bloquear o ventilador interno ou criar atrito em partes móveis. Isso costuma acontecer quando a resistência de degelo falha ou quando a porta é aberta com frequência.</p>
-    <span class="product-row"><a class="product-name-link" href="https://www.mtfrefrigeracao.com.br/product/sensor-de-temperatura-2-7k-brastemp-w10531315">Sensor de temperatura 2.7k Brastemp</a><a class="product-wa-btn wa-track" href="https://wa.me/{{ wa_number }}?text={{ msg_sensor | urlencode }}" target="_blank" rel="noopener" data-product="Sensor de temperatura 2.7k Brastemp"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg> Comprar agora</a></span>
-
-    <h3>4. Geladeira desnivelada</h3>
-    <p>Às vezes o problema é simples: a geladeira não está nivelada e vibra contra o piso ou parede. Verifique os pés reguláveis antes de investigar peças.</p>
-
-    <h3>5. Problema no termostato</h3>
-    <p>Um termostato defeituoso pode fazer o compressor ligar e desligar com frequência anormal, causando ruídos repetitivos.</p>
-    <span class="product-row"><a class="product-name-link" href="https://www.mtfrefrigeracao.com.br/product/termostato-geladeira-consul-w11082462-tsv0013-01-original">Termostato geladeira Consul</a><a class="product-wa-btn wa-track" href="https://wa.me/{{ wa_number }}?text={{ msg_termostato_consul | urlencode }}" target="_blank" rel="noopener" data-product="Termostato geladeira Consul"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg> Comprar agora</a></span><br><span class="product-row"><a class="product-name-link" href="https://www.mtfrefrigeracao.com.br/product/termostato-geladeira-electrolux-dc34a-dc33a-dc35a-wdf30a">Termostato Electrolux Dc34a/Dc35a</a><a class="product-wa-btn wa-track" href="https://wa.me/{{ wa_number }}?text={{ msg_termostato_electrolux | urlencode }}" target="_blank" rel="noopener" data-product="Termostato Electrolux Dc34a/Dc35a"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg> Comprar agora</a></span>
-  </div>
-
-  <div class="article-section">
-    <h2>O que fazer</h2>
-    <div class="info-box">
-      <div class="info-box-title">Passo a passo de diagnóstico</div>
-      <ul>
-        <li>Verifique se a geladeira está nivelada nos 4 pés</li>
-        <li>Observe se há gelo acumulado visível atrás da gaveta</li>
-        <li>Escute de onde vem o barulho (frente, fundo, lateral)</li>
-        <li>Anote quando acontece: sempre, só à noite, ao abrir a porta</li>
-        <li>Evite ignorar sons muito fortes ou contínuos</li>
-      </ul>
-    </div>
-  </div>
-
-  <div class="article-section">
-    <h2>Peças mais trocadas nesse tipo de problema</h2>
-    <p>Com base nos chamados mais comuns, as peças que mais resolvem barulhos em geladeiras são:</p>
-    <ul>
-      <li><span class="product-row"><a class="product-name-link" href="https://www.mtfrefrigeracao.com.br/product/termostato-de-geladeira-wdf20">Termostato</a><a class="product-wa-btn wa-track" href="https://wa.me/{{ wa_number }}?text={{ msg_termostato_wdf20 | urlencode }}" target="_blank" rel="noopener" data-product="Termostato"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg> Comprar agora</a></span> — regula temperatura e ciclos do compressor</li>
-      <li><span class="product-row"><a class="product-name-link" href="https://www.mtfrefrigeracao.com.br/product/sensor-de-temperatura-2-7k-brastemp-w10531315">Sensor de temperatura</a><a class="product-wa-btn wa-track" href="https://wa.me/{{ wa_number }}?text={{ msg_sensor | urlencode }}" target="_blank" rel="noopener" data-product="Sensor de temperatura"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg> Comprar agora</a></span> — aciona o degelo no momento certo</li>
-      <li><span class="product-row"><a class="product-name-link" href="https://www.mtfrefrigeracao.com.br/product/filtro-de-geladeira-samsung">Filtro secador Samsung</a><a class="product-wa-btn wa-track" href="https://wa.me/{{ wa_number }}?text={{ msg_filtro | urlencode }}" target="_blank" rel="noopener" data-product="Filtro secador Samsung"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg> Comprar agora</a></span> — mantém o gás limpo no sistema</li>
-      <li><span class="product-row"><a class="product-name-link" href="https://www.mtfrefrigeracao.com.br/product/capacitor-de-partida-270-324uf-110vac-motor-weg-110-220">Capacitor de partida 270-324uf</a><a class="product-wa-btn wa-track" href="https://wa.me/{{ wa_number }}?text={{ msg_capacitor | urlencode }}" target="_blank" rel="noopener" data-product="Capacitor de partida 270-324uf"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg> Comprar agora</a></span> — auxilia o compressor na partida</li>
-    </ul>
-    <p>Não sabe qual peça precisa? Descreva o barulho pelo WhatsApp — o técnico Douglas pode ajudar a identificar antes de você comprar.</p>
-  </div>
-
-  <div class="cta-block">
-    <h3>Não sabe o que está causando o barulho?</h3>
-    <p>Fale com nosso técnico. Envie um vídeo ou descreva o barulho — ajudamos você a identificar a peça correta sem custo.</p>
-    <a class="cta-wa wa-track" href="https://wa.me/{{ wa_number }}?text=Minha%20geladeira%20est%C3%A1%20fazendo%20barulho.%20Pode%20me%20ajudar%20a%20identificar%20o%20problema%3F" target="_blank" rel="noopener" data-product="Artigo barulho geladeira">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
-      Descrever o barulho no WhatsApp
-    </a>
-    <br>
-    <a class="cta-tecnico" href="https://wa.me/5521965832950?text=Ol%C3%A1%20Douglas%21%20Minha%20geladeira%20est%C3%A1%20fazendo%20barulho.%20Pode%20me%20ajudar%3F" target="_blank" rel="noopener">
-      🔧 Falar direto com o técnico Douglas
-    </a>
-  </div>
-
-  <div class="related-articles">
-    <div class="related-title">Outros guias</div>
-    <div class="related-grid">
-      <a class="related-card" href="/blog/geladeira-nao-gela-embaixo">
-        <div class="related-card-icon">🧊</div>
-        <div class="related-card-title">Geladeira não gela embaixo? Causas e peças</div>
-        <div class="related-card-cta">Ler guia →</div>
-      </a>
-      <a class="related-card" href="/blog">
-        <div class="related-card-icon">📖</div>
-        <div class="related-card-title">Ver todos os guias de refrigeração</div>
-        <div class="related-card-cta">Ver guias →</div>
-      </a>
-    </div>
-  </div>
-
-</div>
-
-<a class="wa-float wa-track" href="https://wa.me/{{ wa_number }}?text=Ol%C3%A1%21%20Tenho%20uma%20d%C3%BAvida%20sobre%20refrigera%C3%A7%C3%A3o." target="_blank" rel="noopener" data-product="Blog WA float">
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
-  <span>Falar no WhatsApp</span>
-</a>
-
-<footer>M.T.F Refrigeração · Rio de Janeiro</footer>
-
-<script>
-document.querySelectorAll('.wa-track').forEach(el=>{
-  el.addEventListener('click',function(){
-    const product=this.dataset.product||'Geral';
-    if(typeof gtag!=='undefined')gtag('event','whatsapp_click',{product_name:product});
-    fetch('/api/track/whatsapp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({product})}).catch(()=>{});
-  });
-});
-</script>
-</body>
-</html>
+{% endblock %}

@@ -1,26 +1,22 @@
-<!doctype html>
-<html lang="pt-BR">
-<head>
-  <meta charset="utf-8">
-  <link rel="icon" type="image/png" href="/static/favicon.png">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Geladeira Frost Free Acumulando Gelo: Causas e Peças no RJ | M.T.F Refrigeração</title>
-  <meta name="description" content="Geladeira frost free acumulando gelo? Veja resistência, sensores, timers, placa eletrônica e dreno. Encontre peças para geladeira na Av. Brasil, 6818, RJ.">
-  <meta name="robots" content="index, follow">
-  <link rel="canonical" href="{{ site_url }}/blog/geladeira-frost-free-acumulando-gelo">
-  <meta property="og:type" content="article">
-  <meta property="og:title" content="Geladeira Frost Free Acumulando Gelo: Causas e Peças no RJ">
-  <meta property="og:description" content="Frost free acumulando gelo? Veja as causas e encontre sensores, timers e placa eletrônica para o sistema de degelo. M.T.F Refrigeração no RJ.">
-  <meta property="og:image" content="{{ site_url }}/static/og-catalog.jpg">
+{% extends 'blog/_article_base.html' %}
+{% import 'blog/_produto.html' as pc with context %}
+
+{% block title %}Geladeira frost free acumulando gelo: causas e solução | M.T.F Refrigeração{% endblock %}
+
+{% block head %}
+  <meta name="description" content="Frost free fazendo gelo no fundo ou atrás da gaveta? Veja por que o degelo falha (resistência, bimetal, sensor, timer, dreno) e como resolver. Peças com retirada hoje no RJ.">
+  <meta property="og:title" content="Geladeira frost free acumulando gelo: causas e solução">
+  <meta property="og:description" content="Por que a frost free acumula gelo, como testar o degelo e quais peças resolvem.">
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "Article",
-    "headline": "Geladeira Frost Free Acumulando Gelo: Causas e Peças no RJ",
-    "description": "Geladeira frost free acumulando gelo? Veja as causas mais comuns e as peças do sistema de degelo, incluindo sensores, timers e placa eletrônica, no RJ.",
-    "author": {"@type": "Organization", "name": "M.T.F Refrigeração"},
-    "publisher": {"@type": "Organization", "name": "M.T.F Refrigeração"},
-    "url": "{{ site_url }}/blog/geladeira-frost-free-acumulando-gelo"
+    "headline": "Geladeira frost free acumulando gelo: causas e solução",
+    "description": "Por que a geladeira frost free acumula gelo, como testar o sistema de degelo e quais peças resolvem.",
+    "mainEntityOfPage": {"@type": "WebPage", "@id": "{{ site_url }}/blog/{{ article.slug }}"},
+    "author": {"@type": "Organization", "name": "M.T.F Refrigeração", "url": "{{ site_url }}/"},
+    "publisher": {"@type": "Organization", "name": "M.T.F Refrigeração", "url": "{{ site_url }}/",
+                  "logo": {"@type": "ImageObject", "url": "{{ site_url }}/static/og-catalog.jpg"}}
   }
   </script>
   <script type="application/ld+json">
@@ -28,276 +24,84 @@
     "@context": "https://schema.org",
     "@type": "FAQPage",
     "mainEntity": [
-      {"@type": "Question", "name": "Por que a geladeira frost free está acumulando gelo?", "acceptedAnswer": {"@type": "Answer", "text": "As causas mais comuns são falha no sistema de degelo, dreno entupido, vedação da porta comprometida ou uso que bloqueia a circulação de ar."}},
-      {"@type": "Question", "name": "O que pode causar falha no degelo da geladeira frost free?", "acceptedAnswer": {"@type": "Answer", "text": "A resistência de degelo, sensor, timer ou placa eletrônica podem estar envolvidos. O diagnóstico deve identificar qual componente está com defeito."}},
-      {"@type": "Question", "name": "Onde comprar sensor para geladeira frost free no RJ?", "acceptedAnswer": {"@type": "Answer", "text": "A M.T.F Refrigeração fica na Av. Brasil, 6818, no Rio de Janeiro, e trabalha com peças para geladeira, incluindo sensores de temperatura."}},
-      {"@type": "Question", "name": "Posso simplesmente desligar a geladeira para tirar o gelo?", "acceptedAnswer": {"@type": "Answer", "text": "O degelo completo pode eliminar o gelo acumulado temporariamente. Se ele voltar em poucos dias, é necessário investigar a falha no sistema de degelo."}}
+      {"@type": "Question", "name": "Por que a geladeira frost free está fazendo gelo no fundo?",
+       "acceptedAnswer": {"@type": "Answer", "text": "Quase sempre é falha no degelo automático: resistência de degelo queimada, bimetal/sensor de degelo com defeito, timer ou placa. Dreno entupido e borracha da porta ruim também causam gelo."}},
+      {"@type": "Question", "name": "Posso só desligar a geladeira para tirar o gelo?",
+       "acceptedAnswer": {"@type": "Answer", "text": "Sim, desligar por 12 a 24 horas com as portas abertas tira o gelo. Mas se o gelo voltar em poucos dias, alguma peça do degelo está com defeito e precisa ser trocada."}},
+      {"@type": "Question", "name": "Qual peça resolve frost free acumulando gelo?",
+       "acceptedAnswer": {"@type": "Answer", "text": "As mais comuns são a resistência de degelo, o bimetal (sensor de degelo) e o timer de degelo; em modelos eletrônicos, o sensor NTC ou a placa."}}
     ]
   }
   </script>
-  {% if ga_id %}
-  <script async src="https://www.googletagmanager.com/gtag/js?id={{ ga_id }}"></script>
-  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","{{ ga_id }}");</script>
-  {% endif %}
-  {% include '_header_styles.html' %}
-  <style>
-    .article-wrap{max-width:720px;margin:0 auto;padding:40px 20px 80px;}
-    .breadcrumb-bar{max-width:720px;margin:0 auto;padding:16px 20px 0;display:flex;align-items:center;gap:6px;font-size:.82rem;color:var(--muted);flex-wrap:wrap;}
-    .breadcrumb-bar a{color:var(--muted);text-decoration:none;}.breadcrumb-bar a:hover{color:var(--accent);}
-    .article-header{margin-bottom:36px;}
-    .article-tag{display:inline-block;background:var(--accent-l);border:1px solid var(--accent-b);border-radius:20px;padding:4px 12px;font-size:.75rem;font-weight:700;color:var(--accent);margin-bottom:14px;letter-spacing:.04em;text-transform:uppercase;}
-    .article-header h1{font-size:clamp(1.6rem,4vw,2.2rem);font-weight:700;letter-spacing:-.02em;line-height:1.25;margin-bottom:14px;}
-    .article-lead{font-size:1.05rem;color:var(--muted);line-height:1.7;padding-bottom:24px;border-bottom:1px solid var(--border);}
-    .article-section{margin-bottom:32px;}
-    .article-section h2{font-size:1.15rem;font-weight:700;margin-bottom:12px;margin-top:32px;color:var(--text);}
-    .article-section h3{font-size:.98rem;font-weight:700;margin-bottom:8px;margin-top:20px;color:var(--text);}
-    .article-section p{font-size:.95rem;line-height:1.75;color:var(--text);margin-bottom:12px;}
-    .article-section ul,.article-section ol{padding-left:20px;margin-bottom:12px;}
-    .article-section li{font-size:.95rem;line-height:1.75;color:var(--text);margin-bottom:4px;}
-    .product-link{display:inline-flex;align-items:center;gap:6px;color:var(--accent);font-weight:600;text-decoration:none;font-size:.9rem;background:var(--accent-l);border:1px solid var(--accent-b);border-radius:8px;padding:4px 10px;margin:2px 0;}
-    .product-link:hover{background:#ffe8ef;}
-    .product-link::before{content:'🔗';font-size:.8rem;}
-    .info-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin:16px 0;}
-    .info-box-title{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
-    .info-box ul{padding-left:16px;margin:0;}
-    .info-box li{font-size:.88rem;color:var(--text);line-height:1.65;margin-bottom:3px;}
-    .warn-box{background:var(--accent-l);border:1px solid var(--accent-b);border-radius:12px;padding:16px 18px;margin:16px 0;}
-    .warn-box p{font-size:.88rem;color:var(--text);margin:0;line-height:1.6;}
-    .cta-wa{display:inline-flex;align-items:center;gap:8px;background:var(--wa);color:#fff;padding:13px 24px;border-radius:10px;font-weight:700;font-size:.95rem;text-decoration:none;transition:opacity .15s;}
-    .cta-wa:hover{opacity:.88;}
-    .related-articles{margin-top:40px;padding-top:24px;border-top:1px solid var(--border);}
-    .related-title{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:16px;}
-    .related-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-    .related-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;text-decoration:none;color:inherit;transition:border-color .15s;}
-    .related-card:hover{border-color:var(--accent);}
-    .related-card-icon{font-size:1.3rem;margin-bottom:8px;}
-    .related-card-title{font-weight:700;font-size:.88rem;line-height:1.3;color:var(--text);}
-    .related-card-cta{font-size:.78rem;color:var(--accent);font-weight:700;margin-top:6px;}
-    footer{border-top:1px solid var(--border);padding:20px;text-align:center;font-size:.8rem;color:var(--muted);}
-    .wa-float{position:fixed;bottom:24px;right:24px;display:flex;align-items:center;gap:10px;background:var(--wa);color:#fff;padding:13px 22px;border-radius:50px;font-weight:700;font-size:.95rem;text-decoration:none;box-shadow:0 4px 20px rgba(37,211,102,.35);transition:transform .15s;z-index:200;}
-    .wa-float:hover{transform:translateY(-2px);}
-    @media(max-width:500px){
-      .article-wrap{padding:24px 16px 60px;}
-      .related-grid{grid-template-columns:1fr;}
-      .cta-wa{width:100%;justify-content:center;}
-      .wa-float span{display:none;}
-      .wa-float{padding:14px;border-radius:50%;}
-    }
-    .product-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:8px 0;padding:7px 0;}
-    .product-list{margin:10px 0 18px;}
-    .product-card-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:8px 0;padding:9px 0;}
-    .product-thumb{width:52px;height:52px;object-fit:contain;border:1px solid var(--border);border-radius:50%;background:#fff;flex:0 0 52px;}
-        .product-row-info{display:flex;align-items:center;gap:8px;flex:1;min-width:180px;flex-wrap:wrap;}
-    .product-price{font-weight:800;color:var(--text);font-size:.92rem;white-space:nowrap;}
+{% endblock %}
 
-    .product-name-link{color:var(--accent);font-weight:600;text-decoration:none;font-size:.9rem;}
-    .product-name-link:hover{text-decoration:underline;}
-    .product-wa-btn{display:inline-flex;align-items:center;gap:5px;background:var(--wa);color:#fff;font-weight:700;font-size:.78rem;padding:5px 12px;border-radius:7px;text-decoration:none;transition:opacity .15s;white-space:nowrap;}
-    .product-wa-btn:hover{opacity:.88;}
-  </style>
-</head>
-<body>
+{% block crumb %}Frost free acumulando gelo{% endblock %}
+{% block h1 %}Geladeira frost free acumulando gelo: causas e solução{% endblock %}
+{% block lead %}Frost free não deveria juntar gelo. Se está formando gelo no fundo do freezer, atrás da gaveta ou na saída de ar, o degelo automático falhou. Veja como descobrir qual peça e resolver.{% endblock %}
 
-{% set active_page = 'blog' %}
-{% include '_header.html' %}
+{% block content %}
+  <div class="lead-box">
+    <p><strong>Resumo rápido:</strong> de tempos em tempos a frost free liga uma <strong>resistência</strong> para derreter o gelo do evaporador; um <strong>bimetal/sensor</strong> e um <strong>timer ou placa</strong> controlam esse ciclo. Se uma dessas peças falha, o gelo cresce, bloqueia o ar e a geladeira para de gelar embaixo. Gelo que volta poucos dias depois de descongelar = peça do degelo com defeito.</p>
+  </div>
 
-<div class="breadcrumb-bar">
-  <a href="/">Início</a><span>›</span>
-  <a href="/blog">Guias</a><span>›</span>
-  <span>Geladeira frost free acumulando gelo</span>
+  <h2>Como funciona o degelo da frost free</h2>
+  <p>O frio é produzido num radiador escondido atrás da parede do freezer (o evaporador). A umidade do ar vira gelo nele. Algumas vezes por dia o <strong>timer</strong> (ou a placa) corta o compressor e liga a <strong>resistência de degelo</strong>, que derrete esse gelo; o <strong>bimetal</strong> desliga a resistência quando o evaporador esquenta. A água escorre pelo <strong>dreno</strong> até uma bandeja perto do compressor e evapora.</p>
+
+  <h2>1. Resistência de degelo queimada</h2>
+  <p>É a causa mais comum. Sem a resistência, o gelo nunca derrete: forma um bloco no fundo do freezer e a parte de baixo para de gelar. Sinal típico: gelo grosso e uniforme na parede do fundo do freezer.</p>
+  {{ pc.card('resistencia-evoporador-brm3743-br-cr-kr-225w-127v', 'Resistência de degelo') }}
+
+  <h2>2. Bimetal ou sensor de degelo com defeito</h2>
+  <p>O bimetal (ou sensor NTC nos modelos eletrônicos) fica preso no evaporador e “avisa” quando o degelo pode terminar. Se ele não fecha o contato, a resistência nem chega a ligar — mesmo com ela boa.</p>
+  {{ pc.group([
+      'sensor-biometal-com-fusivel-eletrolux-df35-df36-df37-df38-921979',
+      'sensor-biometal-eletrolux',
+      'sensor-de-degelo-10k-para-geladeira-electrolux',
+      'sensor-de-temperatura-2-7k-brastemp-w10531315'], 'Sensor de degelo') }}
+
+  <h2>3. Timer de degelo ou placa</h2>
+  <p>Em geladeiras com timer, ele alterna entre “gelar” e “degelar”. Se travar, a geladeira fica só gelando (acumula gelo) ou só degelando (não gela). Nos modelos eletrônicos quem faz isso é a placa.</p>
+  {{ pc.group([
+      'timer-de-degelo-eletrolux-220v',
+      'timer-degelo-electrolux-tmdj812zb9-110v-original',
+      'placa-geladeira-electrolux-df47-dfn49-df49x-dw50x-64500437'], 'Timer / placa') }}
+
+  <div class="note-box">⚠️ Se o gelo volta poucos dias depois de você desligar e descongelar a geladeira, a falha está quase certamente em uma dessas peças do degelo.</div>
+
+  <h2>4. Dreno entupido</h2>
+  <p>A água do degelo precisa sair por um furinho no fundo do freezer. Se ele entope, a água fica parada e congela de novo — formando gelo sempre no mesmo lugar, às vezes com água no fundo da geladeira e mau cheiro.</p>
+  <p><strong>Como resolver:</strong> com a geladeira desligada, ache o furo do dreno e passe água morna com uma seringa. Não use objetos pontiagudos.</p>
+
+  <h2>5. Borracha da porta com defeito</h2>
+  <p>Se a borracha não veda, entra ar quente e úmido o tempo todo e o gelo se forma rápido, principalmente perto da porta. <strong>Teste do papel:</strong> feche a porta sobre uma folha — se ela sai sem resistência, a borracha precisa ser trocada.</p>
+  {{ pc.card('borracha-gaxeta-cinza-ilpea-porta-geladeira-freezer-aba-ima-2m', 'Vedação') }}
+
+  <h2>6. Uso</h2>
+  <ul>
+    <li>Porta aberta com frequência ou por muito tempo</li>
+    <li>Alimentos quentes guardados direto na geladeira</li>
+    <li>Saídas de ar bloqueadas por alimentos</li>
+  </ul>
+
+  <h2>Passo a passo para resolver</h2>
+  <ol>
+    <li><strong>Descongele:</strong> desligue por 12–24 h com as portas abertas (panos no chão)</li>
+    <li><strong>Limpe o dreno</strong> com água morna</li>
+    <li><strong>Faça o teste do papel</strong> na borracha da porta</li>
+    <li><strong>Religue e observe:</strong> se o gelo voltar em poucos dias, troque a peça do degelo (resistência, bimetal/sensor ou timer)</li>
+    <li>Anote marca, modelo e voltagem da etiqueta antes de comprar</li>
+  </ol>
+  <div class="note-box"><strong>⚡ Atenção:</strong> desligue a geladeira da tomada antes de mexer em qualquer peça elétrica.</div>
+{% endblock %}
+
+{% block cta_text %}Mande uma foto da etiqueta da geladeira (marca, modelo e voltagem) no WhatsApp: a gente confirma qual peça do degelo serve. Retire hoje na Av. Brasil, 6818 (Bonsucesso) ou receba no mesmo dia no RJ.{% endblock %}
+
+{% block related %}
+<div class="related">
+  <div class="related-title">Outros guias</div>
+  <div class="related-grid">
+    <a class="related-card" href="/blog/geladeira-nao-gela-embaixo"><b>Geladeira não gela embaixo? 5 causas</b><span>Ler guia →</span></a>
+    <a class="related-card" href="/blog/timer-de-degelo-refrigeracao"><b>Timer de degelo: função e defeitos</b><span>Ler guia →</span></a>
+  </div>
 </div>
-
-<div class="article-wrap">
-
-  {% set msg_sensor_brastemp = "Olá! Tenho interesse no Sensor de temperatura 2,7K Brastemp W10531315. Qual o preço e disponibilidade?" %}
-  {% set msg_sensor_electrolux = "Olá! Tenho interesse no Sensor de degelo 10K para geladeira Electrolux. Qual o preço e disponibilidade?" %}
-  {% set msg_timer_220 = "Olá! Tenho interesse no Timer de degelo Electrolux 220V. Qual o preço e disponibilidade?" %}
-  {% set msg_timer_110 = "Olá! Tenho interesse no Timer Degelo Electrolux TMDJ812ZB9 110V Original. Qual o preço e disponibilidade?" %}
-  {% set msg_placa = "Olá! Tenho interesse na Placa Geladeira Electrolux DF47 DFN49 DF49X DW50X 64500437. Qual o preço e disponibilidade?" %}
-
-  <div class="article-header">
-    <div class="article-tag">❄️ Geladeira</div>
-    <h1>Geladeira Frost Free Acumulando Gelo: Causas e Peças no RJ</h1>
-    <p class="article-lead">A tecnologia frost free foi criada justamente para evitar o acúmulo de gelo. Se a sua geladeira começou a congelar por dentro, veja as causas mais comuns, quais peças podem estar envolvidas e onde encontrar sensores, timers e placa eletrônica para o sistema de degelo no Rio de Janeiro.</p>
-  </div>
-
-  <div class="article-section">
-    <h2>Como funciona o sistema frost free</h2>
-    <p>O sistema frost free usa circulação de ar forçada e ciclos automáticos de degelo. Em intervalos regulares, uma resistência aquece o evaporador para derreter qualquer gelo formado. Quando algum componente desse ciclo falha, o gelo começa a se acumular e não para mais.</p>
-  </div>
-
-  <div class="article-section">
-    <h2>Por que a geladeira frost free acumula gelo?</h2>
-
-    <h3>1. Falha no sistema de degelo</h3>
-    <p>É a causa mais comum. A resistência de degelo aquece o evaporador em ciclos programados. Se ela queimar, o gelo se acumula sem parar e bloqueia a circulação de ar, reduzindo toda a eficiência da geladeira.</p>
-    <ul>
-      <li>Resistência de degelo queimada</li>
-      <li><span class="product-row">
-      {% if products.get('sensor-de-temperatura-2-7k-brastemp-w10531315') and products['sensor-de-temperatura-2-7k-brastemp-w10531315'].image %}
-        <img class="product-thumb" src="{{ products['sensor-de-temperatura-2-7k-brastemp-w10531315'].image }}" alt="Sensor de temperatura 2,7K Brastemp W10531315" loading="lazy">
-      {% endif %}
-      <span class="product-row-info">
-        <a class="product-name-link" href="/product/sensor-de-temperatura-2-7k-brastemp-w10531315">Sensor de temperatura 2,7K Brastemp W10531315</a>
-        {% if products.get('sensor-de-temperatura-2-7k-brastemp-w10531315') and products['sensor-de-temperatura-2-7k-brastemp-w10531315'].sale_price %}
-          <span class="product-price">R$ {{ "%.2f"|format(products['sensor-de-temperatura-2-7k-brastemp-w10531315'].sale_price)|replace('.', ',') }}</span>
-        {% endif %}
-        <a class="product-wa-btn wa-track" href="https://wa.me/{{ wa_number }}?text={{ msg_sensor_brastemp | urlencode }}" target="_blank" rel="noopener" data-product="Sensor de temperatura 2,7K Brastemp W10531315"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.198.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 1 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg> Comprar pelo WhatsApp</a>
-      </span>
-    </span></li>
-      <li><span class="product-row">
-      {% if products.get('sensor-de-degelo-10k-para-geladeira-electrolux') and products['sensor-de-degelo-10k-para-geladeira-electrolux'].image %}
-        <img class="product-thumb" src="{{ products['sensor-de-degelo-10k-para-geladeira-electrolux'].image }}" alt="Sensor de degelo 10K Electrolux" loading="lazy">
-      {% endif %}
-      <span class="product-row-info">
-        <a class="product-name-link" href="/product/sensor-de-degelo-10k-para-geladeira-electrolux">Sensor de degelo 10K Electrolux</a>
-        {% if products.get('sensor-de-degelo-10k-para-geladeira-electrolux') and products['sensor-de-degelo-10k-para-geladeira-electrolux'].sale_price %}
-          <span class="product-price">R$ {{ "%.2f"|format(products['sensor-de-degelo-10k-para-geladeira-electrolux'].sale_price)|replace('.', ',') }}</span>
-        {% endif %}
-        <a class="product-wa-btn wa-track" href="https://wa.me/{{ wa_number }}?text={{ msg_sensor_electrolux | urlencode }}" target="_blank" rel="noopener" data-product="Sensor de degelo 10K Electrolux"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.198.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 1 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg> Comprar pelo WhatsApp</a>
-      </span>
-    </span></li>
-      <li>Timer de degelo com defeito</li>
-      <li>Placa eletrônica com defeito</li>
-    </ul>
-
-    <h3>Peças do sistema de degelo disponíveis</h3>
-    <div class="product-list">
-      {% for slug, label, msg, href in [
-        ('timer-de-degelo-eletrolux-220v', 'Timer de degelo Electrolux 220V', msg_timer_220, '/product/timer-de-degelo-eletrolux-220v'),
-        ('timer-degelo-electrolux-tmdj812zb9-110v-original', 'Timer Degelo Electrolux TMDJ812ZB9 110V Original', msg_timer_110, '/product/timer-degelo-electrolux-tmdj812zb9-110v-original'),
-        ('placa-geladeira-electrolux-df47-dfn49-df49x-dw50x-64500437', 'Placa Geladeira Electrolux DF47 DFN49 DF49X DW50X 64500437', msg_placa, '/product/placa-geladeira-electrolux-df47-dfn49-df49x-dw50x-64500437')
-      ] %}
-        {% if products.get(slug) %}
-        <div class="product-card-row">
-          {% if products[slug].image %}<img class="product-thumb" src="{{ products[slug].image }}" alt="{{ label }}" loading="lazy">{% endif %}
-          <div class="product-row-info">
-            <a class="product-name-link" href="{{ href }}">{{ label }}</a>
-            {% if products[slug].sale_price %}<span class="product-price">R$ {{ "%.2f"|format(products[slug].sale_price)|replace('.', ',') }}</span>{% endif %}
-            <a class="product-wa-btn wa-track" href="https://wa.me/{{ wa_number }}?text={{ msg | urlencode }}" target="_blank" rel="noopener" data-product="{{ label }}">💬 Comprar pelo WhatsApp</a>
-          </div>
-        </div>
-        {% endif %}
-      {% endfor %}
-    </div>
-
-    <div class="warn-box">
-      <p>⚠️ Se o gelo volta em poucos dias após desligar a geladeira manualmente, a falha quase certamente está no sistema de degelo.</p>
-    </div>
-
-    <h3>2. Dreno entupido</h3>
-    <p>A água resultante do degelo precisa sair por um pequeno canal. Quando esse dreno está entupido, a água fica acumulada e congela novamente, criando um ciclo constante de problema.</p>
-    <ul>
-      <li>Água no fundo da geladeira</li>
-      <li>Gelo reaparecendo constantemente no mesmo lugar</li>
-      <li>Mau cheiro interno</li>
-    </ul>
-    <p>É um problema simples de resolver — muitas vezes basta desobstruir o canal com água morna.</p>
-
-    <h3>3. Borracha da porta com defeito</h3>
-    <p>Se a vedação da porta não está adequada, ar quente entra constantemente. Isso aumenta a umidade interna e provoca formação contínua de gelo, especialmente nas bordas.</p>
-    <ul>
-      <li>Borracha ressecada, solta ou com cortes</li>
-      <li>Porta que não fecha completamente</li>
-      <li>Gelo concentrado próximo à porta</li>
-    </ul>
-
-    <h3>4. Uso incorreto</h3>
-    <p>Nem sempre o problema está na peça. Alguns hábitos contribuem diretamente para o acúmulo de gelo mesmo em geladeiras funcionando corretamente.</p>
-    <ul>
-      <li>Abrir a porta com muita frequência</li>
-      <li>Guardar alimentos ainda quentes</li>
-      <li>Bloquear as saídas de ar internas com alimentos</li>
-    </ul>
-  </div>
-
-  <div class="article-section">
-    <h2>Como resolver</h2>
-
-    <h3>✔ Fazer degelo completo</h3>
-    <p>Desligue a geladeira por cerca de 24 horas com as portas abertas para eliminar todo o gelo acumulado. Se o problema voltar em poucos dias, há falha interna que precisa de peça ou técnico.</p>
-
-    <h3>✔ Limpar o dreno</h3>
-    <p>Localize o orifício de drenagem (geralmente no fundo do compartimento interno) e desobstrua com água morna ou uma seringa. Evite objetos pontiagudos que possam danificar o plástico.</p>
-
-    <h3>✔ Verificar a borracha da porta</h3>
-    <p>Faça o teste do papel: coloque uma folha entre a porta e a geladeira e feche. Se sair facilmente, a vedação está comprometida e a substituição é necessária.</p>
-
-    <h3>✔ Verificar o sensor de degelo</h3>
-    <p>O sensor de degelo monitora a temperatura do evaporador e aciona o ciclo no momento certo. Um sensor com defeito faz o sistema não degelar ou degelar fora de hora.</p>
-    <span class="product-row">
-      {% if products.get('sensor-de-temperatura-2-7k-brastemp-w10531315') and products['sensor-de-temperatura-2-7k-brastemp-w10531315'].image %}
-        <img class="product-thumb" src="{{ products['sensor-de-temperatura-2-7k-brastemp-w10531315'].image }}" alt="Sensor de temperatura 2,7K Brastemp W10531315" loading="lazy">
-      {% endif %}
-      <span class="product-row-info">
-        <a class="product-name-link" href="/product/sensor-de-temperatura-2-7k-brastemp-w10531315">Sensor de temperatura 2,7K Brastemp W10531315</a>
-        {% if products.get('sensor-de-temperatura-2-7k-brastemp-w10531315') and products['sensor-de-temperatura-2-7k-brastemp-w10531315'].sale_price %}
-          <span class="product-price">R$ {{ "%.2f"|format(products['sensor-de-temperatura-2-7k-brastemp-w10531315'].sale_price)|replace('.', ',') }}</span>
-        {% endif %}
-        <a class="product-wa-btn wa-track" href="https://wa.me/{{ wa_number }}?text={{ msg_sensor_brastemp | urlencode }}" target="_blank" rel="noopener" data-product="Sensor de temperatura 2,7K Brastemp W10531315"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.198.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 1 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg> Comprar pelo WhatsApp</a>
-      </span>
-    </span>
-    <span class="product-row">
-      {% if products.get('sensor-de-degelo-10k-para-geladeira-electrolux') and products['sensor-de-degelo-10k-para-geladeira-electrolux'].image %}
-        <img class="product-thumb" src="{{ products['sensor-de-degelo-10k-para-geladeira-electrolux'].image }}" alt="Sensor de degelo 10K Electrolux" loading="lazy">
-      {% endif %}
-      <span class="product-row-info">
-        <a class="product-name-link" href="/product/sensor-de-degelo-10k-para-geladeira-electrolux">Sensor de degelo 10K Electrolux</a>
-        {% if products.get('sensor-de-degelo-10k-para-geladeira-electrolux') and products['sensor-de-degelo-10k-para-geladeira-electrolux'].sale_price %}
-          <span class="product-price">R$ {{ "%.2f"|format(products['sensor-de-degelo-10k-para-geladeira-electrolux'].sale_price)|replace('.', ',') }}</span>
-        {% endif %}
-        <a class="product-wa-btn wa-track" href="https://wa.me/{{ wa_number }}?text={{ msg_sensor_electrolux | urlencode }}" target="_blank" rel="noopener" data-product="Sensor de degelo 10K Electrolux"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.198.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 1 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg> Comprar pelo WhatsApp</a>
-      </span>
-    </span>
-  </div>
-
-  <div class="article-section">
-    <h2>Quando chamar um técnico</h2>
-    <div class="info-box">
-      <div class="info-box-title">Sinais de que precisa de avaliação técnica</div>
-      <ul>
-        <li>O gelo volta em menos de uma semana após o degelo manual</li>
-        <li>A geladeira perdeu eficiência mesmo sem gelo visível</li>
-        <li>Há ruídos estranhos associados ao problema</li>
-        <li>O compartimento de alimentos não resfria mais como antes</li>
-      </ul>
-    </div>
-    <p>Nesses casos, pode haver defeito na resistência, sensor, timer ou placa — peças que exigem diagnóstico específico. O técnico Douglas atende no Rio de Janeiro com avaliação rápida via WhatsApp.</p>
-  </div>
-
-  <div class="related-articles">
-    <div class="related-title">Outros guias</div>
-    <div class="related-grid">
-      <a class="related-card" href="/blog/geladeira-fazendo-barulho">
-        <div class="related-card-icon">🔊</div>
-        <div class="related-card-title">Geladeira fazendo barulho: o que pode ser?</div>
-        <div class="related-card-cta">Ler guia →</div>
-      </a>
-      <a class="related-card" href="/blog/geladeira-nao-gela-embaixo">
-        <div class="related-card-icon">🧊</div>
-        <div class="related-card-title">Geladeira não gela embaixo? Causas e peças</div>
-        <div class="related-card-cta">Ler guia →</div>
-      </a>
-    </div>
-  </div>
-
-</div>
-
-<a class="wa-float wa-track" href="https://wa.me/{{ wa_number }}?text=Ol%C3%A1%21%20Tenho%20uma%20d%C3%BAvida%20sobre%20refrigera%C3%A7%C3%A3o." target="_blank" rel="noopener" data-product="Blog WA float">
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
-  <span>Falar no WhatsApp</span>
-</a>
-
-<footer>M.T.F Refrigeração · Rio de Janeiro</footer>
-
-<script>
-document.querySelectorAll('.wa-track').forEach(el=>{
-  el.addEventListener('click',function(){
-    const product=this.dataset.product||'Geral';
-    if(typeof gtag!=='undefined')gtag('event','whatsapp_click',{product_name:product});
-    fetch('/api/track/whatsapp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({product})}).catch(()=>{});
-  });
-});
-</script>
-</body>
-</html>
+{% endblock %}
