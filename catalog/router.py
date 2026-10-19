@@ -1942,6 +1942,58 @@ async def product_feed():
     return PlainTextResponse(xml, media_type="application/xml")
 
 
+# ── Estoque da loja física para o Google (anúncios/listagens locais gratuitas) ──
+# Merchant Center -> Fontes de dados -> Adicionar "Inventário local" -> URL /feed-local.xml
+# STORE_CODE tem que ser IGUAL ao "código da loja" do Perfil da Empresa no Google (diferencia maiúsculas).
+STORE_CODE = os.environ.get("STORE_CODE", "")
+
+
+@router.get("/feed-local.xml", response_class=PlainTextResponse)
+async def local_inventory_feed():
+    """Mesmos produtos (e mesmos g:id) do /feed.xml + quanto tem na loja da Av. Brasil."""
+    if not STORE_CODE:
+        return PlainTextResponse("STORE_CODE não configurado", status_code=503)
+    async with engine.connect() as conn:
+        rows = await _get_products_cached(conn)
+    items, seen = [], set()
+    today = datetime.now(BRT).date().isoformat()
+    for r in rows:
+        name = (r.get("name") or "").strip()
+        sl = slugify(name)
+        # mesmo filtro do /feed.xml: sem nome, repetido, sem preço ou sem foto não vai
+        if not name or sl in seen or not r.get("sale_price") or not r.get("image"):
+            continue
+        seen.add(sl)
+        qty = max(0, int(float(r.get("current_stock") or 0)))
+        availability = "in_stock" if qty >= 3 else ("limited_availability" if qty > 0 else "out_of_stock")
+        sale = ""
+        if r.get("on_promo"):
+            sale = f"\n    <g:sale_price>{r['promo_price']:.2f} BRL</g:sale_price>"
+            if r.get("promo_until"):
+                sale += (f"\n    <g:sale_price_effective_date>{today}T00:00-03:00/"
+                         f"{r['promo_until']}T23:59-03:00</g:sale_price_effective_date>")
+        items.append(f"""
+  <item>
+    <g:id>{escape(str(r["id"]))}</g:id>
+    <g:store_code>{escape(STORE_CODE)}</g:store_code>
+    <g:availability>{availability}</g:availability>
+    <g:quantity>{qty}</g:quantity>
+    <g:price>{r["sale_price"]:.2f} BRL</g:price>{sale}
+    <g:pickup_method>buy</g:pickup_method>
+    <g:pickup_sla>same day</g:pickup_sla>
+  </item>""")
+    xml = f"""<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">
+  <channel>
+    <title>MTF Refrigeração — Estoque da loja</title>
+    <link>{escape(SITE_URL)}</link>
+    <description>Inventário local — Av. Brasil, 6818 (Bonsucesso)</description>
+{"".join(items)}
+  </channel>
+</rss>"""
+    return PlainTextResponse(xml, media_type="application/xml")
+
+
 @router.get("/robots.txt", response_class=PlainTextResponse)
 async def robots():
     return f"User-agent: *\nAllow: /\nSitemap: {SITE_URL}/sitemap.xml\n"
