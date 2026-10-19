@@ -121,7 +121,7 @@ def _invalidate_cache():
 
 WA_NOTIFY_NUMBER = os.environ.get("WA_NOTIFY_NUMBER", "")
 WA_OWNER_NUMBER  = os.environ.get("WA_OWNER_NUMBER", "")
-SITE_URL         = os.environ.get("SITE_URL", "https://www.mtfrefrigeracao.com.br/")
+SITE_URL         = os.environ.get("SITE_URL", "https://www.mtfrefrigeracao.com.br").rstrip("/")  # sem "/" no fim: evita "//product/..." no canonical
 GA_ID            = os.environ.get("GA_ID", "")
 STORE_ADDRESS    = os.environ.get("STORE_ADDRESS", "Rua Exemplo, 123 — Cidade, UF")
 STORE_PHONE      = os.environ.get("STORE_PHONE", "")
@@ -613,6 +613,149 @@ async def catalog_page(request: Request):
     })
 
 
+# ── SEO da página de produto: title, description e JSON-LD ────────────────────
+# Tudo montado aqui (não no template) para o JSON sair sempre válido.
+# Preço e estoque vêm do banco na hora — nunca ficam velhos no Google.
+SEO_TITLE_MAX = 62
+SEO_DESC_MAX  = 158
+
+
+def _seo_brl(v: float) -> str:
+    return "R$ " + f"{v:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+
+def _seo_plain(html: str) -> str:
+    t = _re_nome.sub(r"<[^>]+>", " ", html or "")
+    t = t.replace("&nbsp;", " ").replace("&amp;", "&")
+    return _re_nome.sub(r"\s+", " ", t).strip()
+
+
+def _seo_fill(base: str, extra: str, limit: int) -> str:
+    """base + pedaço do texto do produto, cortando em palavra inteira."""
+    if not extra or len(base) >= limit - 20:
+        return base[:limit].rstrip()
+    room = limit - len(base) - 1
+    if len(extra) <= room:
+        return f"{base} {extra}"
+    cut = extra[:room - 1].rsplit(" ", 1)[0].rstrip(" ,.;:-–")
+    return f"{base} {cut}…"
+
+
+def _gtin_ok(g: str) -> bool:
+    if not g or not g.isdigit() or len(g) not in (8, 12, 13, 14):
+        return False
+    d = [int(c) for c in g]
+    s = sum(x * (3 if i % 2 == 0 else 1) for i, x in enumerate(reversed(d[:-1])))
+    return (10 - s % 10) % 10 == d[-1]
+
+
+def _product_seo(p: dict, cat_slug: str) -> dict:
+    name     = p["name"]
+    price    = p.get("price") or 0
+    in_stock = (p.get("current_stock") or 0) > 0 and price > 0
+    promo    = bool(p.get("on_promo")) and price > 0
+    unit     = p.get("unit") or "un"
+    per      = f"/{unit}" if unit in ("kg", "m", "l") else ""
+    url      = f"{SITE_URL}/product/{p['slug']}"
+    text_    = _seo_plain(p.get("description") or "")
+
+    # title: nome primeiro (é o que a pessoa buscou), depois o que faz clicar
+    if price and in_stock:
+        tail = [f" – {_seo_brl(price)}{per} | Pronta entrega RJ", f" – {_seo_brl(price)}{per} no RJ", f" | {_seo_brl(price)}{per}"]
+        if promo:
+            off = round((1 - price / p["sale_price"]) * 100)
+            tail = [f" – {_seo_brl(price)}{per} (-{off}%) | Pronta entrega RJ", f" – {_seo_brl(price)}{per} (-{off}%) no RJ"] + tail
+    else:
+        tail = [" | M.T.F Refrigeração RJ", " no RJ"]
+    title = next((name + t for t in tail if len(name + t) <= SEO_TITLE_MAX), name)
+
+    # description: preço + diferencial local + texto do produto
+    if price and in_stock:
+        if promo:
+            head = f"De {_seo_brl(p['sale_price'])} por {_seo_brl(price)}{per} no Pix"
+            if p.get("promo_until"):
+                d = p["promo_until"][:10].split("-")
+                head += f" (até {d[2]}/{d[1]})"
+            head += "."
+        else:
+            head = f"{name} por {_seo_brl(price)}{per} no Pix."
+        head += " Pronta entrega: retire na Av. Brasil (Bonsucesso) ou receba no mesmo dia no RJ."
+    else:
+        head = f"{name} na M.T.F Refrigeração, Av. Brasil (Bonsucesso, RJ). Consulte disponibilidade pelo WhatsApp."
+    description = _seo_fill(head, text_, SEO_DESC_MAX)
+
+    # JSON-LD Product (merchant listing)
+    image = p.get("image") or f"{SITE_URL}/static/og-catalog.jpg"
+    if image.startswith("/"):
+        image = SITE_URL + image
+    offer = {
+        "@type": "Offer",
+        "url": url,
+        "priceCurrency": "BRL",
+        "availability": "https://schema.org/InStock" if in_stock else "https://schema.org/OutOfStock",
+        "itemCondition": "https://schema.org/NewCondition",
+        "seller": {"@type": "Organization", "name": "M.T.F Refrigeração", "url": SITE_URL + "/"},
+        "areaServed": {"@type": "City", "name": "Rio de Janeiro"},
+        "hasMerchantReturnPolicy": {
+            "@type": "MerchantReturnPolicy",
+            "applicableCountry": "BR",
+            "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+            "merchantReturnDays": 7,                       # direito de arrependimento (CDC art. 49)
+            "returnMethod": "https://schema.org/ReturnInStore",
+            "returnFees": "https://schema.org/FreeReturn",
+        },
+    }
+    if price:
+        offer["price"] = f"{price:.2f}"
+        if promo and p.get("promo_until"):
+            offer["priceValidUntil"] = p["promo_until"][:10]
+    prod = {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        "name": name,
+        "url": url,
+        "image": [image],
+        "description": (text_ or description)[:5000],
+        "sku": (p.get("sku") or "").strip() or str(p["id"]),
+        "brand": {"@type": "Brand", "name": (p.get("brand") or "").strip() or "M.T.F Refrigeração"},
+        "category": p.get("category_name") or "",
+        "offers": offer,
+    }
+    if (p.get("sku") or "").strip():
+        prod["mpn"] = p["sku"].strip()
+    gtin = (p.get("gtin") or "").strip()
+    if _gtin_ok(gtin):
+        prod["gtin"] = gtin
+
+    crumbs = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {"@type": "ListItem", "position": 1, "name": "Início", "item": SITE_URL + "/"},
+            {"@type": "ListItem", "position": 2, "name": p.get("category_name") or "Catálogo",
+             "item": f"{SITE_URL}/category/{cat_slug}"},
+            {"@type": "ListItem", "position": 3, "name": name, "item": url},
+        ],
+    }
+    dump = lambda o: _json.dumps(o, ensure_ascii=False).replace("</", "<\\/")
+    return {
+        "title": title, "description": description, "url": url, "image": image,
+        "in_stock": in_stock, "price": f"{price:.2f}" if price else "",
+        "jsonld_product": dump(prod), "jsonld_crumbs": dump(crumbs),
+    }
+
+
+async def _product_ids(product_id: int) -> dict:
+    """brand / sku / gtin (colunas criadas pela admin). Se faltar algo, segue sem."""
+    try:
+        async with engine.connect() as conn:
+            r = (await conn.execute(text("SELECT brand, sku, gtin FROM products WHERE id = :id"),
+                                    {"id": product_id})).mappings().first()
+            return dict(r) if r else {}
+    except Exception:
+        return {}
+
+
 @router.get("/product/{slug}", response_class=HTMLResponse)
 async def product_page(request: Request, slug: str):
     async with engine.connect() as conn:
@@ -642,9 +785,13 @@ async def product_page(request: Request, slug: str):
             if len(related) >= 6:
                 break
 
+    product.update(await _product_ids(product["id"]))
+    seo = _product_seo(product, slugify(product["category_name"]))
+
     return templates.TemplateResponse("product.html", {
         "request":       request,
         "product":       product,
+        "seo":           seo,
         "related":       related,
         "cat_slug":      slugify(product["category_name"]),
         "cat2_slug":     slugify(product["category2_name"]) if product.get("category2_name") else "",
@@ -1592,6 +1739,13 @@ async def product_feed():
     base = SITE_URL.rstrip("/")
     async with engine.connect() as conn:
         rows = await _get_products_cached(conn)
+    ids_by_product = {}
+    try:   # brand / sku / gtin — colunas da admin; se faltar, o feed segue sem
+        async with engine.connect() as conn:
+            for x in (await conn.execute(text("SELECT id, brand, sku, gtin FROM products"))).mappings():
+                ids_by_product[x["id"]] = x
+    except Exception:
+        _blog_log.exception("feed: falha ao ler brand/sku/gtin")
 
     items = []
     seen = set()
@@ -1637,6 +1791,20 @@ async def product_feed():
         gcat_tag  = (f"\n    <g:google_product_category>{escape(gcat)}</g:google_product_category>" if gcat else "")
         link = f"{base}/product/{sl}"
 
+        # identificadores: GTIN válido e/ou marca real + MPN; senão identifier_exists=no
+        ids   = ids_by_product.get(r.get("id")) or {}
+        real_brand = (ids.get("brand") or "").strip()
+        brand = real_brand or "M.T.F Refrigeração"
+        gtin  = (ids.get("gtin") or "").strip()
+        mpn   = (ids.get("sku") or "").strip()
+        ident_tag = ""
+        if _gtin_ok(gtin):
+            ident_tag += f"\n    <g:gtin>{escape(gtin)}</g:gtin>"
+        if real_brand and mpn:
+            ident_tag += f"\n    <g:mpn>{escape(mpn)}</g:mpn>"
+        if not ident_tag:
+            ident_tag = "\n    <g:identifier_exists>no</g:identifier_exists>"
+
         item = f"""
   <item>
     <g:id>{escape(product_id)}</g:id>
@@ -1647,8 +1815,7 @@ async def product_feed():
     <g:price>{price_str}</g:price>{sale_tag}
     <g:availability>{availability}</g:availability>
     <g:condition>new</g:condition>
-    <g:brand>MTF Refrigeração</g:brand>
-    <g:identifier_exists>no</g:identifier_exists>{gcat_tag}
+    <g:brand>{escape(brand)}</g:brand>{ident_tag}{gcat_tag}
     <g:product_type>{escape(category)}</g:product_type>
   </item>"""
         items.append(item)
