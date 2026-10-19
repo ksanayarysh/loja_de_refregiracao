@@ -1,570 +1,107 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Geladeira não gela embaixo no RJ: causas, o que fazer e peças para resolver | M.T.F Refrigeração</title>
-  <meta name="description" content="Geladeira não gela embaixo no RJ? Veja as causas mais comuns — sensor, termostato, resistência de degelo — e encontre a peça certa na M.T.F Refrigeração." />
-  <meta name="keywords" content="geladeira não gela embaixo, geladeira não gela parte de baixo, freezer funciona geladeira não gela, sensor de temperatura geladeira, termostato geladeira, resistência de degelo, peças geladeira RJ, geladeira frost free não gela embaixo" />
-  <meta name="robots" content="index,follow,max-image-preview:large" />
-  <link rel="canonical" href="{{ site_url }}/blog/geladeira-nao-gela-embaixo" />
+{% extends 'blog/_article_base.html' %}
+{% import 'blog/_produto.html' as pc with context %}
 
-  <meta property="og:type" content="article" />
-  <meta property="og:title" content="Geladeira não gela embaixo no RJ: causas, o que fazer e peças para resolver" />
-  <meta property="og:description" content="Entenda por que a geladeira não está gelando na parte de baixo, veja os sintomas mais comuns e encontre peças e kits compatíveis." />
-  <meta property="og:url" content="{{ site_url }}/blog/geladeira-nao-gela-embaixo" />
-  <meta property="og:image" content="{{ site_url }}/static/og-catalog.jpg" />
+{% block title %}Geladeira não gela embaixo? 5 causas e como resolver | M.T.F Refrigeração{% endblock %}
 
+{% block head %}
+  <meta name="description" content="Freezer gela mas a parte de baixo não? Veja as 5 causas mais comuns (degelo, sensor, termostato, ventilador) e as peças certas — retire hoje na Av. Brasil, RJ.">
+  <meta property="og:title" content="Geladeira não gela embaixo? 5 causas e como resolver">
+  <meta property="og:description" content="Freezer funciona mas o refrigerador não gela? Entenda as causas e encontre a peça certa para Brastemp, Consul e Electrolux.">
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "Article",
-    "headline": "Geladeira não gela embaixo no RJ: causas, o que fazer e peças para resolver",
-    "description": "Guia prático sobre geladeira que não gela na parte de baixo, com sintomas, causas e peças recomendadas.",
-    "mainEntityOfPage": {
-      "@type": "WebPage",
-      "@id": "{{ site_url }}/blog/geladeira-nao-gela-embaixo"
-    },
-    "author": {
-      "@type": "Organization",
-      "name": "M.T.F Refrigeração",
-      "url": "{{ site_url }}"
-    },
-    "publisher": {
-      "@type": "Organization",
-      "name": "M.T.F Refrigeração",
-      "url": "{{ site_url }}",
-      "logo": {
-        "@type": "ImageObject",
-        "url": "{{ site_url }}/static/og-catalog.jpg"
-      }
-    },
-    "keywords": "geladeira não gela embaixo, sensor de temperatura, termostato geladeira, resistência de degelo, peças geladeira RJ",
-    "about": [
-      "geladeira não gela embaixo",
-      "geladeira não gela parte de baixo",
-      "freezer funciona mas geladeira não gela",
-      "peças para geladeira no RJ",
-      "geladeira frost free não gela embaixo"
-    ],
-    "speakable": {
-      "@type": "SpeakableSpecification",
-      "cssSelector": [".lead-box", "h1"]
-    }
+    "headline": "Geladeira não gela embaixo? 5 causas e como resolver",
+    "description": "Guia prático sobre geladeira que gela no freezer mas não na parte de baixo: sintomas, causas e peças.",
+    "mainEntityOfPage": {"@type": "WebPage", "@id": "{{ site_url }}/blog/{{ article.slug }}"},
+    "author": {"@type": "Organization", "name": "M.T.F Refrigeração", "url": "{{ site_url }}/"},
+    "publisher": {"@type": "Organization", "name": "M.T.F Refrigeração", "url": "{{ site_url }}/",
+                  "logo": {"@type": "ImageObject", "url": "{{ site_url }}/static/og-catalog.jpg"}}
   }
   </script>
-
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "FAQPage",
     "mainEntity": [
-      {
-        "@type": "Question",
-        "name": "Por que a geladeira gela no freezer mas não embaixo?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Quase sempre existe falha na passagem de ar frio, no sistema de degelo ou em peças como sensor de temperatura, termostato ou resistência de degelo."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "Quando vale a pena consertar a geladeira que não gela embaixo?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Se o defeito estiver em peças pontuais como sensor, termostato ou resistência, o reparo costuma ser mais simples do que trocar o equipamento inteiro."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "Quais peças podem resolver o problema de geladeira que não gela embaixo?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "As peças mais comuns são: sensor de temperatura, termostato e resistência de degelo."
-        }
-      }
+      {"@type": "Question", "name": "Por que a geladeira gela no freezer mas não embaixo?",
+       "acceptedAnswer": {"@type": "Answer", "text": "Na maioria das geladeiras frost free o ar frio é produzido no freezer e levado para baixo por um ventilador. Se o degelo falha, o gelo bloqueia essa passagem; também podem falhar o sensor, o termostato ou o próprio ventilador."}},
+      {"@type": "Question", "name": "Vale a pena consertar a geladeira que não gela embaixo?",
+       "acceptedAnswer": {"@type": "Answer", "text": "Na maioria dos casos sim: sensor, termostato, resistência de degelo e motor do ventilador são peças baratas perto do preço de uma geladeira nova."}},
+      {"@type": "Question", "name": "Quais peças resolvem geladeira que não gela embaixo?",
+       "acceptedAnswer": {"@type": "Answer", "text": "As mais comuns são: resistência de degelo, sensor/bimetal de degelo, timer de degelo, sensor de temperatura, termostato e motor do ventilador."}}
     ]
   }
   </script>
+{% endblock %}
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+{% block crumb %}Geladeira não gela embaixo{% endblock %}
+{% block h1 %}Geladeira não gela embaixo? 5 causas e como resolver{% endblock %}
+{% block lead %}O freezer está gelando, mas a parte de baixo fica morna? Na maioria das vezes o problema é no degelo, em um sensor, no termostato ou no ventilador — peças simples de trocar. Veja como identificar e qual peça comprar.{% endblock %}
 
-  {% if ga_id %}
-  <script async src="https://www.googletagmanager.com/gtag/js?id={{ ga_id }}"></script>
-  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','{{ ga_id }}');gtag('config','AW-18038713780');</script>
-  {% endif %}
-
-  <style>
-    :root {
-      --bg:      var(--bg);
-      --surface: #ffffff;
-      --border:  #e8e5df;
-      --text:    #1a1816;
-      --muted:   #8a8580;
-      --accent:  var(--accent);
-      --green:   #16a34a;
-      --green-l: #f0fdf4;
-      --wa:      #25d366;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
-    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-
-    .address-bar {
-      background: var(--text); color: #fff;
-      padding: 10px 20px;
-      font-size: .95rem; letter-spacing: .02em;
-      display: flex; align-items: center; justify-content: center;
-      gap: 20px; flex-wrap: wrap; text-align: center;
-      font-weight: 500;
-    }
-    .address-bar a { color: #fff; text-decoration: none; opacity: .9; }
-    .address-bar a:hover { opacity: 1; }
-    .address-bar span { opacity: .5; }
-
-    header {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-    .header-inner {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 0 20px;
-      height: 60px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-    }
-    .logo { display:flex; align-items:center; gap:10px; text-decoration:none; color:inherit; }
-    .logo-mark {
-      width:34px; height:34px; border-radius:8px;
-      background:var(--accent); color:#fff;
-      display:flex; align-items:center; justify-content:center;
-      font-weight:700; font-size:.82rem;
-      flex-shrink:0;
-    }
-    .logo-main { font-size:.92rem; font-weight:700; color:var(--text); line-height:1.15; }
-    .logo-sub  { font-size:.72rem; color:var(--muted); font-weight:400; }
-    .wa-btn-header {
-      display:flex; align-items:center; gap:7px;
-      background:var(--wa); color:#fff;
-      padding:8px 14px; border-radius:8px;
-      font-weight:700; font-size:.85rem;
-      text-decoration:none;
-      transition:opacity .15s;
-      flex-shrink:0;
-    }
-    .wa-btn-header:hover { opacity:.88; }
-
-    .breadcrumb {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 16px 20px 0;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-      color: var(--muted);
-      font-size: .84rem;
-    }
-    .breadcrumb a { color: var(--muted); text-decoration: none; }
-    .breadcrumb a:hover { color: var(--accent); }
-
-    .hero {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 20px 20px 18px;
-    }
-    .hero h1 {
-      font-size: clamp(1.7rem, 4vw, 2.45rem);
-      font-weight: 700;
-      line-height: 1.12;
-      letter-spacing: -.03em;
-      max-width: 860px;
-    }
-    .hero p {
-      color: var(--muted);
-      margin-top: 10px;
-      font-size: .98rem;
-      line-height: 1.55;
-      max-width: 820px;
-    }
-    .hero-badges{height:0;overflow:hidden;visibility:hidden;margin:0;}
-    .badge{}
-
-    .article-wrap,
-    .related-wrap,
-    .cta-wrap {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 0 20px 22px;
-    }
-
-    .article-card,
-    .kit-card,
-    .cta-card {
-      background: var(--surface);
-      border: 1.5px solid var(--border);
-      border-radius: 16px;
-      box-shadow: 0 4px 16px rgba(0,0,0,.04);
-    }
-
-    .article-card { padding: 24px; }
-    .article-card h2,
-    .related-title,
-    .cta-card h2 {
-      font-size: .78rem;
-      font-weight: 700;
-      letter-spacing: .12em;
-      text-transform: uppercase;
-      color: var(--muted);
-      padding-bottom: 12px;
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 18px;
-    }
-    .article-card h3 {
-      font-size: 1.08rem;
-      margin: 22px 0 10px;
-      line-height: 1.3;
-    }
-    .article-card p,
-    .article-card li,
-    .cta-card p {
-      font-size: .96rem;
-      line-height: 1.7;
-      color: #352f2a;
-    }
-    .article-card p + p { margin-top: 12px; }
-    .article-card ul,
-    .article-card ol { margin: 10px 0 0 18px; }
-    .article-card li + li { margin-top: 8px; }
-    .article-card a {
-      color: var(--accent);
-      text-decoration: none;
-      font-weight: 700;
-    }
-    .article-card a:hover { text-decoration: underline; }
-    .lead-box {
-      background: var(--accent-l);
-      border: 1px solid var(--accent-b);
-      border-radius: 14px;
-      padding: 16px 18px;
-      margin-bottom: 18px;
-    }
-    .lead-box strong { color: var(--text); }
-    .seo-note {
-      margin-top: 16px;
-      padding: 14px 16px;
-      border-radius: 12px;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      color: var(--muted);
-      font-size: .9rem;
-    }
-
-    .related-wrap { padding-top: 4px; }
-    .related-title {
-      max-width: 900px;
-      margin: 0 auto 16px;
-      padding: 0 0 12px;
-    }
-    .kits-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 14px;
-    }
-    .kit-card { padding: 18px; }
-    .kit-card h3 { font-size: 1rem; line-height: 1.28; }
-    .kit-card p { color: var(--muted); font-size: .9rem; margin-top: 8px; line-height: 1.55; }
-    .kit-card ul { margin: 14px 0 0 18px; color: #352f2a; }
-    .kit-card li + li { margin-top: 6px; }
-    .kit-price {
-      font-family:'DM Mono',monospace;
-      color: var(--accent);
-      font-weight: 700;
-      font-size: .96rem;
-      margin-top: 14px;
-    }
-    .kit-actions {
-      display:flex; gap:10px; flex-wrap:wrap; margin-top:14px;
-    }
-
-    .inline-product {
-      display: inline-flex; align-items: center; gap: 10px;
-      margin: 8px 0 4px; padding: 7px 10px 7px 7px;
-      background: #fff; border: 1px solid var(--border); border-radius: 10px;
-      text-decoration: none !important; vertical-align: middle;
-      box-shadow: 0 2px 8px rgba(0,0,0,.035);
-    }
-    .inline-product:hover { border-color: #d8d2ca; text-decoration: none !important; }
-    .inline-product img { width: 46px; height: 46px; object-fit: contain; border-radius: 7px; background: #fff; flex-shrink: 0; }
-    .inline-product-info { display:flex; flex-direction:column; gap:2px; line-height:1.2; }
-    .inline-product-name { font-size:.84rem; font-weight:700; color:var(--text); }
-    .inline-product-price { font-family:'DM Mono',monospace; font-size:.78rem; color:var(--accent); font-weight:700; }
-    .inline-product-label { font-size:.72rem; color:var(--muted); font-weight:500; }
-
-    .btn,
-    .btn-outline {
-      display:inline-flex; align-items:center; justify-content:center; gap:8px;
-      min-height:42px; padding:11px 16px; border-radius:10px;
-      text-decoration:none; font-weight:700; font-size:.9rem;
-      transition:border-color .15s, background .15s, color .15s, opacity .15s;
-    }
-    .btn { background: var(--accent); color:#fff; border:1.5px solid var(--accent); }
-    .btn:hover { opacity:.92; }
-    .btn-outline { background: var(--surface); color: var(--text); border:1.5px solid var(--border); }
-    .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
-
-    .cta-card {
-      padding: 22px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-    .cta-actions { display:flex; gap:12px; flex-wrap:wrap; }
-
-    .wa-float{position:fixed;bottom:24px;right:24px;display:flex;align-items:center;gap:10px;background:var(--wa);color:#fff;padding:12px 20px;border-radius:50px;font-weight:700;font-size:.95rem;text-decoration:none;box-shadow:0 4px 20px rgba(37,211,102,.35);transition:transform .15s,opacity .15s;z-index:200;}
-    .wa-float:hover{transform:translateY(-2px);opacity:.95;}
-
-    footer{text-align:center;padding:24px 20px;font-size:.82rem;color:var(--muted);border-top:1px solid var(--border);margin-top:24px;}
-
-    @media(max-width:600px){
-      .address-bar{font-size:.82rem;gap:10px;}
-      .wa-float span{display:none;}
-      .wa-float{padding:14px;border-radius:50%;}
-      .article-card,
-      .kit-card,
-      .cta-card { padding: 18px; }
-      .hero p { font-size: .93rem; }
-    }
-    .product-row{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;margin:4px 0;}
-    .product-name-link{color:var(--accent);font-weight:600;text-decoration:none;font-size:.9rem;}
-    .product-name-link:hover{text-decoration:underline;}
-    .product-wa-btn{display:inline-flex;align-items:center;gap:5px;background:var(--wa);color:#fff;font-weight:700;font-size:.78rem;padding:5px 12px;border-radius:7px;text-decoration:none;transition:opacity .15s;white-space:nowrap;}
-    .product-wa-btn:hover{opacity:.88;}
-  </style>
-</head>
-<body>
-  <div class="address-bar">
-    <span>Avenida Brasil, 6818 · Rio de Janeiro</span>
-    <span>•</span>
-    <a href="tel:+5521965832950" class="phone-track">(21) 96583-2950</a>
+{% block content %}
+  <div class="lead-box">
+    <p><strong>Resumo rápido:</strong> em geladeira frost free o frio é produzido no freezer e um ventilador empurra o ar para baixo. Se o <strong>degelo falha</strong>, o gelo fecha essa passagem; se o <strong>ventilador</strong>, o <strong>sensor</strong> ou o <strong>termostato</strong> falham, o ar frio não chega embaixo. Comece verificando se há gelo acumulado no fundo do freezer.</p>
   </div>
 
-  <header>
-    <div class="header-inner">
-      <a href="/" class="logo">
-        <div class="logo-mark">MTF</div>
-        <div class="logo-text">
-          <div class="logo-main">M.T.F Refrigeração</div>
-          <div class="logo-sub">Peças · Gases · Serviços</div>
-        </div>
-      </a>
+  <h2>Sinais de que o problema é esse</h2>
+  <ul>
+    <li>O freezer está normal, mas a parte de baixo não resfria</li>
+    <li>A geladeira gela por alguns dias e depois para de gelar embaixo</li>
+    <li>Há gelo acumulado no fundo do freezer ou na saída de ar</li>
+    <li>Bebidas e alimentos ficam mornos mesmo com o termostato no máximo</li>
+    <li>O motor (compressor) funciona, mas não se ouve o ventilador</li>
+  </ul>
 
-      <a href="https://wa.me/{{ wa_number }}?text=Ol%C3%A1%21%20Preciso%20de%20ajuda%20com%20minha%20geladeira." target="_blank" rel="noopener" class="wa-btn-header wa-track" data-product="Artigo geladeira não gela embaixo">
-        WhatsApp
-      </a>
-    </div>
-  </header>
+  <h2>1. Falha no degelo: gelo bloqueando a passagem de ar</h2>
+  <p>É a causa número 1 em geladeira <strong>frost free</strong>. A cada algumas horas a geladeira liga uma resistência para derreter o gelo do evaporador. Se a <strong>resistência de degelo</strong>, o <strong>bimetal (sensor de degelo)</strong> ou o <strong>timer de degelo</strong> falham, o gelo cresce, fecha a saída de ar e o refrigerador para de gelar.</p>
+  <p><strong>Como testar:</strong> desligue a geladeira da tomada por 12–24 horas com as portas abertas (coloque panos no chão). Se depois disso ela voltar a gelar embaixo por alguns dias e o problema voltar, o defeito está no sistema de degelo.</p>
+  {{ pc.group([
+      'resistencia-evoporador-brm3743-br-cr-kr-225w-127v',
+      'sensor-biometal-com-fusivel-eletrolux-df35-df36-df37-df38-921979',
+      'sensor-biometal-eletrolux',
+      'timer-de-degelo-eletrolux-220v',
+      'timer-degelo-electrolux-tmdj812zb9-110v-original'], 'Degelo') }}
 
-  <nav class="breadcrumb">
-    <a href="/">Catálogo</a>
-    <span>›</span>
-    <a href="/blog">Guias</a>
-    <span>›</span>
-    <span>Geladeira não gela embaixo</span>
-  </nav>
+  <h2>2. Sensor de temperatura com defeito</h2>
+  <p>Nas geladeiras eletrônicas, o sensor (NTC) informa à placa a temperatura interna. Se ele falha, a placa “acha” que já está frio e não manda gelar a parte de baixo. Sintoma típico: geladeira com painel digital que gela pouco ou de forma irregular.</p>
+  {{ pc.group([
+      'sensor-de-temperatura-2-7k-brastemp-w10531315',
+      'sensor-de-temperatura-ntc-10k-symphony-para-geladeira-brastemp-consul',
+      'sensor-de-degelo-10k-para-geladeira-electrolux'], 'Sensor') }}
 
-  <section class="hero">
-    <h1>Geladeira não gela embaixo? Veja as causas mais comuns, o que fazer e quais peças podem resolver</h1>
-    <p>
-      Se o freezer funciona, mas a parte de baixo da geladeira não gela, o defeito pode estar no sensor,
-      no termostato, na resistência de degelo ou na circulação de ar frio. Neste guia da M.T.F Refrigeração,
-      você entende os sintomas, vê quando vale testar uma peça e encontra kits e componentes para resolver.
-    </p>
-    <div class="hero-badges">
-      <span class="badge">Geladeira não gela parte de baixo</span>
-      <span class="badge">Freezer funciona, refrigerador não</span>
-      <span class="badge">Peças para geladeira no RJ</span>
-    </div>
-  </section>
+  <h2>3. Termostato desregulado ou com defeito</h2>
+  <p>Nas geladeiras com botão de regulagem, quem decide quando o motor liga é o <strong>termostato</strong>. Se ele está com defeito, o motor desliga cedo demais e a parte de baixo nunca chega na temperatura certa. Antes de trocar, confira se o botão não foi girado para o mínimo.</p>
+  {{ pc.group([
+      'termostato-geladeira-consul-w11082462-tsv0013-01-original',
+      'termostato-de-geladeira-wdf20',
+      'termostato-geladeira-electrolux-dc34a-dc33a-dc35a-wdf30a',
+      'termostato-electrolux-dc49a-a05441301-41038362'], 'Termostato') }}
 
-  <section class="article-wrap">
-    <article class="article-card">
-      <h2>Guia completo</h2>
+  <h2>4. Ventilador (motoventilador) parado</h2>
+  <p>É ele que leva o ar frio do freezer para baixo. Abra o freezer com a geladeira ligada: se não ouvir o ventilador girando (ou ouvir ele raspando no gelo), o motor pode estar queimado ou travado. Nesse caso o freezer gela, mas o refrigerador não.</p>
+  {{ pc.group([
+      'motor-ventilador-brastemp-consul-127v-w11369860-original',
+      'motor-ventilador-geladeira-brastemp-consul-w10399715',
+      'motor-ventilador-rede-eletrica-electrolux-220v-50-60hz-dc46-dc48-dc49x'], 'Ventilador') }}
 
-      <div class="lead-box">
-        <p><strong>Resumo rápido:</strong> quando a geladeira gela no freezer, mas não resfria embaixo, as causas mais comuns envolvem a passagem de ar frio, o sistema de degelo ou peças como <a href="https://www.mtfrefrigeracao.com.br/category/sensores">sensor de temperatura</a>, <a href="https://www.mtfrefrigeracao.com.br/category/termostato">termostato</a> ou <a href="https://www.mtfrefrigeracao.com.br/category/geladeira">resistência e outras peças para geladeira</a>.</p>
-      </div>
+  <h2>5. Vedação da porta e uso</h2>
+  <p>Borracha da porta ressecada, porta mal fechada ou geladeira muito cheia (bloqueando a saída de ar) também fazem a parte de baixo esquentar. Teste: feche a porta sobre uma folha de papel — se ela sai sem resistência, a borracha não está vedando.</p>
+  {{ pc.card('borracha-gaxeta-cinza-ilpea-porta-geladeira-freezer-aba-ima-2m', 'Vedação') }}
 
-      <p>
-        A busca por <strong>geladeira não gela embaixo</strong>, <strong>geladeira não gela parte de baixo</strong>
-        e <strong>freezer funciona mas geladeira não gela</strong> é muito comum porque esse defeito aparece em
-        várias marcas, como Brastemp, Consul e Electrolux. Em muitos casos, a parte de cima continua congelando,
-        enquanto o refrigerador fica fraco, morno ou com alimentos estragando antes do normal.
-      </p>
+  <h2>O que fazer antes de comprar a peça</h2>
+  <ol>
+    <li>Veja se há gelo acumulado no fundo do freezer (indica degelo)</li>
+    <li>Escute o ventilador com o freezer aberto</li>
+    <li>Confira a regulagem do termostato</li>
+    <li>Anote o modelo na etiqueta (lateral interna da geladeira) e a voltagem — 127V ou 220V</li>
+    <li>Na dúvida, mande foto da etiqueta no WhatsApp que a gente confirma a peça</li>
+  </ol>
 
-      <h3>Principais sinais do problema</h3>
-      <ul>
-        <li>O freezer está normal, mas a parte de baixo não resfria direito</li>
-        <li>A geladeira fica fria por pouco tempo e depois para de gelar</li>
-        <li>Há acúmulo de gelo no fundo ou na saída de ar</li>
-        <li>Legumes, bebidas e laticínios ficam mornos mesmo com regulagem alta</li>
-        <li>O motor trabalha, mas a refrigeração da parte inferior está fraca</li>
-      </ul>
+  <div class="note-box"><strong>⚡ Atenção:</strong> sempre desligue a geladeira da tomada antes de mexer em qualquer peça elétrica.</div>
 
-      <h3>1. Saída de ar frio bloqueada</h3>
-      <p>
-        Em muitos modelos, o ar frio sai do freezer e desce para a parte de baixo. Quando essa passagem está
-        obstruída por gelo, sujeira ou falha de degelo, a geladeira para de resfriar corretamente. Esse é um
-        dos motivos mais comuns para <strong>geladeira gelando no freezer e quente embaixo</strong>.
-      </p>
+  <h2>Vale a pena consertar?</h2>
+  <p>Quase sempre sim. Resistência, sensor, termostato e motor do ventilador custam uma fração do preço de uma geladeira nova, e a troca é simples para um técnico. O mais importante é comprar a peça <strong>compatível com o seu modelo e voltagem</strong> — por isso vale conferir a etiqueta antes.</p>
+{% endblock %}
 
-      <h3>2. Sensor de temperatura com defeito</h3>
-      <p>
-        O sensor informa ao sistema quando resfriar e quando interromper o ciclo. Se ele falha, a geladeira pode
-        interpretar a temperatura de forma errada e deixar o compartimento inferior sem refrigeração suficiente.
-      </p>
-      {% if products.get('sensor-de-temperatura-2-7k-brastemp-w10531315') %}
-      <a class="inline-product" href="/product/sensor-de-temperatura-2-7k-brastemp-w10531315">
-        {% if products['sensor-de-temperatura-2-7k-brastemp-w10531315'].image %}<img src="{{ products['sensor-de-temperatura-2-7k-brastemp-w10531315'].image }}" alt="Sensor de temperatura 2,7K Brastemp W10531315" loading="lazy">{% endif %}
-        <span class="inline-product-info"><span class="inline-product-label">Sensor de temperatura</span><span class="inline-product-name">Sensor 2,7K Brastemp W10531315</span>{% if products['sensor-de-temperatura-2-7k-brastemp-w10531315'].sale_price %}<span class="inline-product-price">R$ {{ "%.2f"|format(products['sensor-de-temperatura-2-7k-brastemp-w10531315'].sale_price)|replace('.', ',') }}</span>{% endif %}</span>
-      </a>
-      {% endif %}
-      {% if products.get('sensor-de-temperatura-10k-para-geladeira-electrolux') %}
-      <a class="inline-product" href="/product/sensor-de-temperatura-10k-para-geladeira-electrolux">
-        {% if products['sensor-de-temperatura-10k-para-geladeira-electrolux'].image %}<img src="{{ products['sensor-de-temperatura-10k-para-geladeira-electrolux'].image }}" alt="Sensor de temperatura 10K para geladeira Electrolux" loading="lazy">{% endif %}
-        <span class="inline-product-info"><span class="inline-product-label">Sensor de temperatura</span><span class="inline-product-name">Sensor 10K para geladeira Electrolux</span>{% if products['sensor-de-temperatura-10k-para-geladeira-electrolux'].sale_price %}<span class="inline-product-price">R$ {{ "%.2f"|format(products['sensor-de-temperatura-10k-para-geladeira-electrolux'].sale_price)|replace('.', ',') }}</span>{% endif %}</span>
-      </a>
-      {% endif %}
-
-      <h3>3. Resistência de degelo que não atua</h3>
-      <p>
-        Quando a <a href="https://www.mtfrefrigeracao.com.br/category/geladeira">resistência e outras peças para geladeira</a> não funciona, o gelo se acumula
-        onde não deveria. Com isso, a circulação de ar frio é bloqueada e a parte de baixo perde rendimento.
-        Esse cenário é clássico em casos de <strong>geladeira frost free não gela embaixo</strong>.
-      </p>
-      <p>Em alguns modelos, o <strong>timer de degelo</strong> participa do acionamento do ciclo de degelo e também precisa ser compatível com a tensão do aparelho:</p>
-      {% if products.get('timer-de-degelo-eletrolux-220v') %}
-      <a class="inline-product" href="/product/timer-de-degelo-eletrolux-220v">
-        {% if products['timer-de-degelo-eletrolux-220v'].image %}<img src="{{ products['timer-de-degelo-eletrolux-220v'].image }}" alt="Timer de degelo Electrolux 220V" loading="lazy">{% endif %}
-        <span class="inline-product-info"><span class="inline-product-label">Degelo · 220V</span><span class="inline-product-name">Timer de degelo Electrolux</span>{% if products['timer-de-degelo-eletrolux-220v'].sale_price %}<span class="inline-product-price">R$ {{ "%.2f"|format(products['timer-de-degelo-eletrolux-220v'].sale_price)|replace('.', ',') }}</span>{% endif %}</span>
-      </a>
-      {% endif %}
-      {% if products.get('timer-degelo-electrolux-tmdj812zb9-110v-original') %}
-      <a class="inline-product" href="/product/timer-degelo-electrolux-tmdj812zb9-110v-original">
-        {% if products['timer-degelo-electrolux-tmdj812zb9-110v-original'].image %}<img src="{{ products['timer-degelo-electrolux-tmdj812zb9-110v-original'].image }}" alt="Timer Degelo Electrolux TMDJ812ZB9 110V Original" loading="lazy">{% endif %}
-        <span class="inline-product-info"><span class="inline-product-label">Degelo · 110V</span><span class="inline-product-name">Timer TMDJ812ZB9 Original</span>{% if products['timer-degelo-electrolux-tmdj812zb9-110v-original'].sale_price %}<span class="inline-product-price">R$ {{ "%.2f"|format(products['timer-degelo-electrolux-tmdj812zb9-110v-original'].sale_price)|replace('.', ',') }}</span>{% endif %}</span>
-      </a>
-      {% endif %}
-
-      <h3>4. Termostato com falha</h3>
-      <p>
-        O <a href="/product/termostato-de-geladeira-wdf20">termostato da geladeira</a> regula a temperatura interna. Se ele estiver
-        desregulado ou danificado, o sistema pode não ligar no momento certo ou trabalhar de forma irregular.
-      </p>
-      {% if products.get('termostato-de-geladeira-wdf20') %}
-      <a class="inline-product" href="/product/termostato-de-geladeira-wdf20">
-        {% if products['termostato-de-geladeira-wdf20'].image %}<img src="{{ products['termostato-de-geladeira-wdf20'].image }}" alt="Termostato de geladeira WDF20" loading="lazy">{% endif %}
-        <span class="inline-product-info"><span class="inline-product-label">Termostato</span><span class="inline-product-name">Termostato de geladeira WDF20</span>{% if products['termostato-de-geladeira-wdf20'].sale_price %}<span class="inline-product-price">R$ {{ "%.2f"|format(products['termostato-de-geladeira-wdf20'].sale_price)|replace('.', ',') }}</span>{% endif %}</span>
-      </a>
-      {% endif %}
-      {% if products.get('termostato-geladeira-electrolux-dc34a-dc33a-dc35a-wdf30a') %}
-      <a class="inline-product" href="/product/termostato-geladeira-electrolux-dc34a-dc33a-dc35a-wdf30a">
-        {% if products['termostato-geladeira-electrolux-dc34a-dc33a-dc35a-wdf30a'].image %}<img src="{{ products['termostato-geladeira-electrolux-dc34a-dc33a-dc35a-wdf30a'].image }}" alt="Termostato Geladeira Electrolux WDF30A" loading="lazy">{% endif %}
-        <span class="inline-product-info"><span class="inline-product-label">Para modelos Electrolux</span><span class="inline-product-name">Termostato DC34A / DC33A / DC35A</span>{% if products['termostato-geladeira-electrolux-dc34a-dc33a-dc35a-wdf30a'].sale_price %}<span class="inline-product-price">R$ {{ "%.2f"|format(products['termostato-geladeira-electrolux-dc34a-dc33a-dc35a-wdf30a'].sale_price)|replace('.', ',') }}</span>{% endif %}</span>
-      </a>
-      {% endif %}
-
-      <h3>5. Ventilação interna prejudicada</h3>
-      <p>
-        Alguns modelos contam com ventilação forçada. Se houver travamento, sujeira, gelo excessivo ou outra restrição,
-        o ar não circula bem. Resultado: o freezer parece normal, mas o refrigerador perde eficiência.
-      </p>
-      {% if products.get('motor-ventilador-brastemp-consul-127v-w11369860-original') %}
-      <a class="inline-product" href="/product/motor-ventilador-brastemp-consul-127v-w11369860-original">
-        {% if products['motor-ventilador-brastemp-consul-127v-w11369860-original'].image %}<img src="{{ products['motor-ventilador-brastemp-consul-127v-w11369860-original'].image }}" alt="Motor Ventilador Brastemp Consul 127V W11369860 Original" loading="lazy">{% endif %}
-        <span class="inline-product-info"><span class="inline-product-label">Ventilação · 127V</span><span class="inline-product-name">Motor Ventilador Brastemp Consul W11369860</span>{% if products['motor-ventilador-brastemp-consul-127v-w11369860-original'].sale_price %}<span class="inline-product-price">R$ {{ "%.2f"|format(products['motor-ventilador-brastemp-consul-127v-w11369860-original'].sale_price)|replace('.', ',') }}</span>{% endif %}</span>
-      </a>
-      {% endif %}
-
-      <p class="product-context">Se o diagnóstico apontar para um componente específico, confira o modelo compatível antes da compra:</p>
-
-
-      <h3>O que fazer antes de trocar peças</h3>
-      <ol>
-        <li>Verifique se a saída de ar está bloqueada</li>
-        <li>Observe se existe gelo em excesso dentro do sistema</li>
-        <li>Teste a regulagem de temperatura</li>
-        <li>Confira etiqueta do modelo antes de comprar qualquer componente</li>
-        <li>Se estiver em dúvida, envie foto para atendimento técnico</li>
-      </ol>
-
-      </ol>
-
-      <h3>Quando vale a pena consertar?</h3>
-      <p>
-        Em muitos casos, sim. Se o defeito estiver em peças pontuais como sensor, termostato ou resistência,
-        o reparo costuma ser mais simples do que trocar o equipamento inteiro. O ideal é identificar corretamente
-        o modelo e evitar compra errada, porque ser humano adora improvisar diagnóstico e depois culpar a peça.
-      </p>
-
-
-
-    </article>
-  </section>
-
-
-
-  <section class="cta-wrap">
-    <div class="cta-card">
-      <h2>Precisa de ajuda para identificar a peça certa?</h2>
-      <p>
-        Você pode falar com a nossa equipe ou escrever direto para o técnico. Envie uma foto da etiqueta,
-        informe a marca e descreva o defeito. Assim fica muito mais fácil indicar a peça ou o kit correto.
-      </p>
-      <div class="cta-actions">
-        <a class="btn wa-track" data-product="Consulta técnica geladeira" target="_blank" rel="noopener" href="https://wa.me/{{ wa_number }}?text=Ol%C3%A1%21%20Minha%20geladeira%20n%C3%A3o%20est%C3%A1%20gelando%20embaixo.%20Posso%20enviar%20foto%20da%20etiqueta%20e%20do%20modelo%3F">Falar com nosso técnico</a>
-        <a class="btn-outline" href="/catalogo">Ver catálogo completo</a>
-      </div>
-    </div>
-  </section>
-
-  <a href="https://wa.me/{{ wa_number }}?text=Ol%C3%A1%21%20Preciso%20de%20ajuda%20com%20uma%20geladeira%20que%20n%C3%A3o%20gela%20embaixo." class="wa-float wa-track" data-product="WhatsApp flutuante artigo" target="_blank" rel="noopener">
-    <span>Fale no WhatsApp</span>
-  </a>
-
-  <footer>
-    M.T.F Refrigeração · peças, manutenção, refil e varejo no Rio de Janeiro
-  </footer>
-
-  <script>
-    document.querySelectorAll('.wa-track').forEach(el => {
-      el.addEventListener('click', function() {
-        const product = this.dataset.product || 'Geral';
-        if (typeof gtag !== 'undefined') gtag('event', 'whatsapp_click', {product_name: product});
-        fetch('/api/track/whatsapp', {
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({product})
-        }).catch(()=>{});
-      });
-    });
-
-    document.querySelectorAll('.phone-track').forEach(el => {
-      el.addEventListener('click', function() {
-        fetch('/api/track/whatsapp', {
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({product:'Telefone'})
-        }).catch(()=>{});
-      });
-    });
-  </script>
-</body>
-</html>
+{% block cta_text %}Mande uma foto da etiqueta da geladeira (marca, modelo e voltagem) no WhatsApp: a gente confirma a peça certa antes de você comprar. Retire hoje na Av. Brasil, 6818 (Bonsucesso) ou receba no mesmo dia no RJ.{% endblock %}

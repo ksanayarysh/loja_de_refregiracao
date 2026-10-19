@@ -1568,19 +1568,25 @@ async def blog_article(request: Request, slug: str):
 
     site_url = SITE_URL.rstrip("/")  # evita "//blog/..." no canonical se SITE_URL termina em "/"
 
-    # Preços/estoque só para artigos que declaram "products" ou "schema_product".
-    # Se o banco falhar, o artigo renderiza normalmente, apenas sem preços.
+    # Produtos com preço/estoque/promoção para os cartões dos artigos (blog/_produto.html).
+    # Slugs antigos (produto renomeado) também resolvem: _SLUG_SEED + product_slug_history.
+    # Se o banco falhar, o artigo renderiza normalmente, apenas sem produtos.
     blog_ctx = {"products": {}, "schema_product": None}
-    if article.get("products") or article.get("schema_product"):
-        try:
-            async with engine.connect() as conn:
-                rows = await _get_products_cached(conn)
-            blog_ctx = build_article_context(article, rows, site_url, slugify)
-            if blog_ctx.get("missing"):
-                _blog_log.warning("blog/%s: slugs de produto NÃO encontrados no catálogo: %s",
-                                  slug, blog_ctx["missing"])
-        except Exception:
-            _blog_log.exception("blog/%s: falha ao carregar produtos (artigo abre sem preços)", slug)
+    try:
+        async with engine.connect() as conn:
+            rows = await _get_products_cached(conn)
+            aliases = dict(_SLUG_SEED)
+            try:
+                for r in (await conn.execute(text("SELECT slug, product_id FROM product_slug_history"))).mappings():
+                    aliases[r["slug"]] = r["product_id"]
+            except Exception:
+                pass   # tabela ainda não existe: fica só com _SLUG_SEED
+        blog_ctx = build_article_context(article, rows, site_url, slugify, aliases)
+        if blog_ctx.get("missing"):
+            _blog_log.warning("blog/%s: slugs de produto NÃO encontrados no catálogo: %s",
+                              slug, blog_ctx["missing"])
+    except Exception:
+        _blog_log.exception("blog/%s: falha ao carregar produtos (artigo abre sem produtos)", slug)
 
     return templates.TemplateResponse(article["template"], {
         "request":       request,

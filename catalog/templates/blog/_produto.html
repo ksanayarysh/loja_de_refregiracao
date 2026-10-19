@@ -1,0 +1,38 @@
+{#- Cartão de produto para artigos do blog.
+    {% import 'blog/_produto.html' as pc with context %}
+    {{ pc.card('slug-do-produto', 'Rótulo opcional') }}
+    {{ pc.group(['slug-1', 'slug-2'], 'Rótulo') }}
+    Preço, promoção e estoque vêm do banco na hora. Slug antigo (produto renomeado) também funciona.
+    Produto que não existe mais simplesmente não aparece (e vai para o log "slugs NÃO encontrados"). -#}
+
+{% macro card(slug, label='') -%}
+{%- set p = products.get(slug) -%}
+{%- if p and p.sale_price -%}
+{%- set per = '/' ~ p.unit if p.unit in ('kg', 'm', 'l') else '' -%}
+<div class="pcard{% if p.on_promo %} on-promo{% endif %}">
+  <a class="pcard-img" href="/product/{{ p.slug }}">{% if p.image %}<img src="{{ p.image | imgurl(160) }}" alt="{{ p.name }}" loading="lazy">{% else %}📦{% endif %}</a>
+  <div class="pcard-info">
+    {% if label %}<div class="pcard-label">{{ label }}</div>{% endif %}
+    <a class="pcard-name" href="/product/{{ p.slug }}">{{ p.name }}</a>
+    {% if p.in_stock %}<span class="pcard-stock">● Em estoque · retire hoje</span>{% else %}<span class="pcard-out">Sob consulta</span>{% endif %}
+  </div>
+  <div class="pcard-buy">
+    <div class="pcard-price">{% if p.on_promo and p.regular_price %}<s>R$ {{ ('%.2f' % p.regular_price) | replace('.', ',') }}</s>{% endif %}R$ {{ ('%.2f' % p.sale_price) | replace('.', ',') }}{% if per %}<small>{{ per }}</small>{% endif %}</div>
+    {% if p.in_stock %}
+    <div class="pcard-btns">
+      <button type="button" class="pcard-add" aria-label="Adicionar ao carrinho" onclick='blogAdd({{ p.id }}, {{ p.name | tojson }}, {{ p.sale_price | float }}, {{ (p.image or "") | tojson }}, {{ (p.unit or "un") | tojson }}, false)'>+ 🛒</button>
+      <button type="button" class="pcard-btn" onclick='blogAdd({{ p.id }}, {{ p.name | tojson }}, {{ p.sale_price | float }}, {{ (p.image or "") | tojson }}, {{ (p.unit or "un") | tojson }}, true)'>Comprar</button>
+    </div>
+    {% else %}
+    <a class="pcard-wa wa-track" data-product="{{ p.name }}" target="_blank" rel="noopener" href="https://wa.me/{{ wa_number }}?text={{ ('Olá! Vocês têm ' ~ p.name ~ '?') | urlencode }}">Consultar</a>
+    {% endif %}
+  </div>
+</div>
+{%- endif -%}
+{%- endmacro %}
+
+{% macro group(slugs, label='') -%}
+<div class="pgroup">
+{%- for s in slugs %}{{ card(s, label) }}{% endfor -%}
+</div>
+{%- endmacro %}

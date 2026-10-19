@@ -6,7 +6,8 @@ O slug NÃO vem do banco — é `slugify(name)`, por isso build_article_context
 recebe a função slugify do router.
 
 Campos opcionais em articles.py:
-    "products":       ["gas-r410a", "gas-r22"]  # slugs cujo preço aparece na página
+    "products":       ["gas-r410a", "gas-r22"]  # só para conferência: slug que sumir vai para o log
+                                                # (o template pode usar qualquer produto ativo)
     "schema_product": "capacitor-xyz"           # UM slug -> JSON-LD Product
                                                 # (só para artigos dedicados a um produto)
 """
@@ -50,29 +51,45 @@ def product_jsonld(product, slug, site_url):
     return data
 
 
-def build_article_context(article, all_products, site_url, slugify):
-    """Retorna {"products": {slug: produto}, "schema_product": dict|None}."""
+def build_article_context(article, all_products, site_url, slugify, aliases=None):
+    """Retorna {"products": {slug: produto}, "schema_product": dict|None, "missing": [...]}.
+
+    `products` traz TODOS os produtos ativos (o template pega só os que cita),
+    indexados pelo slug atual e também pelos slugs antigos (`aliases`: {slug_antigo: id}),
+    para o artigo não perder o produto quando ele é renomeado na admin.
+    Cada produto ganha: slug (atual), in_stock, regular_price e sale_price = preço EFETIVO (promoção).
+    """
     site_url = site_url.rstrip("/")
     wanted = set(article.get("products", []))
     main_slug = article.get("schema_product")
     if main_slug:
         wanted.add(main_slug)
 
-    by_slug = {}
+    by_slug, by_id = {}, {}
     for p in all_products or []:
         sl = slugify(p.get("name", ""))
-        if sl in wanted and sl not in by_slug:
-            q = dict(p)
-            # Promoção: sale_price passa a ser o preço EFETIVO (templates e JSON-LD já usam esse campo);
-            # o preço normal fica em regular_price (para mostrar riscado) e on_promo indica a promoção.
-            q["regular_price"] = p.get("sale_price")
-            if p.get("on_promo") and p.get("price"):
-                q["sale_price"] = p["price"]
-            by_slug[sl] = q
+        if not sl or sl in by_slug:
+            continue
+        q = dict(p)
+        q["slug"] = sl
+        q["in_stock"] = float(p.get("current_stock") or 0) > 0
+        # Promoção: sale_price passa a ser o preço EFETIVO (templates e JSON-LD já usam esse campo);
+        # o preço normal fica em regular_price (para mostrar riscado) e on_promo indica a promoção.
+        q["regular_price"] = p.get("sale_price")
+        if p.get("on_promo") and p.get("price"):
+            q["sale_price"] = p["price"]
+        by_slug[sl] = q
+        if p.get("id") is not None:
+            by_id[p["id"]] = q
+
+    for old, pid in (aliases or {}).items():
+        if old not in by_slug and pid in by_id:
+            by_slug[old] = by_id[pid]
 
     schema_product = None
     if main_slug and main_slug in by_slug:
-        schema_product = product_jsonld(by_slug[main_slug], main_slug, site_url)
+        sp = by_slug[main_slug]
+        schema_product = product_jsonld(sp, sp["slug"], site_url)
 
     return {"products": by_slug, "schema_product": schema_product,
             "missing": sorted(wanted - set(by_slug))}
