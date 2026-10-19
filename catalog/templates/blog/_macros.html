@@ -1,7 +1,10 @@
 {#
   Macros compartilhados dos artigos do blog.
   Importar SEMPRE com contexto (precisam de wa_number e products):
-    {% from 'blog/_macros.html' import product_row, tip_box, warn_box, info_box, cta_block, related_cards with context %}
+    {% from 'blog/_macros.html' import product_card, product_group, product_row, tip_box, warn_box, info_box, cta_block, related_cards with context %}
+
+  products (do roteador) traz TODOS os produtos ativos por slug, inclusive slugs antigos
+  de produtos renomeados; sale_price = preço efetivo (promoção), regular_price = normal.
 #}
 
 {% macro wa_icon(size=13) -%}
@@ -25,7 +28,76 @@
 {%- endif %}
 {%- endmacro %}
 
+{#
+  Cartão de produto: foto, nome, preço (com promoção), estoque e botões "Comprar" (vai ao checkout)
+  e "+ 🛒" (só adiciona). Sem estoque: "Consultar" no WhatsApp. Produto inexistente: não aparece.
+#}
+{#- product_card(slug, label=...)  — formato novo
+    product_card(slug, name, href, msg, track) — formato antigo (compressor-de-geladeira): name/href/msg/track são
+    aceitos por compatibilidade; o cartão usa os dados do banco. -#}
+{% macro product_card(slug, name='', href='', msg='', track='', label='') -%}
+{%- set p = products.get(slug) if products else none -%}
+{%- set in_stock = (p.in_stock if p and p.in_stock is defined else (p and (p.current_stock or 0) > 0)) -%}
+{%- if p and p.sale_price -%}
+{%- set per = '/' ~ p.unit if p.unit in ('kg', 'm', 'l') else '' -%}
+<div class="pcard{% if p.on_promo %} on-promo{% endif %}">
+  <a class="pcard-img" href="/product/{{ p.slug or slug }}">{% if p.image %}<img src="{{ p.image | imgurl(160) }}" alt="{{ p.name }}" loading="lazy">{% else %}📦{% endif %}</a>
+  <div class="pcard-info">
+    {% if label %}<div class="pcard-label">{{ label }}</div>{% endif %}
+    <a class="pcard-name" href="/product/{{ p.slug or slug }}">{{ p.name }}</a>
+    {% if in_stock %}<span class="pcard-stock">● Em estoque · retire hoje</span>{% else %}<span class="pcard-out">Sob consulta</span>{% endif %}
+  </div>
+  <div class="pcard-buy">
+    <div class="pcard-price">{% if p.on_promo and p.regular_price %}<s>R$ {{ ('%.2f' % p.regular_price) | replace('.', ',') }}</s>{% endif %}R$ {{ ('%.2f' % p.sale_price) | replace('.', ',') }}{% if per %}<small>{{ per }}</small>{% endif %}</div>
+    {% if in_stock %}
+    <div class="pcard-btns">
+      <button type="button" class="pcard-add" aria-label="Adicionar ao carrinho" onclick='blogAdd({{ p.id }}, {{ p.name | tojson }}, {{ p.sale_price | float }}, {{ (p.image or "") | tojson }}, {{ (p.unit or "un") | tojson }}, false)'>+ 🛒</button>
+      <button type="button" class="pcard-btn" onclick='blogAdd({{ p.id }}, {{ p.name | tojson }}, {{ p.sale_price | float }}, {{ (p.image or "") | tojson }}, {{ (p.unit or "un") | tojson }}, true)'>Comprar</button>
+    </div>
+    {% else %}
+    <a class="pcard-wa wa-track" data-product="{{ p.name }}" target="_blank" rel="noopener" href="https://wa.me/{{ wa_number }}?text={{ ('Olá! Vocês têm ' ~ p.name ~ '?') | urlencode }}">Consultar</a>
+    {% endif %}
+  </div>
+</div>
+{%- endif -%}
+{%- endmacro %}
+
+{#- JSON-LD Product de um produto citado no artigo (preço/estoque do banco). Vazio se o produto não existe. -#}
+{% macro product_schema(slug) -%}
+{%- set p = products.get(slug) if products else none -%}
+{%- if p and p.sale_price -%}
+{%- set in_stock = (p.in_stock if p.in_stock is defined else ((p.current_stock or 0) > 0)) -%}
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "Product",
+ "name": {{ p.name | tojson }},
+ "url": {{ (site_url ~ '/product/' ~ (p.slug or slug)) | tojson }},
+ {%- if p.image %}"image": [{{ p.image | tojson }}],{% endif %}
+ {%- if p.brand %}"brand": {"@type": "Brand", "name": {{ p.brand | tojson }}},{% endif %}
+ "sku": {{ ((p.sku or p.id) | string) | tojson }},
+ "offers": {"@type": "Offer", "priceCurrency": "BRL", "price": {{ ('%.2f' % p.sale_price) | tojson }},
+   "availability": "https://schema.org/{{ 'InStock' if in_stock else 'OutOfStock' }}",
+   "itemCondition": "https://schema.org/NewCondition",
+   "url": {{ (site_url ~ '/product/' ~ (p.slug or slug)) | tojson }},
+   "seller": {"@type": "Organization", "name": "M.T.F Refrigeração"}}}
+</script>
+{%- endif -%}
+{%- endmacro %}
+
+{% macro product_group(slugs, label='') -%}
+<div class="pgroup">
+{%- for s in slugs %}{{ product_card(s, label=label) }}{% endfor -%}
+</div>
+{%- endmacro %}
+
+
+{#
+  Formato antigo "nome + botão WhatsApp". Com slug= de um produto existente vira o cartão novo;
+  sem slug (ex.: link de categoria) continua como linha com WhatsApp.
+#}
 {% macro product_row(name, href, msg, track, btn="Comprar agora", slug=none) -%}
+{%- if slug and products and products.get(slug) and products.get(slug).sale_price -%}
+{{ product_card(slug) }}
+{%- else -%}
 <p>
   <span class="product-row">
     <a class="product-name-link" href="{{ href }}">{{ name }}</a>
@@ -36,6 +108,7 @@
     </a>
   </span>
 </p>
+{%- endif -%}
 {%- endmacro %}
 
 
@@ -60,11 +133,11 @@
 
 
 {#
-  Bloco final de CTA.
-  tecnico_msg: passe o texto só se o artigo pode citar o técnico Douglas
-  (NUNCA em artigos de máquina de lavar). Sem tecnico_msg = sem botão do Douglas.
+  Bloco final de CTA (só WhatsApp da loja).
+  tecnico_msg / tecnico_btn: aceitos por compatibilidade com artigos antigos, mas IGNORADOS
+  (o botão do técnico Douglas foi retirado do site).
 #}
-{% macro cta_block(title, text, msg, track, tecnico_msg=none, btn="Falar com a loja", tecnico_btn="Falar com o técnico Douglas") -%}
+{% macro cta_block(title, text, msg, track, tecnico_msg=none, btn="Falar com a loja", tecnico_btn="") -%}
 <div class="cta-block">
   <h3>{{ title }}</h3>
   <p>{{ text }}</p>
@@ -72,12 +145,7 @@
     {{ wa_icon(18) }}
     {{ btn }}
   </a>
-  {%- if tecnico_msg %}
-  <br>
-  <a class="cta-tecnico" href="https://wa.me/5521965832950?text={{ tecnico_msg | urlencode }}" target="_blank" rel="noopener">
-    🔧 {{ tecnico_btn }}
-  </a>
-  {%- endif %}
+  <p style="margin:14px 0 0;font-size:.85rem;">📍 Retire hoje na Av. Brasil, 6818 (Bonsucesso) ou receba no mesmo dia no RJ · <a href="/catalogo" style="color:var(--accent);font-weight:700;text-decoration:none;">Ver catálogo</a></p>
 </div>
 {%- endmacro %}
 

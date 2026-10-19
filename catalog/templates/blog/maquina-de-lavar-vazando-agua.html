@@ -1,7 +1,6 @@
 {% extends 'blog/_article_base.html' %}
-{% from 'blog/_macros.html' import wa_icon, product_row, tip_box, warn_box, info_box, cta_block, related_cards with context %}
+{% from 'blog/_macros.html' import wa_icon, product_row, product_card, tip_box, warn_box, info_box, cta_block, related_cards with context %}
 
-{# Artigo de máquina de lavar: NÃO passar tecnico_msg no cta_block (Douglas nunca aparece em lavadora). #}
 {% set meta_description = "Água no chão durante a lavagem? Veja as causas mais comuns de vazamento em máquinas de lavar e quais peças resolver. M.T.F Refrigeração no Rio de Janeiro." %}
 {% set og_description = "Água no chão durante a lavagem? Veja as causas mais comuns e quais peças podem resolver." %}
 {% set schema_description = "Água no chão durante a lavagem? Veja as causas mais comuns de vazamento em máquinas de lavar." %}
@@ -32,6 +31,7 @@
     {{ product_row("Mangueira do dreno", "/product/mangueira-do-dreno-maquina-de-lavar",
                    "Olá! Tenho interesse em: Mangueira do dreno. Está disponível?", "Mangueira do dreno",
                    slug="mangueira-do-dreno-maquina-de-lavar") }}
+    {{ product_card('kit-mangueira-de-lavadora') }}
 
     <h2>2. Borracha da porta (vedação)</h2>
     <p>A vedação da porta veda o tambor durante a lavagem. Com o tempo ela resseca, racha ou acumula sujeira nas dobras internas — e começa a vazar pela parte frontal da máquina.</p>
@@ -41,7 +41,6 @@
       <li>Perda de elasticidade</li>
     </ul>
     {% call warn_box() %}Se o vazamento ocorre pela frente da máquina durante o ciclo, a borracha da porta é a primeira suspeita. Inspecione toda a vedação com atenção.{% endcall %}
-    <span class="product-row"><a class="product-wa-btn wa-track" href="https://wa.me/{{ wa_number }}?text={{ 'Olá! Gostaria de consultar peças disponíveis. Pode me ajudar?' | urlencode }}" target="_blank" rel="noopener" data-product="Ver borrachas de porta">{{ wa_icon(13) }} Ver borrachas de porta</a></span>
 
     <h2>3. Eletrobomba de drenagem</h2>
     <p>A eletrobomba retira a água do tambor no final do ciclo. Quando está entupida ou com defeito, pode vazar pela parte inferior da máquina — geralmente durante o escoamento.</p>

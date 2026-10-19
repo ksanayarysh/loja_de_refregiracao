@@ -1,5 +1,5 @@
 {% extends 'blog/_article_base.html' %}
-{% from 'blog/_macros.html' import product_row, tip_box, warn_box, info_box, cta_block, related_cards with context %}
+{% from 'blog/_macros.html' import product_row, product_card, tip_box, warn_box, info_box, cta_block, related_cards with context %}
 
 {% set meta_description = "Entenda as diferenças entre R410A, R32 e R22, como identificar o gás correto do seu ar-condicionado e onde comprar no Rio de Janeiro." %}
 {% set meta_keywords = "R410A R32 R22 diferença, qual gás ar condicionado, gás split R32 ou R410A, gás ar condicionado RJ, recarga gás ar condicionado rio de janeiro, R22 R410A diferença" %}
@@ -56,6 +56,7 @@
     {{ product_row("Gás R22 700g", "/product/gas-refrigerante-r22-700g-dugold",
                    "Olá! Tenho interesse em gás R22 700g para ar-condicionado. Qual o preço e disponibilidade?",
                    "Gás R22 700g", btn="Consultar preço", slug="gas-refrigerante-r22-700g-dugold") }}
+    {{ product_card('botija-gas-refrigerante-r22-13kg') }}
 
     <h2>R410A — o padrão da geração anterior</h2>
     <p>O R410A substituiu o R22 nos splits fabricados a partir de 2008 e foi o gás dominante por mais de uma década. Opera em pressões mais altas que o R22, por isso os equipamentos e mangueiras precisam ser compatíveis.</p>
@@ -66,6 +67,7 @@
     {{ product_row("Gás R410A 750g", "/product/gas-refrigerante-r410-750g-eos",
                    "Olá! Tenho interesse em gás R410A 750g para ar-condicionado. Qual o preço e disponibilidade?",
                    "Gás R410A 750g", btn="Consultar preço", slug="gas-refrigerante-r410-750g-eos") }}
+    {{ product_card('botija-gas-refrigerante-r410-10kg') }}
 
     <h2>R32 — o padrão atual</h2>
     <p>O R32 é o gás dos splits modernos, especialmente os modelos inverter fabricados a partir de 2019. É mais eficiente energeticamente que o R410A — consome menos gás para a mesma capacidade de resfriamento — e tem menor potencial de aquecimento global.</p>
@@ -77,6 +79,7 @@
     {{ product_row("Gás R32 3kg Hulter", "/product/gas-refrigerante-r32-3kg-hulter",
                    "Olá! Tenho interesse em gás R32 3kg Hulter para ar-condicionado. Qual o preço e disponibilidade?",
                    "Gás R32 3kg Hulter", btn="Consultar preço", slug="gas-refrigerante-r32-3kg-hulter") }}
+    {{ product_card('gas-refrigerante-r32-3kg-jcm') }}
   </div>
 
   <div class="article-section">
@@ -102,7 +105,7 @@
 {% block cta %}
   {{ cta_block(
       "Precisa de gás R410A, R32 ou R22 no RJ?",
-      "Temos os três em estoque. Consulte disponibilidade e preço pelo WhatsApp — retirada na Av. Brasil, 6818, Rio de Janeiro.",
+      "Temos os três em estoque, em lata e em botija. Compre aqui pelo site ou tire dúvidas pelo WhatsApp — retirada na Av. Brasil, 6818 ou entrega no mesmo dia no RJ.",
       "Olá! Preciso de gás refrigerante para ar-condicionado. Qual o preço e disponibilidade?",
       "Artigo R410A R32 R22",
       btn="Consultar preço e disponibilidade") }}

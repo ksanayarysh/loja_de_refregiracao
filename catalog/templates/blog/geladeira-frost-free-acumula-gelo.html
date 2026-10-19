@@ -1,45 +1,33 @@
 {% extends 'blog/_article_base.html' %}
-{% import 'blog/_produto.html' as pc with context %}
+{% from 'blog/_macros.html' import product_card, product_group, tip_box, warn_box, info_box, cta_block, related_cards with context %}
 
-{% block title %}Geladeira frost free acumulando gelo: causas e solução | M.T.F Refrigeração{% endblock %}
-
-{% block head %}
-  <meta name="description" content="Frost free fazendo gelo no fundo ou atrás da gaveta? Veja por que o degelo falha (resistência, bimetal, sensor, timer, dreno) e como resolver. Peças com retirada hoje no RJ.">
-  <meta property="og:title" content="Geladeira frost free acumulando gelo: causas e solução">
-  <meta property="og:description" content="Por que a frost free acumula gelo, como testar o degelo e quais peças resolvem.">
-  <script type="application/ld+json">
+{% set seo_title = "Geladeira frost free acumulando gelo: causas e solução" %}
+{% set h1_text = "Geladeira frost free acumulando gelo: causas e solução" %}
+{% set meta_description = "Frost free fazendo gelo no fundo ou atrás da gaveta? Veja por que o degelo falha (resistência, bimetal, sensor, timer, dreno) e como resolver. Peças com retirada hoje no RJ." %}
+{% set og_title = "Geladeira frost free acumulando gelo: causas e solução" %}
+{% set og_description = "Por que a frost free acumula gelo, como testar o degelo e quais peças resolvem." %}
+{% set breadcrumb_label = "Frost free acumulando gelo" %}
+{% set faq = [
   {
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": "Geladeira frost free acumulando gelo: causas e solução",
-    "description": "Por que a geladeira frost free acumula gelo, como testar o sistema de degelo e quais peças resolvem.",
-    "mainEntityOfPage": {"@type": "WebPage", "@id": "{{ site_url }}/blog/{{ article.slug }}"},
-    "author": {"@type": "Organization", "name": "M.T.F Refrigeração", "url": "{{ site_url }}/"},
-    "publisher": {"@type": "Organization", "name": "M.T.F Refrigeração", "url": "{{ site_url }}/",
-                  "logo": {"@type": "ImageObject", "url": "{{ site_url }}/static/og-catalog.jpg"}}
-  }
-  </script>
-  <script type="application/ld+json">
+    "q": "Por que a geladeira frost free está fazendo gelo no fundo?",
+    "a": "Quase sempre é falha no degelo automático: resistência de degelo queimada, bimetal/sensor de degelo com defeito, timer ou placa. Dreno entupido e borracha da porta ruim também causam gelo."
+  },
   {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": [
-      {"@type": "Question", "name": "Por que a geladeira frost free está fazendo gelo no fundo?",
-       "acceptedAnswer": {"@type": "Answer", "text": "Quase sempre é falha no degelo automático: resistência de degelo queimada, bimetal/sensor de degelo com defeito, timer ou placa. Dreno entupido e borracha da porta ruim também causam gelo."}},
-      {"@type": "Question", "name": "Posso só desligar a geladeira para tirar o gelo?",
-       "acceptedAnswer": {"@type": "Answer", "text": "Sim, desligar por 12 a 24 horas com as portas abertas tira o gelo. Mas se o gelo voltar em poucos dias, alguma peça do degelo está com defeito e precisa ser trocada."}},
-      {"@type": "Question", "name": "Qual peça resolve frost free acumulando gelo?",
-       "acceptedAnswer": {"@type": "Answer", "text": "As mais comuns são a resistência de degelo, o bimetal (sensor de degelo) e o timer de degelo; em modelos eletrônicos, o sensor NTC ou a placa."}}
-    ]
+    "q": "Posso só desligar a geladeira para tirar o gelo?",
+    "a": "Sim, desligar por 12 a 24 horas com as portas abertas tira o gelo. Mas se o gelo voltar em poucos dias, alguma peça do degelo está com defeito e precisa ser trocada."
+  },
+  {
+    "q": "Qual peça resolve frost free acumulando gelo?",
+    "a": "As mais comuns são a resistência de degelo, o bimetal (sensor de degelo) e o timer de degelo; em modelos eletrônicos, o sensor NTC ou a placa."
   }
-  </script>
-{% endblock %}
+] %}
 
-{% block crumb %}Frost free acumulando gelo{% endblock %}
-{% block h1 %}Geladeira frost free acumulando gelo: causas e solução{% endblock %}
+{% block tag %}❄️ Geladeira{% endblock %}
+
 {% block lead %}Frost free não deveria juntar gelo. Se está formando gelo no fundo do freezer, atrás da gaveta ou na saída de ar, o degelo automático falhou. Veja como descobrir qual peça e resolver.{% endblock %}
 
 {% block content %}
+<div class="article-section">
   <div class="lead-box">
     <p><strong>Resumo rápido:</strong> de tempos em tempos a frost free liga uma <strong>resistência</strong> para derreter o gelo do evaporador; um <strong>bimetal/sensor</strong> e um <strong>timer ou placa</strong> controlam esse ciclo. Se uma dessas peças falha, o gelo cresce, bloqueia o ar e a geladeira para de gelar embaixo. Gelo que volta poucos dias depois de descongelar = peça do degelo com defeito.</p>
   </div>
@@ -49,11 +37,11 @@
 
   <h2>1. Resistência de degelo queimada</h2>
   <p>É a causa mais comum. Sem a resistência, o gelo nunca derrete: forma um bloco no fundo do freezer e a parte de baixo para de gelar. Sinal típico: gelo grosso e uniforme na parede do fundo do freezer.</p>
-  {{ pc.card('resistencia-evoporador-brm3743-br-cr-kr-225w-127v', 'Resistência de degelo') }}
+  {{ product_card('resistencia-evoporador-brm3743-br-cr-kr-225w-127v', label='Resistência de degelo') }}
 
   <h2>2. Bimetal ou sensor de degelo com defeito</h2>
   <p>O bimetal (ou sensor NTC nos modelos eletrônicos) fica preso no evaporador e “avisa” quando o degelo pode terminar. Se ele não fecha o contato, a resistência nem chega a ligar — mesmo com ela boa.</p>
-  {{ pc.group([
+  {{ product_group([
       'sensor-biometal-com-fusivel-eletrolux-df35-df36-df37-df38-921979',
       'sensor-biometal-eletrolux',
       'sensor-de-degelo-10k-para-geladeira-electrolux',
@@ -61,7 +49,7 @@
 
   <h2>3. Timer de degelo ou placa</h2>
   <p>Em geladeiras com timer, ele alterna entre “gelar” e “degelar”. Se travar, a geladeira fica só gelando (acumula gelo) ou só degelando (não gela). Nos modelos eletrônicos quem faz isso é a placa.</p>
-  {{ pc.group([
+  {{ product_group([
       'timer-de-degelo-eletrolux-220v',
       'timer-degelo-electrolux-tmdj812zb9-110v-original',
       'placa-geladeira-electrolux-df47-dfn49-df49x-dw50x-64500437'], 'Timer / placa') }}
@@ -74,7 +62,7 @@
 
   <h2>5. Borracha da porta com defeito</h2>
   <p>Se a borracha não veda, entra ar quente e úmido o tempo todo e o gelo se forma rápido, principalmente perto da porta. <strong>Teste do papel:</strong> feche a porta sobre uma folha — se ela sai sem resistência, a borracha precisa ser trocada.</p>
-  {{ pc.card('borracha-gaxeta-cinza-ilpea-porta-geladeira-freezer-aba-ima-2m', 'Vedação') }}
+  {{ product_card('borracha-gaxeta-cinza-ilpea-porta-geladeira-freezer-aba-ima-2m', label='Vedação') }}
 
   <h2>6. Uso</h2>
   <ul>
@@ -92,16 +80,13 @@
     <li>Anote marca, modelo e voltagem da etiqueta antes de comprar</li>
   </ol>
   <div class="note-box"><strong>⚡ Atenção:</strong> desligue a geladeira da tomada antes de mexer em qualquer peça elétrica.</div>
+</div>
 {% endblock %}
 
-{% block cta_text %}Mande uma foto da etiqueta da geladeira (marca, modelo e voltagem) no WhatsApp: a gente confirma qual peça do degelo serve. Retire hoje na Av. Brasil, 6818 (Bonsucesso) ou receba no mesmo dia no RJ.{% endblock %}
+{% block cta %}
+  {{ cta_block("Precisa de ajuda para achar a peça?", "Mande uma foto da etiqueta da geladeira (marca, modelo e voltagem) no WhatsApp: a gente confirma qual peça do degelo serve. Retire hoje na Av. Brasil, 6818 (Bonsucesso) ou receba no mesmo dia no RJ.", "Olá! Minha geladeira frost free está acumulando gelo. Posso mandar a foto da etiqueta?", "Artigo frost free gelo") }}
+{% endblock %}
 
 {% block related %}
-<div class="related">
-  <div class="related-title">Outros guias</div>
-  <div class="related-grid">
-    <a class="related-card" href="/blog/geladeira-nao-gela-embaixo"><b>Geladeira não gela embaixo? 5 causas</b><span>Ler guia →</span></a>
-    <a class="related-card" href="/blog/timer-de-degelo-refrigeracao"><b>Timer de degelo: função e defeitos</b><span>Ler guia →</span></a>
-  </div>
-</div>
+  {{ related_cards([{"href": "/blog/geladeira-nao-gela-embaixo", "icon": "📖", "title": "Geladeira não gela embaixo? 5 causas"}, {"href": "/blog/timer-de-degelo-refrigeracao", "icon": "📖", "title": "Timer de degelo: função e defeitos"}]) }}
 {% endblock %}

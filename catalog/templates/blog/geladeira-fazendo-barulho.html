@@ -1,31 +1,19 @@
 {% extends 'blog/_article_base.html' %}
-{% import 'blog/_produto.html' as pc with context %}
+{% from 'blog/_macros.html' import product_card, product_group, tip_box, warn_box, info_box, cta_block, related_cards with context %}
 
-{% block title %}Geladeira fazendo barulho: o que pode ser e como resolver | M.T.F Refrigeração{% endblock %}
+{% set seo_title = "Geladeira fazendo barulho: o que pode ser e como resolver" %}
+{% set h1_text = "Geladeira fazendo barulho: o que pode ser e como resolver" %}
+{% set meta_description = "Barulho de raspar, clic, zumbido ou batida na geladeira? Veja quando é normal e quando é o ventilador, o compressor, o relé ou o gelo — e qual peça resolve. Retire hoje no RJ." %}
+{% set og_title = "Geladeira fazendo barulho: o que pode ser e como resolver" %}
+{% set og_description = "Identifique o barulho da sua geladeira pelo tipo de som e veja qual peça resolve." %}
+{% set breadcrumb_label = "Geladeira fazendo barulho" %}
 
-{% block head %}
-  <meta name="description" content="Barulho de raspar, clic, zumbido ou batida na geladeira? Veja quando é normal e quando é o ventilador, o compressor, o relé ou o gelo — e qual peça resolve. Retire hoje no RJ.">
-  <meta property="og:title" content="Geladeira fazendo barulho: o que pode ser e como resolver">
-  <meta property="og:description" content="Identifique o barulho da sua geladeira pelo tipo de som e veja qual peça resolve.">
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": "Geladeira fazendo barulho: o que pode ser e como resolver",
-    "description": "Como identificar o barulho da geladeira pelo tipo de som e qual peça resolve.",
-    "mainEntityOfPage": {"@type": "WebPage", "@id": "{{ site_url }}/blog/{{ article.slug }}"},
-    "author": {"@type": "Organization", "name": "M.T.F Refrigeração", "url": "{{ site_url }}/"},
-    "publisher": {"@type": "Organization", "name": "M.T.F Refrigeração", "url": "{{ site_url }}/",
-                  "logo": {"@type": "ImageObject", "url": "{{ site_url }}/static/og-catalog.jpg"}}
-  }
-  </script>
-{% endblock %}
+{% block tag %}🔊 Geladeira{% endblock %}
 
-{% block crumb %}Geladeira fazendo barulho{% endblock %}
-{% block h1 %}Geladeira fazendo barulho: o que pode ser e como resolver{% endblock %}
 {% block lead %}Raspando, “clic” repetido, zumbido alto ou vibração? O tipo de barulho já diz muito sobre a peça com problema. Veja quando é normal e quando precisa trocar algo.{% endblock %}
 
 {% block content %}
+<div class="article-section">
   <div class="lead-box">
     <p><strong>Pelo som:</strong> <strong>raspando/batendo</strong> dentro do freezer = ventilador pegando no gelo; <strong>“clic” a cada poucos minutos</strong> sem gelar = relé/protetor do compressor; <strong>zumbido forte ou vibração</strong> atrás = compressor ou geladeira desnivelada; <strong>estalos leves</strong> = normal.</p>
   </div>
@@ -42,21 +30,21 @@
   <h2>1. Raspando ou batendo dentro do freezer: ventilador</h2>
   <p>Som de “raspando” ou “hélice batendo” vindo do fundo do freezer quase sempre é o <strong>ventilador</strong>: ou o gelo acumulado está encostando nas pás (problema de degelo), ou o motor está gasto e fazendo ruído.</p>
   <p>Abra o freezer: se o barulho aumenta e há gelo no fundo, veja também o guia <a href="/blog/geladeira-frost-free-acumulando-gelo">frost free acumulando gelo</a>. Se não há gelo e o ruído continua, o motor do ventilador precisa ser trocado.</p>
-  {{ pc.group([
+  {{ product_group([
       'motor-ventilador-brastemp-consul-127v-w11369860-original',
       'motor-ventilador-geladeira-brastemp-consul-w10399715',
       'motor-ventilador-rede-eletrica-electrolux-220v-50-60hz-dc46-dc48-dc49x'], 'Motor do ventilador') }}
 
   <h2>2. Gelo acumulado: falha no degelo</h2>
   <p>Quando o degelo não funciona, o gelo cresce até tocar o ventilador e bloquear o ar. A geladeira fica barulhenta e, logo depois, para de gelar embaixo. As peças que mais resolvem:</p>
-  {{ pc.group([
+  {{ product_group([
       'resistencia-evoporador-brm3743-br-cr-kr-225w-127v',
       'sensor-biometal-eletrolux',
       'timer-de-degelo-eletrolux-220v'], 'Degelo') }}
 
   <h2>3. “Clic” repetido e a geladeira não gela: relé ou protetor térmico</h2>
   <p>Um “clic” atrás da geladeira a cada poucos minutos, sem o motor pegar, é o <strong>protetor térmico</strong> desarmando porque o compressor não consegue partir — geralmente por <strong>relé</strong> com defeito. É uma troca barata e sem solda. Veja como escolher no guia <a href="/blog/rele-refrigeracao">relé de geladeira</a>.</p>
-  {{ pc.group([
+  {{ product_group([
       'rele-embraco-conjugado-1-4-220v-hulter',
       'rele-embraco-conjugado-1-6-110v-eos',
       'rele-ptc'], 'Relé de partida') }}
@@ -64,7 +52,7 @@
   <h2>4. Zumbido forte ou vibração: compressor</h2>
   <p>Zumbido muito alto, “ronco” ou vibração forte vindo de trás e de baixo pode ser o compressor desgastado ou solto nos coxins de borracha. Antes de pensar no compressor, confira o item 5 — muitas vezes é só a geladeira desnivelada encostando na parede.</p>
   <div class="note-box">⚠️ Compressor muito barulhento pode estar perto de parar. Não ignore — principalmente se a geladeira também estiver gelando menos.</div>
-  {{ pc.group([
+  {{ product_group([
       'compressor-embraco-1-4-127v-emr80hlr-gas-r134a',
       'compressor-embraco-emr70hlr-1-5-hp-r134'], 'Compressor') }}
 
@@ -80,17 +68,13 @@
     <li>Grave um vídeo curto do barulho e mande no WhatsApp — ajuda muito a identificar</li>
   </ol>
   <div class="note-box"><strong>⚡ Atenção:</strong> desligue a geladeira da tomada antes de mexer em qualquer peça elétrica.</div>
+</div>
 {% endblock %}
 
-{% block cta_title %}Não sabe o que é o barulho?{% endblock %}
-{% block cta_text %}Grave um vídeo curto do barulho e mande no WhatsApp com a foto da etiqueta da geladeira: a gente ajuda a identificar a peça antes de você comprar. Retire hoje na Av. Brasil, 6818 (Bonsucesso) ou receba no mesmo dia no RJ.{% endblock %}
+{% block cta %}
+  {{ cta_block("Não sabe o que é o barulho?", "Grave um vídeo curto do barulho e mande no WhatsApp com a foto da etiqueta da geladeira: a gente ajuda a identificar a peça antes de você comprar. Retire hoje na Av. Brasil, 6818 (Bonsucesso) ou receba no mesmo dia no RJ.", "Olá! Minha geladeira está fazendo barulho. Posso mandar um vídeo?", "Artigo barulho geladeira") }}
+{% endblock %}
 
 {% block related %}
-<div class="related">
-  <div class="related-title">Outros guias</div>
-  <div class="related-grid">
-    <a class="related-card" href="/blog/geladeira-frost-free-acumulando-gelo"><b>Frost free acumulando gelo: causas e solução</b><span>Ler guia →</span></a>
-    <a class="related-card" href="/blog/rele-refrigeracao"><b>Relé de geladeira: o que é e como testar</b><span>Ler guia →</span></a>
-  </div>
-</div>
+  {{ related_cards([{"href": "/blog/geladeira-frost-free-acumulando-gelo", "icon": "📖", "title": "Frost free acumulando gelo: causas e solução"}, {"href": "/blog/rele-refrigeracao", "icon": "📖", "title": "Relé de geladeira: o que é e como testar"}]) }}
 {% endblock %}

@@ -1,5 +1,5 @@
 {% extends 'blog/_article_base.html' %}
-{% from 'blog/_macros.html' import wa_icon, price_tag, tip_box, warn_box, info_box, cta_block, related_cards with context %}
+{% from 'blog/_macros.html' import wa_icon, price_tag, product_card, product_group, tip_box, warn_box, info_box, cta_block, related_cards with context %}
 
 {% set meta_description = "Nitrogênio, Air Flush e Air Repair: entenda para que serve cada produto de limpeza e manutenção de sistemas de ar-condicionado e onde comprar no RJ." %}
 {% set meta_keywords = "fluido limpeza ar condicionado, air flush 141b, air repair 900ml, nitrogenio cilindro descartavel, limpeza sistema ar condicionado RJ, gases refrigeracao manutencao" %}
@@ -78,14 +78,7 @@
         <li>Pressurização para soldagem — evita oxidação interna durante a brasagem das tubulações</li>
       </ul>
       {% call warn_box() %}Nunca use ar comprimido no lugar do nitrogênio — o ar contém umidade que contamina o sistema e pode causar falhas no compressor.{% endcall %}
-      <div class="product-card-footer">
-        <a class="btn-product wa-track" href="/product/nitrogenio-cilindro-descartavel-110bar-classe-2-2-nevada-gas0034" data-product="Nitrogênio Nevada">Ver produto →</a>
-        {{ price_tag("nitrogenio-cilindro-descartavel-110bar-classe-2-2-nevada-gas0034") }}
-        <a class="btn-wa wa-track" href="https://wa.me/{{ wa_number }}?text={{ 'Olá! Tenho interesse no Nitrogênio Cilindro Descartável 110 Bar Nevada Gas. Está disponível?' | urlencode }}" target="_blank" rel="noopener" data-product="Nitrogênio WA">
-          {{ wa_icon(14) }}
-          WhatsApp
-        </a>
-      </div>
+      {{ product_card('nitrogenio-cilindro-descartavel-110bar-classe-2-2-nevada-gas0034') }}
     </div>
 
     <!-- Air Flush -->
@@ -105,14 +98,7 @@
         <li>Preparação do sistema antes de mudança de tipo de gás refrigerante</li>
       </ul>
       {% call tip_box() %}<strong>Como usar:</strong> injete o Air Flush no sistema, deixe agir por alguns minutos e depois purgue completamente com nitrogênio antes de recarregar o gás. Nunca deixe resíduo do 141b no sistema.{% endcall %}
-      <div class="product-card-footer">
-        <a class="btn-product wa-track" href="/product/fluido-de-limpeza-air-flush-900ml-ar-da-terra-141b-original" data-product="Air Flush">Ver produto →</a>
-        {{ price_tag("fluido-de-limpeza-air-flush-900ml-ar-da-terra-141b-original") }}
-        <a class="btn-wa wa-track" href="https://wa.me/{{ wa_number }}?text={{ 'Olá! Tenho interesse no Air Flush 900ml. Está disponível?' | urlencode }}" target="_blank" rel="noopener" data-product="Air Flush WA">
-          {{ wa_icon(14) }}
-          WhatsApp
-        </a>
-      </div>
+      {{ product_card('fluido-de-limpeza-air-flush-900ml-ar-da-terra-141b-original') }}
     </div>
 
     <!-- Air Repair -->
@@ -120,7 +106,7 @@
       <div class="product-card-header">
         <span class="product-card-icon">🟢</span>
         <div>
-          <div class="product-card-name">Líquido de Limpeza Sistema Ar Condicionado Air Repair 900ml</div>
+          <div class="product-card-name">Fluido de Limpeza Air Repair 900ml — Pescan (substituto do R141b)</div>
           <span class="product-card-badge">Limpeza e manutenção</span>
         </div>
       </div>
@@ -131,14 +117,7 @@
         <li>Manutenção de sistemas que apresentam queda de eficiência sem causa aparente</li>
         <li>Complemento ao Air Flush em sistemas com contaminação mais severa</li>
       </ul>
-      <div class="product-card-footer">
-        <a class="btn-product wa-track" href="/product/fluido-de-limpeza-air-repair-pescan-lata-900ml-substituto-r141b" data-product="Air Repair">Ver produto →</a>
-        {{ price_tag("fluido-de-limpeza-air-repair-pescan-lata-900ml-substituto-r141b") }}
-        <a class="btn-wa wa-track" href="https://wa.me/{{ wa_number }}?text={{ 'Olá! Tenho interesse no Air Repair 900ml. Está disponível?' | urlencode }}" target="_blank" rel="noopener" data-product="Air Repair WA">
-          {{ wa_icon(14) }}
-          WhatsApp
-        </a>
-      </div>
+      {{ product_card('fluido-de-limpeza-air-repair-pescan-lata-900ml-substituto-r141b') }}
     </div>
   </div>
 
@@ -169,6 +148,14 @@
       <li><strong>Air Repair</strong> é mais indicado para manutenção preventiva e limpeza de serpentinas — remove biofilme e depósitos orgânicos sem necessidade de purgação tão agressiva.</li>
     </ul>
     <p>Em manutenções corretivas graves, os dois podem ser usados em sequência: primeiro Air Flush para limpar as tubulações, depois Air Repair para as serpentinas.</p>
+  </div>
+
+  <div class="article-section">
+    <h2>Outros produtos de limpeza e manutenção</h2>
+    <p>Para a limpeza externa da evaporadora (serpentina e bandeja) na higienização periódica:</p>
+    {{ product_group(['fluido-de-limpeza-air-repair-pescan-lata-500ml-substituto-r141b', 'fluido-de-limpeza-ar-condicionado-gpclear-100-0-6kg',
+                      'limpeza-de-ar-condicionado-air-shield-250ml', 'espuma-de-limpeza-para-ar-condicionado',
+                      'kit-higienizador-para-ar-condicionado', 'bolsa-para-limpeza-de-evaporadora'], label='Limpeza') }}
   </div>
 {% endblock %}
 

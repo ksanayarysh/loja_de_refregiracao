@@ -1,5 +1,5 @@
 {% extends 'blog/_article_base.html' %}
-{% from 'blog/_macros.html' import product_row, product_card, product_schema, tip_box, warn_box, info_box, cta_block, related_cards with context %}
+{% from 'blog/_macros.html' import product_row, product_card, product_group, product_schema, tip_box, warn_box, info_box, cta_block, related_cards with context %}
 
 {% set seo_title = "Compressor de geladeira: sintomas de defeito e como escolher o certo" %}
 {% set meta_description = "Geladeira não gela ou o compressor não parte? Veja os sinais de defeito, o que testar antes de trocar e como escolher o compressor Embraco certo para a sua geladeira no RJ." %}
@@ -56,6 +56,7 @@
     <li><strong>Termostato / placa:</strong> se não enviarem sinal, o compressor nem é acionado.</li>
   </ul>
   {% endcall %}
+  {{ product_group(['rele-embraco-conjugado-1-4-220v-hulter', 'rele-embraco-conjugado-1-5-220v-dugold', 'rele-embraco-conjugado-1-6-110v-eos', 'rele-ptc', 'protetor-termico-embraco-1-4-110v'], label='Teste antes: relé / protetor') }}
   <p>Veja o guia completo: <a class="product-name-link" href="/blog/rele-refrigeracao">relé de geladeira Embraco e PTC</a> e <a class="product-name-link" href="/blog/capacitor-de-partida-geladeira">capacitor de geladeira</a>.</p>
   {% call warn_box() %}
   Mexer na parte elétrica da geladeira envolve risco de choque. Desligue o aparelho da tomada antes de qualquer teste ou troca.
@@ -114,6 +115,7 @@
     <li>Recarregar o <strong>gás refrigerante</strong> correto, na quantidade indicada pelo fabricante.</li>
     <li>Usar <strong>relé e protetor térmico</strong> adequados ao modelo do compressor.</li>
   </ul>
+  {{ product_group(['filtro-com-rabicho', 'gas-refrigerante-r134a-750g-hulter', 'gas-refrigerante-r134-por-kg'], label='Para a troca') }}
   {% call warn_box() %}
   A troca de compressor exige solda, vácuo e carga de gás. É um serviço para profissional de refrigeração com ferramenta adequada.
   {% endcall %}

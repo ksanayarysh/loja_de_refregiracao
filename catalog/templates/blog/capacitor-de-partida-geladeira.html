@@ -1,5 +1,5 @@
 {% extends 'blog/_article_base.html' %}
-{% from 'blog/_macros.html' import product_row, tip_box, warn_box, info_box, cta_block, related_cards with context %}
+{% from 'blog/_macros.html' import product_card, product_group, product_row, tip_box, warn_box, info_box, cta_block, related_cards with context %}
 
 {% set meta_description = "Compressor tentando ligar mas travando com um clique? Pode ser o capacitor. Veja os sintomas, os tipos e como escolher o certo para a sua geladeira." %}
 {% set meta_keywords = "capacitor geladeira, capacitor de partida, compressor não liga, geladeira fazendo clique, capacitor 270-324uf, relé geladeira" %}
@@ -36,6 +36,8 @@
       <li>Geladeira demora muito mais que o normal para gelar</li>
     </ul>
     {% call warn_box() %}Esses mesmos sintomas também podem indicar defeito no relé de partida ou no próprio compressor. Antes de comprar o capacitor, vale testar com um multímetro ou confirmar com um técnico.{% endcall %}
+    <p>Na maioria das geladeiras domésticas o “clic” sem partir é o <strong>relé de partida</strong> ou o <strong>protetor térmico</strong> — peças baratas, que encaixam sem solda no compressor:</p>
+    {{ product_group(['rele-embraco-conjugado-1-4-220v-hulter', 'rele-embraco-conjugado-1-6-110v-eos', 'rele-ptc', 'protetor-termico-embraco-1-4-110v'], 'Relé / protetor') }}
   </div>
 
   <div class="article-section">
@@ -72,10 +74,9 @@
 {% block cta %}
   {{ cta_block(
       "Precisa de um capacitor ou de ajuda para diagnosticar?",
-      "Compre o capacitor certo na M.T.F ou agende atendimento com o técnico Douglas diretamente pelo WhatsApp.",
+      "Mande uma foto da etiqueta do compressor (e do capacitor antigo, se tiver) pelo WhatsApp: a gente confirma a peça certa.",
       "Olá! O compressor da minha geladeira está fazendo clique e não liga. Podem me ajudar?",
-      "Artigo capacitor geladeira",
-      tecnico_msg="Olá Douglas! O compressor da minha geladeira está fazendo clique e não liga. Pode me ajudar?") }}
+      "Artigo capacitor geladeira") }}
 {% endblock %}
 
 {% block related %}

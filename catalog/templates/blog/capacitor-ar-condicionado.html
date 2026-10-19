@@ -1,5 +1,5 @@
 {% extends 'blog/_article_base.html' %}
-{% from 'blog/_macros.html' import product_row, tip_box, warn_box, info_box, cta_block, related_cards with context %}
+{% from 'blog/_macros.html' import product_card, product_group, product_row, tip_box, warn_box, info_box, cta_block, related_cards with context %}
 
 {# Os três títulos do original eram diferentes entre si; mantidos aqui para não mudar o SEO. #}
 {% set seo_title = "Capacitor de ar-condicionado: o que é, como saber se queimou e onde comprar no RJ" %}
@@ -72,13 +72,12 @@
     <p>Temos grande variedade de capacitores para ar-condicionado em estoque, com retirada na loja na Av. Brasil, 6818 ou consulta pelo WhatsApp:</p>
 
     <h3>Capacitores duplos (compressor + ventilador)</h3>
-    {{ product_row("Capacitor 25+2,5uF", "/product/capacitor-25-plus-2-5uf", "Olá! Tenho interesse em: capacitor 25+2,5uf. Está disponível?", "Capacitor 25+2,5uf", slug="capacitor-25-plus-2-5uf") }}
-    {{ product_row("Capacitor 35+2,5uF", "/product/capacitor-35-plus-2-5uf", "Olá! Tenho interesse em: capacitor 35+2,5uf. Está disponível?", "Capacitor 35+2,5uf", slug="capacitor-35-plus-2-5uf") }}
-    {{ product_row("Capacitor 45+5uF",   "/product/capacitor-45-plus-5uf",   "Olá! Tenho interesse em: capacitor 45+5uf. Está disponível?",   "Capacitor 45+5uf",   slug="capacitor-45-plus-5uf") }}
-    {{ product_row("Capacitor 60+10uF",  "/product/capacitor-60-plus-10uf",  "Olá! Tenho interesse em: capacitor 60+10uf. Está disponível?",  "Capacitor 60+10uf",  slug="capacitor-60-plus-10uf") }}
+    {{ product_group(['capacitor-25-plus-2-5uf', 'capacitor-30-plus-2-5uf', 'capacitor-35-plus-2-5uf', 'capacitor-35-plus-3uf', 'capacitor-35-plus-4uf',
+                      'capacitor-40-plus-2-5uf', 'capacitor-40-plus-5uf', 'capacitor-45-plus-2-5uf', 'capacitor-45-plus-5uf',
+                      'capacitor-50-plus-5uf', 'capacitor-60-plus-10uf'], 'Capacitor duplo') }}
 
     <h3>Capacitores do ventilador (simples)</h3>
-    {{ product_row("Capacitor do ventilador 2,5uF", "/product/capacitor-do-ventilador-2-5uf", "Olá! Tenho interesse em capacitor do ventilador para ar-condicionado. Pode me ajudar?", "Capacitor ventilador", slug="capacitor-do-ventilador-2-5uf") }}
+    {{ product_group(['capacitor-do-ventilador-1uf', 'capacitor-do-ventilador-2uf', 'capacitor-do-ventilador-2-5uf', 'capacitor-do-ventilador-3uf', 'capacitor-do-ventilador-5uf'], 'Capacitor do ventilador') }}
     <p>Não encontrou o valor que precisa? <a href="https://wa.me/{{ wa_number }}?text={{ 'Preciso de um capacitor para ar-condicionado. Pode me ajudar a escolher?' | urlencode }}" target="_blank" rel="noopener" style="color:var(--accent);font-weight:600;">Consulte pelo WhatsApp</a> — temos mais de 50 modelos em estoque.</p>
   </div>
 
@@ -91,7 +90,7 @@
         <li>Aguarde 5 minutos para descarregar o capacitor</li>
         <li>Fotografe a posição dos fios antes de desconectar</li>
         <li>Substitua pelo mesmo valor de uF e voltagem igual ou superior</li>
-        <li>Em caso de dúvida, chame o técnico Douglas</li>
+        <li>Na dúvida, mande uma foto do capacitor antigo pelo WhatsApp</li>
       </ul>
     {% endcall %}
   </div>
@@ -103,7 +102,6 @@
       "Mande uma foto do capacitor antigo pelo WhatsApp — identificamos o valor e separamos a peça certa para você retirar na loja.",
       "Olá! Preciso de um capacitor para ar-condicionado. Posso enviar uma foto?",
       "Artigo capacitor ar-cond",
-      tecnico_msg="Olá Douglas! Preciso trocar o capacitor do meu ar-condicionado.",
       btn="Enviar foto do capacitor") }}
 {% endblock %}
 

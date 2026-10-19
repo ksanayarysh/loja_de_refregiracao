@@ -1,5 +1,5 @@
 {% extends 'blog/_article_base.html' %}
-{% from 'blog/_macros.html' import product_row, tip_box, warn_box, info_box, cta_block, related_cards with context %}
+{% from 'blog/_macros.html' import product_row, product_group, tip_box, warn_box, info_box, cta_block, related_cards with context %}
 
 {% set seo_title = "Gás refrigerante: tipos, preços no RJ e quando recarregar" %}
 {% set meta_description = "Tudo sobre gás refrigerante R32, R410A, R22 e R134a no RJ: diferenças, preços, quando recarregar e onde comprar. M.T.F Refrigeração na Av. Brasil, 6818." %}
@@ -118,6 +118,10 @@
                    "Olá! Tenho interesse em gás R290. Qual o preço e disponibilidade?",
                    "Gás R290", btn="Consultar preço",
                    slug="gas-refrigerante-r290-400g-friven") }}
+    <h3>Para geladeira e freezer</h3>
+    {{ product_group(['gas-refrigerante-r600-420g-hulter', 'gas-refrigerante-r134a-750g-hulter', 'gas-refrigerante-r134a-lata-340g-friven'], label='Geladeira') }}
+    <h3>Botijas para técnicos e refrigeração comercial</h3>
+    {{ product_group(['botija-gas-refrigerante-r22-13kg', 'botija-gas-refrigerante-r410-10kg', 'botija-gas-refrigerante-r134-13kg', 'gas-refrigerante-r404-10kg-jcm', 'gas-refrigerante-r32-3kg-jcm'], label='Botija') }}
   </div>
 
   <div class="article-section">
@@ -138,7 +142,7 @@
 {% block cta %}
   {{ cta_block(
       "Precisa de gás refrigerante no RJ?",
-      "Consulte disponibilidade e preço pelo WhatsApp. Temos R32, R410A, R22, R134a e R290 em estoque. Retirada na Av. Brasil, 6818.",
+      "Temos R32, R410A, R22, R134a, R600a, R290 e R404A em lata e botija. Compre pelo site ou tire dúvidas no WhatsApp — retirada na Av. Brasil, 6818 ou entrega no mesmo dia no RJ.",
       "Olá! Preciso de gás refrigerante. Qual o preço e disponibilidade?",
       "Artigo gas refrigerante",
       btn="Consultar preço e disponibilidade") }}

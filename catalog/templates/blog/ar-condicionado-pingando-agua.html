@@ -1,5 +1,5 @@
 {% extends 'blog/_article_base.html' %}
-{% from 'blog/_macros.html' import product_row, tip_box, warn_box, info_box, cta_block, related_cards with context %}
+{% from 'blog/_macros.html' import product_card, product_group, product_row, tip_box, warn_box, info_box, cta_block, related_cards with context %}
 
 {% set meta_description = "Split vazando água pelo teto ou parede? Veja as causas mais comuns — dreno entupido, gelo na serpentina, instalação errada — e como resolver no RJ." %}
 {% set meta_keywords = "ar condicionado pingando agua, split vazando agua, dreno ar condicionado entupido, ar condicionado gotejando, agua escorrendo split, tecnico ar condicionado RJ" %}
@@ -27,7 +27,8 @@
     <p>Durante o funcionamento normal, o ar-condicionado retira a umidade do ar e essa água é drenada para fora pelo cano de dreno — um tubo fino que sai da unidade interna. Quando esse cano entope com lodo, fungos ou poeira acumulada, a água não tem para onde ir e começa a vazar para dentro do ambiente.</p>
     <p>Como identificar: a água pinga diretamente da unidade interna, muitas vezes pela frente ou pela lateral. O aparelho pode continuar gelando normalmente.</p>
     {% call tip_box() %}<strong>Como desentupir:</strong> localize a saída do dreno (geralmente na parede externa ou no teto). Use uma bomba de sucção específica para dreno ou sopre com um compressor de ar. Em entupimentos mais severos, um arame flexível resolve. Faça essa limpeza a cada 6 meses como preventivo.{% endcall %}
-    {{ product_row("Ver drenos e acessórios", "/category/ar-condicionado", "Olá! Preciso de dreno para ar-condicionado. Vocês têm disponível?", "Dreno ar-condicionado", btn="Consultar pelo WhatsApp") }}
+    <p>Se a mangueira do dreno estiver ressecada, rachada ou dobrada, troque:</p>
+    {{ product_group(['mangueira-transparente-ar-condicionado', 'dreno-ar-janela'], 'Dreno') }}
   </div>
 
   <div class="article-section">
@@ -74,10 +75,9 @@
 {% block cta %}
   {{ cta_block(
       "Precisa de peças ou de um técnico?",
-      "A M.T.F Refrigeração tem drenos e acessórios para ar-condicionado na loja na Av. Brasil, 6818, Rio de Janeiro. Para serviço técnico, o Técnico associado Douglas atende via WhatsApp.",
+      "Mangueira de dreno, gás e acessórios para ar-condicionado na loja da Av. Brasil, 6818. Na dúvida, mande foto ou vídeo pelo WhatsApp.",
       "Olá! Meu ar-condicionado está pingando água. Podem me ajudar?",
-      "Artigo AC pingando água",
-      tecnico_msg="Olá Douglas! Meu ar-condicionado está pingando água. Pode me ajudar?") }}
+      "Artigo AC pingando água") }}
 {% endblock %}
 
 {% block related %}

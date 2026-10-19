@@ -1,49 +1,41 @@
 {% extends 'blog/_article_base.html' %}
-{% import 'blog/_produto.html' as pc with context %}
+{% from 'blog/_macros.html' import product_card, product_group, tip_box, warn_box, info_box, cta_block, related_cards with context %}
 
-{% block title %}Relé de geladeira: o que é, para que serve e como testar | M.T.F Refrigeração{% endblock %}
-
-{% block head %}
-  <meta name="description" content="O que é o relé da geladeira, para que serve, onde fica e como saber se queimou. Tipos (PTC, indução, conjugado Embraco), tabela de potências e relés a partir de R$ 8 no RJ.">
-  <meta property="og:title" content="Relé de geladeira: o que é, para que serve e como testar">
-  <meta property="og:description" content="Função do relé, onde fica, sintomas de defeito, tipos e como escolher o certo pela potência do compressor.">
-  <script type="application/ld+json">
+{% set seo_title = "Relé de geladeira: o que é, para que serve e como testar" %}
+{% set h1_text = "Relé de geladeira: o que é, para que serve e como testar" %}
+{% set meta_description = "O que é o relé da geladeira, para que serve, onde fica e como saber se queimou. Tipos (PTC, indução, conjugado Embraco), tabela de potências e relés a partir de R$ 8 no RJ." %}
+{% set og_title = "Relé de geladeira: o que é, para que serve e como testar" %}
+{% set og_description = "Função do relé, onde fica, sintomas de defeito, tipos e como escolher o certo pela potência do compressor." %}
+{% set breadcrumb_label = "Relé de geladeira" %}
+{% set faq = [
   {
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": "Relé de geladeira: o que é, para que serve e como testar",
-    "description": "Função do relé da geladeira, onde fica, sintomas de defeito, tipos (PTC, indução, conjugado Embraco) e como escolher pela potência do compressor.",
-    "mainEntityOfPage": {"@type": "WebPage", "@id": "{{ site_url }}/blog/{{ article.slug }}"},
-    "author": {"@type": "Organization", "name": "M.T.F Refrigeração", "url": "{{ site_url }}/"},
-    "publisher": {"@type": "Organization", "name": "M.T.F Refrigeração", "url": "{{ site_url }}/",
-                  "logo": {"@type": "ImageObject", "url": "{{ site_url }}/static/og-catalog.jpg"}}
-  }
-  </script>
-  <script type="application/ld+json">
+    "q": "O que é o relé da geladeira?",
+    "a": "É o dispositivo de partida do compressor: no momento em que a geladeira liga, ele manda corrente extra para a bobina de partida do motor e depois a desliga. Sem ele o compressor não arranca."
+  },
   {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": [
-      {"@type": "Question", "name": "O que é o relé da geladeira?",
-       "acceptedAnswer": {"@type": "Answer", "text": "É o dispositivo de partida do compressor: no momento em que a geladeira liga, ele manda corrente extra para a bobina de partida do motor e depois a desliga. Sem ele o compressor não arranca."}},
-      {"@type": "Question", "name": "Para que serve o relé da geladeira?",
-       "acceptedAnswer": {"@type": "Answer", "text": "Serve para dar a partida no compressor. Muitos modelos (relé conjugado) também têm o protetor térmico, que desliga o compressor se ele esquentar demais."}},
-      {"@type": "Question", "name": "Onde fica o relé da geladeira?",
-       "acceptedAnswer": {"@type": "Answer", "text": "Na parte de trás, embaixo da geladeira, encaixado na lateral do compressor (o motor preto), sob uma tampinha plástica onde chegam os fios."}},
-      {"@type": "Question", "name": "Como saber se o relé da geladeira queimou?",
-       "acceptedAnswer": {"@type": "Answer", "text": "A luz interna acende mas a geladeira não gela, o compressor não liga ou faz um 'clic' a cada poucos minutos sem partir. No relé de indução, ao chacoalhar, ouve-se peça solta dentro."}},
-      {"@type": "Question", "name": "Qual a diferença entre PTC, relé de indução e relé conjugado?",
-       "acceptedAnswer": {"@type": "Answer", "text": "O PTC usa uma pastilha que aquece e corta a partida; o relé de indução usa bobina e um pistão interno (compressores antigos); o relé conjugado Embraco junta relé de partida e protetor térmico em uma peça só."}}
-    ]
+    "q": "Para que serve o relé da geladeira?",
+    "a": "Serve para dar a partida no compressor. Muitos modelos (relé conjugado) também têm o protetor térmico, que desliga o compressor se ele esquentar demais."
+  },
+  {
+    "q": "Onde fica o relé da geladeira?",
+    "a": "Na parte de trás, embaixo da geladeira, encaixado na lateral do compressor (o motor preto), sob uma tampinha plástica onde chegam os fios."
+  },
+  {
+    "q": "Como saber se o relé da geladeira queimou?",
+    "a": "A luz interna acende mas a geladeira não gela, o compressor não liga ou faz um 'clic' a cada poucos minutos sem partir. No relé de indução, ao chacoalhar, ouve-se peça solta dentro."
+  },
+  {
+    "q": "Qual a diferença entre PTC, relé de indução e relé conjugado?",
+    "a": "O PTC usa uma pastilha que aquece e corta a partida; o relé de indução usa bobina e um pistão interno (compressores antigos); o relé conjugado Embraco junta relé de partida e protetor térmico em uma peça só."
   }
-  </script>
-{% endblock %}
+] %}
 
-{% block crumb %}Relé de geladeira{% endblock %}
-{% block h1 %}Relé de geladeira: o que é, para que serve e como testar{% endblock %}
+{% block tag %}⚡ Componentes elétricos{% endblock %}
+
 {% block lead %}O relé é a peça que dá a partida no compressor. Quando ele falha, a luz acende mas a geladeira não gela. Veja onde fica, como saber se queimou e qual relé comprar para o seu compressor.{% endblock %}
 
 {% block content %}
+<div class="article-section">
   <div class="lead-box">
     <p><strong>Resumo rápido:</strong> o relé fica preso na lateral do compressor (atrás e embaixo da geladeira). Se a geladeira não gela, o compressor não liga ou dá um “clic” a cada poucos minutos, o relé é o primeiro suspeito — é barato e encaixa sem solda. Para escolher o certo, veja a <strong>potência do compressor</strong> (1/4, 1/5, 1/6…) na etiqueta dele.</p>
   </div>
@@ -83,7 +75,7 @@
     </table>
   </div>
   <div class="note-box">⚠️ A tabela é só uma referência. O que vale é a <strong>potência e a voltagem escritas na etiqueta do compressor</strong>. Relé de potência errada pode não dar partida ou deixar o compressor esquentar.</div>
-  {{ pc.group([
+  {{ product_group([
       'rele-embraco-conjugado-1-8-220v',
       'rele-embraco-conjugado-1-6-110v-eos',
       'rele-embraco-conjugado-1-5-220v-dugold',
@@ -91,28 +83,28 @@
       'rele-embraco-conjugado-1-3-220v-hulter',
       'rele-embraco-conjugado-1-2-220v-hulter'], 'Relé conjugado') }}
   <p>Também temos o relé Embraco simples (sem protetor) em todas as potências:</p>
-  {{ pc.group([
+  {{ product_group([
       'rele-embraco-1-8', 'rele-embraco-1-6', 'rele-embraco-1-5',
       'rele-embraco-1-4', 'rele-embraco-1-3', 'rele-embraco-1-2'], 'Relé Embraco') }}
 
   <h3>2. Relé PTC</h3>
   <p>O <strong>PTC</strong> tem uma pastilha que esquenta quando a corrente passa: na partida ela deixa a corrente passar e, aquecida, corta a bobina de partida. É comum em compressores mais novos e econômicos. Precisa ser compatível com o compressor.</p>
-  {{ pc.group(['rele-ptc', 'protetor-termico-ptc'], 'PTC') }}
+  {{ product_group(['rele-ptc', 'protetor-termico-ptc'], 'PTC') }}
 
   <h3>3. Relé de indução</h3>
   <p>Modelo mais antigo, com bobina de cobre e um pistão interno. Aparece em geladeiras antigas e compressores de outras marcas. Defeito típico: o pistão quebra e faz barulho de peça solta.</p>
-  {{ pc.card('rele-de-inducao', 'Indução') }}
+  {{ product_card('rele-de-inducao', 'Indução') }}
 
   <h3>4. Protetor térmico (overload) e Klixon</h3>
   <p>Se o relé do seu compressor é separado do protetor, ou se o protetor está desarmando toda hora (“clic” sem partir), troque os dois juntos — costumam falhar juntos.</p>
-  {{ pc.group([
+  {{ product_group([
       'protetor-termico-embraco-1-4-110v',
       'protetor-termico-embraco-1-3-110v',
       'rele-klixon-para-compressor-de-geladeira'], 'Protetor térmico') }}
 
   <h3>5. Relé de placa de ar-condicionado (12V 20A)</h3>
   <p>Outro tipo de relé: fica soldado na placa eletrônica do split e liga o compressor e o ventilador da condensadora. Quando queima, o ar liga mas não gela, ou liga e desliga sozinho. Trocar o relé sai muito mais barato que trocar a placa — mas precisa de estação de solda.</p>
-  {{ pc.card('rele-12v-20a-placa-ar-condicionado-split', 'Placa de ar-condicionado') }}
+  {{ product_card('rele-12v-20a-placa-ar-condicionado-split', 'Placa de ar-condicionado') }}
 
   <h2>Como escolher o relé certo</h2>
   <div class="table-wrap">
@@ -127,16 +119,13 @@
 
   <h2>Posso trocar o relé sozinho?</h2>
   <p><strong>Relé de geladeira:</strong> sim. Desligue da tomada, puxe o relé antigo dos terminais do compressor, encaixe o novo na mesma posição e recoloque a tampinha — leva poucos minutos. <strong>Relé de placa de ar-condicionado:</strong> só com solda; se não tiver prática, chame um técnico.</p>
+</div>
 {% endblock %}
 
-{% block cta_text %}Mande uma foto da etiqueta do compressor (potência e voltagem) no WhatsApp: a gente confirma o relé certo. Retire hoje na Av. Brasil, 6818 (Bonsucesso) ou receba no mesmo dia no RJ.{% endblock %}
+{% block cta %}
+  {{ cta_block("Não sabe qual relé serve?", "Mande uma foto da etiqueta do compressor (potência e voltagem) no WhatsApp: a gente confirma o relé certo. Retire hoje na Av. Brasil, 6818 (Bonsucesso) ou receba no mesmo dia no RJ.", "Olá! Preciso de relé para geladeira. Posso mandar a foto da etiqueta do compressor?", "Artigo relé") }}
+{% endblock %}
 
 {% block related %}
-<div class="related">
-  <div class="related-title">Outros guias</div>
-  <div class="related-grid">
-    <a class="related-card" href="/blog/capacitor-de-partida-geladeira"><b>Capacitor de geladeira: sintomas e como escolher</b><span>Ler guia →</span></a>
-    <a class="related-card" href="/blog/geladeira-nao-gela-embaixo"><b>Geladeira não gela embaixo? 5 causas</b><span>Ler guia →</span></a>
-  </div>
-</div>
+  {{ related_cards([{"href": "/blog/capacitor-de-partida-geladeira", "icon": "📖", "title": "Capacitor de geladeira: sintomas e como escolher"}, {"href": "/blog/geladeira-nao-gela-embaixo", "icon": "📖", "title": "Geladeira não gela embaixo? 5 causas"}]) }}
 {% endblock %}

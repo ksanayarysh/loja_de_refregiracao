@@ -1,5 +1,5 @@
 {% extends 'blog/_article_base.html' %}
-{% from 'blog/_macros.html' import product_row, tip_box, warn_box, info_box, cta_block, related_cards with context %}
+{% from 'blog/_macros.html' import product_card, product_group, product_row, tip_box, warn_box, info_box, cta_block, related_cards with context %}
 
 {% set meta_description = "Split ligado mas não resfria o ambiente? Veja as causas mais comuns — gás, filtro, capacitor — e saiba quando chamar um técnico no RJ." %}
 {% set meta_keywords = "ar condicionado não gela, split não resfria, ar condicionado ligado mas não esfria, ar condicionado sem gás, capacitor ar condicionado, filtro ar condicionado sujo, técnico ar condicionado RJ" %}
@@ -56,7 +56,8 @@
     <h2>3. Capacitor com defeito</h2>
     <p>O capacitor é responsável por dar a partida no compressor e no motor do ventilador. Quando falha, o aparelho pode ligar mas o compressor não consegue partir — o resultado é ar em temperatura ambiente saindo do split.</p>
     <p>Os sintomas mais característicos são zumbido ou ronco vindo da unidade externa, ou o aparelho que desliga sozinho após alguns segundos. Para saber mais, veja nosso guia completo sobre <a href="/blog/capacitor-ar-condicionado" style="color:var(--accent);font-weight:600;">capacitor de ar-condicionado</a>.</p>
-    {{ product_row("Ver capacitores disponíveis", "/category/ar-condicionado", "Olá! Preciso de capacitor para ar-condicionado. Pode me ajudar a escolher o valor certo?", "Capacitor ar-condicionado", btn="Consultar pelo WhatsApp") }}
+    <p>Os valores mais usados em split residencial (confira sempre o valor impresso no capacitor antigo):</p>
+    {{ product_group(['capacitor-25-plus-2-5uf', 'capacitor-35-plus-2-5uf', 'capacitor-45-plus-5uf', 'capacitor-60-plus-10uf'], 'Capacitor duplo') }}
   </div>
 
   <div class="article-section">
@@ -82,17 +83,16 @@
   <div class="article-section">
     <h2>Quando chamar o técnico</h2>
     <p>Se após verificar filtro e configurações o problema persistir, o mais provável é falta de gás ou problema elétrico — e aí é necessário um técnico com equipamento adequado para diagnóstico e recarga.</p>
-    <p>A M.T.F Refrigeração tem gás refrigerante (R410a, R22 e R32) disponível para retirada na loja na Av. Brasil, 6818, Rio de Janeiro. Caso precise de serviço técnico, o Técnico associado Douglas atende via WhatsApp.</p>
+    <p>A M.T.F Refrigeração tem gás refrigerante (R410a, R22 e R32) disponível para retirada na loja na Av. Brasil, 6818, Rio de Janeiro. Na dúvida sobre qual gás ou peça usar, mande uma foto da etiqueta da unidade externa pelo WhatsApp.</p>
   </div>
 {% endblock %}
 
 {% block cta %}
   {{ cta_block(
       "Precisa de gás ou de um técnico?",
-      "Compre o gás refrigerante certo na M.T.F ou agende atendimento com o técnico Douglas diretamente pelo WhatsApp.",
+      "Mande uma foto da etiqueta da unidade externa pelo WhatsApp: a gente confirma o gás e a peça certa para o seu aparelho.",
       "Olá! Meu ar-condicionado não está gelando. Podem me ajudar?",
-      "Artigo AC não gela",
-      tecnico_msg="Olá Douglas! Meu ar-condicionado está ligado mas não está gelando. Pode me ajudar?") }}
+      "Artigo AC não gela") }}
 {% endblock %}
 
 {% block related %}

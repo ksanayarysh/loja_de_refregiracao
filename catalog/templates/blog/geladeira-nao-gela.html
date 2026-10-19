@@ -1,45 +1,33 @@
 {% extends 'blog/_article_base.html' %}
-{% import 'blog/_produto.html' as pc with context %}
+{% from 'blog/_macros.html' import product_card, product_group, tip_box, warn_box, info_box, cta_block, related_cards with context %}
 
-{% block title %}Geladeira não gela embaixo? 5 causas e como resolver | M.T.F Refrigeração{% endblock %}
-
-{% block head %}
-  <meta name="description" content="Freezer gela mas a parte de baixo não? Veja as 5 causas mais comuns (degelo, sensor, termostato, ventilador) e as peças certas — retire hoje na Av. Brasil, RJ.">
-  <meta property="og:title" content="Geladeira não gela embaixo? 5 causas e como resolver">
-  <meta property="og:description" content="Freezer funciona mas o refrigerador não gela? Entenda as causas e encontre a peça certa para Brastemp, Consul e Electrolux.">
-  <script type="application/ld+json">
+{% set seo_title = "Geladeira não gela embaixo? 5 causas e como resolver" %}
+{% set h1_text = "Geladeira não gela embaixo? 5 causas e como resolver" %}
+{% set meta_description = "Freezer gela mas a parte de baixo não? Veja as 5 causas mais comuns (degelo, sensor, termostato, ventilador) e as peças certas — retire hoje na Av. Brasil, RJ." %}
+{% set og_title = "Geladeira não gela embaixo? 5 causas e como resolver" %}
+{% set og_description = "Freezer funciona mas o refrigerador não gela? Entenda as causas e encontre a peça certa para Brastemp, Consul e Electrolux." %}
+{% set breadcrumb_label = "Geladeira não gela embaixo" %}
+{% set faq = [
   {
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": "Geladeira não gela embaixo? 5 causas e como resolver",
-    "description": "Guia prático sobre geladeira que gela no freezer mas não na parte de baixo: sintomas, causas e peças.",
-    "mainEntityOfPage": {"@type": "WebPage", "@id": "{{ site_url }}/blog/{{ article.slug }}"},
-    "author": {"@type": "Organization", "name": "M.T.F Refrigeração", "url": "{{ site_url }}/"},
-    "publisher": {"@type": "Organization", "name": "M.T.F Refrigeração", "url": "{{ site_url }}/",
-                  "logo": {"@type": "ImageObject", "url": "{{ site_url }}/static/og-catalog.jpg"}}
-  }
-  </script>
-  <script type="application/ld+json">
+    "q": "Por que a geladeira gela no freezer mas não embaixo?",
+    "a": "Na maioria das geladeiras frost free o ar frio é produzido no freezer e levado para baixo por um ventilador. Se o degelo falha, o gelo bloqueia essa passagem; também podem falhar o sensor, o termostato ou o próprio ventilador."
+  },
   {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": [
-      {"@type": "Question", "name": "Por que a geladeira gela no freezer mas não embaixo?",
-       "acceptedAnswer": {"@type": "Answer", "text": "Na maioria das geladeiras frost free o ar frio é produzido no freezer e levado para baixo por um ventilador. Se o degelo falha, o gelo bloqueia essa passagem; também podem falhar o sensor, o termostato ou o próprio ventilador."}},
-      {"@type": "Question", "name": "Vale a pena consertar a geladeira que não gela embaixo?",
-       "acceptedAnswer": {"@type": "Answer", "text": "Na maioria dos casos sim: sensor, termostato, resistência de degelo e motor do ventilador são peças baratas perto do preço de uma geladeira nova."}},
-      {"@type": "Question", "name": "Quais peças resolvem geladeira que não gela embaixo?",
-       "acceptedAnswer": {"@type": "Answer", "text": "As mais comuns são: resistência de degelo, sensor/bimetal de degelo, timer de degelo, sensor de temperatura, termostato e motor do ventilador."}}
-    ]
+    "q": "Vale a pena consertar a geladeira que não gela embaixo?",
+    "a": "Na maioria dos casos sim: sensor, termostato, resistência de degelo e motor do ventilador são peças baratas perto do preço de uma geladeira nova."
+  },
+  {
+    "q": "Quais peças resolvem geladeira que não gela embaixo?",
+    "a": "As mais comuns são: resistência de degelo, sensor/bimetal de degelo, timer de degelo, sensor de temperatura, termostato e motor do ventilador."
   }
-  </script>
-{% endblock %}
+] %}
 
-{% block crumb %}Geladeira não gela embaixo{% endblock %}
-{% block h1 %}Geladeira não gela embaixo? 5 causas e como resolver{% endblock %}
+{% block tag %}🧊 Geladeira{% endblock %}
+
 {% block lead %}O freezer está gelando, mas a parte de baixo fica morna? Na maioria das vezes o problema é no degelo, em um sensor, no termostato ou no ventilador — peças simples de trocar. Veja como identificar e qual peça comprar.{% endblock %}
 
 {% block content %}
+<div class="article-section">
   <div class="lead-box">
     <p><strong>Resumo rápido:</strong> em geladeira frost free o frio é produzido no freezer e um ventilador empurra o ar para baixo. Se o <strong>degelo falha</strong>, o gelo fecha essa passagem; se o <strong>ventilador</strong>, o <strong>sensor</strong> ou o <strong>termostato</strong> falham, o ar frio não chega embaixo. Comece verificando se há gelo acumulado no fundo do freezer.</p>
   </div>
@@ -56,7 +44,7 @@
   <h2>1. Falha no degelo: gelo bloqueando a passagem de ar</h2>
   <p>É a causa número 1 em geladeira <strong>frost free</strong>. A cada algumas horas a geladeira liga uma resistência para derreter o gelo do evaporador. Se a <strong>resistência de degelo</strong>, o <strong>bimetal (sensor de degelo)</strong> ou o <strong>timer de degelo</strong> falham, o gelo cresce, fecha a saída de ar e o refrigerador para de gelar.</p>
   <p><strong>Como testar:</strong> desligue a geladeira da tomada por 12–24 horas com as portas abertas (coloque panos no chão). Se depois disso ela voltar a gelar embaixo por alguns dias e o problema voltar, o defeito está no sistema de degelo.</p>
-  {{ pc.group([
+  {{ product_group([
       'resistencia-evoporador-brm3743-br-cr-kr-225w-127v',
       'sensor-biometal-com-fusivel-eletrolux-df35-df36-df37-df38-921979',
       'sensor-biometal-eletrolux',
@@ -65,14 +53,14 @@
 
   <h2>2. Sensor de temperatura com defeito</h2>
   <p>Nas geladeiras eletrônicas, o sensor (NTC) informa à placa a temperatura interna. Se ele falha, a placa “acha” que já está frio e não manda gelar a parte de baixo. Sintoma típico: geladeira com painel digital que gela pouco ou de forma irregular.</p>
-  {{ pc.group([
+  {{ product_group([
       'sensor-de-temperatura-2-7k-brastemp-w10531315',
       'sensor-de-temperatura-ntc-10k-symphony-para-geladeira-brastemp-consul',
       'sensor-de-degelo-10k-para-geladeira-electrolux'], 'Sensor') }}
 
   <h2>3. Termostato desregulado ou com defeito</h2>
   <p>Nas geladeiras com botão de regulagem, quem decide quando o motor liga é o <strong>termostato</strong>. Se ele está com defeito, o motor desliga cedo demais e a parte de baixo nunca chega na temperatura certa. Antes de trocar, confira se o botão não foi girado para o mínimo.</p>
-  {{ pc.group([
+  {{ product_group([
       'termostato-geladeira-consul-w11082462-tsv0013-01-original',
       'termostato-de-geladeira-wdf20',
       'termostato-geladeira-electrolux-dc34a-dc33a-dc35a-wdf30a',
@@ -80,14 +68,14 @@
 
   <h2>4. Ventilador (motoventilador) parado</h2>
   <p>É ele que leva o ar frio do freezer para baixo. Abra o freezer com a geladeira ligada: se não ouvir o ventilador girando (ou ouvir ele raspando no gelo), o motor pode estar queimado ou travado. Nesse caso o freezer gela, mas o refrigerador não.</p>
-  {{ pc.group([
+  {{ product_group([
       'motor-ventilador-brastemp-consul-127v-w11369860-original',
       'motor-ventilador-geladeira-brastemp-consul-w10399715',
       'motor-ventilador-rede-eletrica-electrolux-220v-50-60hz-dc46-dc48-dc49x'], 'Ventilador') }}
 
   <h2>5. Vedação da porta e uso</h2>
   <p>Borracha da porta ressecada, porta mal fechada ou geladeira muito cheia (bloqueando a saída de ar) também fazem a parte de baixo esquentar. Teste: feche a porta sobre uma folha de papel — se ela sai sem resistência, a borracha não está vedando.</p>
-  {{ pc.card('borracha-gaxeta-cinza-ilpea-porta-geladeira-freezer-aba-ima-2m', 'Vedação') }}
+  {{ product_card('borracha-gaxeta-cinza-ilpea-porta-geladeira-freezer-aba-ima-2m', label='Vedação') }}
 
   <h2>O que fazer antes de comprar a peça</h2>
   <ol>
@@ -102,6 +90,13 @@
 
   <h2>Vale a pena consertar?</h2>
   <p>Quase sempre sim. Resistência, sensor, termostato e motor do ventilador custam uma fração do preço de uma geladeira nova, e a troca é simples para um técnico. O mais importante é comprar a peça <strong>compatível com o seu modelo e voltagem</strong> — por isso vale conferir a etiqueta antes.</p>
+</div>
 {% endblock %}
 
-{% block cta_text %}Mande uma foto da etiqueta da geladeira (marca, modelo e voltagem) no WhatsApp: a gente confirma a peça certa antes de você comprar. Retire hoje na Av. Brasil, 6818 (Bonsucesso) ou receba no mesmo dia no RJ.{% endblock %}
+{% block cta %}
+  {{ cta_block("Precisa de ajuda para achar a peça?", "Mande uma foto da etiqueta da geladeira (marca, modelo e voltagem) no WhatsApp: a gente confirma a peça certa antes de você comprar. Retire hoje na Av. Brasil, 6818 (Bonsucesso) ou receba no mesmo dia no RJ.", "Olá! Minha geladeira não está gelando embaixo. Posso mandar a foto da etiqueta?", "Artigo geladeira não gela embaixo") }}
+{% endblock %}
+
+{% block related %}
+  {{ related_cards([{"href": "/blog/geladeira-frost-free-acumulando-gelo", "icon": "❄️", "title": "Frost free acumulando gelo: causas e solução"}, {"href": "/blog/geladeira-fazendo-barulho", "icon": "🔊", "title": "Geladeira fazendo barulho: o que pode ser"}]) }}
+{% endblock %}

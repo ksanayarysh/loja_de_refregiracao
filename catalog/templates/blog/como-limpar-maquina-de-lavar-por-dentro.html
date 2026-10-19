@@ -1,7 +1,6 @@
 {% extends 'blog/_article_base.html' %}
-{% from 'blog/_macros.html' import product_row, tip_box, warn_box, info_box, cta_block, related_cards with context %}
+{% from 'blog/_macros.html' import product_card, product_group, product_row, tip_box, warn_box, info_box, cta_block, related_cards with context %}
 
-{# Artigo de máquina de lavar: NÃO passar tecnico_msg no cta_block (Douglas nunca aparece em lavadora). #}
 {# O título SEO/H1 aqui difere do título em articles.py (usado só no índice do blog). #}
 {% set seo_title = "Como limpar máquina de lavar por dentro: agitador, acúmulo de sabão e filtro" %}
 {% set h1_text = "Como limpar máquina de lavar por dentro: agitador, acúmulo de sabão e filtro" %}
@@ -87,11 +86,7 @@
       <li>Em alguns modelos antigos, o agitador pode sair apenas puxando</li>
     </ol>
     <p>Para muitos modelos Brastemp e Consul, o parafuso costuma usar chave T 5/16.</p>
-    {{ product_row("Chave T 5/16 para parafuso do agitador",
-                   "/product/chave-t-5-16-parafuso-do-agitador-lavadora-brastemp-consul",
-                   "Olá! Tenho interesse em: chave T 5/16 para parafuso do agitador de lavadora. Está disponível?",
-                   "Chave T 5/16 agitador",
-                   slug="chave-t-5-16-parafuso-do-agitador-lavadora-brastemp-consul") }}
+    {{ product_card('chave-t-5-16-parafuso-do-agitador-lavadora-brastemp-consul') }}
 
     <h3>Como limpar o agitador</h3>
     <ol>
@@ -101,11 +96,7 @@
       <li>Enxágue bem e seque antes de recolocar</li>
     </ol>
     {% call tip_box() %}Se o agitador estiver rachado, com aletas quebradas ou soltando fragmentos escuros, pode ser hora de trocar a peça.{% endcall %}
-    {{ product_row("Agitador Consul/Brastemp para lavadora",
-                   "/product/agitador-consul-brastemp-lavadora-326006286",
-                   "Olá! Tenho interesse em: agitador Consul/Brastemp para lavadora. Está disponível?",
-                   "Agitador Consul Brastemp",
-                   slug="agitador-consul-brastemp-lavadora-326006286") }}
+    {{ product_card('agitador-consul-brastemp-lavadora-326006286') }}
   </div>
 
   <div class="article-section" id="tambor-e-acumulo">
@@ -154,18 +145,7 @@
     <p>Mangueira velha é uma causa comum de vazamento em lavadora. Muitas vezes o cliente pensa que é bomba, mas o problema está em uma conexão ou borracha desgastada.</p>
 
     <h3>Peças úteis para manutenção</h3>
-    {{ product_row("Mangueira de entrada para lavadora 2m", "/product/mangueira-de-entrada-para-lavadora-2m",
-                   "Olá! Tenho interesse em: mangueira de entrada para lavadora 2m. Está disponível?", "Mangueira entrada lavadora",
-                   slug="mangueira-de-entrada-para-lavadora-2m") }}
-    {{ product_row("Mangueira de saída para lavadora", "/product/mangueira-de-saida-para-lavadora",
-                   "Olá! Tenho interesse em: mangueira de saída para lavadora. Está disponível?", "Mangueira saída lavadora",
-                   slug="mangueira-de-saida-para-lavadora") }}
-    {{ product_row("Mangueira do dreno", "/product/mangueira-do-dreno-maquina-de-lavar",
-                   "Olá! Tenho interesse em: mangueira do dreno para lavadora. Está disponível?", "Mangueira dreno lavadora",
-                   slug="mangueira-do-dreno-maquina-de-lavar") }}
-    {{ product_row("Kit mangueira de lavadora", "/product/kit-mangueira-de-lavadora",
-                   "Olá! Tenho interesse em: kit mangueira de lavadora. Está disponível?", "Kit mangueira lavadora",
-                   slug="kit-mangueira-de-lavadora") }}
+    {{ product_group(['kit-mangueira-de-lavadora', 'mangueira-de-entrada-para-lavadora-2m', 'mangueira-de-saida-para-lavadora', 'mangueira-de-saida-universal-afa-5-terminais-1-85m-360209609', 'mangueira-do-dreno-maquina-de-lavar', 'registro-para-mangueira'], label='Mangueiras e conexões') }}
   </div>
 
   <div class="article-section" id="frequencia">
