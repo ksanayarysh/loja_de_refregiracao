@@ -197,6 +197,75 @@ async def _load_items(raw_items: list) -> tuple[list, float]:
     return items, round(subtotal, 2)
 
 
+# ── ESTOQUE ────────────────────────────────────────────────────────────────────
+# Gás no varejo (kg) é vendido só no balcão: não entra em pedido do site.
+def _is_kg(unit) -> bool:
+    return str(unit or "").strip().lower() == "kg"
+
+
+def _fmt_qty(v: float) -> str:
+    return str(int(v)) if float(v).is_integer() else f"{v:.2f}".rstrip("0").rstrip(".").replace(".", ",")
+
+
+async def _stock_map(ids) -> dict:
+    """id -> estoque atual (mesma conta do catálogo: soma de stock_movements, mínimo 0)."""
+    ids = [int(i) for i in ids if i]
+    if not ids:
+        return {}
+    async with engine.connect() as conn:
+        rows = (await conn.execute(text("""
+            SELECT p.id, GREATEST(0, COALESCE(SUM(sm.qty), 0)) AS stock
+            FROM products p
+            LEFT JOIN stock_movements sm ON sm.product_id = p.id
+            WHERE p.id = ANY(:ids)
+            GROUP BY p.id
+        """), {"ids": ids})).mappings().all()
+    return {r["id"]: float(r["stock"] or 0) for r in rows}
+
+
+async def _stock_problems(items: list) -> tuple[list, list, dict]:
+    """Confere o carrinho (já normalizado por _load_items) contra o estoque.
+    Retorna (itens em kg, linhas sem estoque suficiente, estoque por produto).
+    Kits contam pelos componentes, somados aos mesmos produtos avulsos."""
+    kg = [i for i in items if not i.get("kit_id") and _is_kg(i.get("unit"))]
+    need: dict = {}
+    for i in items:
+        if i.get("kit_id"):
+            for c in i.get("components") or []:
+                if c.get("id"):
+                    need[c["id"]] = need.get(c["id"], 0) + float(c.get("qty") or 0) * i["qty"]
+        elif not _is_kg(i.get("unit")):
+            need[i["id"]] = need.get(i["id"], 0) + i["qty"]
+    stock = await _stock_map(need)
+    short_ids = {pid for pid, q in need.items() if q > stock.get(pid, 0) + 1e-9}
+    short = []
+    for i in items:
+        if i.get("kit_id"):
+            if any(c.get("id") in short_ids for c in i.get("components") or []):
+                short.append({"kit_id": i["kit_id"], "name": i["name"]})
+        elif i["id"] in short_ids:
+            short.append({"id": i["id"], "name": i["name"], "qty": i["qty"], "stock": stock.get(i["id"], 0)})
+    return kg, short, stock
+
+
+def _stock_msg(kg: list, short: list) -> str:
+    parts = []
+    if kg:
+        parts.append("Gás no varejo (por kg) é vendido só na loja: " + ", ".join(i["name"] for i in kg)
+                     + ". Remova do carrinho ou fale conosco no WhatsApp.")
+    if short:
+        linhas = []
+        for s in short:
+            if s.get("kit_id"):
+                linhas.append(f'{s["name"]} (faltam peças do kit)')
+            elif s["stock"] <= 0:
+                linhas.append(f'{s["name"]} (sem estoque)')
+            else:
+                linhas.append(f'{s["name"]} (temos {_fmt_qty(s["stock"])})')
+        parts.append("Estoque insuficiente: " + "; ".join(linhas) + ". Ajuste a quantidade.")
+    return " ".join(parts)
+
+
 async def _calc_frete(cep: str, service: str):
     """Recalcula o frete no servidor. Retorna (preço, geo) ou (None, motivo)."""
     if service not in LALA_SERVICES or service not in FRETE_OPTIONS:
@@ -453,6 +522,10 @@ async def checkout_pix(request: Request):
                                       "Remova-o do carrinho ou fale conosco no WhatsApp.",
                              "missing": sorted(missing)}, status_code=409)
 
+    kg, short, _ = await _stock_problems(items)
+    if kg or short:
+        return JSONResponse({"error": _stock_msg(kg, short), "stock_issue": True}, status_code=409)
+
     delivery = body.get("delivery") or {}
     dtype = "lalamove" if delivery.get("type") == "lalamove" else "retirada"
     frete, geo = 0.0, None
@@ -529,6 +602,23 @@ async def checkout_pix(request: Request):
 
     await _send_tg(f"🧾 Pedido #{order_id} criado no site — aguardando Pix ({_brl(total)})")
     return JSONResponse({"order_id": order_id, "token": token, "url": f"/pedido/{order_id}?t={token}"})
+
+
+@router.post("/api/checkout/stock")
+async def checkout_stock(request: Request):
+    """O checkout chama ao abrir: diz o que tirar/ajustar no carrinho antes do cliente preencher tudo."""
+    try:
+        body = await request.json()
+    except Exception:
+        return JSONResponse({"error": "Dados inválidos."}, status_code=400)
+    items, _ = await _load_items(body.get("items"))
+    kg, short, stock = await _stock_problems(items)
+    return JSONResponse({
+        "kg": [i["id"] for i in kg],
+        "stock": {str(s["id"]): s["stock"] for s in short if s.get("id")},
+        "kits": [s["kit_id"] for s in short if s.get("kit_id")],
+        "message": _stock_msg(kg, short),
+    }, headers={"Cache-Control": "no-store"})
 
 
 @router.get("/api/checkout/status/{order_id}")

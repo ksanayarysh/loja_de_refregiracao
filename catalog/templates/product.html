@@ -454,6 +454,7 @@
     .equipe-divider{width:1px;height:40px;background:var(--border);flex-shrink:0;}
 
         /* ── FRETE ── */
+    .kg-note{background:#fffbeb;border:1px solid #fde68a;color:#92400e;border-radius:12px;padding:12px 14px;font-size:.88rem;line-height:1.5;}
     .frete-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;}
     .frete-title{font-size:.82rem;font-weight:700;margin-bottom:10px;}
     .frete-row{display:flex;gap:8px;}
@@ -502,23 +503,23 @@
   <div class="catbar-inner">
     <a class="catbar-item" href="/category/ar-condicionado">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="6" width="20" height="8" rx="2"/><path d="M7 14v4M12 14v4M17 14v4"/><path d="M5 10h1M8 10h1"/></svg>
-      Ar condicionado
+      <span class="cb-l">Ar condicionado</span><span class="cb-s">Ar-cond.</span>
     </a>
     <a class="catbar-item" href="/category/geladeira">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M5 10h14"/><path d="M9 6v2M9 14v3"/></svg>
-      Geladeira
+      <span class="cb-l">Geladeira</span><span class="cb-s">Geladeira</span>
     </a>
     <a class="catbar-item" href="/category/maquina-de-lavar">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="2" width="18" height="20" rx="2"/><circle cx="12" cy="13" r="4"/><path d="M7 6h1M10 6h1"/></svg>
-      Máquina de lavar
+      <span class="cb-l">Máquina de lavar</span><span class="cb-s">Lavadora</span>
     </a>
     <a class="catbar-item" href="/category/gases-refrigerantes">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M12 3C7 3 3 7 3 12s4 9 9 9 9-4 9-9-4-9-9-9z"/><path d="M3 12h18"/></svg>
-      Gases refrigerantes
+      <span class="cb-l">Gases refrigerantes</span><span class="cb-s">Gases</span>
     </a>
     <a class="catbar-all" href="/catalogo">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-      Todas as categorias
+      <span class="cb-l">Todas as categorias</span><span class="cb-s">Todas</span>
     </a>
   </div>
 </div>
@@ -550,6 +551,7 @@
   <span>{{ product.name }}</span>
 </nav>
 
+{% set is_kg = (product.unit or "")|lower == "kg" %}
 {% set wa_msg = "Olá! Tenho interesse no produto: " + product.name + " (" + product.unit + ")" + (". Preço: R$ " + ('%.2f'|format(product.price)|replace('.', ',')) if product.sale_price else "") + ". Está disponível?" %}
 
 <div class="product-page">
@@ -587,9 +589,9 @@
       <div style="display:inline-flex;align-items:center;gap:5px;font-size:.78rem;font-weight:700;color:#b45309;background:#fefce8;border:1px solid #fde68a;padding:4px 10px;border-radius:10px;">
         ⚡ Retirada no dia
       </div>
-      <a href="#frete-box" class="entrega-pill" onclick="setTimeout(()=>document.getElementById('frete-cep').focus(),300)">
+      {% if not is_kg %}<a href="#frete-box" class="entrega-pill" onclick="setTimeout(()=>document.getElementById('frete-cep').focus(),300)">
         🛵 Entrega no RJ
-      </a>
+      </a>{% endif %}
       {% else %}
       <div style="display:inline-flex;align-items:center;gap:6px;font-size:.8rem;font-weight:700;color:#6b7280;background:#f3f4f6;border:1px solid #d1d5db;padding:5px 12px;border-radius:10px;">
         <svg width="8" height="8" viewBox="0 0 8 8" fill="#9ca3af"><circle cx="4" cy="4" r="4"/></svg>
@@ -622,7 +624,7 @@
 
     {% set wa_out_msg = "Olá! Vi o produto " + product.name + " no site mas está sem estoque. Quando volta? Posso reservar?" %}
     {% set in_stock = product.current_stock and product.current_stock > 0 %}
-    {% if product.sale_price and in_stock %}
+    {% if product.sale_price and in_stock and not is_kg %}
     <div>
       <button class="buy-now-btn" type="button"
         onclick='buyNow({{ product.id }}, {{ product.name|tojson }}, {{ product.price|float }}, {{ product.unit|tojson }})'>
@@ -641,16 +643,20 @@
       </a>
     </div>
     {% else %}
+    {% if is_kg and in_stock %}
+    <div class="kg-note">⚖️ <strong>Venda por kg só no balcão da loja.</strong> Gás no varejo não é vendido pelo site nem entregue. Traga seu cilindro e retire na hora, ou reserve pelo WhatsApp.</div>
+    {% endif %}
     <a class="wa-cta wa-track"
        href="https://wa.me/{{ wa_number }}?text={{ (wa_msg if in_stock else wa_out_msg) | urlencode }}"
        target="_blank" rel="noopener"
        data-product="{{ product.name }}"
        style="font-size:1.1rem;padding:18px 24px;{% if not in_stock %}background:#6b7280;box-shadow:none;{% endif %}">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
-      {% if in_stock %}Comprar pelo WhatsApp{% else %}Consultar disponibilidade{% endif %}
+      {% if in_stock and is_kg %}Reservar pelo WhatsApp{% elif in_stock %}Comprar pelo WhatsApp{% else %}Consultar disponibilidade{% endif %}
     </a>
     {% endif %}
 
+    {% if not is_kg %}
     <div class="frete-box" id="frete-box">
       <div class="frete-title">🛵 Calcular frete</div>
       <div class="frete-row">
@@ -660,6 +666,7 @@
       <div id="frete-result" class="frete-result"></div>
       <a class="frete-help" href="https://buscacepinter.correios.com.br/app/endereco/index.php" target="_blank" rel="noopener">Não sei meu CEP</a>
     </div>
+    {% endif %}
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
       <div style="display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;">
@@ -676,6 +683,7 @@
           <div style="font-size:.68rem;color:var(--muted);">Resposta no mesmo dia</div>
         </div>
       </div>
+      {% if not is_kg %}
       <div style="display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;grid-column:1/-1;">
         <span style="font-size:1.1rem;">🛵</span>
         <div>
@@ -683,6 +691,7 @@
           <div style="font-size:.68rem;color:var(--muted);">Via Lalamove no Rio de Janeiro</div>
         </div>
       </div>
+      {% endif %}
     </div>
 
     <div class="location-note">
@@ -771,7 +780,7 @@
 </div>
 {% endif %}
 
-{% if product.sale_price and product.current_stock and product.current_stock > 0 %}
+{% if product.sale_price and product.current_stock and product.current_stock > 0 and (product.unit or '')|lower != 'kg' %}
 <div class="buy-bar" id="buy-bar">
   <div class="bb-price">R$ {{ "%.2f"|format(product.price)|replace('.', ',') }}{% if product.unit == 'kg' %}<small>/kg</small>{% endif %}</div>
   <button class="bb-btn" type="button"
@@ -938,12 +947,18 @@ function closeCart() {
   document.getElementById('cart-overlay').classList.remove('open');
 }
 
+function fbTrack(ev, id, price, extra) {
+  if (typeof fbq === 'undefined') return;
+  fbq('track', ev, Object.assign({ content_ids: [String(id)], content_type: 'product', value: Number(price) || 0, currency: 'BRL' }, extra || {}));
+}
+
 function addToCart(id, name, price, unit, btn) {
   const existing = cart.find(i => i.id === id && !i.kit);
   if (existing) { existing.qty += 1; }
   else { cart.push({ id, name, price, unit, qty: 1 }); }
   saveCart();
   updateBadge();
+  fbTrack('AddToCart', id, price, { content_name: name });
   if (btn) {
     btn.classList.add('added');
     btn.textContent = '✓ Adicionado!';
@@ -958,6 +973,7 @@ function buyNow(id, name, price, unit) {
     updateBadge();
   }
   if (typeof gtag !== 'undefined') gtag('event', 'comprar_agora', { product_name: name });
+  fbTrack('AddToCart', id, price, { content_name: name });
   openCart();
 }
 
@@ -1041,6 +1057,7 @@ updateBadge();
 // ── FRETE (Lalamove) ──
 const freteCep = document.getElementById('frete-cep');
 function escHtml(s) { return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+if (freteCep) {  // gás por kg: sem bloco de frete
 freteCep.addEventListener('input', e => {
   let v = e.target.value.replace(/\D/g, '').slice(0, 8);
   if (v.length > 5) v = v.slice(0, 5) + '-' + v.slice(5);
@@ -1048,6 +1065,7 @@ freteCep.addEventListener('input', e => {
 });
 freteCep.addEventListener('keydown', e => { if (e.key === 'Enter') calcFrete(); });
 try { const saved = localStorage.getItem('mtf_cep'); if (saved) freteCep.value = saved; } catch (e) {}
+}
 
 async function calcFrete() {
   const cep = freteCep.value.replace(/\D/g, '');
@@ -1149,5 +1167,12 @@ document.addEventListener('click', e => {
   }
 });
 </script>
+{% if product.sale_price %}
+<script>
+window.addEventListener('load', function () {
+  if (typeof fbq !== 'undefined') fbq('track', 'ViewContent', { content_ids: ['{{ product.id }}'], content_type: 'product', content_name: {{ product.name|tojson }}, value: {{ product.price|float }}, currency: 'BRL' });
+});
+</script>
+{% endif %}
 </body>
 </html>

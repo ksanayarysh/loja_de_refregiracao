@@ -213,4 +213,20 @@ window.addEventListener('load', function() {
     .wa-float{padding:14px;border-radius:50%;bottom:16px;right:16px;}
     .footer-main{grid-template-columns:1fr;gap:20px;padding:24px 16px;}
   }
+  /* ── CATEGORIAS no celular: 5 botões numa linha, sem rolagem ── */
+  .cb-s{display:none;}
+  @media(max-width:600px){
+    html body .catbar{overflow:visible;padding:8px 0 10px;}
+    html body .catbar::after{display:none;}
+    html body .catbar-inner{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;padding:0 12px;}
+    html body .catbar-item,html body .catbar-all{flex-direction:column;justify-content:center;gap:4px;margin:0;min-width:0;padding:8px 2px;border-radius:12px;font-size:.7rem;line-height:1.1;white-space:nowrap;text-align:center;}
+    html body .catbar-item svg{width:22px;height:22px;}
+    html body .catbar-all svg{width:20px;height:20px;}
+    .cb-l{display:none;} .cb-s{display:inline;}
+  }
+  @media(min-width:601px) and (max-width:1000px){
+    html body .catbar{overflow:visible;}
+    html body .catbar::after{display:none;}
+    html body .catbar-inner{flex-wrap:wrap;}
+  }
 </style>

@@ -89,7 +89,7 @@
     .cat-card-name{font-weight:700;font-size:.95rem;}
     .cat-card-count{font-size:.78rem;color:var(--muted);}
     .cat-card-arrow{font-size:.75rem;color:var(--accent);margin-top:4px;font-weight:700;}
-    .promo-wrap{max-width:1000px;margin:0 auto;padding:0 20px 48px;}
+    .promo-wrap{max-width:1100px;margin:0 auto;padding:0 20px 8px;}
     .promo-banner{background:linear-gradient(135deg,#e2144a 0%,#b01038 60%,#7f0a26 100%);border-radius:16px;display:flex;overflow:hidden;min-height:180px;box-shadow:0 8px 32px rgba(226,20,74,.25);}
     .promo-img-side{flex:0 0 200px;position:relative;overflow:hidden;}
     .promo-img-side img{width:100%;height:100%;object-fit:cover;}
@@ -177,6 +177,7 @@
       .hero-badges{min-height:72px;}
 
       /* promo banner */
+      .promo-wrap{padding:0 16px 0;}
       .promo-banner{flex-direction:column;}
       .promo-img-side{flex:0 0 150px;width:100%;background:rgba(255,255,255,.1);}
       .promo-img-side img{width:100%;height:150px;object-fit:contain;padding:10px;}
@@ -283,23 +284,23 @@
   <div class="catbar-inner">
     <a class="catbar-item" href="/category/ar-condicionado">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="6" width="20" height="8" rx="2"/><path d="M7 14v4M12 14v4M17 14v4"/><path d="M5 10h1M8 10h1"/></svg>
-      Ar condicionado
+      <span class="cb-l">Ar condicionado</span><span class="cb-s">Ar-cond.</span>
     </a>
     <a class="catbar-item" href="/category/geladeira">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M5 10h14"/><path d="M9 6v2M9 14v3"/></svg>
-      Geladeira
+      <span class="cb-l">Geladeira</span><span class="cb-s">Geladeira</span>
     </a>
     <a class="catbar-item" href="/category/maquina-de-lavar">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="2" width="18" height="20" rx="2"/><circle cx="12" cy="13" r="4"/><path d="M7 6h1M10 6h1"/></svg>
-      Máquina de lavar
+      <span class="cb-l">Máquina de lavar</span><span class="cb-s">Lavadora</span>
     </a>
     <a class="catbar-item" href="/category/gases-refrigerantes">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/><circle cx="12" cy="12" r="3"/></svg>
-      Gases refrigerantes
+      <span class="cb-l">Gases refrigerantes</span><span class="cb-s">Gases</span>
     </a>
     <a class="catbar-all" href="/catalogo">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-      Todas as categorias
+      <span class="cb-l">Todas as categorias</span><span class="cb-s">Todas</span>
     </a>
   </div>
 </div>
@@ -364,8 +365,10 @@
 <!-- KITS (montados na admin em /kits, marcados "mostrar no site") -->
 <style>
   .kits-calc-link{margin-left:auto;display:inline-flex;align-items:center;gap:6px;text-transform:none;letter-spacing:0;font-size:.88rem;font-weight:700;color:var(--accent);text-decoration:none;background:var(--accent-l);border:1.5px solid var(--accent-b);border-radius:999px;padding:7px 14px;transition:background .15s,border-color .15s;}
+  .kcl-short{display:none;}
+  @media(max-width:600px){.kcl-short{display:inline;}}
   .kits-calc-link:hover{background:#d6edf4;border-color:var(--accent);}
-  .kits-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px;align-items:stretch;}
+  .kits-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr));gap:18px;align-items:stretch;}
   .kits-grid.n1{grid-template-columns:minmax(0,560px);}
   .kit-card{background:var(--surface);border:1.5px solid var(--border);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px;position:relative;transition:border-color .15s,box-shadow .15s;}
   .kit-card:hover{border-color:var(--accent);box-shadow:0 6px 20px rgba(14,124,153,.12);}
@@ -388,14 +391,20 @@
   .kit-add{background:var(--surface);color:var(--text);border:1.5px solid var(--text);}
   .kit-buy{background:var(--accent);color:#fff;border:none;}
   @media(max-width:600px){
-    .kits-grid{grid-auto-flow:column;grid-template-columns:none;grid-auto-columns:86%;overflow-x:auto;scroll-snap-type:x mandatory;padding:12px 2px 8px;-webkit-overflow-scrolling:touch;}
-    .kit-card{scroll-snap-align:start;}
+    .kits-grid,.kits-grid.n1{grid-template-columns:minmax(0,1fr);gap:14px;padding-top:12px;}
+    .kit-card{padding:16px;min-width:0;gap:10px;}
+    .kit-thumbs{flex-wrap:nowrap;overflow:hidden;}
+    .kit-thumbs img,.kit-thumbs .kt-ph{width:38px;height:38px;flex-shrink:0;font-size:.95rem;}
+    .kit-list{font-size:.84rem;}
+    .kit-list li{grid-template-columns:44px 1fr;}
+    .kits-calc-link{margin-left:0;}
+    .kcl-long{display:none;}
   }
 </style>
 <div class="section-wrap" id="kits-wrap" style="display:none;">
   <div class="section-title" style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;">
     <span>🧰 Kits com desconto</span>
-    <a href="/calculadora-instalacao" class="kits-calc-link">🧮 Monte o kit de instalação pela distância →</a>
+    <a href="/calculadora-instalacao" class="kits-calc-link">🧮 <span class="kcl-long">Monte o kit de instalação pela distância</span><span class="kcl-short">Calcular kit pela distância</span> →</a>
   </div>
   <div class="kits-grid" id="kits-grid"></div>
 </div>
@@ -432,7 +441,7 @@
 {% if promos %}
 <style>
   .promo-pill{display:inline-block;background:var(--accent);color:#fff;font-size:.62rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:5px;margin-right:6px;vertical-align:middle;line-height:1.4;}
-  .promos-row{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(200px,230px);gap:12px;overflow-x:auto;padding:12px 2px 10px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;}
+  .promos-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;padding:12px 0 4px;}
   .promo-card{scroll-snap-align:start;background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px;position:relative;text-decoration:none;color:inherit;transition:border-color .15s,box-shadow .15s;}
   .promo-card:hover{border-color:var(--accent);box-shadow:0 4px 16px rgba(14,124,153,.12);}
   .promo-off{position:absolute;top:-9px;left:10px;background:var(--accent);color:#fff;font-weight:800;font-size:.78rem;padding:3px 9px;border-radius:999px;box-shadow:0 2px 6px rgba(226,20,74,.3);}
@@ -440,26 +449,46 @@
   .promo-img-ph{width:100%;height:120px;border-radius:10px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:2rem;}
   .promo-name{font-weight:600;font-size:.88rem;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.6em;}
   .promo-old{font-size:.76rem;color:var(--muted);text-decoration:line-through;}
-  .promo-new{font-family:'DM Mono',monospace;font-weight:700;font-size:1.15rem;color:var(--accent);}
+  .promo-new{white-space:nowrap;font-family:'DM Mono',monospace;font-weight:700;font-size:1.15rem;color:var(--accent);}
   .promo-add{margin-top:auto;padding:9px;border-radius:9px;border:none;background:var(--accent);color:#fff;font-weight:700;font-size:.85rem;font-family:inherit;cursor:pointer;}
   .promo-left{font-size:.74rem;font-weight:700;color:var(--promo);}
   .promo-out{margin-top:auto;font-size:.78rem;color:var(--muted);text-align:center;padding:9px;}
+  .promos-more{display:none;}
+  @media(max-width:600px){
+    .promos-row{grid-template-columns:minmax(0,1fr);gap:10px;}
+    .promo-card{display:grid;grid-template-columns:80px minmax(0,1fr) auto;grid-template-areas:"img name name" "img left left" "img pr btn";column-gap:12px;row-gap:4px;align-items:center;padding:10px 12px 10px 10px;}
+    .promo-card .promo-img,.promo-card .promo-img-ph{grid-area:img;width:80px;height:80px;align-self:center;}
+    .promo-card .promo-img-ph{font-size:1.6rem;}
+    .promo-card .promo-name{grid-area:name;min-height:0;font-size:.9rem;}
+    .promo-card .promo-left{grid-area:left;}
+    .promo-card .promo-pr{grid-area:pr;}
+    .promo-card .promo-add,.promo-card .promo-out{grid-area:btn;margin:0;padding:10px 12px;align-self:end;}
+    .promo-card .promo-out{padding:0;font-size:.72rem;line-height:1.25;text-align:right;max-width:76px;}
+    .promo-off{top:6px;left:6px;font-size:.7rem;padding:2px 7px;}
+    .promos-row:not(.open) .promo-x{display:none;}
+    .promos-more{display:block;width:100%;margin-top:10px;padding:11px;border-radius:10px;border:1.5px solid var(--promo);background:#fff;color:var(--promo);font-weight:700;font-size:.9rem;font-family:inherit;cursor:pointer;}
+    .promos-row.open + .promos-more{display:none;}
+  }
 </style>
+{% set plist = [] %}{% for p in promos %}{% if not (promo_product and p.id == promo_product.id) %}{% set _ = plist.append(p) %}{% endif %}{% endfor %}
+{% if plist %}
 <div class="section-wrap">
   <div class="promos-row">
-    {% for p in promos %}
-    <div class="promo-card">
+    {% for p in plist %}
+    <div class="promo-card{% if loop.index > 4 %} promo-x{% endif %}">
       <div class="promo-off">-{{ p.off }}%</div>
       <a href="/product/{{ p.slug }}" style="display:contents;color:inherit;text-decoration:none;">
         {% if p.image %}<img class="promo-img" src="{{ p.image | imgurl(240) }}" alt="{{ p.name }}" loading="lazy">{% else %}<div class="promo-img-ph">📦</div>{% endif %}
         <div class="promo-name">{{ p.name }}</div>
         {% if p.days_left is not none %}<div class="promo-left">⏳ {% if p.days_left == 0 %}Termina hoje{% elif p.days_left == 1 %}Termina amanhã{% else %}Termina em {{ p.days_left }} dias{% endif %}</div>{% endif %}
-        <div>
+        <div class="promo-pr">
           <div class="promo-old">R$ {{ ("%.2f"|format(p.sale_price))|replace(".", ",") }}</div>
           <div class="promo-new">R$ {{ ("%.2f"|format(p.price))|replace(".", ",") }}{% if p.unit %}<span style="font-size:.72rem;color:var(--muted);font-weight:400;"> / {{ p.unit }}</span>{% endif %}</div>
         </div>
       </a>
-      {% if p.in_stock %}
+      {% if p.in_stock and (p.unit or '')|lower == 'kg' %}
+      <a class="promo-add" href="/product/{{ p.slug }}" style="text-align:center;text-decoration:none;">Só na loja</a>
+      {% elif p.in_stock %}
       <button class="promo-add" onclick='addToCart({{ p.id }}, {{ p.name | tojson }}, {{ p.price }}, {{ p.image | tojson }})'>🛒 Adicionar</button>
       {% else %}
       <div class="promo-out">Sem estoque no momento</div>
@@ -467,7 +496,9 @@
     </div>
     {% endfor %}
   </div>
+  {% if plist|length > 4 %}<button type="button" class="promos-more" onclick="this.previousElementSibling.classList.add('open')">Ver mais {{ plist|length - 4 }} promoç{{ 'ão' if plist|length - 4 == 1 else 'ões' }} ↓</button>{% endif %}
 </div>
+{% endif %}
 {% endif %}
 
 <!-- FRETE: quanto custa a entrega (usa /api/frete-cep, igual à página do produto) -->
@@ -945,7 +976,7 @@ async function triggerFixedSearch() {
       const slug = p.slug || p.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\+/g,' plus ').replace(/[^\w\s-]/g,' ').replace(/[\s_]+/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');
       const eff = (p.price != null ? p.price : p.sale_price); const oldp = p.on_promo ? `<span style="display:block;font-size:.7rem;font-weight:400;color:var(--muted);text-decoration:line-through;text-align:right;">R$ ${p.sale_price.toFixed(2).replace('.',',')}</span>` : ''; const price = p.sale_price ? `<span style="text-align:right;white-space:nowrap;">${oldp}<span style="font-family:'DM Mono',monospace;font-weight:700;color:var(--accent);font-size:.95rem;">R$ ${eff.toFixed(2).replace('.',',')}</span></span>` : `<span style="color:var(--muted);font-size:.85rem;">Consulte</span>`;
       const img = p.image ? `<img loading="lazy" src="${imgProxy(p.image,88)}" style="width:44px;height:44px;object-fit:contain;border-radius:8px;border:1px solid var(--border);background:var(--bg);flex-shrink:0;">` : `<div style="width:44px;height:44px;border-radius:8px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">📦</div>`;
-      const cartBtn = p.sale_price ? `<button class="search-item-cart" data-id="${p.id}" data-name="${p.name.replace(/"/g,'&quot;')}" data-price="${eff}" data-image="${(p.image||'').replace(/"/g,'&quot;')}" style="margin-left:8px;">🛒</button>` : '';
+      const cartBtn = (p.sale_price && p.in_stock !== false && String(p.unit || '').toLowerCase() !== 'kg') ? `<button class="search-item-cart" data-id="${p.id}" data-name="${p.name.replace(/"/g,'&quot;')}" data-price="${eff}" data-image="${(p.image||'').replace(/"/g,'&quot;')}" style="margin-left:8px;">🛒</button>` : '';
       const avail = p.available !== false ? `<span style="font-size:.72rem;color:#16a34a;font-weight:600;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:2px 8px;">Disponível</span>` : '';
       return `<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);">
         <a href="/product/${slug}" style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;text-decoration:none;color:inherit;">
@@ -998,7 +1029,7 @@ async function quickSearchHandler(q) {
       const slug = p.slug || p.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\+/g,' plus ').replace(/[^\w\s-]/g,' ').replace(/[\s_]+/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');
       const eff = (p.price != null ? p.price : p.sale_price); const oldp = p.on_promo ? `<span style="display:block;font-size:.7rem;font-weight:400;color:var(--muted);text-decoration:line-through;text-align:right;">R$ ${p.sale_price.toFixed(2).replace('.',',')}</span>` : ''; const price = p.sale_price ? `<span style="text-align:right;white-space:nowrap;">${oldp}<span style="font-family:'DM Mono',monospace;font-weight:700;color:var(--accent);font-size:.88rem;">R$ ${eff.toFixed(2).replace('.',',')}</span></span>` : `<span style="color:var(--muted);font-size:.82rem;">Consulte</span>`;
       const img = p.image ? `<img loading="lazy" src="${imgProxy(p.image,72)}" style="width:36px;height:36px;object-fit:contain;border-radius:6px;border:1px solid var(--border);background:var(--bg);flex-shrink:0;">` : `<div style="width:36px;height:36px;border-radius:6px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;">📦</div>`;
-      const cartBtn = p.sale_price ? `<button class="search-item-cart" data-id="${p.id}" data-name="${p.name.replace(/"/g,'&quot;')}" data-price="${eff}" data-image="${(p.image||'').replace(/"/g,'&quot;')}">🛒</button>` : '';
+      const cartBtn = (p.sale_price && p.in_stock !== false && String(p.unit || '').toLowerCase() !== 'kg') ? `<button class="search-item-cart" data-id="${p.id}" data-name="${p.name.replace(/"/g,'&quot;')}" data-price="${eff}" data-image="${(p.image||'').replace(/"/g,'&quot;')}">🛒</button>` : '';
       return `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);"><a href="/product/${slug}" style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;text-decoration:none;color:inherit;">${img}<div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</div><div style="font-size:.75rem;color:var(--muted);">${p.category} · ${p.unit}</div></div>${price}</a>${cartBtn}</div>`;
     }).join('') + `<a href="/catalogo" style="display:block;padding:10px 16px;text-align:center;font-size:.82rem;color:var(--accent);font-weight:700;text-decoration:none;border-top:1px solid var(--border);">Ver catálogo →</a>`;
     box.style.display = 'block';
