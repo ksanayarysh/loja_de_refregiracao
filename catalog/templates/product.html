@@ -116,6 +116,8 @@
       letter-spacing:-.02em;
       margin-top:6px;
     }
+    .product-brand{font-size:.85rem;color:var(--muted);margin-top:4px;}
+    .product-brand strong{color:var(--text);font-weight:700;}
     .product-unit{
       font-size:.88rem;
       color:var(--muted);
@@ -548,6 +550,7 @@
     <div>
       <div class="product-cat">{{ product.category_name }}</div>
       <h1 class="product-name">{{ product.name }}</h1>
+      {% if product.brand %}<div class="product-brand">Marca: <strong>{{ product.brand }}</strong>{% if product.sku %} · Cód. {{ product.sku }}{% endif %}</div>{% endif %}
       <div class="product-unit">Unidade: {{ product.unit }}</div>
     </div>
 
@@ -671,6 +674,18 @@
         <span class="detail-label">Categoria</span>
         <span class="detail-value">{{ product.category_name }}</span>
       </div>
+      {% if product.brand %}
+      <div class="detail-row">
+        <span class="detail-label">Marca</span>
+        <span class="detail-value">{{ product.brand }}</span>
+      </div>
+      {% endif %}
+      {% if product.brand and product.sku %}
+      <div class="detail-row">
+        <span class="detail-label">Código do fabricante</span>
+        <span class="detail-value">{{ product.sku }}</span>
+      </div>
+      {% endif %}
       <div class="detail-row">
         <span class="detail-label">Unidade</span>
         <span class="detail-value">{{ product.unit }}</span>
