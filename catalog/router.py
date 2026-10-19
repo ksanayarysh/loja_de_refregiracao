@@ -112,6 +112,7 @@ async def _get_products_cached(conn) -> list:
     rows = await _get_products(conn)
     _products_cache = rows
     _products_cache_ts = _time.time()
+    asyncio.ensure_future(_remember_slugs(rows))   # histórico de URLs (não bloqueia a página)
     return rows
 
 def _invalidate_cache():
@@ -522,9 +523,114 @@ async def redirect_category_refrigeracao():
 async def redirect_protetor_termico():
     return _Redirect("/product/protetor-termico-ptc", status_code=301)
 
-@router.get("/product/gas-r32-3kg")
-async def redirect_gas_r32():
-    return _Redirect("/product/gas-r32-3kg-hulter", status_code=301)
+# (gas-r32-3kg agora está em _SLUG_SEED — o destino antigo também tinha mudado de nome)
+
+
+# ── URLs antigas de produto (o slug vem do NOME: renomear = URL nova) ─────────
+# 1) _SLUG_SEED: URLs antigas que o Google tinha indexadas (Search Console, out/2026) -> id do produto
+# 2) product_slug_history: daqui pra frente, cada slug que já existiu fica guardado -> 301 automático
+_SLUG_SEED = {
+    "gas-r22-700g": 23,
+    "gas-r32-3kg-jcm": 145,
+    "gas-r22": 28,
+    "botija-gas-r404-10kg-jcm": 317,
+    "botija-r22-13kg": 298,
+    "gas-r32-650g": 21,
+    "botija-r410-10kg": 299,
+    "gas-r32-3kg-hulter": 241,
+    "gas-r32-3kg": 241,
+    "termostato-electrolux-dc49a": 269,
+    "tubo-de-1-4": 44,
+    "sensor-de-temperatura-10k-para-geladeira-electrolux": 72,
+    "gas-r134-1kg": 26,
+    "gas-r410": 27,
+    "gas-r134": 26,
+    "capacitor-15uf": 254,
+    "extrator-de-nucleos-valvula-schrader-servico-sem-perder-o-gas-hsv-3-hiatsu": 185,
+    "conjunto-analisador-manifold-ecotools-et361-90cm": 327,
+    "sensor-temperatura-e-degelo-ar-condicionado-5k": 80,
+    "gas-para-macarico": 18,
+    "cartucho-gas-mapp-para-macarico-400g-onu1077-classe-2-1-propileno-eos": 18,
+    "compressor-embraco-1-4-plus-127v-emr80hlr-gas-r134a": 342,
+    "gas-r290-400g": 24,
+    "tubo-de-3-8": 45,
+    "tubo-de-3-4": 46,
+    "tubo-de-1-2": 43,
+    "gas-r134-750g": 19,
+    "esponjoso-1-4": 88,
+    "esponjoso-1-2": 90,
+    "esponjoso-3-4": 59,
+    "esponjoso-5-8": 30,
+    "mangueira-transparente": 305,
+    "termostato-geladeira-consul-w11082462-original": 31,
+    "termostato-geladeira-consul": 31,
+    "manta-anti-chame": 172,
+    "sensor-5k-split": 82,
+    "fluido-refrigerante-r32-3kg-hulter": 241,
+    "gas-r410-750g": 38,
+    "sensor-biometal-com-fusivel": 85,
+    "termostato-ar-condicionado-brastemp-7500-30000-btus-rcv1601-4p": 204,
+    "gas-refrigerante-r134-13kg": 348,
+    "sensor-de-temperatura-10k-d46-e-df50-compativel-com-70000949": 359,
+    "eletrobomba": 37,
+    "fluido-refrigerante-r134a-tetrafluoretano-750g-hulter": 19,
+    "sensor-10k-symphony": 74,
+    "fluido-refrigerante-r600-420g-hulter": 22,
+    "gas-r600-420g": 22,
+    "fluido-refrigerante-r134a-lata-750g-rlx": 357,
+    "fluido-refrigerante-r32-650g-friven": 21,
+    "resistencia-evoporador-br-cr-kr-225w-127v": 367,
+    "rele-klixon-compressor-geladeira": 66,
+    "manqueira-transparente-r22-1-5m-unidade": 266,
+    "fluido-refrigerante-r290-400g-friven": 24,
+}
+_slug_known: set = set()
+
+
+async def _remember_slugs(rows):
+    """Guarda os slugs atuais. Se o produto for renomeado, a URL antiga continua levando a ele."""
+    novos = {}
+    for r in rows:
+        sl = slugify(r["name"])
+        if sl not in _slug_known:
+            novos[sl] = r["id"]
+    if not novos:
+        return
+    try:
+        async with engine.begin() as conn:
+            await conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS product_slug_history (
+                    slug TEXT PRIMARY KEY, product_id INT NOT NULL, seen_at TIMESTAMPTZ DEFAULT NOW())
+            """))
+            await conn.execute(text("""
+                INSERT INTO product_slug_history (slug, product_id) VALUES (:s, :i)
+                ON CONFLICT (slug) DO UPDATE SET product_id = EXCLUDED.product_id, seen_at = NOW()
+            """), [{"s": k, "i": v} for k, v in novos.items()])
+        _slug_known.update(novos)
+    except Exception:
+        _blog_log.exception("slugs: falha ao salvar histórico")
+
+
+async def _old_slug_target(slug: str, rows) -> str | None:
+    """Slug antigo/variante -> slug atual do mesmo produto (ou None)."""
+    current = {slugify(r["name"]): r for r in rows}
+    s2 = slugify(slug)                       # acento, maiúscula etc.: /product/manifold-simples-de-alta-pressão
+    if s2 != slug and s2 in current:
+        return s2
+    pid = _SLUG_SEED.get(s2)
+    if pid is None:
+        try:
+            async with engine.connect() as conn:
+                pid = (await conn.execute(text("SELECT product_id FROM product_slug_history WHERE slug = :s"),
+                                          {"s": s2})).scalar()
+        except Exception:
+            pid = None
+    if pid is None:
+        return None
+    for sl, r in current.items():
+        if r["id"] == pid:
+            return sl if sl != slug else None
+    return None
 
 
 def _promo_list(rows, limit: int = 12) -> list:
@@ -769,6 +875,9 @@ async def product_page(request: Request, slug: str):
             break
 
     if not product:
+        target = await _old_slug_target(slug, rows)
+        if target:
+            return _Redirect(f"/product/{target}", status_code=301)
         return HTMLResponse("Produto não encontrado", status_code=404)
 
     # Fire-and-forget трекинг просмотра
