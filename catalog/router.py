@@ -1335,6 +1335,42 @@ async def _cep_address(client, cep: str):
     raise RuntimeError(f"nenhuma fonte de CEP respondeu para {cep}")
 
 
+async def _google_cep_lookup(client, cep: str):
+    """Reserva para CEP que ViaCEP/BrasilAPI/AwesomeAPI não conhecem (praças, CEPs novos ou de prédio).
+    Pergunta ao Google pelo próprio CEP. Retorna (rua, bairro, cidade, uf, (lat, lng)) ou None."""
+    key = _google_key()
+    if not key:
+        return None
+    try:
+        r = await client.get("https://maps.googleapis.com/maps/api/geocode/json", params={
+            "components": f"country:BR|postal_code:{cep[:5]}-{cep[5:]}",
+            "language": "pt-BR", "region": "br", "key": key,
+        })
+        j = r.json() if r.status_code == 200 else {}
+    except Exception:
+        _blog_log.exception("geo: google cep falhou (%s)", cep)
+        return None
+    if j.get("status") != "OK" or not j.get("results"):
+        return None
+    res0 = j["results"][0]
+    comps = {}
+    for c in res0.get("address_components") or []:
+        for t in c.get("types") or []:
+            comps.setdefault(t, c)
+    g = lambda t, k="long_name": ((comps.get(t) or {}).get(k) or "").strip()
+    pc = g("postal_code").replace("-", "")
+    if not (pc == cep or (len(pc) == 5 and cep.startswith(pc))):
+        _blog_log.warning("geo: google devolveu CEP %s para %s — ignorado", pc, cep)
+        return None
+    uf = g("administrative_area_level_1", "short_name")
+    cidade = g("administrative_area_level_2") or g("locality")
+    if not uf or not cidade:
+        return None
+    bairro = g("sublocality_level_1") or g("sublocality") or g("neighborhood")
+    loc = res0["geometry"]["location"]
+    return g("route"), bairro, cidade, uf, (float(loc["lat"]), float(loc["lng"]))
+
+
 async def _cep_to_coords(cep: str):
     """CEP -> endereço (ViaCEP) + coordenadas: Google Geocoding; reserva AwesomeAPI/BrasilAPI/Nominatim conferidos pelo bairro."""
     if cep in _geo_cache:
@@ -1351,7 +1387,17 @@ async def _cep_to_coords(cep: str):
         # 1. Endereço: ViaCEP -> BrasilAPI -> AwesomeAPI (qualquer um pode cair; não dependemos de um só)
         addr = await _cep_address(client, cep)
         if addr is None:
-            return None                      # CEP não existe (as fontes responderam "não encontrado")
+            # ViaCEP & cia. não conhecem (ex.: 20021-200, Praça Marechal Âncora). Última tentativa: Google.
+            g = await _google_cep_lookup(client, cep)
+            if not g:
+                return None                  # CEP não existe mesmo
+            street, bairro, cidade, uf, c = g
+            address = ", ".join(x for x in [street, bairro, f"{cidade} - {uf}", f"{cep[:5]}-{cep[5:]}"] if x)
+            _blog_log.info("frete-cep: %s -> %s via google-cep-reserva (%s)", cep, c, address)
+            res = {"lat": c[0], "lng": c[1], "address": address, "rua": street,
+                   "bairro": bairro, "cidade": cidade, "uf": uf}
+            _geo_cache[cep] = res
+            return res
         street, bairro, cidade, uf = addr
         address = ", ".join(x for x in [street, bairro, f"{cidade} - {uf}", f"{cep[:5]}-{cep[5:]}"] if x)
 
