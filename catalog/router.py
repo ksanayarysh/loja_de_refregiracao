@@ -1420,6 +1420,10 @@ async def _cep_to_coords(cep: str):
             cep_fmt = f"{cep[:5]}-{cep[5:]}"
             g_bairro = await _google_geocode(client, f"{bairro}, {cidade} - {uf}") if bairro else None
             ref_g = g_bairro[0] if g_bairro and g_bairro[2] & {"neighborhood", "sublocality", "sublocality_level_1"} else None
+            # cidade do Rio vai no máximo ~55 km do Centro; "bairro" fora disso é homônimo de outra cidade
+            if ref_g and cidade.strip().lower() == "rio de janeiro" and _km(ref_g, (-22.9068, -43.1729)) > 60:
+                _blog_log.info("frete-cep: %s bairro %s do Google fora da cidade %s — ignorado", cep, bairro, ref_g)
+                ref_g = None
             picks = []
             g_cep = await _google_geocode(client, f"{cep_fmt}, {cidade} - {uf}, Brasil", cep)
             if g_cep and g_cep[2] & {"postal_code", "street_address", "premise"}:
@@ -1429,7 +1433,14 @@ async def _cep_to_coords(cep: str):
                 if g_rua:
                     picks.append((g_rua[0], f"google-rua ({g_rua[1]})"))
             chosen = None
-            for c, src in picks:
+            # CEP e rua concordam entre si (duas consultas independentes) -> confiamos neles,
+            # mesmo que o "bairro" do Google esteja longe. Bairro com nome comum ("Centro")
+            # às vezes vira o Centro de OUTRA cidade (ex.: Três Rios, 87 km) e descartava o ponto certo.
+            if len(picks) >= 2 and _km(picks[0][0], picks[1][0]) <= 1.5:
+                chosen = picks[0]
+                if ref_g and _km(picks[0][0], ref_g) > GEO_MAX_KM_FROM_BAIRRO:
+                    _blog_log.info("frete-cep: %s bairro do Google %s ignorado (CEP e rua concordam)", cep, ref_g)
+            for c, src in ([] if chosen else picks):
                 if ref_g and _km(c, ref_g) > GEO_MAX_KM_FROM_BAIRRO:
                     _blog_log.info("frete-cep: %s descartado %s %s (%.1f km do bairro %s)",
                                    cep, src, c, _km(c, ref_g), bairro)
