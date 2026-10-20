@@ -63,6 +63,8 @@
     .prod-price-old{display:block;font-family:'DM Sans',sans-serif;font-size:.74rem;font-weight:400;color:var(--muted);text-decoration:line-through;line-height:1.2;}
     .hero-trust{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:14px;font-size:.86rem;color:var(--text);}
     .hero-trust span{display:inline-flex;align-items:center;gap:4px;}
+    .hero-trust .hero-cutoff{flex-wrap:wrap;background:var(--accent-l);border:1px solid var(--accent-b);color:var(--text);border-radius:999px;padding:4px 12px;}
+    .hero-cutoff small{font-size:.76rem;color:var(--accent);font-weight:700;}
     .hb-buy{display:inline-flex;align-items:center;gap:5px;background:var(--accent);color:#fff;border:none;padding:7px 12px;border-radius:8px;font-weight:700;font-size:.8rem;font-family:inherit;cursor:pointer;white-space:nowrap;flex-shrink:0;}
     .hb-buy:hover{background:var(--accent-d);}
     .hero-banner-price{font-family:'DM Mono',monospace;font-weight:700;font-size:.95rem;color:var(--accent);white-space:nowrap;}
@@ -354,7 +356,7 @@
     </div>
     <div class="hero-trust">
       <span>✅ Pague com <b>Pix</b> no site</span>
-      <span>🛵 Entrega <b>no mesmo dia</b> no RJ</span>
+      <span class="hero-cutoff">🛵 Pedido pago até <b>16h</b> — entrega <b>hoje</b> <small data-cutoff></small></span>
       <span>★ <b>5.0</b> no Google</span>
       <span>🏪 Retire na loja hoje</span>
     </div>
@@ -525,7 +527,7 @@
   <div class="hf">
     <div class="hf-l">
       <h3>🛵 Quanto custa a entrega?</h3>
-      <p>Entregamos no Rio de Janeiro no mesmo dia (seg. a sáb., 8h30–18h). Digite seu CEP e veja na hora.</p>
+      <p>Pedido pago até 16h — entrega hoje no Rio de Janeiro (seg. a sáb.). Digite seu CEP e veja o preço na hora.</p>
       <div class="hf-form">
         <input id="hfCep" inputmode="numeric" maxlength="9" placeholder="00000-000" autocomplete="postal-code">
         <button id="hfBtn" type="button" onclick="hfCalc()">Calcular</button>
@@ -735,7 +737,7 @@
       <div class="pay-icon"><svg viewBox="0 0 60 38" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="38" rx="5" fill="#FFD700"/><text x="50%" y="46%" dominant-baseline="middle" text-anchor="middle" font-family="Arial,sans-serif" font-weight="900" font-size="7" fill="#003087" letter-spacing=".2">BANCO DO</text><text x="50%" y="68%" dominant-baseline="middle" text-anchor="middle" font-family="Arial,sans-serif" font-weight="900" font-size="7" fill="#003087" letter-spacing=".2">BRASIL</text></svg></div>
     </div>
   </div>
-  <div class="footer-bottom">M.T.F Refrigeração · Rio de Janeiro</div>
+  <div class="footer-bottom">M.T.F Refrigeração · CNPJ 43.712.026/0001-75 · Rio de Janeiro</div>
 </footer>
 
 
@@ -1126,6 +1128,24 @@ document.addEventListener('click', function(e) {
     });
   }
 });
+</script>
+<script>
+(function () {
+  // corte do dia: seg–sáb, pedido pago até 16h00 (hora do Rio) sai hoje
+  var els = document.querySelectorAll('[data-cutoff]'); if (!els.length) return;
+  function tick() {
+    var p = {}; new Intl.DateTimeFormat('en-US', { timeZone: 'America/Sao_Paulo', weekday: 'short', hour: 'numeric', minute: 'numeric', hourCycle: 'h23' })
+      .formatToParts(new Date()).forEach(function (x) { p[x.type] = x.value; });
+    var d = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].indexOf(p.weekday), m = (+p.hour) * 60 + (+p.minute), txt;
+    if (d >= 1 && d <= 6 && m < 960) {
+      var r = 960 - m, h = Math.floor(r / 60), mi = r % 60;
+      txt = '⏱ Faltam ' + (h ? h + 'h ' : '') + (h ? String(mi).padStart(2, '0') : mi) + 'min para receber hoje';
+    } else if (d >= 1 && d <= 5) txt = 'Pedidos pagos agora: entrega amanhã';
+    else txt = 'Pedidos pagos agora: entrega na segunda';
+    els.forEach(function (el) { el.textContent = txt; });
+  }
+  tick(); setInterval(tick, 30000);
+})();
 </script>
 </body>
 </html>
