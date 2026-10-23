@@ -152,7 +152,31 @@ function show(st) {
   if (el) el.classList.remove('pd-hidden');
 }
 
+// Avaliações do consumidor do Google: opt-in uma vez por pedido, só depois do pagamento
+const GCR = {% if gcr_merchant_id and order.customer_email %}{
+  merchant_id: {{ gcr_merchant_id | int }},
+  order_id: String(ORDER_ID),
+  email: {{ order.customer_email | tojson }},
+  delivery_country: 'BR',
+  estimated_delivery_date: {{ order.gcr_delivery | tojson }},
+  opt_in_style: 'CENTER_DIALOG'
+}{% else %}null{% endif %};
+
+function gcrOptIn() {
+  if (!GCR) return;
+  const key = 'gcr_' + ORDER_ID;
+  try { if (localStorage.getItem(key)) return; localStorage.setItem(key, '1'); } catch (e) {}
+  window.renderOptIn = function () {
+    window.gapi.load('surveyoptin', function () { window.gapi.surveyoptin.render(GCR); });
+  };
+  const s = document.createElement('script');
+  s.src = 'https://apis.google.com/js/platform.js?onload=renderOptIn';
+  s.async = true; s.defer = true;
+  document.head.appendChild(s);
+}
+
 function onPaid() {
+  gcrOptIn();
   try { localStorage.removeItem('mtf_cart'); } catch (e) {}
   const c = document.getElementById('cartCount'); if (c) c.style.display = 'none';
   if (typeof gtag !== 'undefined') gtag('event', 'purchase', { transaction_id: String(ORDER_ID), value: {{ order.total }}, currency: 'BRL' });

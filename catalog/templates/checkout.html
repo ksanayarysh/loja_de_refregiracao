@@ -278,7 +278,7 @@ async function calcFrete() {
   if (cep.length !== 8) { $('frete-msg').innerHTML = '<div class="co-msg co-err">Digite um CEP válido (8 dígitos).</div>'; return; }
   const btn = $('cep-btn'); btn.disabled = true; btn.textContent = '...'; $('frete-msg').innerHTML = '';
   try {
-    const r = await fetch('/api/frete-cep?cep=' + cep);
+    const r = await fetch('/api/frete-cep?cep=' + cep + '&src=checkout&valor=' + subtotal().toFixed(2));
     const d = await r.json();
     if (!r.ok) throw new Error(d.error || 'Não foi possível calcular o frete.');
     try { localStorage.setItem('mtf_cep', $('f-cep').value); } catch (e) {}

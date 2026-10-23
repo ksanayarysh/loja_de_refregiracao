@@ -1545,8 +1545,7 @@ FRETE_MAX_KM = float(os.environ.get("FRETE_MAX_KM", "50"))
 def _frete_combinar(geo: dict) -> dict:
     return {"combinar": True, "bairro": geo.get("bairro", ""), "cidade": geo.get("cidade", ""), "uf": geo.get("uf", "")}
 
-@router.get("/api/frete-cep")
-async def api_frete_cep(request: Request, cep: str = ""):
+async def _frete_cep_core(request: Request, cep: str = ""):
     import re as _re, time
     cep = _re.sub(r"\D", "", cep)
     if len(cep) != 8:
@@ -1596,6 +1595,119 @@ async def api_frete_cep(request: Request, cep: str = ""):
     }
     _quote_cache[cep] = (time.time(), data)
     return JSONResponse(data, headers={"Cache-Control": "no-store"})
+
+
+# ── LOG DE CÁLCULOS DE FRETE (para entender se o preço da entrega espanta o cliente) ──
+# Cada cálculo vai para a tabela frete_log + aviso no Telegram.
+# Para ver quem calculou e depois comprou: JOIN com site_orders pelo CEP (ver consulta em frete_log_report.sql).
+_frete_log_seen: dict = {}   # (ip, cep) -> ts, evita duplicar o mesmo cálculo em 10 min
+_frete_log_table_ok = False
+
+def _real_ip(request: Request) -> str:
+    fwd = request.headers.get("x-forwarded-for", "")
+    if fwd:
+        return fwd.split(",")[0].strip()
+    return request.client.host if request.client else "?"
+
+async def _frete_log(request: Request, cep: str, status: int, data: dict,
+                     src: str, valor: float | None, pid: int | None, prod: str):
+    global _frete_log_table_ok
+    import time
+    ip = _real_ip(request)
+    if ip in _EXCLUDED_IPS:
+        return
+    now = time.time()
+    if now - _frete_log_seen.get((ip, cep), 0) < 600:
+        return
+    _frete_log_seen[(ip, cep)] = now
+
+    opts = data.get("options") or []
+    prices = {o["service"]: o["price"] for o in opts}
+    menor = min(prices.values()) if prices else None
+    if status != 200:
+        resultado = "erro"
+    elif data.get("combinar"):
+        resultado = "combinar"
+    else:
+        resultado = "ok"
+    try:
+        async with engine.begin() as conn:
+            if not _frete_log_table_ok:
+                await conn.execute(text("""
+                    CREATE TABLE IF NOT EXISTS frete_log (
+                        id          SERIAL PRIMARY KEY,
+                        created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                        cep         VARCHAR(8),
+                        bairro      VARCHAR(120),
+                        cidade      VARCHAR(120),
+                        distance_km NUMERIC(6,1),
+                        menor_frete NUMERIC(10,2),
+                        precos      JSONB,
+                        resultado   VARCHAR(12),
+                        origem      VARCHAR(20),
+                        valor       NUMERIC(10,2),
+                        product_id  INTEGER,
+                        produto     VARCHAR(160),
+                        ip          VARCHAR(64)
+                    )"""))
+                await conn.execute(text("CREATE INDEX IF NOT EXISTS ix_frete_log_cep ON frete_log(cep, created_at)"))
+                _frete_log_table_ok = True
+            await conn.execute(text("""
+                INSERT INTO frete_log (cep, bairro, cidade, distance_km, menor_frete, precos, resultado,
+                                       origem, valor, product_id, produto, ip)
+                VALUES (:cep, :bairro, :cidade, :km, :menor, CAST(:precos AS JSONB), :res,
+                        :src, :valor, :pid, :prod, :ip)"""), {
+                "cep": cep, "bairro": (data.get("bairro") or "")[:120], "cidade": (data.get("cidade") or "")[:120],
+                "km": data.get("distance_km"), "menor": menor, "precos": _json.dumps(prices),
+                "res": resultado, "src": src, "valor": valor, "pid": pid, "prod": prod, "ip": ip,
+            })
+    except Exception:
+        _blog_log.exception("frete_log: falha ao gravar")
+
+    def brl(v):
+        return ("R$ %.2f" % v).replace(".", ",")
+    lugar = ", ".join(x for x in (data.get("bairro"), data.get("cidade")) if x) or "?"
+    cep_fmt = f"{cep[:5]}-{cep[5:]}"
+    if resultado == "ok":
+        linhas = " · ".join(f"{FRETE_OPTIONS[s][0]} {brl(p)}" for s, p in prices.items() if s in FRETE_OPTIONS)
+        corpo = f"{lugar} · {data.get('distance_km')} km\n{linhas}"
+    elif resultado == "combinar":
+        corpo = f"{lugar} · frete a combinar (fora da área)"
+    else:
+        corpo = f"erro: {data.get('error', '')}"
+    origem = {"produto": "página do produto", "checkout": "checkout", "home": "página inicial"}.get(src, src or "?")
+    extra = ""
+    if prod:
+        extra = f"\n📦 {prod}"
+    if valor:
+        extra += f" ({brl(valor)})" if prod else f"\n🛒 carrinho {brl(valor)}"
+        if menor:
+            extra += f" · frete = {round(menor / valor * 100)}% do valor"
+    msg = f"🚚 <b>Frete calculado</b> — {origem}\nCEP {cep_fmt} · {corpo}{extra}"
+    await _send_tg(msg)
+
+
+@router.get("/api/frete-cep")
+async def api_frete_cep(request: Request, cep: str = "", src: str = "", valor: str = "",
+                        pid: str = "", prod: str = ""):
+    import re as _re
+    resp = await _frete_cep_core(request, cep)
+    cep_d = _re.sub(r"\D", "", cep)
+    if len(cep_d) == 8 and resp.status_code != 429:
+        try:
+            data = _json.loads(resp.body)
+        except Exception:
+            data = {}
+        try:
+            v = float(valor.replace(",", ".")) if valor else None
+        except ValueError:
+            v = None
+        p = int(pid) if pid.isdigit() else None
+        asyncio.create_task(_frete_log(request, cep_d, resp.status_code, data,
+                                       src[:20], v, p, prod[:160]))
+    return resp
+
+
 @router.get("/politica-de-devolucao", response_class=HTMLResponse)
 async def politica_page(request: Request):
     return templates.TemplateResponse("/politica-de-devolucao.html", {

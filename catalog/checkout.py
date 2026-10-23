@@ -5,6 +5,8 @@ Variáveis de ambiente:
   MP_ACCESS_TOKEN       TEST-... (teste) / APP_USR-... (produção)
   MP_NOTIFICATION_URL   (opcional, só em produção) https://.../api/checkout/mp-webhook
   PIX_EXPIRA_MIN        minutos de validade do Pix (padrão 30)
+  GCR_MERCHANT_ID       (opcional) Merchant ID do Google Merchant Center -> ativa o opt-in
+                        das "Avaliações do consumidor do Google" na página do pedido pago
 
 Inclua no main.py do catálogo, ao lado do router principal:
   from checkout import router as checkout_router
@@ -32,6 +34,19 @@ from router import (
 import push_utils as push
 
 router = APIRouter()
+
+GCR_MERCHANT_ID = os.environ.get("GCR_MERCHANT_ID", "").strip()
+_BRT = timezone(timedelta(hours=-3))
+
+
+def _gcr_delivery_date(order: dict) -> str:
+    """Data estimada de entrega para as Avaliações do consumidor (YYYY-MM-DD, horário de Brasília).
+    Regra da loja: pago até 16h -> entrega/retirada hoje; depois das 16h -> amanhã."""
+    base = order.get("paid_at") or datetime.now(timezone.utc)
+    local = base.astimezone(_BRT)
+    d = local.date() if local.hour < 16 else local.date() + timedelta(days=1)
+    return d.isoformat()
+
 
 MP_API = "https://api.mercadopago.com"
 
@@ -453,7 +468,9 @@ async def pedido_page(request: Request, order_id: int, t: str = ""):
         order[k] = float(order[k] or 0)
     order["frete_label"] = FRETE_OPTIONS.get(order.get("delivery_service") or "", ("", ""))[0]
     order["pix_expires_iso"] = order["pix_expires_at"].isoformat() if order.get("pix_expires_at") else ""
-    return templates.TemplateResponse("pedido.html", _page_ctx(request, order=order))
+    order["gcr_delivery"] = _gcr_delivery_date(order)
+    return templates.TemplateResponse("pedido.html", _page_ctx(request, order=order,
+                                                              gcr_merchant_id=GCR_MERCHANT_ID))
 
 
 # ── API ────────────────────────────────────────────────────────────────────────

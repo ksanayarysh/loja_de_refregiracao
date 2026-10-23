@@ -1091,7 +1091,7 @@ async function calcFrete() {
   if (cep.length !== 8) { box.innerHTML = '<span class="frete-err">Digite um CEP válido (8 dígitos).</span>'; return; }
   btn.disabled = true; btn.textContent = '...'; box.innerHTML = '';
   try {
-    const r = await fetch('/api/frete-cep?cep=' + cep);
+    const r = await fetch('/api/frete-cep?cep=' + cep + '&src=produto&pid={{ product.id }}&valor={{ product.price|float }}&prod=' + encodeURIComponent({{ product.name|tojson }}));
     const d = await r.json();
     if (!r.ok) { const err = new Error(d.error || 'Não foi possível calcular o frete.'); err.wa = r.status !== 400 || /Rio de Janeiro/.test(d.error || ''); throw err; }
     try { localStorage.setItem('mtf_cep', freteCep.value); } catch (e) {}
