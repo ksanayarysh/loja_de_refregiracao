@@ -523,6 +523,22 @@ async def redirect_category_refrigeracao():
 async def redirect_protetor_termico():
     return _Redirect("/product/protetor-termico-ptc", status_code=301)
 
+# Blog: slugs antigos de artigos -> slug atual (canonical mudou em out/2026)
+_BLOG_OLD_SLUGS = {
+    "sensor-ntc-geladeira":        "sensor-de-temperatura-geladeira",
+    "timer-degelo":                "timer-de-degelo-refrigeracao",
+    "timer-degelo-refrigeracao":   "timer-de-degelo-refrigeracao",
+    "timer-de-degelo-refrigacao":  "timer-de-degelo-refrigeracao",
+    "timer-de-degelo-refrigeração": "timer-de-degelo-refrigeracao",
+}
+
+for _old, _new in _BLOG_OLD_SLUGS.items():
+    def _mk(dest):
+        async def _r():
+            return _Redirect(f"/blog/{dest}", status_code=301)
+        return _r
+    router.add_api_route(f"/blog/{_old}", _mk(_new), methods=["GET"], include_in_schema=False)
+
 # (gas-r32-3kg agora está em _SLUG_SEED — o destino antigo também tinha mudado de nome)
 
 
