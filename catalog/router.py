@@ -2029,6 +2029,45 @@ async def sitemap():
     xml = f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{"".join(items)}\n</urlset>'
     return PlainTextResponse(xml, media_type="application/xml")
 
+# Tipo do produto (Merchant Center pede "Tipo" na descrição). Ordem importa: o mais específico primeiro.
+_TIPOS = [
+    (("controle remoto", "remote"),                              "Controle remoto"),
+    (("hélice", "helice"),                                       "Hélice"),
+    (("turbina",),                                               "Turbina"),
+    (("sensor", "termistor"),                                    "Sensor de temperatura NTC"),
+    (("protetor térmico", "protetor termico"),                   "Protetor térmico"),
+    (("botão", "botao"),                                         "Botão"),
+    (("fluido de limpeza", "air flush", "air repair", "gpclear"), "Fluido de limpeza"),
+    (("espuma de limpeza",),                                     "Espuma de limpeza"),
+    (("higienizador",),                                          "Kit higienizador"),
+    (("bolsa para limpeza", "bolsa de limpeza"),                 "Bolsa coletora para limpeza"),
+    (("limpeza", "air shield"),                                  "Produto de limpeza"),
+    (("placa",),                                                 "Placa eletrônica"),
+    (("capacitor",),                                             "Capacitor"),
+    (("compressor",),                                            "Compressor"),
+    (("termostato",),                                            "Termostato"),
+    (("timer",),                                                 "Timer de degelo"),
+    (("relé", "rele "),                                          "Relé"),
+    (("gás refrigerante", "gas refrigerante"),                   "Gás refrigerante"),
+    (("tubo de cobre",),                                         "Tubo de cobre"),
+    (("esponjoso",),                                             "Tubo isolante esponjoso"),
+    (("suporte",),                                               "Suporte"),
+    (("válvula", "valvula"),                                     "Válvula"),
+    (("resistência", "resistencia"),                             "Resistência"),
+    (("mangueira",),                                             "Mangueira"),
+    (("gaxeta", "borracha"),                                     "Gaxeta"),
+    (("motor",),                                                 "Motor"),
+]
+
+
+def _tipo_produto(name: str, description: str = "") -> str:
+    for texto in (name.lower() + " ", description[:150].lower()):
+        for chaves, tipo in _TIPOS:
+            if any(k in texto for k in chaves):
+                return tipo
+    return ""
+
+
 @router.get("/feed.xml", response_class=PlainTextResponse)
 async def product_feed():
     """
@@ -2064,6 +2103,9 @@ async def product_feed():
         price       = r.get("sale_price")
         category    = r.get("category_name") or "Peças de Refrigeração"
         description = (r.get("description") or name).strip()
+        tipo        = _tipo_produto(name, description)
+        if tipo and "tipo:" not in description.lower():
+            description = f"{description.rstrip()}\nTipo: {tipo}."
         image_url   = r.get("image") or ""
         in_stock    = float(r.get("current_stock") or 0) > 0
         availability = "in stock" if in_stock else "out of stock"
@@ -2116,7 +2158,7 @@ async def product_feed():
     <g:availability>{availability}</g:availability>
     <g:condition>new</g:condition>
     <g:brand>{escape(brand)}</g:brand>{ident_tag}{gcat_tag}
-    <g:product_type>{escape(category)}</g:product_type>
+    <g:product_type>{escape(category + (" > " + tipo if tipo else ""))}</g:product_type>
   </item>"""
         items.append(item)
 

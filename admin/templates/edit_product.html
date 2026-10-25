@@ -259,6 +259,12 @@ function removeImage() {
   if (ph) ph.style.display = 'flex';
 }
 
+// dados extras para a IA: marca, código e o que já está escrito na descrição (notas / lista de modelos)
+function aiExtras() {
+  const v = id => (document.getElementById(id)?.value || '').trim();
+  return { brand: v('brand'), sku: v('sku'), unit: v('unit'), notes: v('description') };
+}
+
 async function gerarDescricao() {
   const name = document.getElementById('name').value.trim();
   const catSel = document.getElementById('category_id');
@@ -274,7 +280,7 @@ async function gerarDescricao() {
     const resp = await fetch('/api/generate-description', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, category: cat })
+      body: JSON.stringify({ name, category: cat, ...aiExtras() })
     });
     const data = await resp.json();
     const text = data.description || '';

@@ -469,12 +469,48 @@ async def products_list(
     })
 
 
+_DESC_SYSTEM = """Você escreve descrições de produto para a M.T.F Refrigeração, loja de peças de refrigeração,
+ar-condicionado, geladeira e máquina de lavar. Quem lê: técnico de refrigeração ou cliente final que precisa trocar uma peça.
+
+REGRA PRINCIPAL: use SOMENTE fatos que estão no nome, na marca, no código ou nas notas do vendedor.
+Não invente compatibilidade, medidas, potência, voltagem, material, garantia, marca ou modelos.
+Se a compatibilidade não foi informada, NÃO escreva "compatível com diversos modelos";
+escreva que é preciso conferir o código/modelo da peça antiga antes de comprar.
+
+Conhecimento técnico (use só para não errar, não para inventar dados):
+- Sensor NTC "5K", "10K", "15K", "20K" = resistência em quilo-ohms (5 kΩ a 25 °C). NÃO tem relação com BTU nem com potência do aparelho.
+- "BTU"/"BTUs" (7000, 9000, 12000...) = capacidade do ar-condicionado.
+- Protetor térmico (klixon) protege o compressor contra superaquecimento e sobrecorrente. NÃO é protetor de surto/variação de tensão.
+- Relé PTC/relé de partida ajuda o compressor a partir. Capacitor: capacitância em µF e tensão em VAC.
+- Gases: R134a, R600a, R410A, R32, R22 não são intercambiáveis entre si.
+- Fluido de limpeza (Air Flush, Air Repair, 141b e substitutos) serve para limpar/desobstruir a tubulação e a serpentina do circuito frigorífico.
+- Placa de potência ≠ placa interface (display/botões).
+- Hélice = ventilador da condensadora (unidade externa / ar de janela); turbina = ventilador da evaporadora.
+
+Formato (texto puro, sem markdown, sem emojis, sem asteriscos):
+1) 1–2 frases: o que é e para que serve.
+2) Se fizer sentido, 1 frase com sinais típicos de defeito, de forma geral (ex.: "quando falha, o aparelho...").
+3) Linha "Especificações:" e depois itens começando com "• ", SOMENTE com dados conhecidos (tipo, código, marca, medida, tensão...).
+4) Se houver modelos compatíveis nas notas: linha "Compatibilidade:" e a lista, exatamente como informada.
+   Se não houver: "Confira o código ou o modelo da peça antiga antes de comprar."
+5) Última linha: "Tipo: <tipo do produto>".
+
+Não fale de Rio de Janeiro, entrega, WhatsApp, preço, promoção ou da loja: isso a página do produto já mostra.
+Português do Brasil, frases curtas e diretas, sem exageros ("solução perfeita", "qualidade garantida", "o melhor").
+No máximo ~900 caracteres."""
+
+
 @router.post("/api/generate-description")
 async def generate_description(request: Request, _=Depends(basic_auth)):
+    """Gera descrição a partir do nome + marca/código + notas do vendedor (o que já está no campo descrição)."""
     try:
         body = await request.json()
-        name = (body.get("name") or "").strip()
-        cat  = (body.get("category") or "").strip()
+        name  = (body.get("name") or "").strip()
+        cat   = (body.get("category") or "").strip()
+        brand = (body.get("brand") or "").strip()
+        sku   = (body.get("sku") or "").strip()
+        unit  = (body.get("unit") or "").strip()
+        notes = (body.get("notes") or "").strip()[:3000]
         if not name:
             return {"error": "Nome obrigatório"}
 
@@ -483,7 +519,15 @@ async def generate_description(request: Request, _=Depends(basic_auth)):
         if not anthropic_key:
             return {"error": "ANTHROPIC_API_KEY não configurada"}
 
-        async with httpx.AsyncClient(timeout=30) as client:
+        dados = [f"Nome: {name}"]
+        if cat:   dados.append(f"Categoria: {cat}")
+        if brand: dados.append(f"Marca: {brand}")
+        if sku:   dados.append(f"Código do fabricante: {sku}")
+        if unit:  dados.append(f"Unidade de venda: {unit}")
+        dados.append("Notas do vendedor (fonte de fatos; podem estar bagunçadas ou ser uma descrição antiga com erros —"
+                     " aproveite só os fatos técnicos):\n" + (notes or "(nenhuma)"))
+
+        async with httpx.AsyncClient(timeout=40) as client:
             resp = await client.post(
                 "https://api.anthropic.com/v1/messages",
                 headers={
@@ -492,29 +536,21 @@ async def generate_description(request: Request, _=Depends(basic_auth)):
                     "content-type": "application/json",
                 },
                 json={
-                    "model": "claude-haiku-4-5-20251001",
-                    "max_tokens": 400,
-                    "messages": [{
-                        "role": "user",
-                        "content": f"""Escreva uma descrição de produto para loja de peças de refrigeração no Rio de Janeiro.
-Produto: {name}
-Categoria: {cat}
-
-Regras:
-- 3 a 5 frases em português
-- Mencione compatibilidade, uso e benefício
-- Mencione "Rio de Janeiro" ou "RJ" e "WhatsApp"
-- Tom profissional mas acessível
-- SÓ texto puro, sem markdown
-- NÃO invente especificações técnicas"""
-                    }]
-                }
+                    "model": os.environ.get("AI_DESC_MODEL", "claude-haiku-4-5-20251001"),
+                    "max_tokens": 700,
+                    "temperature": 0.3,
+                    "system": _DESC_SYSTEM,
+                    "messages": [{"role": "user", "content": "\n".join(dados)}],
+                },
             )
         data = resp.json()
-        text_out = data.get("content", [{}])[0].get("text", "")
+        if resp.status_code != 200:
+            return {"error": (data.get("error") or {}).get("message", f"HTTP {resp.status_code}")}
+        text_out = "".join(c.get("text", "") for c in data.get("content", []) if c.get("type") == "text")
+        text_out = text_out.replace("**", "").strip()
         if not text_out:
             return {"error": "Resposta vazia da IA"}
-        return {"description": text_out.strip()}
+        return {"description": text_out}
     except Exception as e:
         return {"error": str(e)}
 
