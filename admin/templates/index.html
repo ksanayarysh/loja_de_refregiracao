@@ -201,8 +201,8 @@ function roundQty(qty) {
 
 function addToCart(id, name, price, unit, qty = 1) {
   qty = roundQty(qty);
-  // junta só com a mesma peça AVULSA (linha de kit tem outro preço)
-  const existing = cart.find(i => i.id === id && !i.kit);
+  // junta só com a mesma peça pelo MESMO preço (peça vinda de kit tem preço com desconto)
+  const existing = cart.find(i => i.id === id && !i.kit && Math.abs(i.price - price) < 0.0001);
   if (existing) {
     existing.qty = roundQty(existing.qty + qty);
   } else {

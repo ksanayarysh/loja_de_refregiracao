@@ -22,6 +22,8 @@
     .kit-warn{color:#b45309;font-weight:800;font-size:.82rem;}
     .kit-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
     .kit-actions form{margin:0;}
+    .kit-sell{display:inline-flex;align-items:center;gap:6px;}
+    .kit-sell-qty{width:64px;padding:10px 8px;border-radius:10px;border:1px solid #d6d9e0;font:inherit;text-align:center;}
     .ed-row{display:grid;grid-template-columns:1fr 100px auto 36px;gap:8px;align-items:center;margin-bottom:8px;}
     .ed-gift{display:flex;align-items:center;gap:4px;margin:0;font-weight:700;font-size:.85rem;white-space:nowrap;cursor:pointer;border:1px solid #e5e7eb;border-radius:8px;padding:0 8px;height:38px;background:#fff;}
     .ed-gift input{width:auto;margin:0;}
@@ -154,7 +156,11 @@
     </div>
     <div class="kit-actions">
       <a class="btn-secondary" href="/kits?edit={{ k.id }}">✏️ Editar</a>
-      <a class="btn-secondary" href="/sales/new?kit={{ k.id }}#kit-box">🛒 Vender</a>
+      <span class="kit-sell">
+        <input class="kit-sell-qty" type="number" min="1" step="1" value="1" aria-label="Quantidade de kits">
+        <button class="btn-secondary" type="button" data-items='{{ k["items"] | tojson }}'
+                onclick="kitToCart(this)">🛒 Vender</button>
+      </span>
       <form method="post" action="/kits/{{ k.id }}/delete"
             onsubmit="return confirm('Excluir o kit “{{ k.name }}”? Vendas já feitas não mudam.');">
         <button class="btn-danger" type="submit">🗑 Excluir</button>
@@ -171,6 +177,27 @@
 {{ super() }}
 {% if editing or new %}
 <script>
+  // Vender kit: os produtos entram no carrinho como itens AVULSOS, já com o preço do kit.
+  // O kit é só a forma de mostrar; na venda cada produto é uma linha normal.
+  function kitToCart(btn) {
+    const n = parseInt(btn.parentElement.querySelector('.kit-sell-qty').value, 10);
+    if (!(n > 0)) { alert('Informe a quantidade de kits.'); return; }
+    const items = JSON.parse(btn.dataset.items);
+    if (items.some(it => it.stock < it.qty * n) &&
+        !confirm('Algum produto do kit não tem estoque suficiente. Colocar no carrinho mesmo assim?')) return;
+    let cart = [];
+    try { cart = JSON.parse(localStorage.getItem('mtf_cart') || '[]'); } catch (e) {}
+    for (const it of items) {
+      const qty = Math.round(it.qty * n * 1000) / 1000;
+      const price = it.qty ? it.line_total / it.qty : 0;            // preço unitário com o desconto do kit (brinde = 0)
+      const same = cart.find(c => c.id === it.product_id && Math.abs(c.price - price) < 0.0001);
+      if (same) same.qty = Math.round((same.qty + qty) * 1000) / 1000;
+      else cart.push({ id: it.product_id, name: it.name, price: price, unit: it.unit, qty: qty });
+    }
+    localStorage.setItem('mtf_cart', JSON.stringify(cart));
+    location.href = '/checkout';
+  }
+
   const PRODUCTS = {{ products | tojson }};
   const START = {{ (editing['items'] if editing else []) | tojson }};
   const rowsEl = document.getElementById('ed-rows');
