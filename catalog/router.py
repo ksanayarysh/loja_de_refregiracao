@@ -15,6 +15,18 @@ from blog_schema import build_article_context
 import logging
 _blog_log = logging.getLogger("uvicorn.error")
 
+
+def _client_ip(request) -> str:
+    """IP real do visitante. No Railway request.client.host é o proxy interno (100.64.x.x):
+    o IP verdadeiro vem no cabeçalho X-Forwarded-For (o primeiro da lista)."""
+    fwd = request.headers.get("x-forwarded-for", "")
+    if fwd:
+        return fwd.split(",")[0].strip()
+    real = request.headers.get("x-real-ip", "")
+    if real:
+        return real.strip()
+    return request.client.host if request.client else "?"
+
 router = APIRouter()
 
 BRT = ZoneInfo("America/Sao_Paulo")
@@ -239,7 +251,7 @@ async def track_visit(request: Request):
         body = await request.json()
         page = body.get("page", "/")
         referrer = body.get("referrer", "")[:500]
-        ip = request.client.host
+        ip = _client_ip(request)
         ua = request.headers.get("user-agent", "")[:200]
         now = datetime.now(BRT)
         now_str = now.strftime("%d/%m %H:%M")
@@ -897,7 +909,7 @@ async def product_page(request: Request, slug: str):
         return HTMLResponse("Produto não encontrado", status_code=404)
 
     # Fire-and-forget трекинг просмотра
-    ip = request.client.host if request.client else "unknown"
+    ip = _client_ip(request)
     ua = request.headers.get("user-agent", "")
     asyncio.ensure_future(_track_product_view(product["id"], slug, ip, ua))
 
@@ -1082,16 +1094,10 @@ async def servicos_page(request: Request):
     })
 
 
-@router.get("/parceiros/douglas", response_class=HTMLResponse)
-async def parceiro_douglas(request: Request):
-    return templates.TemplateResponse("parceiro-douglas.html", {
-        "request":       request,
-        "ga_id":         GA_ID,
-        "site_url":      SITE_URL,
-        "store_address": STORE_ADDRESS,
-        "store_phone":   STORE_PHONE,
-        "wa_number":     WA_OWNER_NUMBER,
-    })
+@router.get("/parceiros/douglas")
+async def parceiro_douglas():
+    # Douglas não faz mais parte da loja: página antiga vai para "Sobre"
+    return _Redirect("/sobre", status_code=301)
 
 @router.get("/parceiros/ksenia", response_class=HTMLResponse)
 async def parceiro_ksenia(request: Request):
@@ -1196,7 +1202,7 @@ _frete_hits: dict = {}  # ip -> [timestamps], anti-abuso
 @router.post("/api/frete")
 async def api_frete(request: Request):
     import time
-    ip = request.client.host if request.client else "?"
+    ip = _client_ip(request)
     now = time.time()
     hits = [t for t in _frete_hits.get(ip, []) if now - t < 600]
     if len(hits) >= 10:
@@ -1555,7 +1561,7 @@ async def _frete_cep_core(request: Request, cep: str = ""):
     if cached and time.time() - cached[0] < 600:
         return JSONResponse(cached[1], headers={"Cache-Control": "no-store"})
 
-    ip = request.client.host if request.client else "?"
+    ip = _client_ip(request)
     if not _frete_rate_ok(ip):
         return JSONResponse({"error": "Muitas consultas. Tente novamente em alguns minutos."}, status_code=429)
 
@@ -1597,6 +1603,59 @@ async def _frete_cep_core(request: Request, cep: str = ""):
     return JSONResponse(data, headers={"Cache-Control": "no-store"})
 
 
+# ── FRETE MAIS BARATO PARA PEDIDOS MAIORES ───────────────────────────────────
+# Regra da loja: pedido (produtos) acima de FRETE_SUBSIDIO_MIN -> a loja paga parte do frete:
+#   desconto = min(metade do frete, metade da margem do pedido).
+# Margem = (preço pago - custo) dos itens; item sem custo cadastrado (NULL ou 0) conta margem 0.
+# O cliente vê só o preço final do frete (sem aviso de desconto). Mesma conta no /api/frete-cep e no checkout.
+FRETE_SUBSIDIO_MIN = float(os.environ.get("FRETE_SUBSIDIO_MIN", "50"))
+
+
+async def margem_detalhe(linhas: list) -> tuple[float, list]:
+    """linhas: [(product_id, qty, preço_unitário_pago)] -> (margem, nomes dos itens sem custo cadastrado)."""
+    ids = list({int(p) for p, _, _ in linhas if p and int(p) > 0})
+    if not ids:
+        return 0.0, []
+    async with engine.connect() as conn:
+        rows = {x["id"]: x for x in (await conn.execute(text(
+            "SELECT id, name, cost_price FROM products WHERE id = ANY(:ids)"), {"ids": ids})).mappings()}
+    m, sem_custo = 0.0, []
+    for pid, qty, preco in linhas:
+        x = rows.get(int(pid))
+        custo = float(x["cost_price"] or 0) if x else 0.0
+        if custo <= 0:                     # sem custo cadastrado: não arrisca, margem 0
+            if x and float(preco) > 0:
+                sem_custo.append(x["name"])
+            continue
+        m += (float(preco) - custo) * float(qty)   # brinde (preço 0) entra negativo: só o custo
+    return round(m, 2), sem_custo
+
+
+async def margem_pedido(linhas: list) -> float:
+    return (await margem_detalhe(linhas))[0]
+
+
+def frete_final(preco_lalamove: float, subtotal: float, margem: float) -> float:
+    if subtotal <= FRETE_SUBSIDIO_MIN or margem <= 0:
+        return round(preco_lalamove, 2)
+    desconto = min(preco_lalamove / 2, margem / 2)
+    return round(preco_lalamove - desconto, 2)
+
+
+def linhas_dos_itens(items: list) -> list:
+    """Itens do checkout (_load_items) -> linhas (id, qty, preço pago). Kit da admin abre nos componentes."""
+    out = []
+    for it in items:
+        if it.get("components"):
+            n = float(it.get("qty") or 1)
+            for c in it["components"]:
+                q = float(c["qty"]) * n
+                out.append((c["id"], q, (float(c["line_total"]) * n / q) if q else 0.0))
+        else:
+            out.append((it["id"], it["qty"], it["price"]))
+    return out
+
+
 # ── LOG DE CÁLCULOS DE FRETE (para entender se o preço da entrega espanta o cliente) ──
 # Cada cálculo vai para a tabela frete_log + aviso no Telegram.
 # Para ver quem calculou e depois comprou: JOIN com site_orders pelo CEP (ver consulta em frete_log_report.sql).
@@ -1604,10 +1663,7 @@ _frete_log_seen: dict = {}   # (ip, cep) -> ts, evita duplicar o mesmo cálculo 
 _frete_log_table_ok = False
 
 def _real_ip(request: Request) -> str:
-    fwd = request.headers.get("x-forwarded-for", "")
-    if fwd:
-        return fwd.split(",")[0].strip()
-    return request.client.host if request.client else "?"
+    return _client_ip(request)
 
 async def _frete_log(request: Request, cep: str, status: int, data: dict,
                      src: str, valor: float | None, pid: int | None, prod: str):
@@ -1669,8 +1725,11 @@ async def _frete_log(request: Request, cep: str, status: int, data: dict,
     lugar = ", ".join(x for x in (data.get("bairro"), data.get("cidade")) if x) or "?"
     cep_fmt = f"{cep[:5]}-{cep[5:]}"
     if resultado == "ok":
-        linhas = " · ".join(f"{FRETE_OPTIONS[s][0]} {brl(p)}" for s, p in prices.items() if s in FRETE_OPTIONS)
-        corpo = f"{lugar} · {data.get('distance_km')} km\n{linhas}"
+        base = {o["service"]: o.get("_lalamove") for o in opts}
+        linhas = " · ".join(f"{FRETE_OPTIONS[s][0]} {brl(p)}" + (f" (Lalamove {brl(base[s])})" if base.get(s) else "")
+                            for s, p in prices.items() if s in FRETE_OPTIONS)
+        km = str(data.get('distance_km', '')).replace('.', ',')
+        corpo = f"{lugar} · {km} km\n{linhas}"
     elif resultado == "combinar":
         corpo = f"{lugar} · frete a combinar (fora da área)"
     else:
@@ -1683,21 +1742,75 @@ async def _frete_log(request: Request, cep: str, status: int, data: dict,
         extra += f" ({brl(valor)})" if prod else f"\n🛒 carrinho {brl(valor)}"
         if menor:
             extra += f" · frete = {round(menor / valor * 100)}% do valor"
+    calc = data.get("_calc")
+    if calc and resultado == "ok":
+        if calc["subtotal"] <= FRETE_SUBSIDIO_MIN:
+            extra += f"\nℹ️ Pedido {brl(calc['subtotal'])} (até {brl(FRETE_SUBSIDIO_MIN)}): frete cheio"
+        else:
+            mg = calc.get("margem", 0)
+            extra += f"\n💰 Pedido {brl(calc['subtotal'])} · margem {brl(mg)}"
+            if mg > 0:
+                extra += f" · loja paga até {brl(mg / 2)} (½ margem) ou ½ do frete"
+            else:
+                extra += " · sem margem conhecida: frete cheio"
+            if calc.get("sem_custo"):
+                extra += "\n⚠️ Sem custo cadastrado (margem 0): " + ", ".join(calc["sem_custo"][:5])
     msg = f"🚚 <b>Frete calculado</b> — {origem}\nCEP {cep_fmt} · {corpo}{extra}"
     await _send_tg(msg)
 
 
 @router.get("/api/frete-cep")
 async def api_frete_cep(request: Request, cep: str = "", src: str = "", valor: str = "",
-                        pid: str = "", prod: str = ""):
+                        pid: str = "", prod: str = "", itens: str = ""):
     import re as _re
     resp = await _frete_cep_core(request, cep)
     cep_d = _re.sub(r"\D", "", cep)
-    if len(cep_d) == 8 and resp.status_code != 429:
+    data = {}
+    if resp.status_code == 200:
         try:
             data = _json.loads(resp.body)
         except Exception:
             data = {}
+    # frete mais barato (pedido > R$ 50): itens do carrinho (checkout) ou o produto da página (1 un)
+    if data.get("options"):
+        try:
+            linhas, subtotal = [], 0.0
+            if itens:
+                from checkout import _load_items          # import tardio: checkout importa este módulo
+                items, subtotal = await _load_items(_json.loads(itens)[:50])
+                linhas = linhas_dos_itens(items)
+            elif pid.isdigit():
+                async with engine.connect() as conn:
+                    x = (await conn.execute(text(
+                        "SELECT id, name, sale_price, promo_price, promo_until FROM products "
+                        "WHERE id = :id AND active = TRUE"), {"id": int(pid)})).mappings().first()
+                if x and x["sale_price"]:
+                    x = _apply_promo(dict(x, sale_price=float(x["sale_price"])))
+                    subtotal = float(x["price"] or 0)
+                    linhas = [(x["id"], 1, subtotal)]
+            calc = {"subtotal": subtotal} if linhas else None
+            if subtotal > FRETE_SUBSIDIO_MIN and linhas:
+                margem, sem_custo = await margem_detalhe(linhas)
+                calc.update(margem=margem, sem_custo=sem_custo)
+                novas = []
+                for o in data["options"]:
+                    p = frete_final(o["price"], subtotal, margem)
+                    novas.append(dict(o, price=p))
+                if any(n["price"] != o["price"] for n, o in zip(novas, data["options"])):
+                    log_opts = [dict(n, _lalamove=o["price"]) for n, o in zip(novas, data["options"])]
+                    data = dict(data, options=novas)
+                    resp = JSONResponse(data, headers={"Cache-Control": "no-store"})
+                    data = dict(data, options=log_opts)
+            if calc:
+                data = dict(data, _calc=calc)
+        except Exception:
+            _blog_log.exception("frete: falha ao aplicar desconto do frete (segue preço cheio)")
+    if len(cep_d) == 8 and resp.status_code != 429:
+        if not data:
+            try:
+                data = _json.loads(resp.body)
+            except Exception:
+                data = {}
         try:
             v = float(valor.replace(",", ".")) if valor else None
         except ValueError:
@@ -1882,7 +1995,7 @@ async def track_whatsapp_click(request: Request):
         body       = await request.json()
         product    = body.get("product", "Geral")
         user_agent = request.headers.get("user-agent", "")[:80]
-        ip         = request.client.host
+        ip         = _client_ip(request)
         async with engine.begin() as conn:
             await conn.execute(text("""
                 INSERT INTO catalog_clicks (product_name, ip, user_agent, clicked_at)

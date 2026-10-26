@@ -40,6 +40,7 @@
     .co-opt-main{flex:1;}
     .co-opt-name{font-weight:700;font-size:.95rem;}
     .co-opt-hint{font-size:.78rem;color:var(--muted);margin-top:2px;}
+    .mais-barato{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;background:var(--green-l,#e8f7ee);color:var(--green,#15803d);font-size:.68rem;font-weight:800;letter-spacing:.02em;vertical-align:middle;white-space:nowrap;}
     .co-opt-price{font-family:"DM Mono",monospace;font-weight:700;white-space:nowrap;}
     .co-free{color:var(--green);}
     .co-kit{display:inline-block;margin-left:4px;padding:0 7px;border-radius:999px;background:#fff0f4;color:var(--accent);border:1px solid #ffd0dc;font-size:.7rem;font-weight:800;}
@@ -160,7 +161,7 @@
               <input class="co-input" id="f-comp" placeholder="Apto, bloco, loja…" maxlength="120">
             </div>
           </div>
-          <div class="co-note">Entregas de seg. a sáb., 8h30–18h. Pedidos pagos após 18h saem no próximo dia útil.</div>
+          <div class="co-note">Pedido pago até 16h: entrega hoje (seg. a sáb.). Depois disso, no próximo dia útil.</div>
         </div>
       </div>
     </div>
@@ -215,7 +216,8 @@ function cartQty(idx, d) {
   updateCount();
   renderSummary();
   // kit entrou/saiu: as opções de frete mudam (kit só de carro)
-  if (cart.length && dtype() === 'lalamove' && hadKit !== cart.some(i => i.kit || i.car_only) && $('f-cep').value) calcFrete();
+  // o frete depende do carrinho (kit vai de carro; pedido maior paga frete menor): recalcula
+  if (cart.length && dtype() === 'lalamove' && $('f-cep').value.replace(/\D/g, '').length === 8) calcFrete();
   if (d > 0) { clearTimeout(cartQty._t); cartQty._t = setTimeout(syncStock, 400); }
 }
 function cartRemove(idx) { const it = cart[idx]; if (it) cartQty(idx, -it.qty); }
@@ -278,7 +280,7 @@ async function calcFrete() {
   if (cep.length !== 8) { $('frete-msg').innerHTML = '<div class="co-msg co-err">Digite um CEP válido (8 dígitos).</div>'; return; }
   const btn = $('cep-btn'); btn.disabled = true; btn.textContent = '...'; $('frete-msg').innerHTML = '';
   try {
-    const r = await fetch('/api/frete-cep?cep=' + cep + '&src=checkout&valor=' + subtotal().toFixed(2));
+    const r = await fetch('/api/frete-cep?cep=' + cep + '&src=checkout&valor=' + subtotal().toFixed(2) + '&itens=' + encodeURIComponent(JSON.stringify(cartPayload())));
     const d = await r.json();
     if (!r.ok) throw new Error(d.error || 'Não foi possível calcular o frete.');
     try { localStorage.setItem('mtf_cep', $('f-cep').value); } catch (e) {}
@@ -301,17 +303,20 @@ async function calcFrete() {
       return;
     }
     if (hasKit) $('frete-msg').innerHTML += '<div class="co-note" style="margin-bottom:8px;">O kit vai de carro (as peças não cabem na moto).</div>';
+    // a opção mais barata vem marcada e já selecionada
+    const minP = Math.min(...opts.map(o => o.price));
+    const pick = opts.findIndex(o => o.price === minP);
     $('frete-opts').innerHTML = opts.map((o, idx) => `
       <label class="co-opt">
-        <input type="radio" name="service" value="${esc(o.service)}" data-price="${o.price}" ${idx === 0 ? 'checked' : ''}>
-        <div class="co-opt-main"><div class="co-opt-name">${esc(o.label)}</div><div class="co-opt-hint">${esc(o.hint)}</div></div>
+        <input type="radio" name="service" value="${esc(o.service)}" data-price="${o.price}" ${idx === pick ? 'checked' : ''}>
+        <div class="co-opt-main"><div class="co-opt-name">${esc(o.label)}${opts.length > 1 && idx === pick ? ' <span class="mais-barato">mais barato</span>' : ''}</div><div class="co-opt-hint">${esc(o.hint)}</div></div>
         <div class="co-opt-price">${brl(o.price)}</div>
       </label>`).join('');
     document.querySelectorAll('input[name="service"]').forEach(r => r.addEventListener('change', pickService));
     pickService();
     if (d.rua && !$('f-rua').value) $('f-rua').value = d.rua;
     $('addr-box').classList.remove('co-hidden');
-    ($('f-rua').value ? $('f-num') : $('f-rua')).focus();
+    if (!$('f-num').value) ($('f-rua').value ? $('f-num') : $('f-rua')).focus();
   } catch (e) {
     $('frete-msg').innerHTML = `<div class="co-msg co-err">${esc(e.message)}</div>`;
   } finally {

@@ -28,6 +28,7 @@ from dependencies import engine, templates
 from lalamove import get_quote, LalamoveError
 from router import (
     _apply_promo, _cep_to_coords, geocode_endereco, _km, _quote_cache, _send_tg, _blog_log, _ensure_kit_settings, slugify,
+    margem_detalhe, frete_final, linhas_dos_itens, FRETE_SUBSIDIO_MIN, _client_ip,
     FRETE_MAX_KM, FRETE_OPTIONS, LALA_SERVICES, LALA_DEBUG_TOKEN,
     GA_ID, SITE_URL, STORE_ADDRESS, STORE_PHONE, WA_OWNER_NUMBER, ADMIN_URL,
 )
@@ -41,10 +42,12 @@ _BRT = timezone(timedelta(hours=-3))
 
 def _gcr_delivery_date(order: dict) -> str:
     """Data estimada de entrega para as Avaliações do consumidor (YYYY-MM-DD, horário de Brasília).
-    Regra da loja: pago até 16h -> entrega/retirada hoje; depois das 16h -> amanhã."""
+    Regra da loja: pago até 16h -> entrega/retirada hoje; depois das 16h -> amanhã (domingo -> segunda)."""
     base = order.get("paid_at") or datetime.now(timezone.utc)
     local = base.astimezone(_BRT)
     d = local.date() if local.hour < 16 else local.date() + timedelta(days=1)
+    if d.weekday() == 6:          # domingo a loja fecha -> segunda
+        d += timedelta(days=1)
     return d.isoformat()
 
 
@@ -95,6 +98,10 @@ async def _ensure_orders_table():
             )
         """))
         await conn.execute(text("CREATE INDEX IF NOT EXISTS ix_site_orders_status ON site_orders(status)"))
+        # quanto a Lalamove cobra de verdade (frete = o que o cliente pagou)
+        await conn.execute(text("ALTER TABLE site_orders ADD COLUMN IF NOT EXISTS frete_lalamove NUMERIC(10,2)"))
+        await conn.execute(text("ALTER TABLE site_orders ADD COLUMN IF NOT EXISTS margem NUMERIC(10,2)"))
+        await conn.execute(text("ALTER TABLE site_orders ADD COLUMN IF NOT EXISTS margem_obs TEXT"))
     _orders_ready = True
 
 
@@ -358,7 +365,7 @@ async def _mark_paid(order_id: int):
             UPDATE site_orders SET status = 'paid', paid_at = NOW()
             WHERE id = :id AND status = 'pending'
             RETURNING id, customer_name, customer_phone, delivery_type, delivery_service,
-                      address, numero, complemento, items, frete, total
+                      address, numero, complemento, items, frete, total, frete_lalamove, margem, margem_obs
         """), {"id": order_id})).mappings().first()
     if not row:
         return
@@ -366,7 +373,10 @@ async def _mark_paid(order_id: int):
     lines = "\n".join(f"  • {i['name']} × {i['qty']}" + (" (kit)" if i.get("kit") else "") for i in items)
     if row["delivery_type"] == "lalamove":
         label = FRETE_OPTIONS.get(row["delivery_service"], (row["delivery_service"], ""))[0]
-        entrega = (f"🛵 {label} ({_brl(float(row['frete']))})\n"
+        pago_loja = (float(row["frete_lalamove"]) - float(row["frete"])) if row.get("frete_lalamove") is not None else 0.0
+        entrega = (f"🛵 {label} ({_brl(float(row['frete']))}"
+                   + (f" · Lalamove {_brl(float(row['frete_lalamove']))}, loja paga {_brl(pago_loja)}" if pago_loja > 0.004 else "")
+                   + ")\n"
                    f"{row['address']}, nº {row['numero']}"
                    + (f" — {row['complemento']}" if row["complemento"] else ""))
     else:
@@ -383,8 +393,24 @@ async def _mark_paid(order_id: int):
         f"💰 <b>Pedido #{row['id']} PAGO (Pix)</b>\n"
         f"Total: <b>{_brl(float(row['total']))}</b>\n"
         f"Cliente: {row['customer_name']} · {row['customer_phone']}\n\n"
-        f"{lines}\n\n{entrega}"
+        f"{lines}\n\n{entrega}" + _margem_txt(row)
     )
+
+
+def _margem_txt(row) -> str:
+    """Linha de margem do aviso de pedido pago (só para a loja)."""
+    if row.get("margem") is None:
+        return ""
+    m = float(row["margem"])
+    pago_loja = 0.0
+    if row.get("frete_lalamove") is not None:
+        pago_loja = max(0.0, float(row["frete_lalamove"]) - float(row["frete"] or 0))
+    txt = f"\n\n💰 Margem dos produtos: {_brl(m)}"
+    if pago_loja > 0.004:
+        txt += f" · menos frete pago pela loja {_brl(pago_loja)} = <b>{_brl(m - pago_loja)}</b>"
+    if row.get("margem_obs"):
+        txt += f"\n⚠️ {row['margem_obs']} (margem 0 nesses itens)"
+    return txt
 
 
 async def _refresh_status(order: dict) -> str:
@@ -499,7 +525,7 @@ def _norm_cel(raw) -> str:
 
 @router.post("/api/checkout/pix")
 async def checkout_pix(request: Request):
-    ip = request.client.host if request.client else "?"
+    ip = _client_ip(request)
     now = time.time()
     hits = [t for t in _pix_hits.get(ip, []) if now - t < 3600]
     if len(hits) >= 8:
@@ -543,6 +569,13 @@ async def checkout_pix(request: Request):
     if kg or short:
         return JSONResponse({"error": _stock_msg(kg, short), "stock_issue": True}, status_code=409)
 
+    # margem dos produtos (custo da admin; item sem custo conta 0) — para o frete e para o aviso no Telegram
+    try:
+        margem, sem_custo = await margem_detalhe(linhas_dos_itens(items))
+    except Exception:
+        _blog_log.exception("checkout: falha ao calcular margem")
+        margem, sem_custo = 0.0, []
+
     delivery = body.get("delivery") or {}
     dtype = "lalamove" if delivery.get("type") == "lalamove" else "retirada"
     frete, geo = 0.0, None
@@ -567,6 +600,13 @@ async def checkout_pix(request: Request):
             frete, geo = None, "Não foi possível calcular o frete agora. Tente novamente."
         if frete is None:
             return JSONResponse({"error": geo, "combinar": "combinado" in str(geo)}, status_code=400)
+        # mesma regra do /api/frete-cep: pedido > R$ 50 -> loja paga parte do frete (até metade da margem)
+        frete_lalamove = frete
+        if subtotal > FRETE_SUBSIDIO_MIN:
+            try:
+                frete = frete_final(frete, subtotal, margem)
+            except Exception:
+                _blog_log.exception("checkout: falha no desconto do frete (segue preço cheio)")
         address = ", ".join(x for x in [rua, geo["bairro"], f'{geo["cidade"]} - {geo["uf"]}',
                                         f"{cep[:5]}-{cep[5:]}"] if x)
         # Pino exato (rua + número) para o entregador. O preço continua o do CEP, que o cliente viu.
@@ -581,6 +621,8 @@ async def checkout_pix(request: Request):
         elif exact:
             _blog_log.warning("checkout: pino %s longe demais do CEP %s — mantido o do CEP", exact, cep)
 
+    if dtype != "lalamove":
+        frete_lalamove = None
     total = round(subtotal + (frete or 0), 2)
     token = secrets.token_urlsafe(16)
 
@@ -589,9 +631,9 @@ async def checkout_pix(request: Request):
         order_id = (await conn.execute(text("""
             INSERT INTO site_orders (token, customer_name, customer_phone, customer_email,
                 delivery_type, delivery_service, cep, address, numero, complemento, lat, lng,
-                items, subtotal, frete, total)
+                items, subtotal, frete, total, frete_lalamove, margem, margem_obs)
             VALUES (:token, :name, :phone, :email, :dtype, :service, :cep, :address, :numero, :compl,
-                :lat, :lng, CAST(:items AS JSONB), :subtotal, :frete, :total)
+                :lat, :lng, CAST(:items AS JSONB), :subtotal, :frete, :total, :frete_lalamove, :margem, :margem_obs)
             RETURNING id
         """), {
             "token": token, "name": name, "phone": phone, "email": email,
@@ -600,7 +642,8 @@ async def checkout_pix(request: Request):
             "lat": geo["lat"] if isinstance(geo, dict) else None,
             "lng": geo["lng"] if isinstance(geo, dict) else None,
             "items": json.dumps(items, ensure_ascii=False),
-            "subtotal": subtotal, "frete": frete or 0, "total": total,
+            "subtotal": subtotal, "frete": frete or 0, "total": total, "frete_lalamove": frete_lalamove,
+            "margem": margem, "margem_obs": ("sem custo: " + ", ".join(sem_custo))[:500] if sem_custo else None,
         })).scalar()
 
     try:

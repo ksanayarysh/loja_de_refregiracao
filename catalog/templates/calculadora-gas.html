@@ -166,29 +166,7 @@
   <span>Falar no WhatsApp</span>
 </a>
 
-<footer>
-  <div class="footer-main">
-    <div>
-      <div class="footer-col-title">Atendimento</div>
-      <div class="footer-contact-item"><div class="footer-contact-icon">📞</div><div class="footer-contact-val"><a href="tel:+{{ wa_number }}">{{ store_phone }}</a></div></div>
-      <div class="footer-contact-item"><div class="footer-contact-icon">📍</div><div class="footer-contact-val">{{ store_address }}</div></div>
-    </div>
-    <div>
-      <div class="footer-col-title">Nossa equipe</div>
-      <div style="display:flex;flex-direction:column;gap:12px;">
-        <div style="display:flex;align-items:center;gap:10px;">
-          <div style="width:32px;height:32px;border-radius:50%;background:var(--accent-l);color:var(--accent);border:1.5px solid var(--accent-b);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;flex-shrink:0;">KS</div>
-          <div><div style="font-size:.88rem;font-weight:700;">Ksenia</div><div style="font-size:.72rem;color:var(--muted);">Desenvolvimento · PDV &amp; sites</div></div>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <div style="width:32px;height:32px;border-radius:50%;background:#f0f7ff;color:#1a6bc4;border:1.5px solid #c6dfff;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;flex-shrink:0;">DO</div>
-          <div><div style="font-size:.88rem;font-weight:700;">Douglas</div><div style="font-size:.72rem;color:var(--muted);">Técnico · Instalação e manutenção</div><a href="https://wa.me/5521965832950" target="_blank" style="font-size:.72rem;color:var(--wa);text-decoration:none;font-weight:600;">(21) 96583-2950</a></div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="footer-bottom">M.T.F Refrigeração · Rio de Janeiro</div>
-</footer>
+{% include '_footer.html' %}
 
 <script>
 const WA_NUMBER = '{{ wa_number }}';

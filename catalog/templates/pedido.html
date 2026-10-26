@@ -139,6 +139,7 @@
 
 <script>
 const ORDER_ID = {{ order.id }};
+const ORDER_ITEMS = {{ order["items"] | tojson }};
 const ORDER_TOKEN = {{ request.query_params.get('t', '') | tojson }};
 const EXPIRES = {{ order.pix_expires_iso | tojson }};
 let status = {{ order.status | tojson }};
@@ -179,7 +180,20 @@ function onPaid() {
   gcrOptIn();
   try { localStorage.removeItem('mtf_cart'); } catch (e) {}
   const c = document.getElementById('cartCount'); if (c) c.style.display = 'none';
-  if (typeof gtag !== 'undefined') gtag('event', 'purchase', { transaction_id: String(ORDER_ID), value: {{ order.total }}, currency: 'BRL' });
+  // conversão de compra: só UMA vez por pedido (a página do pedido pode ser reaberta)
+  const sentKey = 'purchase_sent_' + ORDER_ID;
+  try { if (localStorage.getItem(sentKey)) return; localStorage.setItem(sentKey, '1'); } catch (e) {}
+  const items = Array.isArray(ORDER_ITEMS) ? ORDER_ITEMS : [];
+  if (typeof gtag !== 'undefined') gtag('event', 'purchase', {
+    transaction_id: String(ORDER_ID), value: {{ order.total }}, currency: 'BRL',
+    shipping: {{ order.frete or 0 }},
+    items: items.map(i => ({ item_id: String(i.id), item_name: i.name, price: i.price, quantity: i.qty }))
+  });
+  if (typeof fbq !== 'undefined') fbq('track', 'Purchase', {
+    value: {{ order.total }}, currency: 'BRL', content_type: 'product',
+    content_ids: items.filter(i => i.id > 0).map(i => String(i.id)),
+    num_items: items.reduce((s, i) => s + i.qty, 0)
+  }, { eventID: 'pedido-' + ORDER_ID });
 }
 
 async function copiarPix() {

@@ -479,6 +479,7 @@
     .frete-local{font-size:.75rem;color:var(--muted);margin-bottom:8px;}
     .frete-ok + .frete-ok{margin-top:8px;padding-top:8px;border-top:1px solid var(--border);}
     .frete-free{color:var(--green);}
+    .mais-barato{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;background:var(--green-l,#e8f7ee);color:var(--green,#15803d);font-size:.68rem;font-weight:800;letter-spacing:.02em;vertical-align:middle;white-space:nowrap;}
     .frete-combinar{font-size:.88rem;font-weight:600;}
     .entrega-pill{display:inline-flex;align-items:center;gap:5px;font-size:.78rem;font-weight:700;color:#1a6bc4;background:#f0f7ff;border:1px solid #c6dfff;padding:4px 10px;border-radius:10px;text-decoration:none;}
     .entrega-pill:hover{border-color:#1a6bc4;}
@@ -891,36 +892,7 @@
 </div>
 {% endif %}
 
-<footer>
-  <div style="max-width:900px;margin:0 auto;padding:32px 20px 20px;display:grid;grid-template-columns:1fr 1fr;gap:32px;">
-    <div>
-      <div style="font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;">Atendimento</div>
-      <div style="display:flex;flex-direction:column;gap:10px;">
-        <div style="font-size:.88rem;">📞 <a href="tel:+{{ wa_number }}" style="color:var(--text);text-decoration:none;">{{ store_phone }}</a></div>
-        <div style="font-size:.88rem;">💬 <a href="https://wa.me/{{ wa_number }}" target="_blank" style="color:var(--text);text-decoration:none;">WhatsApp</a></div>
-        <div style="font-size:.88rem;">📍 <a href="https://maps.google.com/?q=MTF+Refrigera%C3%A7%C3%A3o+Rio+de+Janeiro" target="_blank" style="color:var(--text);text-decoration:none;">{{ store_address }}</a></div>
-        <div style="font-size:.85rem;color:var(--muted);">Seg. a Sáb. 08h30 às 18h00</div>
-      </div>
-    </div>
-    <div>
-      <div style="font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;">Nossa equipe</div>
-      <div style="display:flex;flex-direction:column;gap:12px;">
-        <div style="display:flex;align-items:center;gap:10px;">
-          <div style="width:32px;height:32px;border-radius:50%;background:var(--accent-l);color:var(--accent);border:1.5px solid var(--accent-b);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;flex-shrink:0;">KS</div>
-          <div>
-            <div style="font-size:.88rem;font-weight:700;">Ksenia</div>
-            <div style="font-size:.72rem;color:var(--muted);">Desenvolvimento · PDV &amp; sites</div>
-            <div style="display:flex;gap:6px;margin-top:3px;">
-              <a href="https://ksenia-card.vercel.app" target="_blank" style="font-size:.72rem;color:var(--muted);text-decoration:none;font-weight:600;">🌐 Portfolio</a>
-              <a href="https://wa.me/5521997982467" target="_blank" style="font-size:.72rem;color:var(--wa);text-decoration:none;font-weight:600;">(21) 99798-2467</a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div style="border-top:1px solid var(--border);padding:14px 20px;text-align:center;font-size:.78rem;color:var(--muted);">M.T.F Refrigeração · CNPJ 43.712.026/0001-75 · Rio de Janeiro</div>
-</footer>
+{% include '_footer.html' %}
 
 <!-- CART OVERLAY -->
 <div class="cart-overlay" id="cart-overlay" onclick="closeCart()"></div>
@@ -1106,9 +1078,12 @@ async function calcFrete() {
     }
     const km = d.distance_km.toFixed(1).replace('.', ',');
     const local = [d.bairro, d.cidade].filter(Boolean).map(escHtml).join(', ');
+    // "mais barato": marca a opção de menor preço (só quando há mais de uma)
+    const minP = Math.min(...d.options.map(o => o.price));
+    const tag = o => (d.options.length > 1 && o.price === minP) ? ' <span class="mais-barato">mais barato</span>' : '';
     const rows = d.options.map(o => `
       <div class="frete-ok">
-        <div><strong>${escHtml(o.label)}</strong><div class="frete-sub">${escHtml(o.hint)}</div></div>
+        <div><strong>${escHtml(o.label)}</strong>${tag(o)}<div class="frete-sub">${escHtml(o.hint)}</div></div>
         <div class="frete-price">R$ ${o.price.toFixed(2).replace('.', ',')}</div>
       </div>`).join('');
     box.innerHTML = `
@@ -1118,7 +1093,7 @@ async function calcFrete() {
         <div><strong>Retirada na loja</strong><div class="frete-sub">Av. Brasil, 6818</div></div>
         <div class="frete-price frete-free">Grátis</div>
       </div>
-      <div class="frete-note">Entrega via <strong>Lalamove</strong>. Valores estimados, confirmamos no pedido.<br>Entregas de seg. a sáb., 8h30–18h. Pedidos após 18h saem no próximo dia útil.</div>`;
+      <div class="frete-note">Entrega via <strong>Lalamove</strong>. Valores estimados, confirmamos no pedido.<br>Pedido pago até 16h: entrega hoje (seg. a sáb.). Depois disso, no próximo dia útil.</div>`;
     if (typeof gtag !== 'undefined') gtag('event', 'calcular_frete', { cep_prefix: cep.slice(0, 5) });
   } catch (e) {
     const waTxt = encodeURIComponent('Olá! Quero saber sobre entrega para o CEP ' + freteCep.value + '.');
