@@ -1748,11 +1748,20 @@ async def _frete_log(request: Request, cep: str, status: int, data: dict,
             extra += f"\nℹ️ Pedido {brl(calc['subtotal'])} (até {brl(FRETE_SUBSIDIO_MIN)}): frete cheio"
         else:
             mg = calc.get("margem", 0)
-            extra += f"\n💰 Pedido {brl(calc['subtotal'])} · margem {brl(mg)}"
+            extra += f"\n💰 Pedido {brl(calc['subtotal'])} · lucro dos produtos {brl(mg)}"
             if mg > 0:
-                extra += f" · loja paga até {brl(mg / 2)} (½ margem) ou ½ do frete"
+                # lucro que sobra em cada opção de entrega, depois da parte do frete que a loja paga
+                partes = []
+                for o in opts:
+                    if o.get("_lalamove") is None:
+                        continue
+                    loja = max(0.0, float(o["_lalamove"]) - float(o["price"]))
+                    nome = FRETE_OPTIONS.get(o["service"], (o["service"], ""))[0]
+                    partes.append(f"{nome}: {brl(mg)} → <b>{brl(mg - loja)}</b> (loja paga {brl(loja)})")
+                if partes:
+                    extra += "\n📉 Lucro com o frete:\n  " + "\n  ".join(partes)
             else:
-                extra += " · sem margem conhecida: frete cheio"
+                extra += " · sem lucro conhecido: frete cheio"
             if calc.get("sem_custo"):
                 extra += "\n⚠️ Sem custo cadastrado (margem 0): " + ", ".join(calc["sem_custo"][:5])
     msg = f"🚚 <b>Frete calculado</b> — {origem}\nCEP {cep_fmt} · {corpo}{extra}"
