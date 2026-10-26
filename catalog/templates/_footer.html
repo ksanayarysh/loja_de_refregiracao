@@ -1,0 +1,147 @@
+{#- Rodapé único do site. Uso: {% include '_footer.html' %}
+    Dados da loja vêm do contexto da página; se a página não passar, usa os padrões abaixo. -#}
+{%- set _wa = wa_number or '5521971538839' -%}
+{%- set _phone = store_phone or '(21) 97153-8839' -%}
+{%- set _addr = store_address or 'Av. Brasil, 6818 - Bonsucesso, Rio de Janeiro - RJ' -%}
+<style>
+  /* Rodapé único do site (incluído em todas as páginas). Classes "mf-" para não colidir com o CSS de cada página. */
+  footer.mf{border-top:1px solid var(--border,#e5e7eb);background:var(--surface,#fff);padding:0;margin:0;text-align:left;font-size:1rem;color:var(--text,#111);max-width:none;}
+  .mf a{text-decoration:none;}
+  .mf-main{max-width:1100px;margin:0 auto;padding:40px 20px 24px;display:grid;grid-template-columns:1.2fr 1fr 1fr 1fr 1fr;gap:32px;}
+  .mf-col-title{font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted,#6b7280);margin-bottom:16px;}
+  .mf-brand-logo{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+  .mf-contact-item{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+  .mf-contact-icon{width:32px;height:32px;border-radius:8px;background:var(--bg,#f6f6f4);border:1px solid var(--border,#e5e7eb);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.9rem;}
+  .mf-contact-val{font-size:.88rem;font-weight:500;color:var(--text,#111);overflow-wrap:anywhere;}
+  .mf-contact-val a{color:var(--text,#111);}.mf-contact-val a:hover{color:var(--accent,#e2144a);}
+  .mf-hours{font-size:.85rem;color:var(--muted,#6b7280);line-height:1.8;}
+  .mf-payments{border-top:1px solid var(--border,#e5e7eb);padding:16px 20px;display:flex;align-items:center;gap:20px;justify-content:center;flex-wrap:wrap;}
+  .mf-payments-label{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted,#6b7280);white-space:nowrap;}
+  .mf-payments-icons{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center;}
+  .mf-pay{width:54px;height:34px;flex-shrink:0;filter:drop-shadow(0 1px 2px rgba(0,0,0,.08));}
+  .mf-pay svg{width:100%;height:100%;}
+  .mf-links{border-top:1px solid var(--border,#e5e7eb);padding:12px 20px;display:flex;flex-wrap:wrap;justify-content:center;gap:6px 18px;font-size:.82rem;}
+  .mf-links a{color:var(--muted,#6b7280);font-weight:600;}.mf-links a:hover{color:var(--accent,#e2144a);}
+  .mf-bottom{border-top:1px solid var(--border,#e5e7eb);padding:14px 20px;text-align:center;font-size:.78rem;color:var(--muted,#6b7280);}
+  @media(max-width:900px){.mf-main{grid-template-columns:1fr 1fr;gap:24px;padding:28px 16px;}}
+  @media(max-width:560px){.mf-main{grid-template-columns:1fr;gap:20px;padding:24px 16px;}.mf-payments{padding:12px 16px;gap:12px;}.mf-payments-label{display:none;}}
+</style>
+<footer class="mf">
+  <div class="mf-main">
+    <div>
+      <div class="mf-brand-logo">
+        <div class="mf-logo-mark" style="width:34px;height:34px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-weight:500;color:#fff;font-size:.82rem;">MTF</div>
+        <div>
+          <div style="font-weight:700;font-size:.95rem;">M.T.F Refrigeração</div>
+          <div style="font-size:.72rem;color:var(--muted);">Peças · Gases · Serviços</div>
+        </div>
+      </div>
+      <p style="font-size:.85rem;color:var(--muted);line-height:1.65;">Loja especializada em peças para refrigeração no Rio de Janeiro. Gases, capacitores, termostatos, válvulas e muito mais.</p>
+    </div>
+
+    <div>
+      <div class="mf-col-title">Atendimento</div>
+      <div class="mf-contact-item">
+        <div class="mf-contact-icon">📞</div>
+        <div class="mf-contact-val"><a href="tel:+{{ _wa }}">{{ _phone }}</a></div>
+      </div>
+      <div class="mf-contact-item">
+        <div class="mf-contact-icon" style="background:#e8f5e9;border-color:#c8e6c9;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#25d366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+        </div>
+        <div class="mf-contact-val"><a href="https://wa.me/{{ _wa }}" target="_blank" rel="noopener">WhatsApp</a></div>
+      </div>
+      <div class="mf-contact-item">
+        <div class="mf-contact-icon">✉️</div>
+        <div class="mf-contact-val"><a href="mailto:contato@mtfrefrigeracao.com.br">contato@mtfrefrigeracao.com.br</a></div>
+      </div>
+      <div class="mf-contact-item">
+        <div class="mf-contact-icon">📍</div>
+        <div class="mf-contact-val"><a href="https://maps.google.com/?q=MTF+Refrigera%C3%A7%C3%A3o+Rio+de+Janeiro" target="_blank" rel="noopener">{{ _addr }}</a></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="mf-col-title">Horários</div>
+      <div class="mf-hours">
+        <div>Seg. a Sáb. &nbsp;<strong>08h30 às 18h00</strong></div>
+        <div class="mf-open-now" style="margin-top:10px;font-weight:600;font-size:.82rem;"></div>
+        <script>
+        (function () {
+          var el = document.currentScript.previousElementSibling;
+          // horário da loja: seg–sáb 08:30–18:00 (hora do Rio)
+          var p = {}; new Intl.DateTimeFormat('en-US', { timeZone: 'America/Sao_Paulo', weekday: 'short', hour: 'numeric', minute: 'numeric', hourCycle: 'h23' })
+            .formatToParts(new Date()).forEach(function (x) { p[x.type] = x.value; });
+          var d = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].indexOf(p.weekday), m = (+p.hour) * 60 + (+p.minute);
+          var aberto = d >= 1 && d <= 6 && m >= 510 && m < 1080, txt;
+          if (aberto) txt = '● Aberto agora · até 18h00';
+          else if (d >= 1 && d <= 6 && m < 510) txt = '● Fechado · abre hoje às 08h30';
+          else if (d === 6 || d === 0) txt = '● Fechado · abre segunda às 08h30';
+          else txt = '● Fechado · abre amanhã às 08h30';
+          el.textContent = txt;
+          el.style.color = aberto ? 'var(--green)' : 'var(--muted)';
+        })();
+        </script>
+      </div>
+    </div>
+
+    <div>
+      <div class="mf-col-title">Nossa equipe</div>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;flex-shrink:0;background:var(--accent-l);color:var(--accent);border:1.5px solid var(--accent-b);">KS</div>
+          <div>
+            <div style="font-size:.88rem;font-weight:700;">Ksenia</div>
+            <div style="font-size:.72rem;color:var(--muted);">Desenvolvimento · PDV &amp; sites</div>
+            <div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap;">
+              <a href="https://ksenia-card.vercel.app" target="_blank" rel="noopener" style="font-size:.72rem;color:var(--muted);text-decoration:none;font-weight:600;">🌐 Portfolio</a>
+              <a href="https://wa.me/5521997982467" target="_blank" rel="noopener" style="font-size:.72rem;color:var(--wa);text-decoration:none;font-weight:600;">(21) 99798-2467</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="mf-col-title">Parceiros</div>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:800;flex-shrink:0;background:#f0fff4;color:#16a34a;border:1.5px solid #bbf7d0;">FA</div>
+          <div>
+            <div style="font-size:.88rem;font-weight:700;">Fagal</div>
+            <div style="font-size:.72rem;color:var(--muted);">Parceiro · Esquadrias e Automação</div>
+            <a href="https://wa.me/5521971538839" target="_blank" rel="noopener" style="font-size:.72rem;color:var(--wa);text-decoration:none;font-weight:600;display:flex;align-items:center;gap:3px;margin-top:4px;">💬 Solicitar orçamento</a>
+            <a href="mailto:fagalsv@gmail.com" style="font-size:.72rem;color:var(--muted);text-decoration:none;font-weight:600;display:block;margin-top:3px;">fagalsv@gmail.com</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="mf-payments">
+    <div class="mf-payments-label">Formas de pagamento</div>
+    <div class="mf-payments-icons">
+      <!-- VISA -->
+      <div class="mf-pay"><svg viewBox="0 0 60 38" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="38" rx="5" fill="#fff"/><rect width="60" height="38" rx="5" fill="none" stroke="#e0ddd7" stroke-width="1"/><text x="50%" y="56%" dominant-baseline="middle" text-anchor="middle" font-family="Arial,sans-serif" font-weight="900" font-size="16" fill="#1A1F71" letter-spacing="-1">VISA</text></svg></div>
+      <!-- MASTERCARD -->
+      <div class="mf-pay"><svg viewBox="0 0 60 38" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="38" rx="5" fill="#fff"/><rect width="60" height="38" rx="5" fill="none" stroke="#e0ddd7" stroke-width="1"/><circle cx="23" cy="19" r="10" fill="#EB001B"/><circle cx="37" cy="19" r="10" fill="#F79E1B"/><ellipse cx="30" cy="19" rx="4" ry="10" fill="#FF5F00"/></svg></div>
+
+      <!-- DINERS -->
+      <div class="mf-pay"><svg viewBox="0 0 60 38" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="38" rx="5" fill="#fff"/><rect width="60" height="38" rx="5" fill="none" stroke="#e0ddd7" stroke-width="1"/><circle cx="26" cy="19" r="10" fill="none" stroke="#004A97" stroke-width="2"/><circle cx="34" cy="19" r="10" fill="none" stroke="#004A97" stroke-width="2"/><text x="50%" y="88%" dominant-baseline="middle" text-anchor="middle" font-family="Arial,sans-serif" font-weight="700" font-size="5" fill="#004A97" letter-spacing=".3">DINERS CLUB</text></svg></div>
+      <!-- ELO -->
+      <div class="mf-pay"><svg viewBox="0 0 60 38" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="38" rx="5" fill="#fff"/><rect width="60" height="38" rx="5" fill="none" stroke="#e0ddd7" stroke-width="1"/><text x="14" y="22" font-family="Arial,sans-serif" font-weight="900" font-size="13" fill="#00A4E0">e</text><text x="24" y="22" font-family="Arial,sans-serif" font-weight="900" font-size="13" fill="#FFD100">l</text><text x="30" y="22" font-family="Arial,sans-serif" font-weight="900" font-size="13" fill="#E4003A">o</text></svg></div>
+      <!-- DINHEIRO -->
+      <div class="mf-pay"><svg viewBox="0 0 60 38" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="38" rx="5" fill="#fff"/><rect width="60" height="38" rx="5" fill="none" stroke="#e0ddd7" stroke-width="1"/><rect x="6" y="9" width="48" height="20" rx="3" fill="#1b5e20"/><rect x="9" y="12" width="42" height="14" rx="2" fill="#2e7d32"/><circle cx="30" cy="19" r="6" fill="#1b5e20"/><circle cx="30" cy="19" r="4.5" fill="#43a047"/><text x="30" y="19.5" dominant-baseline="middle" text-anchor="middle" font-family="Arial,sans-serif" font-weight="900" font-size="5" fill="#fff">R$</text><rect x="6" y="9" width="5" height="4" rx="1" fill="#388e3c"/><rect x="49" y="25" width="5" height="4" rx="1" fill="#388e3c"/></svg></div>
+      <div class="mf-pay"><svg viewBox="0 0 60 38" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="38" rx="5" fill="#32BCAD"/><text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-family="Arial,sans-serif" font-weight="900" font-size="15" fill="#fff" letter-spacing="1">Pix</text></svg></div>
+      <!-- BRADESCO -->
+      <div class="mf-pay"><svg viewBox="0 0 60 38" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="38" rx="5" fill="#CC0000"/><text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-family="Arial,sans-serif" font-weight="900" font-size="8" fill="#fff" letter-spacing=".3">BRADESCO</text></svg></div>
+      <!-- BANCO DO BRASIL -->
+      <div class="mf-pay"><svg viewBox="0 0 60 38" xmlns="http://www.w3.org/2000/svg"><rect width="60" height="38" rx="5" fill="#FFD700"/><text x="50%" y="46%" dominant-baseline="middle" text-anchor="middle" font-family="Arial,sans-serif" font-weight="900" font-size="7" fill="#003087" letter-spacing=".2">BANCO DO</text><text x="50%" y="68%" dominant-baseline="middle" text-anchor="middle" font-family="Arial,sans-serif" font-weight="900" font-size="7" fill="#003087" letter-spacing=".2">BRASIL</text></svg></div>
+    </div>
+  </div>
+  <nav class="mf-links">
+    <a href="/catalogo">Catálogo</a><a href="/categories">Categorias</a><a href="/blog">Guias</a>
+    <a href="/calculadora-gas">Calculadora de gás</a><a href="/calculadora-instalacao">Kit de instalação</a>
+    <a href="/sobre">Sobre</a><a href="/ajuda">Ajuda</a><a href="/politica-de-devolucao">Política de devolução</a>
+  </nav>
+  <div class="mf-bottom">M.T.F Refrigeração · CNPJ 43.712.026/0001-75 · Rio de Janeiro</div>
+</footer>
