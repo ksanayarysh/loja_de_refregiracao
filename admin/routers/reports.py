@@ -1176,3 +1176,53 @@ async def product_views_report(
         "daily":         daily,
         "totals":        totals,
     })
+
+# ── Acessos de um produto (para conferir se são pessoas ou robôs) ──────────────
+_BOT_RE_PY = r"bot[^a-z]|bot$|spider|crawl|headless|lighthouse|pagespeed|facebookexternalhit|meta-external|whatsapp|python|curl|wget|okhttp|axios|node-fetch|go-http|java/|scrapy|mediapartners|google-|googleother|feedfetcher"
+_GOOGLE_NETS = ("66.249.", "66.102.", "64.233.", "72.14.", "74.125.", "209.85.", "216.239.", "108.177.", "173.194.",
+                "142.250.", "172.217.", "34.", "35.")
+
+
+def _device(ua: str) -> str:
+    u = (ua or "").lower()
+    if not u:
+        return "sem navegador"
+    so = ("iPhone" if "iphone" in u else "Android" if "android" in u else "Windows" if "windows" in u
+          else "Mac" if "macintosh" in u else "Linux" if "linux" in u else "?")
+    nav = ("Edge" if "edg/" in u else "Samsung" if "samsungbrowser" in u else "Chrome" if "chrome" in u
+           else "Safari" if "safari" in u else "Firefox" if "firefox" in u else "")
+    return f"{so} {nav}".strip()
+
+
+@router.get("/reports/product-views/raw")
+async def product_views_raw(product_id: int, since: str, date_end: str, _=Depends(basic_auth)):
+    import re as _re
+    from fastapi.responses import JSONResponse
+    try:
+        d1, d2 = date.fromisoformat(since), date.fromisoformat(date_end)
+    except ValueError:
+        return JSONResponse({"error": "datas inválidas"}, status_code=400)
+    async with engine.connect() as conn:
+        rows = (await conn.execute(text("""
+            SELECT viewed_at AT TIME ZONE 'America/Sao_Paulo' AS t, ip, user_agent
+            FROM product_views
+            WHERE product_id = :pid AND viewed_at::date >= :d1 AND viewed_at::date <= :d2
+            ORDER BY viewed_at DESC
+            LIMIT 300
+        """), {"pid": product_id, "d1": d1, "d2": d2})).mappings().all()
+    bot = _re.compile(_BOT_RE_PY, _re.I)
+    out = []
+    for r in rows:
+        ua, ip = r["user_agent"] or "", r["ip"] or ""
+        motivo = ("robô (nome do navegador)" if bot.search(ua) else
+                  "IP do Google" if ip.startswith(_GOOGLE_NETS) else "")
+        out.append({"t": r["t"].strftime("%d/%m %H:%M:%S"), "ip": ip, "device": _device(ua),
+                    "ua": ua[:200], "suspeito": motivo})
+    # muitos acessos no mesmo minuto = provavelmente robô
+    por_min: dict = {}
+    for o in out:
+        por_min[o["t"][:11]] = por_min.get(o["t"][:11], 0) + 1
+    for o in out:
+        if not o["suspeito"] and por_min[o["t"][:11]] >= 3:
+            o["suspeito"] = f"{por_min[o['t'][:11]]} acessos no mesmo minuto"
+    return {"rows": out}

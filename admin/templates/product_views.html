@@ -207,6 +207,12 @@
             <td class="num">{{ r.views }}</td>
             <td class="num" style="color:#6b7280;">{{ r.unique_ips }}</td>
           </tr>
+          {% if r.product_id %}
+          <tr><td></td><td colspan="3" style="padding-top:0;">
+            <button type="button" class="raw-btn" onclick="verAcessos(this, {{ r.product_id }})">🔍 ver acessos</button>
+            <div class="raw-box" style="display:none"></div>
+          </td></tr>
+          {% endif %}
           {% endfor %}
           </tbody>
         </table>
@@ -282,4 +288,32 @@
   </div>
 
 </div>
+<style>
+  .raw-btn{background:none;border:1px solid #e5e7eb;border-radius:8px;padding:3px 10px;font-size:.78rem;cursor:pointer;color:#374151;font-family:inherit;}
+  .raw-box table{width:100%;font-size:.78rem;margin-top:6px;border-collapse:collapse;}
+  .raw-box td,.raw-box th{padding:4px 6px;border-bottom:1px solid #f1f1f1;text-align:left;vertical-align:top;}
+  .raw-sus{color:#b91c1c;font-weight:700;}
+  .raw-ok{color:#166534;font-weight:700;}
+  .raw-ua{color:#9ca3af;font-size:.7rem;word-break:break-all;}
+</style>
+<script>
+  async function verAcessos(btn, pid) {
+    const box = btn.nextElementSibling;
+    if (box.style.display === 'block') { box.style.display = 'none'; btn.textContent = '🔍 ver acessos'; return; }
+    btn.textContent = 'carregando...';
+    try {
+      const r = await fetch(`/reports/product-views/raw?product_id=${pid}&since={{ since }}&date_end={{ date_end }}`);
+      const d = await r.json();
+      const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+      const rows = d.rows || [];
+      const sus = rows.filter(x => x.suspeito).length;
+      box.innerHTML = `<div style="font-size:.8rem;margin-top:6px;"><b>${rows.length}</b> acessos · <span class="raw-sus">${sus} suspeitos</span> · <span class="raw-ok">${rows.length - sus} parecem pessoas</span></div>
+        <table><tr><th>Quando</th><th>IP</th><th>Aparelho</th><th></th></tr>` +
+        rows.map(x => `<tr><td>${esc(x.t)}</td><td>${esc(x.ip)}</td>
+          <td>${esc(x.device)}<div class="raw-ua">${esc(x.ua)}</div></td>
+          <td class="${x.suspeito ? 'raw-sus' : 'raw-ok'}">${x.suspeito ? '🤖 ' + esc(x.suspeito) : '👤'}</td></tr>`).join('') + '</table>';
+      box.style.display = 'block'; btn.textContent = 'fechar';
+    } catch (e) { btn.textContent = '🔍 ver acessos'; alert('Erro ao carregar'); }
+  }
+</script>
 {% endblock %}
