@@ -48,7 +48,7 @@
   <div>
     <div class="card so-card" style="margin-bottom:16px;">
       <h2>Pedido #{{ order.id }}
-        <span class="so-badge b-{{ order.status }}">{{ {'paid':'Pago','pending':'Aguardando Pix','expired':'Pix expirado','error':'Erro','cancelled':'Cancelado','refunded':'Estornado'}.get(order.status, order.status) }}</span>
+        <span class="so-badge b-{{ order.status }}">{{ {'paid':'Pago','pending':'Aguardando pagamento','expired':'Expirado','error':'Erro','cancelled':'Cancelado','refunded':'Estornado'}.get(order.status, order.status) }}</span>
         <span class="so-badge b-ful">{{ order.fulfillment_label }}</span>
       </h2>
       <div class="so-muted">Criado {{ order.created_brt }}{% if order.paid_brt %} · Pago {{ order.paid_brt }}{% endif %}</div>
@@ -141,7 +141,7 @@
             onsubmit="return confirm('Cancelar o pedido #{{ order.id }}?{% if order.lalamove_order_id %} O entregador também será cancelado.{% endif %}{% if order.sale_registered %} As vendas serão removidas e o estoque devolvido.{% endif %}');">
         {% if order.status == 'paid' %}
         <label class="so-check"><input type="checkbox" name="refund" value="1" checked>
-          Devolver R$ {{ "%.2f"|format(order.total)|replace('.', ',') }} ao cliente (estorno do Pix no Mercado Pago)</label>
+          Devolver R$ {{ "%.2f"|format(order.total)|replace('.', ',') }} ao cliente (estorno no Mercado Pago)</label>
         {% endif %}
         <button class="btn-danger" type="submit">Cancelar pedido</button>
       </form>

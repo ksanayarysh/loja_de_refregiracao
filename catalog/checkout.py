@@ -1,10 +1,14 @@
 """
-Checkout do site: pedido + pagamento Pix (Mercado Pago, API de Pagamentos).
+Checkout do site: pedido + pagamento Pix (Mercado Pago, API de Pagamentos)
+ou cartão de crédito (Mercado Pago Checkout Pro: o cliente paga na página segura do MP).
 
 Variáveis de ambiente:
   MP_ACCESS_TOKEN       TEST-... (teste) / APP_USR-... (produção)
   MP_NOTIFICATION_URL   (opcional, só em produção) https://.../api/checkout/mp-webhook
   PIX_EXPIRA_MIN        minutos de validade do Pix (padrão 30)
+  CARTAO_EXPIRA_MIN     minutos para pagar com cartão (padrão 60)
+  CARTAO_PARCELAS       máximo de parcelas no cartão (padrão 12; juros por conta do cliente)
+  CARTAO_MAX            (opcional) total máximo de pedido no cartão, ex.: 1500 — acima disso só Pix
   GCR_MERCHANT_ID       (opcional) Merchant ID do Google Merchant Center -> ativa o opt-in
                         das "Avaliações do consumidor do Google" na página do pedido pago
 
@@ -102,6 +106,9 @@ async def _ensure_orders_table():
         await conn.execute(text("ALTER TABLE site_orders ADD COLUMN IF NOT EXISTS frete_lalamove NUMERIC(10,2)"))
         await conn.execute(text("ALTER TABLE site_orders ADD COLUMN IF NOT EXISTS margem NUMERIC(10,2)"))
         await conn.execute(text("ALTER TABLE site_orders ADD COLUMN IF NOT EXISTS margem_obs TEXT"))
+        # forma de pagamento: 'pix' ou 'card' (Checkout Pro); link da página de pagamento do MP
+        await conn.execute(text("ALTER TABLE site_orders ADD COLUMN IF NOT EXISTS pay_method VARCHAR(10) DEFAULT 'pix'"))
+        await conn.execute(text("ALTER TABLE site_orders ADD COLUMN IF NOT EXISTS mp_init_point TEXT"))
     _orders_ready = True
 
 
@@ -358,14 +365,112 @@ async def _mp_get_status(payment_id: str) -> str | None:
     return r.json().get("status")
 
 
-async def _mark_paid(order_id: int):
+async def _mp_create_preference(order_id: int, token: str, total: float, email: str, name: str,
+                                description: str) -> dict:
+    """Cartão: cria a 'preferência' do Checkout Pro. O cliente paga na página do Mercado Pago
+    (dados do cartão nunca passam pelo nosso site; antifraude e 3DS são do MP) e volta para /pedido."""
+    minutes = int(os.environ.get("CARTAO_EXPIRA_MIN", "60"))
+    now = datetime.now(timezone.utc)
+    expires = now + timedelta(minutes=minutes)
+    back = f"{SITE_URL}/pedido/{order_id}?t={token}"
+    parts = (name or "Cliente").split()
+    body = {
+        "items": [{
+            "id": str(order_id), "title": description[:250], "quantity": 1,
+            "unit_price": round(total, 2), "currency_id": "BRL", "category_id": "others",
+        }],
+        "payer": {"email": email, "name": parts[0], "surname": " ".join(parts[1:])},
+        "external_reference": f"site-{order_id}",
+        "back_urls": {"success": back, "pending": back, "failure": back},
+        "auto_return": "approved",
+        "payment_methods": {
+            # só cartão: Pix já tem botão próprio; boleto/lotérica não servem para entrega no mesmo dia
+            "excluded_payment_types": [{"id": "ticket"}, {"id": "bank_transfer"}, {"id": "atm"}],
+            "installments": int(os.environ.get("CARTAO_PARCELAS", "12")),
+        },
+        "statement_descriptor": "MTF REFRIGERACAO",
+        "expires": True,
+        "expiration_date_from": now.isoformat(timespec="milliseconds"),
+        "expiration_date_to": expires.isoformat(timespec="milliseconds"),
+    }
+    notification_url = os.environ.get("MP_NOTIFICATION_URL", "").strip()
+    if notification_url:
+        body["notification_url"] = notification_url
+    async with httpx.AsyncClient(timeout=20) as client:
+        r = await client.post(f"{MP_API}/checkout/preferences", json=body, headers={
+            "Authorization": f"Bearer {_mp_token()}",
+            "X-Idempotency-Key": f"mtf-pref-{order_id}",
+        })
+    data = r.json()
+    if r.status_code >= 400:
+        raise RuntimeError(f"Mercado Pago {r.status_code}: {data}")
+    url = data.get("init_point")
+    if _mp_token().startswith("TEST-"):
+        url = data.get("sandbox_init_point") or url
+    return {"id": data.get("id"), "url": url, "expires_at": expires}
+
+
+async def _mp_get_payment(payment_id: str) -> dict | None:
+    async with httpx.AsyncClient(timeout=10) as client:
+        r = await client.get(f"{MP_API}/v1/payments/{payment_id}",
+                             headers={"Authorization": f"Bearer {_mp_token()}"})
+    if r.status_code != 200:
+        _blog_log.warning("checkout: MP payment %s -> %s %s", payment_id, r.status_code, r.text[:200])
+        return None
+    return r.json()
+
+
+async def _mp_search_card(order_id: int) -> list | None:
+    """Pagamentos (tentativas) feitos no Checkout Pro para este pedido, mais recentes primeiro."""
+    async with httpx.AsyncClient(timeout=10) as client:
+        r = await client.get(f"{MP_API}/v1/payments/search", params={
+            "external_reference": f"site-{order_id}", "sort": "date_created", "criteria": "desc",
+        }, headers={"Authorization": f"Bearer {_mp_token()}"})
+    if r.status_code != 200:
+        _blog_log.warning("checkout: MP search site-%s -> %s %s", order_id, r.status_code, r.text[:200])
+        return None
+    return r.json().get("results") or []
+
+
+def _sem_acento(s: str) -> str:
+    import unicodedata
+    return "".join(c for c in unicodedata.normalize("NFD", s or "") if unicodedata.category(c) != "Mn").lower()
+
+
+def _card_info(p: dict, cliente: str) -> str:
+    """Detalhes do cartão para o Telegram: ajuda a pegar fraude antes de despachar."""
+    card = p.get("card") or {}
+    titular = ((card.get("cardholder") or {}).get("name") or "").strip()
+    final = card.get("last_four_digits") or "?"
+    parc = p.get("installments") or 1
+    if not card:
+        return "\n\n💳 Pago com saldo/conta Mercado Pago"
+    txt = f"\n\n💳 Cartão {p.get('payment_method_id') or ''} final {final} · {parc}x"
+    if titular:
+        txt += f"\nTitular: {titular}"
+        nomes_cli = set(_sem_acento(cliente).split())
+        if not (set(_sem_acento(titular).split()) & nomes_cli):
+            txt += "\n⚠️ <b>Titular do cartão ≠ nome do cliente</b>"
+    liq = (p.get("transaction_details") or {}).get("net_received_amount")
+    try:
+        if liq and float(liq) > 0:
+            bruto = float(p.get("transaction_amount") or 0)
+            txt += f"\nVocê recebe: {_brl(float(liq))} (taxa MP {_brl(bruto - float(liq))})"
+    except (TypeError, ValueError):
+        pass
+    txt += "\n👉 Cartão online: antes de despachar, confirme com o cliente no WhatsApp."
+    return txt
+
+
+async def _mark_paid(order_id: int, extra: str = ""):
     """Marca como pago uma única vez e avisa no Telegram."""
     async with engine.begin() as conn:
         row = (await conn.execute(text("""
             UPDATE site_orders SET status = 'paid', paid_at = NOW()
             WHERE id = :id AND status = 'pending'
             RETURNING id, customer_name, customer_phone, delivery_type, delivery_service,
-                      address, numero, complemento, items, frete, total, frete_lalamove, margem, margem_obs
+                      address, numero, complemento, items, frete, total, frete_lalamove, margem, margem_obs,
+                      pay_method
         """), {"id": order_id})).mappings().first()
     if not row:
         return
@@ -390,11 +495,35 @@ async def _mark_paid(order_id: int):
         url=f"{ADMIN_URL.rstrip('/')}/site-orders/{row['id']}", tag=f"pedido-{row['id']}",
     )
     await _send_tg(
-        f"💰 <b>Pedido #{row['id']} PAGO (Pix)</b>\n"
+        f"💰 <b>Pedido #{row['id']} PAGO ({'Cartão' if row.get('pay_method') == 'card' else 'Pix'})</b>\n"
         f"Total: <b>{_brl(float(row['total']))}</b>\n"
         f"Cliente: {row['customer_name']} · {row['customer_phone']}\n\n"
-        f"{lines}\n\n{entrega}" + _margem_txt(row)
+        f"{lines}\n\n{entrega}" + _margem_txt(row) + extra
     )
+    await _send_tg(_msg_cliente_pago(row))
+
+
+def _msg_cliente_pago(row) -> str:
+    """Segunda mensagem no Telegram: texto pronto para o cliente + link que abre o WhatsApp dele."""
+    import html
+    from urllib.parse import quote
+    nome = ((row["customer_name"] or "").split() or [""])[0].capitalize()
+    if row["delivery_type"] == "lalamove":
+        fim = "Avisaremos você assim que ele estiver pronto e o entregador sair para a entrega. 🛵"
+    else:
+        fim = ("Avisaremos você assim que ele estiver pronto para retirada na loja: "
+               "Av. Brasil, 6818 – Bonsucesso (seg. a sáb., 8h30–18h).")
+    texto = (f"Olá{', ' + nome if nome else ''}! Aqui é da MTF Refrigeração. 😊\n"
+             f"Recebemos o pagamento do seu pedido nº {row['id']} ✅\n"
+             f"Ele já está em processamento e estamos separando os produtos.\n"
+             f"{fim}\nObrigado pela compra!")
+    tel = re.sub(r"\D", "", row["customer_phone"] or "")
+    if len(tel) in (10, 11):
+        tel = "55" + tel
+    link = f"https://wa.me/{tel}?text={quote(texto)}"
+    return (f"📲 <b>Mensagem para o cliente</b> (pedido #{row['id']})\n"
+            f'<a href="{html.escape(link)}">👉 Abrir WhatsApp do cliente com o texto pronto</a>\n\n'
+            f"<pre>{html.escape(texto)}</pre>")
 
 
 def _margem_txt(row) -> str:
@@ -415,13 +544,41 @@ def _margem_txt(row) -> str:
 
 async def _refresh_status(order: dict) -> str:
     """Consulta o MP se o pedido ainda está pendente."""
-    if order["status"] != "pending" or not order.get("mp_payment_id"):
+    if order["status"] != "pending":
+        return order["status"]
+    if order.get("pay_method") == "card":
+        return await _refresh_card(order)
+    if not order.get("mp_payment_id"):
         return order["status"]
     mp_status = await _mp_get_status(order["mp_payment_id"])
     if mp_status == "approved":
         await _mark_paid(order["id"])
         return "paid"
     if mp_status in ("cancelled", "rejected", "expired"):
+        async with engine.begin() as conn:
+            await conn.execute(text(
+                "UPDATE site_orders SET status = 'expired' WHERE id = :id AND status = 'pending'"
+            ), {"id": order["id"]})
+        return "expired"
+    return "pending"
+
+
+async def _refresh_card(order: dict) -> str:
+    """Cartão: o cliente pode tentar vários cartões na mesma página do MP — procuramos pelo pedido."""
+    pays = await _mp_search_card(order["id"])
+    if pays is None:
+        return "pending"
+    ok = next((p for p in pays if p.get("status") == "approved"), None)
+    if ok:
+        async with engine.begin() as conn:
+            await conn.execute(text(
+                "UPDATE site_orders SET mp_payment_id = :pid WHERE id = :id AND status = 'pending'"
+            ), {"pid": str(ok["id"]), "id": order["id"]})
+        await _mark_paid(order["id"], _card_info(ok, order.get("customer_name") or ""))
+        return "paid"
+    em_analise = any(p.get("status") in ("pending", "in_process", "authorized") for p in pays)
+    exp = order.get("pix_expires_at")
+    if not em_analise and exp and datetime.now(timezone.utc) > exp + timedelta(minutes=15):
         async with engine.begin() as conn:
             await conn.execute(text(
                 "UPDATE site_orders SET status = 'expired' WHERE id = :id AND status = 'pending'"
@@ -442,8 +599,8 @@ async def _check_pending_loop():
             await _ensure_orders_table()
             async with engine.connect() as conn:
                 rows = (await conn.execute(text("""
-                    SELECT id, status, mp_payment_id FROM site_orders
-                    WHERE status = 'pending' AND mp_payment_id IS NOT NULL
+                    SELECT id, status, mp_payment_id, pay_method, pix_expires_at, customer_name FROM site_orders
+                    WHERE status = 'pending' AND (mp_payment_id IS NOT NULL OR pay_method = 'card')
                       AND created_at > NOW() - INTERVAL '3 hours'
                 """))).mappings().all()
             for r in rows:
@@ -524,6 +681,7 @@ def _norm_cel(raw) -> str:
 
 
 @router.post("/api/checkout/pix")
+@router.post("/api/checkout/pagar")
 async def checkout_pix(request: Request):
     ip = _client_ip(request)
     now = time.time()
@@ -549,6 +707,7 @@ async def checkout_pix(request: Request):
                             status_code=400)
     if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email):
         return JSONResponse({"error": "Informe um e-mail válido."}, status_code=400)
+    method = "card" if str(body.get("method", "")).lower() in ("card", "cartao", "cartão") else "pix"
 
     items, subtotal = await _load_items(body.get("items"))
     if not items:
@@ -624,6 +783,14 @@ async def checkout_pix(request: Request):
     if dtype != "lalamove":
         frete_lalamove = None
     total = round(subtotal + (frete or 0), 2)
+    if method == "card":
+        try:
+            card_max = float(os.environ.get("CARTAO_MAX", "0") or 0)
+        except ValueError:
+            card_max = 0
+        if card_max and total > card_max:
+            return JSONResponse({"error": f"Para pedidos acima de {_brl(card_max)}, o pagamento é só por Pix. "
+                                          "Dúvidas? Fale conosco no WhatsApp."}, status_code=400)
     token = secrets.token_urlsafe(16)
 
     await _ensure_orders_table()
@@ -631,9 +798,10 @@ async def checkout_pix(request: Request):
         order_id = (await conn.execute(text("""
             INSERT INTO site_orders (token, customer_name, customer_phone, customer_email,
                 delivery_type, delivery_service, cep, address, numero, complemento, lat, lng,
-                items, subtotal, frete, total, frete_lalamove, margem, margem_obs)
+                items, subtotal, frete, total, frete_lalamove, margem, margem_obs, pay_method)
             VALUES (:token, :name, :phone, :email, :dtype, :service, :cep, :address, :numero, :compl,
-                :lat, :lng, CAST(:items AS JSONB), :subtotal, :frete, :total, :frete_lalamove, :margem, :margem_obs)
+                :lat, :lng, CAST(:items AS JSONB), :subtotal, :frete, :total, :frete_lalamove, :margem, :margem_obs,
+                :pay_method)
             RETURNING id
         """), {
             "token": token, "name": name, "phone": phone, "email": email,
@@ -644,7 +812,28 @@ async def checkout_pix(request: Request):
             "items": json.dumps(items, ensure_ascii=False),
             "subtotal": subtotal, "frete": frete or 0, "total": total, "frete_lalamove": frete_lalamove,
             "margem": margem, "margem_obs": ("sem custo: " + ", ".join(sem_custo))[:500] if sem_custo else None,
+            "pay_method": method,
         })).scalar()
+
+    if method == "card":
+        try:
+            pref = await _mp_create_preference(order_id, token, total, email, name,
+                                               f"MTF Refrigeração — pedido #{order_id}")
+            if not pref["url"]:
+                raise RuntimeError("Mercado Pago sem init_point")
+        except Exception:
+            _blog_log.exception("checkout: falha ao criar pagamento com cartão do pedido %s", order_id)
+            async with engine.begin() as conn:
+                await conn.execute(text("UPDATE site_orders SET status = 'error' WHERE id = :id"), {"id": order_id})
+            return JSONResponse({"error": "Não foi possível abrir o pagamento com cartão. "
+                                          "Tente novamente ou pague com Pix."}, status_code=502)
+        async with engine.begin() as conn:
+            await conn.execute(text(
+                "UPDATE site_orders SET mp_init_point = :u, pix_expires_at = :exp WHERE id = :id"
+            ), {"u": pref["url"], "exp": pref["expires_at"], "id": order_id})
+        await _send_tg(f"🧾 Pedido #{order_id} criado no site — aguardando cartão ({_brl(total)})")
+        return JSONResponse({"order_id": order_id, "token": token, "url": pref["url"],
+                             "pedido": f"/pedido/{order_id}?t={token}"})
 
     try:
         pix = await _mp_create_pix(order_id, total, email, name, f"MTF Refrigeração — pedido #{order_id}")
@@ -664,6 +853,28 @@ async def checkout_pix(request: Request):
     return JSONResponse({"order_id": order_id, "token": token, "url": f"/pedido/{order_id}?t={token}"})
 
 
+_checkout_vistos: dict = {}  # (ip, carrinho) -> timestamp do último aviso
+
+
+def _avisar_checkout_aberto(ip: str, items: list, subtotal: float):
+    """Telegram assim que alguém abre o checkout com produtos (antes de pagar).
+    Mesmo IP + mesmo carrinho: no máximo um aviso a cada 30 min."""
+    import asyncio
+    now = time.time()
+    chave = (ip, tuple(sorted((str(i.get("id")), str(i.get("qty"))) for i in items)))
+    if now - _checkout_vistos.get(chave, 0) < 1800:
+        return
+    _checkout_vistos[chave] = now
+    for k, t in list(_checkout_vistos.items()):     # limpa os antigos
+        if now - t > 7200:
+            _checkout_vistos.pop(k, None)
+    linhas = "\n".join(f"  • {i['name']} × {i['qty']}" for i in items)
+    asyncio.ensure_future(_send_tg(
+        f"👀 <b>Alguém abriu o checkout</b> (ainda não pagou)\n{linhas}\n"
+        f"Produtos: <b>{_brl(float(subtotal or 0))}</b>"
+    ))
+
+
 @router.post("/api/checkout/stock")
 async def checkout_stock(request: Request):
     """O checkout chama ao abrir: diz o que tirar/ajustar no carrinho antes do cliente preencher tudo."""
@@ -671,7 +882,9 @@ async def checkout_stock(request: Request):
         body = await request.json()
     except Exception:
         return JSONResponse({"error": "Dados inválidos."}, status_code=400)
-    items, _ = await _load_items(body.get("items"))
+    items, subtotal = await _load_items(body.get("items"))
+    if items:
+        _avisar_checkout_aberto(_client_ip(request), items, subtotal)
     kg, short, stock = await _stock_problems(items)
     return JSONResponse({
         "kg": [i["id"] for i in kg],
@@ -686,7 +899,8 @@ async def checkout_status(order_id: int, t: str = ""):
     await _ensure_orders_table()
     async with engine.connect() as conn:
         order = (await conn.execute(text(
-            "SELECT id, status, mp_payment_id, pix_expires_at FROM site_orders WHERE id = :id AND token = :t"
+            "SELECT id, status, mp_payment_id, pix_expires_at, pay_method, customer_name "
+            "FROM site_orders WHERE id = :id AND token = :t"
         ), {"id": order_id, "t": t})).mappings().first()
     if not order:
         return JSONResponse({"error": "not found"}, status_code=404)
@@ -705,14 +919,31 @@ async def mp_webhook(request: Request):
         body = await request.json()
     except Exception:
         body = {}
-    payment_id = str((body.get("data") or {}).get("id") or request.query_params.get("data.id") or "")
-    if not payment_id:
+    qp = request.query_params
+    topic = str(body.get("type") or body.get("topic") or qp.get("type") or qp.get("topic") or "")
+    payment_id = str((body.get("data") or {}).get("id") or qp.get("data.id") or "")
+    if not payment_id and topic == "payment":
+        payment_id = str(qp.get("id") or "")
+    if not payment_id or (topic and topic != "payment"):   # merchant_order etc.: ignoramos
         return JSONResponse({"ok": True})
     await _ensure_orders_table()
+    cols = "id, status, mp_payment_id, pay_method, pix_expires_at, customer_name"
     async with engine.connect() as conn:
         order = (await conn.execute(text(
-            "SELECT id, status, mp_payment_id FROM site_orders WHERE mp_payment_id = :pid"
+            f"SELECT {cols} FROM site_orders WHERE mp_payment_id = :pid"
         ), {"pid": payment_id})).mappings().first()
+    if not order:
+        # cartão: o id do pagamento só existe depois que o cliente paga -> achamos pelo external_reference
+        try:
+            p = await _mp_get_payment(payment_id)
+        except Exception:
+            p = None
+        ref = str((p or {}).get("external_reference") or "")
+        if ref.startswith("site-") and ref[5:].isdigit():
+            async with engine.connect() as conn:
+                order = (await conn.execute(text(
+                    f"SELECT {cols} FROM site_orders WHERE id = :id AND pay_method = 'card'"
+                ), {"id": int(ref[5:])})).mappings().first()
     if order:
         try:
             await _refresh_status(dict(order))

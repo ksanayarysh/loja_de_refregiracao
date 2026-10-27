@@ -175,9 +175,25 @@
       <div class="co-line"><span>Produtos</span><span class="co-money" id="sum-sub">R$ 0,00</span></div>
       <div class="co-line"><span>Frete</span><span class="co-money" id="sum-frete">Grátis</span></div>
       <div class="co-total"><span>Total</span><span class="co-money" id="sum-total">R$ 0,00</span></div>
+      <div style="margin-top:16px;">
+        <label class="co-opt">
+          <input type="radio" name="pmethod" value="pix" checked>
+          <div class="co-opt-main">
+            <div class="co-opt-name">Pix</div>
+            <div class="co-opt-hint">Aprovação na hora</div>
+          </div>
+        </label>
+        <label class="co-opt">
+          <input type="radio" name="pmethod" value="card">
+          <div class="co-opt-main">
+            <div class="co-opt-name">Cartão de crédito</div>
+            <div class="co-opt-hint">À vista ou parcelado · pago no Mercado Pago</div>
+          </div>
+        </label>
+      </div>
       <div id="pay-msg" class="co-msg"></div>
       <button class="co-pay" id="pay-btn" type="button" onclick="pagar()">Pagar com Pix</button>
-      <div style="text-align:center;"><span class="co-pix-badge">⚡ Pix · aprovação na hora</span></div>
+      <div style="text-align:center;"><span class="co-pix-badge" id="pay-badge">⚡ Pix · aprovação na hora</span></div>
     </div>
   </div>
 </div>
@@ -225,6 +241,12 @@ function cartRemove(idx) { const it = cart[idx]; if (it) cartQty(idx, -it.qty); 
 // ── resumo ──
 function subtotal() { return cart.reduce((s, i) => s + i.price * i.qty, 0); }
 function dtype() { return document.querySelector('input[name="dtype"]:checked').value; }
+function pmethod() { const el = document.querySelector('input[name="pmethod"]:checked'); return el ? el.value : 'pix'; }
+function payLabel() { return pmethod() === 'card' ? 'Pagar com cartão' : 'Pagar com Pix'; }
+document.querySelectorAll('input[name="pmethod"]').forEach(r => r.addEventListener('change', () => {
+  $('pay-btn').textContent = payLabel();
+  $('pay-badge').textContent = pmethod() === 'card' ? '🔒 Pagamento seguro pelo Mercado Pago' : '⚡ Pix · aprovação na hora';
+}));
 
 function renderSummary() {
   if (!cart.length) { $('co-main').classList.add('co-hidden'); $('co-empty').classList.remove('co-hidden'); return; }
@@ -389,25 +411,25 @@ async function pagar() {
 
   try { localStorage.setItem('mtf_checkout_dados', JSON.stringify({ name, phone, email })); } catch (e) {}
 
-  const btn = $('pay-btn'); btn.disabled = true; btn.textContent = 'Gerando Pix...';
+  const btn = $('pay-btn'); btn.disabled = true; btn.textContent = pmethod() === 'card' ? 'Abrindo pagamento...' : 'Gerando Pix...';
   try {
-    const r = await fetch('/api/checkout/pix', {
+    const r = await fetch('/api/checkout/pagar', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, phone, email, delivery, items: cart.map(i => i.kit_id ? { kit_id: i.kit_id, qty: i.qty } : { id: i.id, qty: i.qty, kit: !!i.kit }) }),
+      body: JSON.stringify({ name, phone, email, delivery, method: pmethod(), items: cart.map(i => i.kit_id ? { kit_id: i.kit_id, qty: i.qty } : { id: i.id, qty: i.qty, kit: !!i.kit }) }),
     });
     const d = await r.json();
     if (!r.ok && d.stock_issue) {
       await syncStock();
-      btn.disabled = false; btn.textContent = 'Pagar com Pix';
+      btn.disabled = false; btn.textContent = payLabel();
       return err(d.error + ' Confira o resumo e toque em Pagar de novo.');
     }
-    if (!r.ok) throw new Error(d.error || 'Não foi possível gerar o Pix.');
+    if (!r.ok) throw new Error(d.error || 'Não foi possível iniciar o pagamento.');
     if (typeof gtag !== 'undefined') gtag('event', 'begin_checkout', { value: subtotal() + (frete ? frete.price : 0), currency: 'BRL' });
     if (typeof fbq !== 'undefined') fbq('track', 'InitiateCheckout', { content_ids: cart.filter(i => i.id && !i.kit_id).map(i => String(i.id)), content_type: 'product', num_items: cart.reduce((s, i) => s + i.qty, 0), value: subtotal() + (frete ? frete.price : 0), currency: 'BRL' });
     location.href = d.url;
   } catch (e) {
     err(e.message);
-    btn.disabled = false; btn.textContent = 'Pagar com Pix';
+    btn.disabled = false; btn.textContent = payLabel();
   }
 }
 

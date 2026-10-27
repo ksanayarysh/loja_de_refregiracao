@@ -189,7 +189,8 @@ async def site_order_register_sale(order_id: int, _=Depends(basic_auth)):
             await conn.exec_driver_sql(
                 "INSERT INTO sales (sold_at, product_id, qty, unit_price, total, note, payment_type, client_id) "
                 "VALUES ($1,$2,$3,$4,$5,$6,$7,$8)",
-                (sold_at, pid, qty_d, price_d, total_d, line_note, "pix", None),
+                (sold_at, pid, qty_d, price_d, total_d, line_note,
+                 "cartao" if o.get("pay_method") == "card" else "pix", None),
             )
             sale_id = (await conn.execute(text("SELECT lastval()"))).scalar()
             await conn.execute(text("""
@@ -493,7 +494,7 @@ async def site_order_cancel(order_id: int, refund: str = Form(""), _=Depends(bas
         return _go(order_id, err="Pedido já cancelado")
     want_refund = bool(refund) and o["status"] == "paid"
     if want_refund and (not _mp_token() or not o["mp_payment_id"]):
-        return _go(order_id, err="Sem MP_ACCESS_TOKEN na admin: não dá para devolver o Pix daqui")
+        return _go(order_id, err="Sem MP_ACCESS_TOKEN na admin: não dá para devolver o pagamento daqui")
 
     # 1. entregador (se não der para cancelar, para tudo aqui — nada foi alterado ainda)
     if o["lalamove_order_id"]:
@@ -533,7 +534,7 @@ async def site_order_cancel(order_id: int, refund: str = Form(""), _=Depends(bas
     if o["sale_registered"]:
         msg += " Vendas removidas e estoque devolvido."
     if want_refund:
-        msg += f" Pix de R$ {float(o['total']):.2f} devolvido ao cliente."
+        msg += f" R$ {float(o['total']):.2f} devolvido ao cliente ({'cartão' if o.get('pay_method') == 'card' else 'Pix'})."
     elif o["status"] == "paid":
         msg += " O dinheiro NÃO foi devolvido automaticamente."
     return _go(order_id, ok=msg)

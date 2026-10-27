@@ -60,9 +60,21 @@
 
 <div class="pd-wrap">
 
-  <!-- AGUARDANDO PIX -->
+  <!-- AGUARDANDO PAGAMENTO -->
   <div class="pd-card {% if order.status != 'pending' %}pd-hidden{% endif %}" id="st-pending">
     <div class="pd-num">Pedido #{{ order.id }}</div>
+    {% if order.pay_method == 'card' %}
+    <div class="pd-title">Pague com cartão para confirmar</div>
+    <div class="pd-sub">O pagamento é feito no ambiente seguro do Mercado Pago, à vista ou parcelado.</div>
+    <div class="pd-total">R$ {{ "{:,.2f}".format(order.total).replace(",", "X").replace(".", ",").replace("X", ".") }}</div>
+    <div class="pd-sub pd-hidden" id="card-recusado" style="color:var(--accent);font-weight:700;margin:8px 0;">
+      O pagamento não foi aprovado. Tente outro cartão ou pague com Pix.</div>
+    {% if order.mp_init_point %}
+    <a class="pd-copy-btn" style="display:block;text-align:center;text-decoration:none;" href="{{ order.mp_init_point }}">Pagar com cartão</a>
+    {% endif %}
+    <div class="pd-timer" id="timer" style="margin-top:12px;"></div>
+    <div class="pd-wait"><span class="pd-dot"></span> Aguardando pagamento… esta página atualiza sozinha.</div>
+    {% else %}
     <div class="pd-title">Pague com Pix para confirmar</div>
     <div class="pd-sub">Abra o app do seu banco, escolha <strong>Pix → Ler QR code</strong> ou <strong>Pix copia e cola</strong>.</div>
     <div class="pd-total">R$ {{ "{:,.2f}".format(order.total).replace(",", "X").replace(".", ",").replace("X", ".") }}</div>
@@ -77,6 +89,7 @@
     <button class="pd-copy-btn" id="copy-btn" type="button" onclick="copiarPix()">Copiar código Pix</button>
 
     <div class="pd-wait"><span class="pd-dot"></span> Aguardando pagamento… esta página atualiza sozinha.</div>
+    {% endif %}
   </div>
 
   <!-- PAGO -->
@@ -98,9 +111,9 @@
   <!-- EXPIRADO -->
   <div class="pd-card pd-ok {% if order.status not in ['expired', 'error'] %}pd-hidden{% endif %}" id="st-expired">
     <div class="pd-num">Pedido #{{ order.id }}</div>
-    <div class="pd-title">O Pix expirou</div>
-    <div class="pd-sub">O prazo para pagamento terminou. Seus produtos continuam no carrinho — é só gerar um novo Pix.</div>
-    <a class="pd-btn pd-btn-main" href="/checkout">Gerar novo Pix</a>
+    <div class="pd-title">{% if order.pay_method == 'card' %}O prazo para pagamento terminou{% else %}O Pix expirou{% endif %}</div>
+    <div class="pd-sub">O prazo para pagamento terminou. Seus produtos continuam no carrinho — é só fazer o pedido de novo.</div>
+    <a class="pd-btn pd-btn-main" href="/checkout">Voltar ao checkout</a>
   </div>
 
   <!-- CANCELADO -->
@@ -108,7 +121,7 @@
     <div class="pd-num">Pedido #{{ order.id }}</div>
     <div class="pd-title">Pedido cancelado</div>
     <div class="pd-sub">
-      {% if order.status == 'refunded' %}O valor pago foi devolvido pelo Mercado Pago. O estorno do Pix costuma cair na hora.
+      {% if order.status == 'refunded' %}O valor pago foi devolvido pelo Mercado Pago. {% if order.pay_method == 'card' %}No cartão, o estorno aparece na fatura (pode levar até 2 faturas).{% else %}O estorno do Pix costuma cair na hora.{% endif %}
       {% else %}Este pedido foi cancelado.{% endif %}
       Dúvidas? Fale com a gente no WhatsApp.
     </div>
@@ -228,6 +241,14 @@ async function poll() {
 }
 
 if (status === 'paid') onPaid();
+// voltou do Mercado Pago com cartão recusado
+try {
+  const q = new URLSearchParams(location.search);
+  const back = q.get('collection_status') || q.get('status');
+  if (status === 'pending' && back === 'rejected') {
+    const el = document.getElementById('card-recusado'); if (el) el.classList.remove('pd-hidden');
+  }
+} catch (e) {}
 tick(); setInterval(tick, 1000);
 setTimeout(poll, 3000);
 </script>
