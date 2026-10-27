@@ -231,6 +231,89 @@ async def _track_product_view(product_id: int, slug: str, ip: str, ua: str):
 _visit_cache: dict = {}  # ip -> timestamp, чтобы не спамить с одного IP
 _EXCLUDED_IPS = {"177.192.23.188"}  # свои IP — не трекать
 
+
+def _is_owner(request: Request) -> bool:
+    """Visita da própria loja: IP fixo excluído OU navegador marcado em /eu (cookie mtf_eu=1)."""
+    return _client_ip(request) in _EXCLUDED_IPS or request.cookies.get("mtf_eu") == "1"
+
+
+@router.get("/eu", response_class=HTMLResponse)
+async def marcar_navegador_da_loja(request: Request, sair: int = 0):
+    """Abra uma vez em cada celular/computador da loja: esse navegador deixa de contar nas estatísticas.
+    /eu?sair=1 desfaz."""
+    txt = ("Este navegador voltou a contar nas estatísticas." if sair else
+           "Pronto! Este navegador é da loja e não conta mais nas estatísticas (visitas, views, cliques, checkout).")
+    resp = HTMLResponse(f"<!doctype html><meta charset=utf-8><meta name=viewport content='width=device-width'>"
+                        f"<meta name=robots content=noindex><body style='font-family:sans-serif;padding:30px'>"
+                        f"<h2>{txt}</h2><p><a href='/'>Ir para o site</a></p></body>")
+    if sair:
+        resp.delete_cookie("mtf_eu", path="/")
+    else:
+        resp.set_cookie("mtf_eu", "1", max_age=5 * 365 * 86400, path="/", samesite="lax", secure=True)
+    return resp
+
+
+# ── EVENTOS POR PRODUTO (carrinho, checkout, ligação) ─────────────────────────
+_events_ready = False
+_event_seen: dict = {}   # (ip, pid, event) -> ts: o mesmo evento da mesma pessoa conta 1x por hora
+
+
+async def log_product_events(ids, event: str, ip: str):
+    global _events_ready
+    import time
+    now = time.time()
+    novos = []
+    for pid in ids:
+        try:
+            pid = int(pid)
+        except (TypeError, ValueError):
+            continue
+        if pid <= 0 or now - _event_seen.get((ip, pid, event), 0) < 3600:
+            continue
+        _event_seen[(ip, pid, event)] = now
+        novos.append(pid)
+    if len(_event_seen) > 20000:
+        for k, t in list(_event_seen.items()):
+            if now - t > 3600:
+                _event_seen.pop(k, None)
+    if not novos:
+        return
+    try:
+        async with engine.begin() as conn:
+            if not _events_ready:
+                await conn.execute(text("""
+                    CREATE TABLE IF NOT EXISTS product_events (
+                        id          SERIAL PRIMARY KEY,
+                        product_id  INTEGER NOT NULL,
+                        event       VARCHAR(20) NOT NULL,
+                        ip          VARCHAR(64),
+                        created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                    )
+                """))
+                await conn.execute(text(
+                    "CREATE INDEX IF NOT EXISTS ix_pe_prod_time ON product_events(product_id, created_at)"))
+                _events_ready = True
+            for pid in novos:
+                await conn.execute(text(
+                    "INSERT INTO product_events (product_id, event, ip) VALUES (:p, :e, :ip)"
+                ), {"p": pid, "e": event, "ip": ip})
+    except Exception:
+        _blog_log.exception("product_events: falha ao gravar")
+
+
+@router.post("/api/track/event")
+async def track_event(request: Request):
+    """Do navegador: {product_id, event: 'cart' | 'phone'}."""
+    try:
+        body = await request.json()
+    except Exception:
+        return JSONResponse({"ok": False})
+    event = str(body.get("event", ""))
+    if event not in ("cart", "phone") or _is_owner(request) or _is_bot(request.headers.get("user-agent", "")):
+        return JSONResponse({"ok": True, "skip": True})
+    await log_product_events([body.get("product_id")], event, _client_ip(request))
+    return JSONResponse({"ok": True})
+
 async def _ensure_visits_table():
     """Создаёт таблицу site_visits если не существует."""
     async with engine.begin() as conn:
@@ -256,8 +339,8 @@ async def track_visit(request: Request):
         now = datetime.now(BRT)
         now_str = now.strftime("%d/%m %H:%M")
 
-        # Исключаем свои IP
-        if ip in _EXCLUDED_IPS:
+        # Исключаем свои IP / navegador da loja (/eu)
+        if _is_owner(request):
             return JSONResponse({"ok": True, "skip": True})
 
         # Один визит с IP раз в 24 часа (уникальные посетители в день)
@@ -911,7 +994,8 @@ async def product_page(request: Request, slug: str):
     # Fire-and-forget трекинг просмотра
     ip = _client_ip(request)
     ua = request.headers.get("user-agent", "")
-    asyncio.ensure_future(_track_product_view(product["id"], slug, ip, ua))
+    if not _is_owner(request):
+        asyncio.ensure_future(_track_product_view(product["id"], slug, ip, ua))
 
     related = []
     for r in rows:
@@ -1670,7 +1754,7 @@ async def _frete_log(request: Request, cep: str, status: int, data: dict,
     global _frete_log_table_ok
     import time
     ip = _real_ip(request)
-    if ip in _EXCLUDED_IPS:
+    if _is_owner(request):
         return
     now = time.time()
     if now - _frete_log_seen.get((ip, cep), 0) < 600:
@@ -2005,6 +2089,8 @@ async def track_whatsapp_click(request: Request):
         product    = body.get("product", "Geral")
         user_agent = request.headers.get("user-agent", "")[:80]
         ip         = _client_ip(request)
+        if _is_owner(request):
+            return JSONResponse({"ok": True, "skip": True})
         async with engine.begin() as conn:
             await conn.execute(text("""
                 INSERT INTO catalog_clicks (product_name, ip, user_agent, clicked_at)

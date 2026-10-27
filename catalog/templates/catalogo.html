@@ -825,6 +825,7 @@ function buyCard(id, name, price, unit) {
 }
 
 function addToCart(id, name, price, unit, btn) {
+  try { navigator.sendBeacon('/api/track/event', new Blob([JSON.stringify({ product_id: id, event: 'cart' })], { type: 'application/json' })); } catch (e) {}
   const existing = cart.find(i => i.id === id && !i.kit);
   if (existing) { existing.qty += 1; }
   else { cart.push({ id, name, price, unit, qty: 1 }); }

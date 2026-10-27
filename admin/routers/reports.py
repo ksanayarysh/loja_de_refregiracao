@@ -1046,6 +1046,16 @@ async def product_views_report(
         since = today - timedelta(days=days)
         date_end = today
 
+    async with engine.begin() as conn:   # tabela de eventos do site (o catálogo cria; aqui só garante que existe)
+        await conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS product_events (
+                id          SERIAL PRIMARY KEY,
+                product_id  INTEGER NOT NULL,
+                event       VARCHAR(20) NOT NULL,
+                ip          VARCHAR(64),
+                created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            )
+        """))
     async with engine.connect() as conn:
 
         # 1. Топ товаров по просмотрам
@@ -1076,7 +1086,9 @@ async def product_views_report(
                 COALESCE(c.name, 'Outro')     AS category_name,
                 COUNT(*)                       AS views,
                 COUNT(DISTINCT pv.ip)          AS unique_ips,
-                COALESCE(wa.clicks, 0)         AS wa_clicks
+                COALESCE(wa.clicks, 0)         AS wa_clicks,
+                COALESCE(ev.compra, 0)         AS compra,
+                COALESCE(ev.ligacao, 0)        AS ligacao
             FROM product_views pv
             LEFT JOIN products p   ON p.id  = pv.product_id
             LEFT JOIN categories c ON c.id  = p.category_id
@@ -1086,10 +1098,19 @@ async def product_views_report(
                 WHERE clicked_at::date >= :since AND clicked_at::date <= :date_end
                 GROUP BY product_name
             ) wa ON wa.product_name = p.name
+            LEFT JOIN (
+                -- carrinho/checkout: pessoas (IPs) diferentes; ligação: cliques no telefone na página do produto
+                SELECT product_id,
+                       COUNT(DISTINCT ip) FILTER (WHERE event IN ('cart', 'checkout')) AS compra,
+                       COUNT(*)           FILTER (WHERE event = 'phone')               AS ligacao
+                FROM product_events
+                WHERE created_at::date >= :since AND created_at::date <= :date_end
+                GROUP BY product_id
+            ) ev ON ev.product_id = pv.product_id
             WHERE pv.viewed_at::date >= :since AND pv.viewed_at::date <= :date_end
-            GROUP BY pv.slug, pv.product_id, p.name, c.name, wa.clicks
+            GROUP BY pv.slug, pv.product_id, p.name, c.name, wa.clicks, ev.compra, ev.ligacao
             HAVING COUNT(*) >= 3
-            ORDER BY (COUNT(*) - COALESCE(wa.clicks, 0)) DESC
+            ORDER BY (COUNT(*) - COALESCE(wa.clicks, 0) - COALESCE(ev.compra, 0) - COALESCE(ev.ligacao, 0)) DESC
             LIMIT 25
         """), {"since": since, "date_end": date_end})
         no_conversion = no_conv_res.mappings().all()

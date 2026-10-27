@@ -240,26 +240,33 @@
 
   {# Produtos sem conversão #}
   <div class="card">
-    <h2>🚨 Vistos mas não consultados no WhatsApp</h2>
-    <div style="font-size:.82rem;color:#888;margin-bottom:12px;">Produtos com ≥ 3 visualizações e baixa conversão para WhatsApp — potencial de melhoria de preço, foto ou descrição.</div>
+    <h2>🚨 Vistos e pouca ação</h2>
+    <div style="font-size:.82rem;color:#888;margin-bottom:12px;">Produtos com ≥ 3 visualizações. Conversão = (WhatsApp + Comprar/checkout + Ligação) ÷ visitantes únicos. Comprar/checkout e Ligação contam a partir de 27/10/2026.</div>
     {% if no_conversion %}
       <table>
         <thead><tr>
           <th>Produto</th>
           <th class="num">Views</th>
-          <th class="num">WA cliques</th>
+          <th class="num">Únicos</th>
+          <th class="num">WhatsApp</th>
+          <th class="num">Comprar / checkout</th>
+          <th class="num">Ligação</th>
           <th class="num">Conversão</th>
         </tr></thead>
         <tbody>
         {% for r in no_conversion %}
-          {% set conv = ((r.wa_clicks / r.views) * 100) | round(1) if r.views > 0 else 0 %}
+          {% set acoes = r.wa_clicks + r.compra + r.ligacao %}
+          {% set conv = ((acoes / r.unique_ips) * 100) | round(1) if r.unique_ips > 0 else 0 %}
           <tr>
             <td>
               <a href="/product/{{ r.slug }}" target="_blank" style="font-weight:700;color:#111;text-decoration:none;">{{ r.name or r.slug }}</a>
               <div><span class="cat-pill">{{ r.category_name }}</span></div>
             </td>
             <td class="num">{{ r.views }}</td>
+            <td class="num">{{ r.unique_ips }}</td>
             <td class="num">{{ r.wa_clicks }}</td>
+            <td class="num">{{ r.compra }}</td>
+            <td class="num">{{ r.ligacao }}</td>
             <td class="num">
               <span class="conv-pct {% if conv == 0 %}conv-zero{% elif conv < 20 %}conv-low{% else %}conv-ok{% endif %}">
                 {{ conv }}%

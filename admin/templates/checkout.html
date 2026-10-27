@@ -74,6 +74,22 @@
     .client-item:last-child { border-bottom: none; }
     .client-item:hover { background: #f0fdf4; }
     .cart-kit { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 999px; background: #fef3c7; color: #92400e; font-size: .72rem; font-weight: 800; vertical-align: middle; }
+    /* LALAMOVE */
+    .lala-block { margin-top: 16px; padding: 16px; background: #fff7ed; border-radius: 10px; border: 1px solid #fed7aa; }
+    .lala-block > label.lala-toggle { display: flex; align-items: center; gap: 10px; margin: 0; cursor: pointer; }
+    .lala-toggle input { width: 20px; height: 20px; accent-color: #ea580c; }
+    .lala-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
+    .lala-grid .full { grid-column: 1 / -1; }
+    .lala-block label { margin: 10px 0 4px; font-size: .88rem; }
+    .lala-opt { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1.5px solid #e5e7eb; border-radius: 10px; margin-top: 8px; background: #fff; cursor: pointer; font-weight: 700; }
+    .lala-opt:has(input:checked) { border-color: #ea580c; background: #fff1e6; }
+    .lala-opt .pr { margin-left: auto; font-weight: 900; }
+    .lala-msg { margin-top: 10px; font-size: .9rem; font-weight: 700; }
+    .lala-msg.err { color: #dc2626; } .lala-msg.ok { color: #166534; } .lala-msg.warn { color: #b45309; }
+    .btn-lala { margin-top: 12px; padding: 12px 18px; border-radius: 10px; border: none; background: #ea580c; color: #fff; font-weight: 900; font-size: .95rem; cursor: pointer; font-family: inherit; }
+    .btn-lala:disabled { opacity: .55; cursor: default; }
+    .btn-lala.sec { background: #fff; color: #ea580c; border: 1.5px solid #ea580c; }
+    @media (max-width: 600px) { .lala-grid { grid-template-columns: 1fr; } }
     @media (max-width: 600px) { .cart-table th:nth-child(2), .cart-table td:nth-child(2) { display: none; } }
 {% endblock %}
 
@@ -153,6 +169,31 @@
             <input class="troco-input" type="number" id="valor-pago" min="0" step="0.01"
                    placeholder="Ex.: 50,00" oninput="calcTroco()">
             <div class="troco-result" id="troco-result"></div>
+          </div>
+
+          <!-- Lalamove (venda balcão / WhatsApp). Campos sem name: não vão no formulário da venda -->
+          <div class="lala-block">
+            <label class="lala-toggle"><input type="checkbox" id="lala-on" onchange="lalaToggle()"> 🛵 Entregar pela Lalamove</label>
+            <div id="lala-box" style="display:none">
+              <div class="lala-grid">
+                <div><label>Nome do cliente</label><input class="troco-input" id="lala-name" maxlength="120"></div>
+                <div><label>WhatsApp com DDD</label><input class="troco-input" id="lala-phone" inputmode="tel" placeholder="(21) 99999-9999"></div>
+                <div><label>CEP</label><input class="troco-input" id="lala-cep" inputmode="numeric" maxlength="9" onblur="lalaCep()"></div>
+                <div><label>Número</label><input class="troco-input" id="lala-num" maxlength="20"></div>
+                <div class="full"><label>Rua</label><input class="troco-input" id="lala-rua" maxlength="200"></div>
+                <div><label>Bairro</label><input class="troco-input" id="lala-bairro" maxlength="120"></div>
+                <div><label>Complemento</label><input class="troco-input" id="lala-comp" maxlength="120" placeholder="Apto, loja, referência"></div>
+                <div class="full"><label>…ou localização que o cliente mandou (link do Maps / WhatsApp)</label>
+                  <input class="troco-input" id="lala-loc" placeholder="https://maps.google.com/?q=-22.87,-43.25"></div>
+                <div class="full"><label>Observação para o entregador (opcional)</label><input class="troco-input" id="lala-obs" maxlength="200"></div>
+              </div>
+              <input type="hidden" id="lala-cidade"><input type="hidden" id="lala-uf">
+              <button class="btn-lala sec" type="button" id="lala-cotar" onclick="lalaCotar()">Cotar frete</button>
+              <div id="lala-opts"></div>
+              <div id="lala-msg" class="lala-msg"></div>
+              <button class="btn-lala" type="button" id="lala-chamar" style="display:none" onclick="lalaChamar()">🛵 Chamar entregador</button>
+              <div id="lala-done" style="display:none"></div>
+            </div>
           </div>
 
           <div class="btns">
@@ -398,6 +439,92 @@
   document.addEventListener('click', e => {
     if (!e.target.closest('.client-search-wrap')) document.getElementById('client-results').style.display = 'none';
   });
+
+  // ── Lalamove (venda balcão) ──
+  let lalaQuote = null, lalaRid = null;
+  const $l = id => document.getElementById(id);
+  function lalaMsg(t, cls) { const m = $l('lala-msg'); m.className = 'lala-msg ' + (cls || ''); m.innerHTML = t || ''; }
+  function lalaEsc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function lalaToggle() { $l('lala-box').style.display = $l('lala-on').checked ? 'block' : 'none'; }
+  ['lala-cep','lala-num','lala-rua','lala-bairro','lala-comp','lala-loc'].forEach(id =>
+    $l(id).addEventListener('input', () => { lalaQuote = null; $l('lala-opts').innerHTML = ''; $l('lala-chamar').style.display = 'none'; }));
+
+  async function lalaCep() {
+    const cep = $l('lala-cep').value.replace(/\D/g, '');
+    if (cep.length !== 8) return;
+    try {
+      const r = await fetch('/api/lalamove/cep/' + cep); const d = await r.json();
+      if (!r.ok) return lalaMsg(d.error || 'CEP não encontrado', 'err');
+      if (d.rua) $l('lala-rua').value = d.rua;
+      if (d.bairro) $l('lala-bairro').value = d.bairro;
+      $l('lala-cidade').value = d.cidade || ''; $l('lala-uf').value = d.uf || '';
+      lalaMsg(''); $l('lala-num').focus();
+    } catch (e) {}
+  }
+
+  async function lalaCotar() {
+    const btn = $l('lala-cotar'); btn.disabled = true; btn.textContent = 'Cotando...';
+    lalaMsg(''); $l('lala-opts').innerHTML = ''; $l('lala-chamar').style.display = 'none'; lalaQuote = null;
+    try {
+      const r = await fetch('/api/lalamove/cotar', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cep: $l('lala-cep').value, rua: $l('lala-rua').value, numero: $l('lala-num').value,
+          bairro: $l('lala-bairro').value, cidade: $l('lala-cidade').value || 'Rio de Janeiro', uf: $l('lala-uf').value || 'RJ',
+          complemento: $l('lala-comp').value, localizacao: $l('lala-loc').value }) });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'Erro ao cotar');
+      lalaQuote = d;
+      const min = Math.min(...d.options.map(o => o.price));
+      $l('lala-opts').innerHTML = d.options.map((o, i) => `
+        <label class="lala-opt"><input type="radio" name="lala-svc" value="${o.service}" ${o.price === min ? 'checked' : ''}>
+          ${o.label} <small style="color:#888;font-weight:400">${o.km} km</small><span class="pr">${fmt(o.price)}</span></label>`).join('');
+      lalaMsg(`📍 ${lalaEsc(d.address)} — <a href="${d.maps}" target="_blank" rel="noopener">conferir no mapa</a>`
+              + (d.aviso ? `<br>⚠️ ${lalaEsc(d.aviso)}` : ''), d.aviso ? 'warn' : '');
+      $l('lala-chamar').style.display = 'inline-block';
+    } catch (e) { lalaMsg(e.message, 'err'); }
+    btn.disabled = false; btn.textContent = 'Cotar de novo';
+  }
+
+  async function lalaChamar() {
+    if (!lalaQuote) return lalaMsg('Cote o frete primeiro.', 'err');
+    const svc = document.querySelector('input[name="lala-svc"]:checked');
+    if (!svc) return lalaMsg('Escolha Motoboy / Carro / Baú.', 'err');
+    const name = $l('lala-name').value.trim(), phone = $l('lala-phone').value;
+    if (name.length < 2 || phone.replace(/\D/g, '').length < 10) return lalaMsg('Informe nome e WhatsApp do cliente.', 'err');
+    if (!confirm('Chamar o entregador agora? A Lalamove começa a procurar motorista na hora.')) return;
+    const btn = $l('lala-chamar'); btn.disabled = true; btn.textContent = 'Chamando...';
+    try {
+      const r = await fetch('/api/lalamove/chamar', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lat: lalaQuote.lat, lng: lalaQuote.lng, address: lalaQuote.address, service: svc.value,
+          name, phone, obs: $l('lala-obs').value }) });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'Erro ao chamar');
+      lalaRid = d.id;
+      btn.style.display = 'none'; $l('lala-cotar').style.display = 'none'; $l('lala-opts').innerHTML = '';
+      const tel = phone.replace(/\D/g, ''); const tel55 = tel.startsWith('55') ? tel : '55' + tel;
+      const txt = `Olá, ${name.split(' ')[0]}! Aqui é da MTF Refrigeração. 😊\nJá chamamos o entregador para o seu pedido 🛵`
+                + (d.share_link ? `\nAcompanhe a entrega por aqui: ${d.share_link}` : '');
+      $l('lala-done').style.display = 'block';
+      $l('lala-done').innerHTML = `
+        <div class="lala-msg ok">✅ ${d.label} chamado · ${fmt(d.price)}</div>
+        ${d.share_link ? `<div style="margin-top:6px"><a href="${d.share_link}" target="_blank" rel="noopener">Acompanhar entrega</a></div>` : ''}
+        <a class="btn-lala" style="display:inline-block;text-decoration:none" target="_blank" rel="noopener"
+           href="https://wa.me/${tel55}?text=${encodeURIComponent(txt)}">📲 Enviar link ao cliente</a>
+        <button class="btn-lala sec" type="button" onclick="lalaCancelar()">Cancelar entregador</button>`;
+      lalaMsg('');
+    } catch (e) { lalaMsg(e.message, 'err'); btn.disabled = false; btn.textContent = '🛵 Chamar entregador'; }
+  }
+
+  async function lalaCancelar() {
+    if (!lalaRid || !confirm('Cancelar o entregador?')) return;
+    try {
+      const r = await fetch('/api/lalamove/cancelar/' + lalaRid, { method: 'POST' }); const d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'Erro');
+      $l('lala-done').innerHTML = '<div class="lala-msg warn">Entregador cancelado.</div>';
+      lalaRid = null; lalaQuote = null;
+      $l('lala-cotar').style.display = 'inline-block'; $l('lala-chamar').style.display = 'none';
+      $l('lala-chamar').disabled = false; $l('lala-chamar').textContent = '🛵 Chamar entregador';
+    } catch (e) { lalaMsg(e.message, 'err'); }
+  }
 
   renderCart();
 </script>

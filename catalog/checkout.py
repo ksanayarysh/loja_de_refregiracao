@@ -32,7 +32,7 @@ from dependencies import engine, templates
 from lalamove import get_quote, LalamoveError
 from router import (
     _apply_promo, _cep_to_coords, geocode_endereco, _km, _quote_cache, _send_tg, _blog_log, _ensure_kit_settings, slugify,
-    margem_detalhe, frete_final, linhas_dos_itens, FRETE_SUBSIDIO_MIN, _client_ip,
+    margem_detalhe, frete_final, linhas_dos_itens, FRETE_SUBSIDIO_MIN, _client_ip, _is_owner, log_product_events,
     FRETE_MAX_KM, FRETE_OPTIONS, LALA_SERVICES, LALA_DEBUG_TOKEN,
     GA_ID, SITE_URL, STORE_ADDRESS, STORE_PHONE, WA_OWNER_NUMBER, ADMIN_URL,
 )
@@ -868,6 +868,13 @@ def _avisar_checkout_aberto(ip: str, items: list, subtotal: float):
     for k, t in list(_checkout_vistos.items()):     # limpa os antigos
         if now - t > 7200:
             _checkout_vistos.pop(k, None)
+    ids = set()
+    for i in items:
+        if i.get("components"):
+            ids.update(c.get("id") for c in i["components"])
+        else:
+            ids.add(i.get("id"))
+    asyncio.ensure_future(log_product_events(ids, "checkout", ip))
     linhas = "\n".join(f"  • {i['name']} × {i['qty']}" for i in items)
     asyncio.ensure_future(_send_tg(
         f"👀 <b>Alguém abriu o checkout</b> (ainda não pagou)\n{linhas}\n"
@@ -883,7 +890,7 @@ async def checkout_stock(request: Request):
     except Exception:
         return JSONResponse({"error": "Dados inválidos."}, status_code=400)
     items, subtotal = await _load_items(body.get("items"))
-    if items:
+    if items and not _is_owner(request):
         _avisar_checkout_aberto(_client_ip(request), items, subtotal)
     kg, short, stock = await _stock_problems(items)
     return JSONResponse({

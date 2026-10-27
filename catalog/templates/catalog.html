@@ -654,6 +654,7 @@ function cartUpdateUI() {
 }
 
 function addToCart(id, name, price, image) {
+  try { navigator.sendBeacon('/api/track/event', new Blob([JSON.stringify({ product_id: id, event: 'cart' })], { type: 'application/json' })); } catch (e) {}
   const existing = cart.find(i => i.id === id && !i.kit);
   if (existing) existing.qty++;
   else cart.push({ id, name, price, image, qty: 1 });

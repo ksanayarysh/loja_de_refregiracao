@@ -942,6 +942,7 @@ function fbTrack(ev, id, price, extra) {
 }
 
 function addToCart(id, name, price, unit, btn) {
+  try { navigator.sendBeacon('/api/track/event', new Blob([JSON.stringify({ product_id: id, event: 'cart' })], { type: 'application/json' })); } catch (e) {}
   const existing = cart.find(i => i.id === id && !i.kit);
   if (existing) { existing.qty += 1; }
   else { cart.push({ id, name, price, unit, qty: 1 }); }
@@ -956,6 +957,7 @@ function addToCart(id, name, price, unit, btn) {
 }
 
 function buyNow(id, name, price, unit) {
+  try { navigator.sendBeacon('/api/track/event', new Blob([JSON.stringify({ product_id: id, event: 'cart' })], { type: 'application/json' })); } catch (e) {}
   if (!cart.find(i => i.id === id && !i.kit)) {
     cart.push({ id, name, price, unit, qty: 1 });
     saveCart();
@@ -1120,6 +1122,7 @@ document.querySelectorAll('.wa-track').forEach(el => {
 
 document.querySelectorAll('.phone-track').forEach(el => {
   el.addEventListener('click', function() {
+    try { navigator.sendBeacon('/api/track/event', new Blob([JSON.stringify({ product_id: {{ product.id }}, event: 'phone' })], { type: 'application/json' })); } catch (e) {}
     fetch('/api/track/whatsapp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
