@@ -1067,7 +1067,7 @@ async def product_views_report(
                 COALESCE(c.name, 'Outro') AS category_name,
                 COUNT(*)                  AS views,
                 COUNT(DISTINCT pv.ip)     AS unique_ips
-            FROM product_views pv
+            FROM (SELECT * FROM product_views WHERE COALESCE(user_agent, '') !~* 'bot[^a-z]|bot$|spider|crawl|headless|lighthouse|pagespeed|facebookexternalhit|meta-external|whatsapp|python|curl|wget|okhttp|axios|node-fetch|go-http|java/|scrapy|mediapartners|google-|googleother|feedfetcher') pv
             LEFT JOIN products p  ON p.id  = pv.product_id
             LEFT JOIN categories c ON c.id = p.category_id
             WHERE pv.viewed_at::date >= :since AND pv.viewed_at::date <= :date_end
@@ -1089,7 +1089,7 @@ async def product_views_report(
                 COALESCE(wa.clicks, 0)         AS wa_clicks,
                 COALESCE(ev.compra, 0)         AS compra,
                 COALESCE(ev.ligacao, 0)        AS ligacao
-            FROM product_views pv
+            FROM (SELECT * FROM product_views WHERE COALESCE(user_agent, '') !~* 'bot[^a-z]|bot$|spider|crawl|headless|lighthouse|pagespeed|facebookexternalhit|meta-external|whatsapp|python|curl|wget|okhttp|axios|node-fetch|go-http|java/|scrapy|mediapartners|google-|googleother|feedfetcher') pv
             LEFT JOIN products p   ON p.id  = pv.product_id
             LEFT JOIN categories c ON c.id  = p.category_id
             LEFT JOIN (
@@ -1121,7 +1121,7 @@ async def product_views_report(
                 EXTRACT(DOW FROM pv.viewed_at)::int AS dow,
                 COUNT(*)                             AS views,
                 COUNT(DISTINCT pv.ip)                AS unique_ips
-            FROM product_views pv
+            FROM (SELECT * FROM product_views WHERE COALESCE(user_agent, '') !~* 'bot[^a-z]|bot$|spider|crawl|headless|lighthouse|pagespeed|facebookexternalhit|meta-external|whatsapp|python|curl|wget|okhttp|axios|node-fetch|go-http|java/|scrapy|mediapartners|google-|googleother|feedfetcher') pv
             WHERE pv.viewed_at::date >= :since AND pv.viewed_at::date <= :date_end
             GROUP BY dow
             ORDER BY dow
@@ -1138,7 +1138,7 @@ async def product_views_report(
                 pv.viewed_at::date AS day,
                 COUNT(*)            AS views,
                 COUNT(DISTINCT pv.ip) AS unique_ips
-            FROM product_views pv
+            FROM (SELECT * FROM product_views WHERE COALESCE(user_agent, '') !~* 'bot[^a-z]|bot$|spider|crawl|headless|lighthouse|pagespeed|facebookexternalhit|meta-external|whatsapp|python|curl|wget|okhttp|axios|node-fetch|go-http|java/|scrapy|mediapartners|google-|googleother|feedfetcher') pv
             WHERE pv.viewed_at::date >= :since AND pv.viewed_at::date <= :date_end
             GROUP BY pv.viewed_at::date
             ORDER BY day ASC
@@ -1157,7 +1157,7 @@ async def product_views_report(
         total_res = await conn.execute(text("""
             SELECT COUNT(*) AS total, COUNT(DISTINCT ip) AS uniq_visitors,
                    COUNT(DISTINCT slug) AS uniq_products
-            FROM product_views
+            FROM (SELECT * FROM product_views WHERE COALESCE(user_agent, '') !~* 'bot[^a-z]|bot$|spider|crawl|headless|lighthouse|pagespeed|facebookexternalhit|meta-external|whatsapp|python|curl|wget|okhttp|axios|node-fetch|go-http|java/|scrapy|mediapartners|google-|googleother|feedfetcher') pvx
             WHERE viewed_at::date >= :since AND viewed_at::date <= :date_end
         """), {"since": since, "date_end": date_end})
         totals = dict(total_res.mappings().first() or {})

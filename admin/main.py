@@ -15,7 +15,10 @@ from routers.kit_discount import router as kit_discount_router
 from routers.site_orders import router as site_orders_router
 from routers.pwa import router as pwa_router
 from routers.kits import router as kits_router
-from routers.lalamove_balcao import router as lalamove_balcao_router
+try:   # se o arquivo não subir, a admin continua no ar (só sem o Lalamove do balcão)
+    from routers.lalamove_balcao import router as lalamove_balcao_router
+except ImportError:
+    lalamove_balcao_router = None
 
 app = FastAPI()
 
@@ -37,7 +40,8 @@ app.include_router(product_sales_history_router)
 app.include_router(purchases_history_router)
 app.include_router(kit_discount_router)
 app.include_router(kits_router)
-app.include_router(lalamove_balcao_router)
+if lalamove_balcao_router:
+    app.include_router(lalamove_balcao_router)
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request, _=Depends(basic_auth)):

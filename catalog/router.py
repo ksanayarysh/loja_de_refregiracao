@@ -196,6 +196,16 @@ _BOT_UA_PATTERNS = (
     "dataforseobot", "serpstatbot", "sistrix", "rogerbot",
     "screaming frog", "python-requests", "go-http-client",
     "curl/", "wget/", "jakarta commons-httpclient",
+    # robôs do Google que NÃO têm "googlebot" no nome: Merchant Center (Storebot), Google Ads (AdsBot) etc.
+    "storebot", "adsbot", "mediapartners-google", "googleother", "google-extended", "feedfetcher",
+    "google-read-aloud", "apis-google", "google-safety", "google-pagerenderer",
+    # prévias de link (WhatsApp, Telegram, Facebook/Instagram...)
+    "facebookexternalhit", "meta-externalagent", "meta-externalfetcher", "whatsapp", "telegrambot",
+    "twitterbot", "linkedinbot", "slackbot", "discordbot", "pinterest", "skypeuripreview",
+    # outros robôs / ferramentas
+    "amazonbot", "oai-searchbot", "perplexitybot", "headlesschrome", "lighthouse", "pagespeed",
+    "crawler", "spider", "scrapy", "okhttp", "axios", "node-fetch", "python-httpx", "aiohttp",
+    "uptimerobot", "bot/", "bot;", "bot)",
 )
 
 def _is_bot(ua: str) -> bool:
