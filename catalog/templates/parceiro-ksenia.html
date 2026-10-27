@@ -7,6 +7,7 @@
   <title>Ksenia — Desenvolvimento Web e PDV RJ | M.T.F Refrigeração</title>
   <meta name="description" content="Ksenia, parceira da M.T.F Refrigeração. Desenvolvimento de sites, lojas virtuais, PDV e automação para pequenas e médias empresas no Rio de Janeiro.">
   {% if ga_id %}
+  <script>if(/(^|; )mtf_eu=1/.test(document.cookie)){window["ga-disable-{{ ga_id }}"]=true;window["ga-disable-AW-18038713780"]=true;}</script>
   <script async src="https://www.googletagmanager.com/gtag/js?id={{ ga_id }}"></script>
   <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","{{ ga_id }}");</script>
   {% endif %}
