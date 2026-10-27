@@ -191,7 +191,7 @@ async def _ensure_views_table():
 
 # IPs de nuvem (Tencent, Alibaba, Huawei...) — robôs que fingem ser iPhone/Chrome vêm daí
 import re as _re_dc
-_DC_IP_RE = _re_dc.compile(r"^(3\.|18\.|20\.|34\.|35\.|40\.|52\.|54\.|44\.(19[2-9]|2[0-5][0-9])\.|43\.(12[89]|1[3-8][0-9]|19[01])\.|82\.156\.|62\.234\.|192\.144\.|49\.51\.|49\.232\.|49\.233\.|101\.3[2-5]\.|101\.4[23]\.|119\.2[89]\.|124\.156\.|129\.226\.|150\.109\.|162\.62\.|170\.106\.|1\.1[2-5]\.|81\.6[89]\.|81\.7[01]\.|106\.5[2-5]\.|111\.2(29|3[01])\.|118\.(25|89|126)\.|121\.[45]\.|122\.51\.|129\.(204|211)\.|134\.175\.|139\.(155|186|199)\.|140\.143\.|150\.158\.|152\.136\.|159\.75\.|175\.2[47]\.|182\.254\.|193\.112\.|203\.195\.|212\.64\.|42\.19[2-4]\.|47\.(7[4-9]|8[0-9]|9[0-9]|2[3-5][0-9])\.|8\.2(09|1[0-9]|2[0-2])\.|119\.13\.|159\.138\.|190\.92\.)")
+_DC_IP_RE = _re_dc.compile(r"^(66\.249\.|66\.102\.|64\.233\.|72\.14\.|74\.125\.|209\.85\.|216\.239\.|108\.177\.|173\.194\.|142\.250\.|172\.217\.|3\.|18\.|20\.|34\.|35\.|40\.|52\.|54\.|44\.(19[2-9]|2[0-5][0-9])\.|43\.(12[89]|1[3-8][0-9]|19[01])\.|82\.156\.|62\.234\.|192\.144\.|49\.51\.|49\.232\.|49\.233\.|101\.3[2-5]\.|101\.4[23]\.|119\.2[89]\.|124\.156\.|129\.226\.|150\.109\.|162\.62\.|170\.106\.|1\.1[2-5]\.|81\.6[89]\.|81\.7[01]\.|106\.5[2-5]\.|111\.2(29|3[01])\.|118\.(25|89|126)\.|121\.[45]\.|122\.51\.|129\.(204|211)\.|134\.175\.|139\.(155|186|199)\.|140\.143\.|150\.158\.|152\.136\.|159\.75\.|175\.2[47]\.|182\.254\.|193\.112\.|203\.195\.|212\.64\.|42\.19[2-4]\.|47\.(7[4-9]|8[0-9]|9[0-9]|2[3-5][0-9])\.|8\.2(09|1[0-9]|2[0-2])\.|119\.13\.|159\.138\.|190\.92\.)")
 
 def _is_datacenter(ip: str) -> bool:
     return bool(_DC_IP_RE.match(ip or ""))
@@ -904,7 +904,22 @@ def _product_seo(p: dict, cat_slug: str) -> dict:
             tail = [f" – {_seo_brl(price)}{per} (-{off}%) | Pronta entrega RJ", f" – {_seo_brl(price)}{per} (-{off}%) no RJ"] + tail
     else:
         tail = [" | M.T.F Refrigeração RJ", " no RJ"]
-    title = next((name + t for t in tail if len(name + t) <= SEO_TITLE_MAX), name)
+    # peça com código (SKU): código no começo do título — quem busca "W10201538" vê o código antes do corte do Google
+    import re as _re_t
+    tname = name
+    sku = (p.get("sku") or "").strip()
+    if sku and len(name) > 38 and not name.lower().startswith(sku.lower()):
+        resto = _re_t.sub(_re_t.escape(sku), "", name, flags=_re_t.I)
+        resto = _re_t.sub(r"\s*/\s*(?=\s|$)", " ", resto)
+        resto = _re_t.sub(r"\s{2,}", " ", resto).strip(" -/,")
+        tname = f"{sku} {resto}"
+    title = next((tname + t for t in tail if len(tname + t) <= SEO_TITLE_MAX), None)
+    if title is None:
+        # nome comprido: corta o nome (na palavra) para o preço continuar visível no Google
+        t = tail[-1]
+        room = SEO_TITLE_MAX - len(t)
+        cut = tname[:room].rsplit(" ", 1)[0].rstrip(" -/,(") if len(tname) > room else tname
+        title = cut + t if room >= 25 else tname
 
     # description: preço + diferencial local + texto do produto
     if price and in_stock:
