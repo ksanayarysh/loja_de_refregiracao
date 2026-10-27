@@ -1056,6 +1056,7 @@ async def product_views_report(
                 created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
             )
         """))
+        await conn.execute(text("ALTER TABLE product_views ADD COLUMN IF NOT EXISTS lang VARCHAR(60)"))
     async with engine.connect() as conn:
 
         # 1. Топ товаров по просмотрам
@@ -1067,7 +1068,7 @@ async def product_views_report(
                 COALESCE(c.name, 'Outro') AS category_name,
                 COUNT(*)                  AS views,
                 COUNT(DISTINCT pv.ip)     AS unique_ips
-            FROM (SELECT * FROM product_views WHERE COALESCE(user_agent, '') !~* 'bot[^a-z]|bot$|spider|crawl|headless|lighthouse|pagespeed|facebookexternalhit|meta-external|whatsapp|python|curl|wget|okhttp|axios|node-fetch|go-http|java/|scrapy|mediapartners|google-|googleother|feedfetcher') pv
+            FROM (SELECT * FROM product_views WHERE COALESCE(ip, '') !~ '^(43\.(12[89]|1[3-8][0-9]|19[01])\.|82\.156\.|62\.234\.|192\.144\.|49\.51\.|49\.232\.|49\.233\.|101\.3[2-5]\.|101\.4[23]\.|119\.2[89]\.|124\.156\.|129\.226\.|150\.109\.|162\.62\.|170\.106\.|1\.1[2-5]\.|81\.6[89]\.|81\.7[01]\.|106\.5[2-5]\.|111\.2(29|3[01])\.|118\.(25|89|126)\.|121\.[45]\.|122\.51\.|129\.(204|211)\.|134\.175\.|139\.(155|186|199)\.|140\.143\.|150\.158\.|152\.136\.|159\.75\.|175\.2[47]\.|182\.254\.|193\.112\.|203\.195\.|212\.64\.|42\.19[2-4]\.|47\.(7[4-9]|8[0-9]|9[0-9]|2[3-5][0-9])\.|8\.2(09|1[0-9]|2[0-2])\.|119\.13\.|159\.138\.|190\.92\.)' AND (lang IS NULL OR lang = '' OR lang ILIKE '%pt%') AND COALESCE(user_agent, '') !~* 'bot[^a-z]|bot$|spider|crawl|headless|lighthouse|pagespeed|facebookexternalhit|meta-external|whatsapp|python|curl|wget|okhttp|axios|node-fetch|go-http|java/|scrapy|mediapartners|google-|googleother|feedfetcher') pv
             LEFT JOIN products p  ON p.id  = pv.product_id
             LEFT JOIN categories c ON c.id = p.category_id
             WHERE pv.viewed_at::date >= :since AND pv.viewed_at::date <= :date_end
@@ -1089,7 +1090,7 @@ async def product_views_report(
                 COALESCE(wa.clicks, 0)         AS wa_clicks,
                 COALESCE(ev.compra, 0)         AS compra,
                 COALESCE(ev.ligacao, 0)        AS ligacao
-            FROM (SELECT * FROM product_views WHERE COALESCE(user_agent, '') !~* 'bot[^a-z]|bot$|spider|crawl|headless|lighthouse|pagespeed|facebookexternalhit|meta-external|whatsapp|python|curl|wget|okhttp|axios|node-fetch|go-http|java/|scrapy|mediapartners|google-|googleother|feedfetcher') pv
+            FROM (SELECT * FROM product_views WHERE COALESCE(ip, '') !~ '^(43\.(12[89]|1[3-8][0-9]|19[01])\.|82\.156\.|62\.234\.|192\.144\.|49\.51\.|49\.232\.|49\.233\.|101\.3[2-5]\.|101\.4[23]\.|119\.2[89]\.|124\.156\.|129\.226\.|150\.109\.|162\.62\.|170\.106\.|1\.1[2-5]\.|81\.6[89]\.|81\.7[01]\.|106\.5[2-5]\.|111\.2(29|3[01])\.|118\.(25|89|126)\.|121\.[45]\.|122\.51\.|129\.(204|211)\.|134\.175\.|139\.(155|186|199)\.|140\.143\.|150\.158\.|152\.136\.|159\.75\.|175\.2[47]\.|182\.254\.|193\.112\.|203\.195\.|212\.64\.|42\.19[2-4]\.|47\.(7[4-9]|8[0-9]|9[0-9]|2[3-5][0-9])\.|8\.2(09|1[0-9]|2[0-2])\.|119\.13\.|159\.138\.|190\.92\.)' AND (lang IS NULL OR lang = '' OR lang ILIKE '%pt%') AND COALESCE(user_agent, '') !~* 'bot[^a-z]|bot$|spider|crawl|headless|lighthouse|pagespeed|facebookexternalhit|meta-external|whatsapp|python|curl|wget|okhttp|axios|node-fetch|go-http|java/|scrapy|mediapartners|google-|googleother|feedfetcher') pv
             LEFT JOIN products p   ON p.id  = pv.product_id
             LEFT JOIN categories c ON c.id  = p.category_id
             LEFT JOIN (
@@ -1121,7 +1122,7 @@ async def product_views_report(
                 EXTRACT(DOW FROM pv.viewed_at)::int AS dow,
                 COUNT(*)                             AS views,
                 COUNT(DISTINCT pv.ip)                AS unique_ips
-            FROM (SELECT * FROM product_views WHERE COALESCE(user_agent, '') !~* 'bot[^a-z]|bot$|spider|crawl|headless|lighthouse|pagespeed|facebookexternalhit|meta-external|whatsapp|python|curl|wget|okhttp|axios|node-fetch|go-http|java/|scrapy|mediapartners|google-|googleother|feedfetcher') pv
+            FROM (SELECT * FROM product_views WHERE COALESCE(ip, '') !~ '^(43\.(12[89]|1[3-8][0-9]|19[01])\.|82\.156\.|62\.234\.|192\.144\.|49\.51\.|49\.232\.|49\.233\.|101\.3[2-5]\.|101\.4[23]\.|119\.2[89]\.|124\.156\.|129\.226\.|150\.109\.|162\.62\.|170\.106\.|1\.1[2-5]\.|81\.6[89]\.|81\.7[01]\.|106\.5[2-5]\.|111\.2(29|3[01])\.|118\.(25|89|126)\.|121\.[45]\.|122\.51\.|129\.(204|211)\.|134\.175\.|139\.(155|186|199)\.|140\.143\.|150\.158\.|152\.136\.|159\.75\.|175\.2[47]\.|182\.254\.|193\.112\.|203\.195\.|212\.64\.|42\.19[2-4]\.|47\.(7[4-9]|8[0-9]|9[0-9]|2[3-5][0-9])\.|8\.2(09|1[0-9]|2[0-2])\.|119\.13\.|159\.138\.|190\.92\.)' AND (lang IS NULL OR lang = '' OR lang ILIKE '%pt%') AND COALESCE(user_agent, '') !~* 'bot[^a-z]|bot$|spider|crawl|headless|lighthouse|pagespeed|facebookexternalhit|meta-external|whatsapp|python|curl|wget|okhttp|axios|node-fetch|go-http|java/|scrapy|mediapartners|google-|googleother|feedfetcher') pv
             WHERE pv.viewed_at::date >= :since AND pv.viewed_at::date <= :date_end
             GROUP BY dow
             ORDER BY dow
@@ -1138,7 +1139,7 @@ async def product_views_report(
                 pv.viewed_at::date AS day,
                 COUNT(*)            AS views,
                 COUNT(DISTINCT pv.ip) AS unique_ips
-            FROM (SELECT * FROM product_views WHERE COALESCE(user_agent, '') !~* 'bot[^a-z]|bot$|spider|crawl|headless|lighthouse|pagespeed|facebookexternalhit|meta-external|whatsapp|python|curl|wget|okhttp|axios|node-fetch|go-http|java/|scrapy|mediapartners|google-|googleother|feedfetcher') pv
+            FROM (SELECT * FROM product_views WHERE COALESCE(ip, '') !~ '^(43\.(12[89]|1[3-8][0-9]|19[01])\.|82\.156\.|62\.234\.|192\.144\.|49\.51\.|49\.232\.|49\.233\.|101\.3[2-5]\.|101\.4[23]\.|119\.2[89]\.|124\.156\.|129\.226\.|150\.109\.|162\.62\.|170\.106\.|1\.1[2-5]\.|81\.6[89]\.|81\.7[01]\.|106\.5[2-5]\.|111\.2(29|3[01])\.|118\.(25|89|126)\.|121\.[45]\.|122\.51\.|129\.(204|211)\.|134\.175\.|139\.(155|186|199)\.|140\.143\.|150\.158\.|152\.136\.|159\.75\.|175\.2[47]\.|182\.254\.|193\.112\.|203\.195\.|212\.64\.|42\.19[2-4]\.|47\.(7[4-9]|8[0-9]|9[0-9]|2[3-5][0-9])\.|8\.2(09|1[0-9]|2[0-2])\.|119\.13\.|159\.138\.|190\.92\.)' AND (lang IS NULL OR lang = '' OR lang ILIKE '%pt%') AND COALESCE(user_agent, '') !~* 'bot[^a-z]|bot$|spider|crawl|headless|lighthouse|pagespeed|facebookexternalhit|meta-external|whatsapp|python|curl|wget|okhttp|axios|node-fetch|go-http|java/|scrapy|mediapartners|google-|googleother|feedfetcher') pv
             WHERE pv.viewed_at::date >= :since AND pv.viewed_at::date <= :date_end
             GROUP BY pv.viewed_at::date
             ORDER BY day ASC
@@ -1157,7 +1158,7 @@ async def product_views_report(
         total_res = await conn.execute(text("""
             SELECT COUNT(*) AS total, COUNT(DISTINCT ip) AS uniq_visitors,
                    COUNT(DISTINCT slug) AS uniq_products
-            FROM (SELECT * FROM product_views WHERE COALESCE(user_agent, '') !~* 'bot[^a-z]|bot$|spider|crawl|headless|lighthouse|pagespeed|facebookexternalhit|meta-external|whatsapp|python|curl|wget|okhttp|axios|node-fetch|go-http|java/|scrapy|mediapartners|google-|googleother|feedfetcher') pvx
+            FROM (SELECT * FROM product_views WHERE COALESCE(ip, '') !~ '^(43\.(12[89]|1[3-8][0-9]|19[01])\.|82\.156\.|62\.234\.|192\.144\.|49\.51\.|49\.232\.|49\.233\.|101\.3[2-5]\.|101\.4[23]\.|119\.2[89]\.|124\.156\.|129\.226\.|150\.109\.|162\.62\.|170\.106\.|1\.1[2-5]\.|81\.6[89]\.|81\.7[01]\.|106\.5[2-5]\.|111\.2(29|3[01])\.|118\.(25|89|126)\.|121\.[45]\.|122\.51\.|129\.(204|211)\.|134\.175\.|139\.(155|186|199)\.|140\.143\.|150\.158\.|152\.136\.|159\.75\.|175\.2[47]\.|182\.254\.|193\.112\.|203\.195\.|212\.64\.|42\.19[2-4]\.|47\.(7[4-9]|8[0-9]|9[0-9]|2[3-5][0-9])\.|8\.2(09|1[0-9]|2[0-2])\.|119\.13\.|159\.138\.|190\.92\.)' AND (lang IS NULL OR lang = '' OR lang ILIKE '%pt%') AND COALESCE(user_agent, '') !~* 'bot[^a-z]|bot$|spider|crawl|headless|lighthouse|pagespeed|facebookexternalhit|meta-external|whatsapp|python|curl|wget|okhttp|axios|node-fetch|go-http|java/|scrapy|mediapartners|google-|googleother|feedfetcher') pvx
             WHERE viewed_at::date >= :since AND viewed_at::date <= :date_end
         """), {"since": since, "date_end": date_end})
         totals = dict(total_res.mappings().first() or {})
@@ -1179,6 +1180,7 @@ async def product_views_report(
 
 # ── Acessos de um produto (para conferir se são pessoas ou robôs) ──────────────
 _BOT_RE_PY = r"bot[^a-z]|bot$|spider|crawl|headless|lighthouse|pagespeed|facebookexternalhit|meta-external|whatsapp|python|curl|wget|okhttp|axios|node-fetch|go-http|java/|scrapy|mediapartners|google-|googleother|feedfetcher"
+_DC_RE_PY = r"^(43\.(12[89]|1[3-8][0-9]|19[01])\.|82\.156\.|62\.234\.|192\.144\.|49\.51\.|49\.232\.|49\.233\.|101\.3[2-5]\.|101\.4[23]\.|119\.2[89]\.|124\.156\.|129\.226\.|150\.109\.|162\.62\.|170\.106\.|1\.1[2-5]\.|81\.6[89]\.|81\.7[01]\.|106\.5[2-5]\.|111\.2(29|3[01])\.|118\.(25|89|126)\.|121\.[45]\.|122\.51\.|129\.(204|211)\.|134\.175\.|139\.(155|186|199)\.|140\.143\.|150\.158\.|152\.136\.|159\.75\.|175\.2[47]\.|182\.254\.|193\.112\.|203\.195\.|212\.64\.|42\.19[2-4]\.|47\.(7[4-9]|8[0-9]|9[0-9]|2[3-5][0-9])\.|8\.2(09|1[0-9]|2[0-2])\.|119\.13\.|159\.138\.|190\.92\.)"
 _GOOGLE_NETS = ("66.249.", "66.102.", "64.233.", "72.14.", "74.125.", "209.85.", "216.239.", "108.177.", "173.194.",
                 "142.250.", "172.217.", "34.", "35.")
 
@@ -1204,7 +1206,7 @@ async def product_views_raw(product_id: int, since: str, date_end: str, _=Depend
         return JSONResponse({"error": "datas inválidas"}, status_code=400)
     async with engine.connect() as conn:
         rows = (await conn.execute(text("""
-            SELECT viewed_at AT TIME ZONE 'America/Sao_Paulo' AS t, ip, user_agent
+            SELECT viewed_at AT TIME ZONE 'America/Sao_Paulo' AS t, ip, user_agent, lang
             FROM product_views
             WHERE product_id = :pid AND viewed_at::date >= :d1 AND viewed_at::date <= :d2
             ORDER BY viewed_at DESC
@@ -1214,10 +1216,13 @@ async def product_views_raw(product_id: int, since: str, date_end: str, _=Depend
     out = []
     for r in rows:
         ua, ip = r["user_agent"] or "", r["ip"] or ""
+        lang = r["lang"]
         motivo = ("robô (nome do navegador)" if bot.search(ua) else
-                  "IP do Google" if ip.startswith(_GOOGLE_NETS) else "")
+                  "IP do Google" if ip.startswith(_GOOGLE_NETS) else
+                  "IP de nuvem (Tencent/Alibaba…)" if _re.match(_DC_RE_PY, ip) else
+                  f"navegador não está em português ({lang[:15]})" if lang and "pt" not in lang.lower() else "")
         out.append({"t": r["t"].strftime("%d/%m %H:%M:%S"), "ip": ip, "device": _device(ua),
-                    "ua": ua[:200], "suspeito": motivo})
+                    "ua": ua[:200], "lang": lang or "", "suspeito": motivo})
     # muitos acessos no mesmo minuto = provavelmente robô
     por_min: dict = {}
     for o in out:

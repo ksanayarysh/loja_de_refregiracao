@@ -185,7 +185,16 @@ async def _ensure_views_table():
         await conn.execute(text(
             "CREATE INDEX IF NOT EXISTS ix_pv_viewed ON product_views(viewed_at)"
         ))
+        # idioma do navegador (Accept-Language): cliente real no Brasil manda "pt-BR"
+        await conn.execute(text("ALTER TABLE product_views ADD COLUMN IF NOT EXISTS lang VARCHAR(60)"))
     _view_table_ready = True
+
+# IPs de nuvem (Tencent, Alibaba, Huawei...) — robôs que fingem ser iPhone/Chrome vêm daí
+import re as _re_dc
+_DC_IP_RE = _re_dc.compile(r"^(43\.(12[89]|1[3-8][0-9]|19[01])\.|82\.156\.|62\.234\.|192\.144\.|49\.51\.|49\.232\.|49\.233\.|101\.3[2-5]\.|101\.4[23]\.|119\.2[89]\.|124\.156\.|129\.226\.|150\.109\.|162\.62\.|170\.106\.|1\.1[2-5]\.|81\.6[89]\.|81\.7[01]\.|106\.5[2-5]\.|111\.2(29|3[01])\.|118\.(25|89|126)\.|121\.[45]\.|122\.51\.|129\.(204|211)\.|134\.175\.|139\.(155|186|199)\.|140\.143\.|150\.158\.|152\.136\.|159\.75\.|175\.2[47]\.|182\.254\.|193\.112\.|203\.195\.|212\.64\.|42\.19[2-4]\.|47\.(7[4-9]|8[0-9]|9[0-9]|2[3-5][0-9])\.|8\.2(09|1[0-9]|2[0-2])\.|119\.13\.|159\.138\.|190\.92\.)")
+
+def _is_datacenter(ip: str) -> bool:
+    return bool(_DC_IP_RE.match(ip or ""))
 
 _BOT_UA_PATTERNS = (
     "googlebot", "bingbot", "slurp", "duckduckbot", "baiduspider",
@@ -212,11 +221,11 @@ def _is_bot(ua: str) -> bool:
     u = ua.lower()
     return any(p in u for p in _BOT_UA_PATTERNS)
 
-async def _track_product_view(product_id: int, slug: str, ip: str, ua: str):
+async def _track_product_view(product_id: int, slug: str, ip: str, ua: str, lang: str = ""):
     import time
     if ip in _EXCLUDED_IPS:
         return
-    if _is_bot(ua):
+    if _is_bot(ua) or _is_datacenter(ip):
         return
     key = (ip, slug)
     if time.time() - _view_cache.get(key, 0) < 3600:
@@ -230,9 +239,9 @@ async def _track_product_view(product_id: int, slug: str, ip: str, ua: str):
         await _ensure_views_table()
         async with engine.begin() as conn:
             await conn.execute(text("""
-                INSERT INTO product_views (product_id, slug, ip, user_agent, viewed_at)
-                VALUES (:pid, :slug, :ip, :ua, NOW())
-            """), {"pid": product_id, "slug": slug, "ip": ip, "ua": ua[:200]})
+                INSERT INTO product_views (product_id, slug, ip, user_agent, lang, viewed_at)
+                VALUES (:pid, :slug, :ip, :ua, :lang, NOW())
+            """), {"pid": product_id, "slug": slug, "ip": ip, "ua": ua[:200], "lang": (lang or "")[:60]})
     except Exception:
         pass
 # ──────────────────────────────────────────────────────────────────────────────
@@ -319,7 +328,8 @@ async def track_event(request: Request):
     except Exception:
         return JSONResponse({"ok": False})
     event = str(body.get("event", ""))
-    if event not in ("cart", "phone") or _is_owner(request) or _is_bot(request.headers.get("user-agent", "")):
+    if (event not in ("cart", "phone") or _is_owner(request) or _is_bot(request.headers.get("user-agent", ""))
+            or _is_datacenter(_client_ip(request))):
         return JSONResponse({"ok": True, "skip": True})
     await log_product_events([body.get("product_id")], event, _client_ip(request))
     return JSONResponse({"ok": True})
@@ -1005,7 +1015,8 @@ async def product_page(request: Request, slug: str):
     ip = _client_ip(request)
     ua = request.headers.get("user-agent", "")
     if not _is_owner(request):
-        asyncio.ensure_future(_track_product_view(product["id"], slug, ip, ua))
+        asyncio.ensure_future(_track_product_view(product["id"], slug, ip, ua,
+                                                  request.headers.get("accept-language", "")))
 
     related = []
     for r in rows:

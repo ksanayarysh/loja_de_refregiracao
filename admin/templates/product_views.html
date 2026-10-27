@@ -310,7 +310,7 @@
       box.innerHTML = `<div style="font-size:.8rem;margin-top:6px;"><b>${rows.length}</b> acessos · <span class="raw-sus">${sus} suspeitos</span> · <span class="raw-ok">${rows.length - sus} parecem pessoas</span></div>
         <table><tr><th>Quando</th><th>IP</th><th>Aparelho</th><th></th></tr>` +
         rows.map(x => `<tr><td>${esc(x.t)}</td><td>${esc(x.ip)}</td>
-          <td>${esc(x.device)}<div class="raw-ua">${esc(x.ua)}</div></td>
+          <td>${esc(x.device)}${x.lang ? ' · ' + esc(x.lang.slice(0, 12)) : ''}<div class="raw-ua">${esc(x.ua)}</div></td>
           <td class="${x.suspeito ? 'raw-sus' : 'raw-ok'}">${x.suspeito ? '🤖 ' + esc(x.suspeito) : '👤'}</td></tr>`).join('') + '</table>';
       box.style.display = 'block'; btn.textContent = 'fechar';
     } catch (e) { btn.textContent = '🔍 ver acessos'; alert('Erro ao carregar'); }
