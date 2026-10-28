@@ -8,6 +8,7 @@ Variáveis de ambiente (catálogo):
   MELHOR_ENVIO_BASE     padrão https://melhorenvio.com.br  (teste: https://sandbox.melhorenvio.com.br)
   MELHOR_ENVIO_CONTATO  e-mail que vai no User-Agent (exigência do Melhor Envio)
   MELHOR_ENVIO_SERVICOS opcional, ids separados por vírgula (vazio = todos que o Melhor Envio devolver)
+  MELHOR_ENVIO_EXCLUIR  transportadoras que a loja não usa, separadas por vírgula (padrão "Loggi")
   ENVIO_DIAS_POSTAGEM   dias úteis até postar (padrão 1) — somado ao prazo da transportadora
 
 Peso/medidas: colunas ship_* do produto (admin → editar produto); vazio = caixa padrão da categoria.
@@ -218,9 +219,13 @@ async def cotar(cep: str, items: list) -> dict:
         return {"erro": "não cotou"}
 
     extra = dias_postagem()
+    excluir = [x.strip().lower() for x in os.environ.get("MELHOR_ENVIO_EXCLUIR", "Loggi").split(",") if x.strip()]
     opts = []
     for s in data:
         if s.get("error") or s.get("custom_price") in (None, ""):
+            continue
+        empresa_low = ((s.get("company") or {}).get("name") or "").lower()
+        if any(x in empresa_low for x in excluir):      # sem ponto de postagem perto da loja
             continue
         try:
             preco = float(s.get("custom_price") or s.get("price"))
@@ -230,7 +235,9 @@ async def cotar(cep: str, items: list) -> dict:
         dias = int(rng.get("max") or s.get("custom_delivery_time") or s.get("delivery_time") or 0) + extra
         empresa = (s.get("company") or {}).get("name") or ""
         nome = s.get("name") or ""
-        opts.append({"service": f"ME-{s.get('id')}", "label": f"{empresa} {nome}".strip(),
+        # "Loggi Loggi Ponto" -> "Loggi Ponto": não repete a empresa se o serviço já começa com ela
+        label = nome if empresa and nome.lower().startswith(empresa.lower()) else f"{empresa} {nome}".strip()
+        opts.append({"service": f"ME-{s.get('id')}", "label": label, "sid": s.get("id"),
                      "hint": f"Chega em até {dias} dias úteis" if dias else "Prazo informado no envio",
                      "price": round(preco, 2), "dias": dias})
     opts.sort(key=lambda o: o["price"])
