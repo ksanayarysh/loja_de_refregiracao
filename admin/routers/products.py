@@ -71,6 +71,10 @@ async def _ensure_google_category_column(conn):
     await conn.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS gtin VARCHAR(20)"))
     await conn.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS brand VARCHAR(100)"))
     await conn.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS sku VARCHAR(100)"))
+    # envio por transportadora (Melhor Envio): peso kg, medidas cm; ship_bloq NULL=automático
+    for col, tipo in (("ship_peso", "NUMERIC(8,3)"), ("ship_comp", "NUMERIC(6,1)"), ("ship_larg", "NUMERIC(6,1)"),
+                      ("ship_alt", "NUMERIC(6,1)"), ("ship_bloq", "BOOLEAN")):
+        await conn.execute(text(f"ALTER TABLE products ADD COLUMN IF NOT EXISTS {col} {tipo}"))
     _google_cat_ready = True
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -259,7 +263,7 @@ async def edit_product_form(product_id: int, request: Request, _=Depends(basic_a
         res = await conn.execute(
             text("""SELECT id, name, category_id, category2_id, unit, sale_price, promo_price, promo_until, cost_price, min_stock,
                            image, description, shelf_code, linked_product_id, linked_qty, google_category,
-                           gtin, brand, sku
+                           gtin, brand, sku, ship_peso, ship_comp, ship_larg, ship_alt, ship_bloq
                     FROM products WHERE id = :id AND active = TRUE"""),
             {"id": product_id},
         )
@@ -295,10 +299,23 @@ async def update_product(
     gtin: str = Form(""),
     brand: str = Form(""),
     sku: str = Form(""),
+    ship_peso: str = Form(""),
+    ship_comp: str = Form(""),
+    ship_larg: str = Form(""),
+    ship_alt: str = Form(""),
+    ship_bloq: str = Form(""),
     image: UploadFile = File(None),
     remove_image: str = Form(""),
     _=Depends(basic_auth),
 ):
+    def _num(v):
+        v = (v or "").strip().replace(",", ".")
+        try:
+            return float(v) if v and float(v) > 0 else None
+        except ValueError:
+            return None
+    ship = {"ship_peso": _num(ship_peso), "ship_comp": _num(ship_comp), "ship_larg": _num(ship_larg),
+            "ship_alt": _num(ship_alt), "ship_bloq": {"sim": True, "nao": False}.get(ship_bloq)}
     price     = _parse_price(sale_price)
     cost      = _parse_price(cost_price)
     image_b64 = await _process_image(image)
@@ -326,7 +343,7 @@ async def update_product(
             res = await conn.execute(
                 text("""SELECT id, name, category_id, category2_id, unit, sale_price, promo_price, promo_until, cost_price, min_stock,
                                image, description, shelf_code, linked_product_id, linked_qty, google_category,
-                               gtin, brand, sku
+                               gtin, brand, sku, ship_peso, ship_comp, ship_larg, ship_alt, ship_bloq
                         FROM products WHERE id = :id"""),
                 {"id": product_id}
             )
@@ -375,7 +392,9 @@ async def update_product(
                         cost_price=:cost_price, min_stock=:min_stock,
                         linked_product_id=:linked_product_id, linked_qty=:linked_qty,
                         google_category=:google_category,
-                        gtin=:gtin, brand=:brand, sku=:sku
+                        gtin=:gtin, brand=:brand, sku=:sku,
+                        ship_peso=:ship_peso, ship_comp=:ship_comp, ship_larg=:ship_larg,
+                        ship_alt=:ship_alt, ship_bloq=:ship_bloq
                         {extra_sql}
                     WHERE id=:id"""),
             {"id": product_id, "name": name.strip(), "category_id": category_id,
@@ -386,7 +405,7 @@ async def update_product(
              "linked_product_id": linked_pid, "linked_qty": linked_qty_d,
              "google_category": google_category.strip() or None,
              "gtin": _clean_gtin(gtin), "brand": brand.strip() or None, "sku": sku.strip() or None,
-             **extra_val},
+             **ship, **extra_val},
         )
     return RedirectResponse(url=f"/products/{product_id}/edit?ok=1", status_code=303)
 

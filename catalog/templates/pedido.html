@@ -99,7 +99,9 @@
     <div class="pd-num">Pedido #{{ order.id }}</div>
     <div class="pd-title">Pagamento confirmado!</div>
     <div class="pd-sub">
-      {% if order.delivery_type == 'lalamove' %}
+      {% if order.delivery_type == 'correios' %}
+      Vamos separar e postar seu pedido em até 1 dia útil. Você recebe o código de rastreio pelo WhatsApp.
+      {% elif order.delivery_type == 'lalamove' %}
       Vamos separar seu pedido e chamar o entregador. Você recebe a confirmação pelo WhatsApp.
       {% else %}
       Seu pedido está sendo separado. Retire na loja: Av. Brasil, 6818 · seg. a sáb., 8h30–18h.
@@ -141,11 +143,11 @@
     {% endfor %}
     <div class="pd-line"><span>Produtos</span><span class="pd-money">R$ {{ "{:,.2f}".format(order.subtotal).replace(",", "X").replace(".", ",").replace("X", ".") }}</span></div>
     <div class="pd-line">
-      <span>{% if order.delivery_type == 'lalamove' %}Entrega · {{ order.frete_label }} (Lalamove){% else %}Retirada na loja{% endif %}</span>
+      <span>{% if order.delivery_type == 'correios' %}Envio · {{ order.frete_label }}{% if order.delivery_days %} (até {{ order.delivery_days }} dias úteis){% endif %}{% elif order.delivery_type == 'lalamove' %}Entrega · {{ order.frete_label }} (Lalamove){% else %}Retirada na loja{% endif %}</span>
       <span class="pd-money">{% if order.frete %}R$ {{ "{:,.2f}".format(order.frete).replace(",", "X").replace(".", ",").replace("X", ".") }}{% else %}Grátis{% endif %}</span>
     </div>
     <div class="pd-line pd-line-total"><span>Total</span><span class="pd-money">R$ {{ "{:,.2f}".format(order.total).replace(",", "X").replace(".", ",").replace("X", ".") }}</span></div>
-    {% if order.delivery_type == 'lalamove' %}
+    {% if order.delivery_type in ('lalamove', 'correios') %}
     <div class="pd-sub" style="margin-top:12px;font-size:.85rem;">📍 {{ order.address }}, nº {{ order.numero }}{% if order.complemento %} — {{ order.complemento }}{% endif %}</div>
     {% endif %}
   </div>

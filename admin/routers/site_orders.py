@@ -79,7 +79,8 @@ def _prep(o) -> dict:
     o["items"] = o["items"] if isinstance(o["items"], list) else json.loads(o["items"] or "[]")
     for k in ("subtotal", "frete", "total"):
         o[k] = float(o[k] or 0)
-    o["service_label"] = SERVICE_LABEL.get(o.get("delivery_service") or "", o.get("delivery_service") or "")
+    o["service_label"] = ((o.get("delivery_label") or "Transportadora") if o.get("delivery_type") == "correios"
+                          else SERVICE_LABEL.get(o.get("delivery_service") or "", o.get("delivery_service") or ""))
     o["fulfillment_label"] = FULFILLMENT.get(o.get("fulfillment") or "novo", o.get("fulfillment"))
     o["created_brt"] = o["created_at"].astimezone(BRT).strftime("%d/%m %H:%M") if o.get("created_at") else ""
     o["paid_brt"] = o["paid_at"].astimezone(BRT).strftime("%d/%m %H:%M") if o.get("paid_at") else ""

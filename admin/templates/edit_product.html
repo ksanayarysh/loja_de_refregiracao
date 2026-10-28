@@ -107,6 +107,20 @@
         <input id="gtin" name="gtin" inputmode="numeric" value="{{ product.gtin or '' }}" placeholder="8, 12, 13 ou 14 dígitos" autocomplete="off">
         <div class="hint">Só números. Se não tiver GTIN, deixe vazio.</div>
 
+        <label>📮 Envio por Correios/transportadora (outros estados)</label>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
+          <input name="ship_peso" inputmode="decimal" value="{{ product.ship_peso or '' }}" placeholder="Peso kg{% if product.unit == 'm' %}/m{% endif %}" autocomplete="off">
+          <input name="ship_comp" inputmode="decimal" value="{{ product.ship_comp or '' }}" placeholder="Compr. cm" autocomplete="off">
+          <input name="ship_larg" inputmode="decimal" value="{{ product.ship_larg or '' }}" placeholder="Larg. cm" autocomplete="off">
+          <input name="ship_alt" inputmode="decimal" value="{{ product.ship_alt or '' }}" placeholder="Alt. cm" autocomplete="off">
+        </div>
+        <select name="ship_bloq" style="margin-top:8px;">
+          <option value="" {% if product.ship_bloq is none %}selected{% endif %}>Automático (gás, spray e inflamáveis não vão)</option>
+          <option value="nao" {% if product.ship_bloq == false %}selected{% endif %}>Pode enviar</option>
+          <option value="sim" {% if product.ship_bloq == true %}selected{% endif %}>Não enviar (só retirada/Lalamove)</option>
+        </select>
+        <div class="hint">Medidas da caixa já embalada. Vazio = caixa padrão da categoria (plaquinha ~0,4 kg, compressor 9 kg…).</div>
+
         <label for="sale_price">Preço de venda (R$)</label>
         <input id="sale_price" name="sale_price" inputmode="decimal" value="{{ '%.2f'|format(product.sale_price or 0) }}">
 

@@ -50,6 +50,10 @@ def _gcr_delivery_date(order: dict) -> str:
     base = order.get("paid_at") or datetime.now(timezone.utc)
     local = base.astimezone(_BRT)
     d = local.date() if local.hour < 16 else local.date() + timedelta(days=1)
+    if order.get("delivery_type") == "correios":
+        # prazo em dias úteis (já com o dia da postagem) -> aproximação em dias corridos
+        dias = int(order.get("delivery_days") or 7)
+        d = local.date() + timedelta(days=dias + 2 * ((dias + 4) // 5))
     if d.weekday() == 6:          # domingo a loja fecha -> segunda
         d += timedelta(days=1)
     return d.isoformat()
@@ -109,6 +113,10 @@ async def _ensure_orders_table():
         # forma de pagamento: 'pix' ou 'card' (Checkout Pro); link da página de pagamento do MP
         await conn.execute(text("ALTER TABLE site_orders ADD COLUMN IF NOT EXISTS pay_method VARCHAR(10) DEFAULT 'pix'"))
         await conn.execute(text("ALTER TABLE site_orders ADD COLUMN IF NOT EXISTS mp_init_point TEXT"))
+        # envio por transportadora (Melhor Envio): nome do serviço, prazo e CPF/CNPJ de quem recebe
+        await conn.execute(text("ALTER TABLE site_orders ADD COLUMN IF NOT EXISTS delivery_label VARCHAR(80)"))
+        await conn.execute(text("ALTER TABLE site_orders ADD COLUMN IF NOT EXISTS delivery_days INTEGER"))
+        await conn.execute(text("ALTER TABLE site_orders ADD COLUMN IF NOT EXISTS customer_doc VARCHAR(20)"))
     _orders_ready = True
 
 
@@ -232,6 +240,11 @@ def _is_kg(unit) -> bool:
     return str(unit or "").strip().lower() == "kg"
 
 
+def _so_balcao(i: dict) -> bool:
+    """kg ou botija: só com o vendedor (mesma regra do so_balcao dos templates)."""
+    return _is_kg(i.get("unit")) or "botija" in str(i.get("name") or "").lower()
+
+
 def _fmt_qty(v: float) -> str:
     return str(int(v)) if float(v).is_integer() else f"{v:.2f}".rstrip("0").rstrip(".").replace(".", ",")
 
@@ -256,14 +269,14 @@ async def _stock_problems(items: list) -> tuple[list, list, dict]:
     """Confere o carrinho (já normalizado por _load_items) contra o estoque.
     Retorna (itens em kg, linhas sem estoque suficiente, estoque por produto).
     Kits contam pelos componentes, somados aos mesmos produtos avulsos."""
-    kg = [i for i in items if not i.get("kit_id") and _is_kg(i.get("unit"))]
+    kg = [i for i in items if not i.get("kit_id") and _so_balcao(i)]
     need: dict = {}
     for i in items:
         if i.get("kit_id"):
             for c in i.get("components") or []:
                 if c.get("id"):
                     need[c["id"]] = need.get(c["id"], 0) + float(c.get("qty") or 0) * i["qty"]
-        elif not _is_kg(i.get("unit")):
+        elif not _so_balcao(i):
             need[i["id"]] = need.get(i["id"], 0) + i["qty"]
     stock = await _stock_map(need)
     short_ids = {pid for pid, q in need.items() if q > stock.get(pid, 0) + 1e-9}
@@ -280,7 +293,7 @@ async def _stock_problems(items: list) -> tuple[list, list, dict]:
 def _stock_msg(kg: list, short: list) -> str:
     parts = []
     if kg:
-        parts.append("Gás no varejo (por kg) é vendido só na loja: " + ", ".join(i["name"] for i in kg)
+        parts.append("Gás por kg e botijas são vendidos só com o vendedor (na loja ou pelo WhatsApp): " + ", ".join(i["name"] for i in kg)
                      + ". Remova do carrinho ou fale conosco no WhatsApp.")
     if short:
         linhas = []
@@ -470,7 +483,7 @@ async def _mark_paid(order_id: int, extra: str = ""):
             WHERE id = :id AND status = 'pending'
             RETURNING id, customer_name, customer_phone, delivery_type, delivery_service,
                       address, numero, complemento, items, frete, total, frete_lalamove, margem, margem_obs,
-                      pay_method
+                      pay_method, delivery_label, delivery_days, customer_doc
         """), {"id": order_id})).mappings().first()
     if not row:
         return
@@ -484,11 +497,21 @@ async def _mark_paid(order_id: int, extra: str = ""):
                    + ")\n"
                    f"{row['address']}, nº {row['numero']}"
                    + (f" — {row['complemento']}" if row["complemento"] else ""))
+    elif row["delivery_type"] == "correios":
+        doc = row.get("customer_doc") or ""
+        doc_fmt = (f"{doc[:3]}.{doc[3:6]}.{doc[6:9]}-{doc[9:]}" if len(doc) == 11 else doc)
+        entrega = (f"📮 {row.get('delivery_label') or 'Transportadora'} ({_brl(float(row['frete']))})"
+                   + (f" · até {row['delivery_days']} dias úteis" if row.get("delivery_days") else "") + "\n"
+                   f"{row['address']}, nº {row['numero']}"
+                   + (f" — {row['complemento']}" if row["complemento"] else "")
+                   + (f"\nCPF/CNPJ: {doc_fmt}" if doc else "")
+                   + "\n👉 Gerar etiqueta no Melhor Envio + NF-e (outro estado: CFOP 6102) e postar")
     else:
         entrega = "🏪 Retirada na loja"
     # push no celular (admin instalada como app) — não bloqueia se falhar
-    entrega_curta = "Retirada" if row["delivery_type"] != "lalamove" else \
-        FRETE_OPTIONS.get(row["delivery_service"], (row["delivery_service"], ""))[0]
+    entrega_curta = ("Retirada" if row["delivery_type"] not in ("lalamove", "correios") else
+                     (row.get("delivery_label") or "Transportadora") if row["delivery_type"] == "correios" else
+                     FRETE_OPTIONS.get(row["delivery_service"], (row["delivery_service"], ""))[0])
     await push.send_all(
         engine, f"💰 Pedido #{row['id']} pago — {_brl(float(row['total']))}",
         f"{row['customer_name']} · {entrega_curta}",
@@ -508,7 +531,9 @@ def _msg_cliente_pago(row) -> str:
     import html
     from urllib.parse import quote
     nome = ((row["customer_name"] or "").split() or [""])[0].capitalize()
-    if row["delivery_type"] == "lalamove":
+    if row["delivery_type"] == "correios":
+        fim = "Vamos postar em até 1 dia útil e enviar o código de rastreio por aqui. 📦"
+    elif row["delivery_type"] == "lalamove":
         fim = "Avisaremos você assim que ele estiver pronto e o entregador sair para a entrega. 🛵"
     else:
         fim = ("Avisaremos você assim que ele estiver pronto para retirada na loja: "
@@ -649,7 +674,8 @@ async def pedido_page(request: Request, order_id: int, t: str = ""):
     order["items"] = order["items"] if isinstance(order["items"], list) else json.loads(order["items"])
     for k in ("subtotal", "frete", "total"):
         order[k] = float(order[k] or 0)
-    order["frete_label"] = FRETE_OPTIONS.get(order.get("delivery_service") or "", ("", ""))[0]
+    order["frete_label"] = (order.get("delivery_label") or "Transportadora") if order.get("delivery_type") == "correios" \
+        else FRETE_OPTIONS.get(order.get("delivery_service") or "", ("", ""))[0]
     order["pix_expires_iso"] = order["pix_expires_at"].isoformat() if order.get("pix_expires_at") else ""
     order["gcr_delivery"] = _gcr_delivery_date(order)
     return templates.TemplateResponse("pedido.html", _page_ctx(request, order=order,
@@ -739,6 +765,42 @@ async def checkout_pix(request: Request):
     dtype = "lalamove" if delivery.get("type") == "lalamove" else "retirada"
     frete, geo = 0.0, None
     cep = numero = complemento = address = service = None
+    me_label = me_dias = doc = None
+    if dtype == "lalamove" and str(delivery.get("service", "")).startswith("ME-"):
+        # fora da área da Lalamove: Correios/transportadora (Melhor Envio). Preço recalculado aqui no servidor.
+        import correios
+        dtype = "correios"
+        cep = re.sub(r"\D", "", str(delivery.get("cep", "")))
+        service = str(delivery.get("service", ""))[:20]
+        numero = str(delivery.get("numero", "")).strip()[:20]
+        complemento = str(delivery.get("complemento", "")).strip()[:120]
+        rua = str(delivery.get("rua", "")).strip()[:200]
+        if len(cep) != 8:
+            return JSONResponse({"error": "Informe um CEP válido."}, status_code=400)
+        if not rua or not numero:
+            return JSONResponse({"error": "Informe a rua e o número para a entrega."}, status_code=400)
+        doc = correios.doc_ok(delivery.get("doc") or "")
+        if not doc:
+            return JSONResponse({"error": "Informe o CPF (ou CNPJ) de quem vai receber — a transportadora exige."},
+                                status_code=400)
+        if not correios.ativo():
+            return JSONResponse({"error": "Envio por transportadora indisponível agora. Fale conosco no WhatsApp."},
+                                status_code=503)
+        q = await correios.cotar(cep, items)
+        if q.get("bloqueados"):
+            return JSONResponse({"error": "Estes itens não podem ir por transportadora (gás/inflamável): "
+                                          + ", ".join(q["bloqueados"][:5]) + ". Retire na loja ou fale conosco."},
+                                status_code=400)
+        opt = next((o for o in q.get("options") or [] if o["service"] == service), None)
+        if not opt:
+            return JSONResponse({"error": "Esse tipo de envio não está mais disponível. Calcule o frete de novo."},
+                                status_code=400)
+        info = await correios.cep_info(cep) or {}
+        frete, me_label, me_dias = float(opt["price"]), opt["label"][:80], opt.get("dias")
+        geo = {"bairro": info.get("bairro", ""), "cidade": info.get("cidade", ""), "uf": info.get("uf", ""),
+               "lat": None, "lng": None}
+        address = ", ".join(x for x in [rua, geo["bairro"], f'{geo["cidade"]} - {geo["uf"]}' if geo["cidade"] else "",
+                                        f"{cep[:5]}-{cep[5:]}"] if x)
     if dtype == "lalamove":
         cep = re.sub(r"\D", "", str(delivery.get("cep", "")))
         service = str(delivery.get("service", ""))
@@ -798,10 +860,11 @@ async def checkout_pix(request: Request):
         order_id = (await conn.execute(text("""
             INSERT INTO site_orders (token, customer_name, customer_phone, customer_email,
                 delivery_type, delivery_service, cep, address, numero, complemento, lat, lng,
-                items, subtotal, frete, total, frete_lalamove, margem, margem_obs, pay_method)
+                items, subtotal, frete, total, frete_lalamove, margem, margem_obs, pay_method,
+                delivery_label, delivery_days, customer_doc)
             VALUES (:token, :name, :phone, :email, :dtype, :service, :cep, :address, :numero, :compl,
                 :lat, :lng, CAST(:items AS JSONB), :subtotal, :frete, :total, :frete_lalamove, :margem, :margem_obs,
-                :pay_method)
+                :pay_method, :delivery_label, :delivery_days, :customer_doc)
             RETURNING id
         """), {
             "token": token, "name": name, "phone": phone, "email": email,
@@ -813,6 +876,7 @@ async def checkout_pix(request: Request):
             "subtotal": subtotal, "frete": frete or 0, "total": total, "frete_lalamove": frete_lalamove,
             "margem": margem, "margem_obs": ("sem custo: " + ", ".join(sem_custo))[:500] if sem_custo else None,
             "pay_method": method,
+            "delivery_label": me_label, "delivery_days": me_dias, "customer_doc": doc,
         })).scalar()
 
     if method == "card":

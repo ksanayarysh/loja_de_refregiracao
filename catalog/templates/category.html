@@ -342,7 +342,7 @@
         {% endif %}
       </div>
     </a>
-    {% set can_buy = p.sale_price and (p.unit or '')|lower != 'kg' and (p.current_stock is not defined or (p.current_stock or 0) > 0) %}
+    {% set can_buy = p.sale_price and not so_balcao(p) and (p.current_stock is not defined or (p.current_stock or 0) > 0) %}
     <div class="prod-card-footer">
       {% if can_buy %}
       <button class="buy-card-btn" type="button"

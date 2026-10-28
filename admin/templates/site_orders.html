@@ -59,7 +59,7 @@
           {% for c in i.components or [] %}<br><span class="so-muted">– {{ c.name }} × {{ c.qty }}</span>{% endfor %}</span>
           <span class="so-money">R$ {{ "%.2f"|format(i.subtotal)|replace('.', ',') }}</span></div>
         {% endfor %}
-        <div class="so-line"><span>{% if order.delivery_type == 'lalamove' %}Frete · {{ order.service_label }}{% else %}Retirada na loja{% endif %}</span>
+        <div class="so-line"><span>{% if order.delivery_type in ('lalamove', 'correios') %}Frete · {{ order.service_label }}{% if order.delivery_days %} · até {{ order.delivery_days }} dias úteis{% endif %}{% else %}Retirada na loja{% endif %}</span>
           <span class="so-money">{% if order.frete %}R$ {{ "%.2f"|format(order.frete)|replace('.', ',') }}{% else %}—{% endif %}</span></div>
         <div class="so-line so-total"><span>Total</span><span class="so-money">R$ {{ "%.2f"|format(order.total)|replace('.', ',') }}</span></div>
       </div>
@@ -71,9 +71,12 @@
       <div class="so-line"><span class="so-muted">WhatsApp</span>
         <a href="https://wa.me/{{ order.wa_phone }}" target="_blank" rel="noopener" style="color:#16a34a;font-weight:800;">{{ order.customer_phone }}</a></div>
       <div class="so-line"><span class="so-muted">E-mail</span><span>{{ order.customer_email }}</span></div>
-      {% if order.delivery_type == 'lalamove' %}
+      {% if order.delivery_type in ('lalamove', 'correios') %}
       <div class="so-line"><span class="so-muted">Endereço</span>
         <span style="text-align:right;">{{ order.address }}, nº {{ order.numero }}{% if order.complemento %} — {{ order.complemento }}{% endif %}</span></div>
+      {% endif %}
+      {% if order.customer_doc %}
+      <div class="so-line"><span class="so-muted">CPF/CNPJ</span><span class="so-money">{{ order.customer_doc }}</span></div>
       {% endif %}
       {% if order.mp_payment_id %}
       <div class="so-line"><span class="so-muted">Mercado Pago</span><span class="so-money">#{{ order.mp_payment_id }}</span></div>
@@ -96,6 +99,11 @@
         </form>
       {% endif %}
 
+      {% if order.delivery_type == 'correios' %}
+        <div class="so-done" style="background:#eff6ff;color:#1e3a8a;border-color:#bfdbfe;">📮 Envio por transportadora: {{ order.service_label }}</div>
+        <p class="so-muted" style="margin:6px 0 10px;">1) Emitir NF-e (outro estado: CFOP 6102) · 2) Gerar a etiqueta no Melhor Envio com este endereço e CPF · 3) Postar e mandar o rastreio ao cliente.</p>
+        <p style="margin-bottom:10px;"><a class="btn-secondary" href="https://melhorenvio.com.br/painel" target="_blank" rel="noopener">Abrir Melhor Envio</a></p>
+      {% endif %}
       {% if order.delivery_type == 'lalamove' %}
         {% if order.lalamove_order_id %}
           <div class="so-done">🛵 Lalamove chamado · #{{ order.lalamove_order_id }}</div>
@@ -189,7 +197,7 @@
       <td><a href="/site-orders/{{ o.id }}">#{{ o.id }}</a></td>
       <td>{{ o.created_brt }}</td>
       <td>{{ o.customer_name }}</td>
-      <td class="so-hide-m">{% if o.delivery_type == 'lalamove' %}🛵 {{ o.service_label }}{% else %}🏪 Retirada{% endif %}</td>
+      <td class="so-hide-m">{% if o.delivery_type == 'lalamove' %}🛵 {{ o.service_label }}{% elif o.delivery_type == 'correios' %}📮 {{ o.service_label }}{% else %}🏪 Retirada{% endif %}</td>
       <td class="so-money">R$ {{ "%.2f"|format(o.total)|replace('.', ',') }}</td>
       <td>
         <span class="so-badge b-{{ o.status }}">{{ {'paid':'Pago','pending':'Aguardando','expired':'Expirado','error':'Erro','cancelled':'Cancelado','refunded':'Estornado'}.get(o.status, o.status) }}</span>

@@ -132,7 +132,7 @@
         <input type="radio" name="dtype" value="lalamove">
         <div class="co-opt-main">
           <div class="co-opt-name">Entrega no endereço</div>
-          <div class="co-opt-hint">Via Lalamove, no Rio de Janeiro</div>
+          <div class="co-opt-hint">Lalamove no Rio (mesmo dia) · Correios/transportadora para outros estados</div>
         </div>
       </label>
 
@@ -162,7 +162,11 @@
               <input class="co-input" id="f-comp" placeholder="Apto, bloco, loja…" maxlength="120">
             </div>
           </div>
-          <div class="co-note">Pedido pago até 16h: entrega hoje (seg. a sáb.). Depois disso, no próximo dia útil.</div>
+          <div class="co-field co-hidden" id="doc-box">
+            <label for="f-doc">CPF (ou CNPJ) de quem recebe</label>
+            <input class="co-input" id="f-doc" inputmode="numeric" placeholder="000.000.000-00" maxlength="18">
+          </div>
+          <div class="co-note" id="entrega-note">Pedido pago até 16h: entrega hoje (seg. a sáb.). Depois disso, no próximo dia útil.</div>
         </div>
       </div>
     </div>
@@ -308,16 +312,26 @@ async function calcFrete() {
     if (!r.ok) throw new Error(d.error || 'Não foi possível calcular o frete.');
     try { localStorage.setItem('mtf_cep', $('f-cep').value); } catch (e) {}
     const lugar = [d.bairro, d.cidade, d.uf].filter(Boolean).map(esc).join(', ');
+    const isMe = !!d.correios;
+    $('doc-box').classList.toggle('co-hidden', !isMe);
+    $('entrega-note').textContent = isMe
+      ? 'Postamos em até 1 dia útil após o pagamento. Você recebe o código de rastreio pelo WhatsApp.'
+      : 'Pedido pago até 16h: entrega hoje (seg. a sáb.). Depois disso, no próximo dia útil.';
     if (d.combinar) {
       const wa = encodeURIComponent('Olá! Quero fazer um pedido com entrega para o CEP ' + $('f-cep').value + '. Qual o valor do frete?');
+      const bloq = (d.nao_envia || []).length
+        ? `Estes itens não podem ir por transportadora (gás ou inflamável): <strong>${d.nao_envia.map(esc).join(', ')}</strong>. Retire na loja ou combine com o vendedor.`
+        : '<strong>Para este endereço, o frete é combinado com o vendedor.</strong>';
       $('frete-msg').innerHTML = `<div class="co-local">📍 ${lugar}</div>
-        <div class="co-msg"><strong>Para este endereço, o frete é combinado com o vendedor.</strong><br>
+        <div class="co-msg">${bloq}<br>
         <a class="co-wa-link" href="https://wa.me/${WA_NUMBER}?text=${wa}" target="_blank" rel="noopener">Falar com o vendedor →</a></div>`;
       return;
     }
-    $('frete-msg').innerHTML = `<div class="co-local">📍 ${lugar} · ${d.distance_km.toFixed(1).replace('.', ',')} km · entrega via <strong>Lalamove</strong></div>`;
-    // kit de instalação (tubos, suporte) não vai de moto
-    const hasKit = cart.some(i => i.kit || i.car_only);
+    $('frete-msg').innerHTML = isMe
+      ? `<div class="co-local">📍 ${lugar} · envio por <strong>Correios / transportadora</strong></div>`
+      : `<div class="co-local">📍 ${lugar} · ${d.distance_km.toFixed(1).replace('.', ',')} km · entrega via <strong>Lalamove</strong></div>`;
+    // kit de instalação (tubos, suporte) não vai de moto (regra só da Lalamove)
+    const hasKit = !isMe && cart.some(i => i.kit || i.car_only);
     const opts = hasKit ? d.options.filter(o => !KIT_BLOCKED.includes(o.service)) : d.options;
     if (!opts.length) {
       const wa = encodeURIComponent('Olá! Quero o kit com entrega para o CEP ' + $('f-cep').value + '. Qual o valor do frete?');
@@ -408,6 +422,11 @@ async function pagar() {
       rua: $('f-rua').value.trim(), numero: $('f-num').value.trim(), complemento: $('f-comp').value.trim(),
     });
     if (!delivery.rua || !delivery.numero) return err('Informe a rua e o número para a entrega.');
+    if (String(frete.service).startsWith('ME-')) {
+      delivery.doc = $('f-doc').value;
+      const dd = delivery.doc.replace(/\D/g, '');
+      if (dd.length !== 11 && dd.length !== 14) return err('Informe o CPF (ou CNPJ) de quem vai receber — a transportadora exige.');
+    }
   }
 
   try { localStorage.setItem('mtf_checkout_dados', JSON.stringify({ name, phone, email })); } catch (e) {}

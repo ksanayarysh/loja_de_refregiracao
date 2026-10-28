@@ -632,7 +632,7 @@
           <div class="promo-new">R$ {{ ("%.2f"|format(p.price))|replace(".", ",") }}{% if p.unit %}<span style="font-size:.7rem;color:var(--muted);font-weight:400;"> / {{ p.unit }}</span>{% endif %}</div>
         </div>
       </a>
-      {% if p.in_stock and (p.unit or '')|lower == 'kg' %}
+      {% if p.in_stock and so_balcao(p) %}
       <a class="promo-add" href="/product/{{ p.slug }}" style="text-align:center;text-decoration:none;">Só na loja</a>
       {% elif p.in_stock %}
       <button class="promo-add" onclick='addToCart({{ p.id }}, {{ p.name | tojson }}, {{ p.price }}, {{ p.unit | tojson }}); this.classList.add("added"); this.textContent="✓ No carrinho"; setTimeout(() => { this.classList.remove("added"); this.textContent="🛒 Adicionar"; }, 1400);'>🛒 Adicionar</button>
@@ -694,7 +694,7 @@
           {% endif %}
         </div>
       </a>
-      {% set can_buy = p.sale_price and (p.unit or '')|lower != 'kg' and (p.current_stock is not defined or (p.current_stock or 0) > 0) %}
+      {% set can_buy = p.sale_price and not so_balcao(p) and (p.current_stock is not defined or (p.current_stock or 0) > 0) %}
       <div class="prod-card-footer">
         {% if can_buy %}
         <button class="buy-card-btn" type="button"
@@ -1041,7 +1041,7 @@ async function filterProducts() {
       const img = p.image
         ? `<img loading="lazy" src="${imgProxy(p.image,88)}" style="width:48px;height:48px;object-fit:contain;border-radius:8px;border:1px solid var(--border);background:var(--bg);flex-shrink:0;">`
         : `<div style="width:48px;height:48px;border-radius:8px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">📦</div>`;
-      const cartBtn = (p.sale_price && p.in_stock !== false && String(p.unit || '').toLowerCase() !== 'kg')
+      const cartBtn = (p.sale_price && p.in_stock !== false && String(p.unit || '').toLowerCase() !== 'kg' && !/botija/i.test(p.name || ''))
         ? `<button class="add-cart-btn" onclick="addToCart(${p.id}, ${JSON.stringify(p.name)}, ${eff}, ${JSON.stringify(p.unit)}, this)" title="Adicionar ao carrinho">🛒</button>`
         : '';
       return `<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--surface);">

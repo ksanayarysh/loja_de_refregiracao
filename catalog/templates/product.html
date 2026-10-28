@@ -559,7 +559,8 @@
   <span>{{ product.name }}</span>
 </nav>
 
-{% set is_kg = (product.unit or "")|lower == "kg" %}
+{% set is_botija = "botija" in (product.name or "")|lower %}
+{% set is_kg = so_balcao(product) %}{# kg ou botija: só com o vendedor, sem carrinho/frete #}
 {% set wa_msg = "Olá! Tenho interesse no produto: " + product.name + " (" + product.unit + ")" + (". Preço: R$ " + ('%.2f'|format(product.price)|replace('.', ',')) if product.sale_price else "") + ". Está disponível?" %}
 
 <div class="product-page">
@@ -662,7 +663,9 @@
       </a>
     </div>
     {% else %}
-    {% if is_kg and in_stock %}
+    {% if is_botija and in_stock %}
+    <div class="kg-note">🛢️ <strong>Botija vendida só com o vendedor.</strong> Por ser cilindro de gás, não vendemos pelo site nem enviamos por transportadora. Retire na loja (Av. Brasil, 6818) ou combine a entrega pelo WhatsApp.</div>
+    {% elif is_kg and in_stock %}
     <div class="kg-note">⚖️ <strong>Venda por kg só no balcão da loja.</strong> Gás no varejo não é vendido pelo site nem entregue. Traga seu cilindro e retire na hora, ou reserve pelo WhatsApp.</div>
     {% endif %}
     <a class="wa-cta wa-track"
@@ -671,7 +674,7 @@
        data-product="{{ product.name }}"
        style="font-size:1.1rem;padding:18px 24px;{% if not in_stock %}background:#6b7280;box-shadow:none;{% endif %}">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
-      {% if in_stock and is_kg %}Reservar pelo WhatsApp{% elif in_stock %}Comprar pelo WhatsApp{% else %}Consultar disponibilidade{% endif %}
+      {% if in_stock and is_botija %}Comprar com o vendedor{% elif in_stock and is_kg %}Reservar pelo WhatsApp{% elif in_stock %}Comprar pelo WhatsApp{% else %}Consultar disponibilidade{% endif %}
     </a>
     {% endif %}
 
@@ -799,7 +802,7 @@
 </div>
 {% endif %}
 
-{% if product.sale_price and product.current_stock and product.current_stock > 0 and (product.unit or '')|lower != 'kg' %}
+{% if product.sale_price and product.current_stock and product.current_stock > 0 and not so_balcao(product) %}
 <div class="buy-bar" id="buy-bar">
   <div class="bb-price">R$ {{ "%.2f"|format(product.price)|replace('.', ',') }}{% if product.unit == 'kg' %}<small>/kg</small>{% endif %}</div>
   <button class="bb-btn" type="button"
@@ -1070,12 +1073,26 @@ async function calcFrete() {
     const d = await r.json();
     if (!r.ok) { const err = new Error(d.error || 'Não foi possível calcular o frete.'); err.wa = r.status !== 400 || /Rio de Janeiro/.test(d.error || ''); throw err; }
     try { localStorage.setItem('mtf_cep', freteCep.value); } catch (e) {}
+    if (d.correios) {
+      const lugarMe = [d.cidade, d.uf].filter(Boolean).map(escHtml).join(' / ');
+      const minMe = Math.min(...d.options.map(o => o.price));
+      box.innerHTML = `
+        <div class="frete-local">📦 Envio para ${lugarMe}</div>
+        ${d.options.map(o => `
+        <div class="frete-ok">
+          <div><strong>${escHtml(o.label)}</strong>${(d.options.length > 1 && o.price === minMe) ? ' <span class="mais-barato">mais barato</span>' : ''}<div class="frete-sub">${escHtml(o.hint)}</div></div>
+          <div class="frete-price">R$ ${o.price.toFixed(2).replace('.', ',')}</div>
+        </div>`).join('')}
+        <div class="frete-note">Envio por <strong>Correios / transportadora</strong>. Postamos em até 1 dia útil após o pagamento.</div>`;
+      if (typeof gtag !== 'undefined') gtag('event', 'calcular_frete', { cep_prefix: cep.slice(0, 5), tipo: 'correios' });
+      return;
+    }
     if (d.combinar) {
       const lugar = [d.bairro, d.cidade, d.uf].filter(Boolean).map(escHtml).join(', ');
       const waTxt = encodeURIComponent('Olá! Quero saber o valor da entrega para o CEP ' + freteCep.value + (d.cidade ? ' (' + d.cidade + '/' + d.uf + ')' : '') + '.');
       box.innerHTML = `
         <div class="frete-local">📍 ${lugar}</div>
-        <div class="frete-combinar">Para este endereço, o frete é combinado com o vendedor.</div>
+        <div class="frete-combinar">${(d.nao_envia || []).length ? 'Este produto não pode ir por transportadora (gás ou inflamável). Retire na loja ou combine a entrega com o vendedor.' : 'Para este endereço, o frete é combinado com o vendedor.'}</div>
         <a class="wa-seller-btn" href="https://wa.me/${WA_NUMBER}?text=${waTxt}" target="_blank" rel="noopener">Falar com o vendedor sobre o frete</a>`;
       return;
     }

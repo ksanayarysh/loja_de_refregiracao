@@ -1846,12 +1846,18 @@ async def _frete_log(request: Request, cep: str, status: int, data: dict,
         return ("R$ %.2f" % v).replace(".", ",")
     lugar = ", ".join(x for x in (data.get("bairro"), data.get("cidade")) if x) or "?"
     cep_fmt = f"{cep[:5]}-{cep[5:]}"
-    if resultado == "ok":
+    if resultado == "ok" and data.get("correios"):
+        uf = f'/{data["uf"]}' if data.get("uf") else ""
+        corpo = f"{lugar}{uf} · 📮 envio por transportadora\n" + "\n".join(
+            f"  {o['label']} {brl(o['price'])} · {o.get('hint', '')}" for o in opts)
+    elif resultado == "ok":
         base = {o["service"]: o.get("_lalamove") for o in opts}
         linhas = " · ".join(f"{FRETE_OPTIONS[s][0]} {brl(p)}" + (f" (Lalamove {brl(base[s])})" if base.get(s) else "")
                             for s, p in prices.items() if s in FRETE_OPTIONS)
         km = str(data.get('distance_km', '')).replace('.', ',')
         corpo = f"{lugar} · {km} km\n{linhas}"
+    elif resultado == "combinar" and data.get("nao_envia"):
+        corpo = f"{lugar} · fora da área · ⛔ não vai por transportadora: {', '.join(data['nao_envia'])}"
     elif resultado == "combinar":
         corpo = f"{lugar} · frete a combinar (fora da área)"
     else:
@@ -1936,6 +1942,35 @@ async def api_frete_cep(request: Request, cep: str = "", src: str = "", valor: s
                 data = dict(data, _calc=calc)
         except Exception:
             _blog_log.exception("frete: falha ao aplicar desconto do frete (segue preço cheio)")
+    # fora da área da Lalamove (outro estado / longe): Correios e transportadoras via Melhor Envio
+    if data.get("combinar"):
+        try:
+            import correios
+            if correios.ativo():
+                items = []
+                if itens:
+                    from checkout import _load_items
+                    items, _ = await _load_items(_json.loads(itens)[:50])
+                elif pid.isdigit():
+                    async with engine.connect() as conn:
+                        x = (await conn.execute(text(
+                            "SELECT id, name, unit, sale_price, promo_price, promo_until FROM products "
+                            "WHERE id = :id AND active = TRUE"), {"id": int(pid)})).mappings().first()
+                    if x and x["sale_price"]:
+                        x = _apply_promo(dict(x, sale_price=float(x["sale_price"])))
+                        items = [{"id": x["id"], "name": x["name"], "unit": x["unit"],
+                                  "price": float(x["price"] or 0), "qty": 1}]
+                if items:
+                    q = await correios.cotar(cep_d, items)
+                    if q.get("options"):
+                        data = {"correios": True, "bairro": data.get("bairro", ""), "cidade": data.get("cidade", ""),
+                                "uf": data.get("uf", ""), "options": q["options"]}
+                        resp = JSONResponse(data, headers={"Cache-Control": "no-store"})
+                    elif q.get("bloqueados"):
+                        data = dict(data, nao_envia=q["bloqueados"][:5])
+                        resp = JSONResponse(data, headers={"Cache-Control": "no-store"})
+        except Exception:
+            _blog_log.exception("frete: falha ao cotar Correios/Melhor Envio")
     if len(cep_d) == 8 and resp.status_code != 429:
         if not data:
             try:

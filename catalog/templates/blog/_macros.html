@@ -45,11 +45,11 @@
   <div class="pcard-info">
     {% if label %}<div class="pcard-label">{{ label }}</div>{% endif %}
     <a class="pcard-name" href="/product/{{ p.slug or slug }}">{{ p.name }}</a>
-    {% if in_stock and (p.unit or '')|lower == 'kg' %}<span class="pcard-stock">● Em estoque · venda no balcão</span>{% elif in_stock %}<span class="pcard-stock">● Em estoque · retire hoje</span>{% else %}<span class="pcard-out">Sob consulta</span>{% endif %}
+    {% if in_stock and so_balcao(p) %}<span class="pcard-stock">● Em estoque · venda no balcão</span>{% elif in_stock %}<span class="pcard-stock">● Em estoque · retire hoje</span>{% else %}<span class="pcard-out">Sob consulta</span>{% endif %}
   </div>
   <div class="pcard-buy">
     <div class="pcard-price">{% if p.on_promo and p.regular_price %}<s>R$ {{ ('%.2f' % p.regular_price) | replace('.', ',') }}</s>{% endif %}R$ {{ ('%.2f' % p.sale_price) | replace('.', ',') }}{% if per %}<small>{{ per }}</small>{% endif %}</div>
-    {% if in_stock and (p.unit or '')|lower == 'kg' %}
+    {% if in_stock and so_balcao(p) %}
     <a class="pcard-btn" href="/product/{{ p.slug or slug }}" style="text-decoration:none;text-align:center;">Só na loja</a>
     {% elif in_stock %}
     <div class="pcard-btns">
