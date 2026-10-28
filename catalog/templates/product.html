@@ -709,8 +709,8 @@
       <div style="display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;grid-column:1/-1;">
         <span style="font-size:1.1rem;">🛵</span>
         <div>
-          <div style="font-size:.72rem;font-weight:700;color:var(--text);">Entrega no mesmo dia</div>
-          <div style="font-size:.68rem;color:var(--muted);">Via Lalamove no Rio de Janeiro</div>
+          <div style="font-size:.72rem;font-weight:700;color:var(--text);">Entrega no mesmo dia no Rio</div>
+          <div style="font-size:.68rem;color:var(--muted);">Lalamove: pago até 16h, chega hoje (seg. a sáb.){% if envio_brasil() %} · Outros estados: Correios/transportadora, envio em até 1 dia útil{% endif %}</div>
         </div>
       </div>
       {% endif %}
@@ -1083,7 +1083,7 @@ async function calcFrete() {
           <div><strong>${escHtml(o.label)}</strong>${(d.options.length > 1 && o.price === minMe) ? ' <span class="mais-barato">mais barato</span>' : ''}<div class="frete-sub">${escHtml(o.hint)}</div></div>
           <div class="frete-price">R$ ${o.price.toFixed(2).replace('.', ',')}</div>
         </div>`).join('')}
-        <div class="frete-note">Envio por <strong>Correios / transportadora</strong>. Postamos em até 1 dia útil após o pagamento.</div>`;
+        <div class="frete-note">Envio por <strong>Correios / transportadora</strong>. Enviamos em até 1 dia útil após o pagamento.</div>`;
       if (typeof gtag !== 'undefined') gtag('event', 'calcular_frete', { cep_prefix: cep.slice(0, 5), tipo: 'correios' });
       return;
     }
@@ -1156,7 +1156,8 @@ async function quickSearchHandler(q) {
   try {
     const res = await fetch('/api/catalog');
     const products = await res.json();
-    const filtered = products.filter(p => p.name.toLowerCase().includes(q.toLowerCase())).slice(0, 8);
+    const _nrm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const filtered = products.filter(p => _nrm(p.name).includes(_nrm(q))).slice(0, 8);
     if (!filtered.length) {
       box.innerHTML = `<div style="padding:14px 16px;color:var(--muted);font-size:.88rem;">Nenhum produto encontrado. <a href="https://wa.me/${WA_NUMBER}" style="color:var(--accent);font-weight:700;" target="_blank">Pergunte no WhatsApp →</a></div>`;
       box.style.display = 'block'; return;

@@ -597,7 +597,7 @@ async def api_model_search(
         await _ensure_shelf_code_column(conn)
         await _ensure_promo_column(conn)
     async with engine.connect() as conn:
-        where = "p.active = TRUE AND (LOWER(p.name) LIKE LOWER(:q) OR LOWER(COALESCE(p.description,'')) LIKE LOWER(:q))"
+        where = "p.active = TRUE AND (translate(LOWER(p.name), 'áàâãäéèêëíìîïóòôõöúùûüçñ', 'aaaaaeeeeiiiiooooouuuucn') LIKE translate(LOWER(:q), 'áàâãäéèêëíìîïóòôõöúùûüçñ', 'aaaaaeeeeiiiiooooouuuucn') OR translate(LOWER(COALESCE(p.description,'')), 'áàâãäéèêëíìîïóòôõöúùûüçñ', 'aaaaaeeeeiiiiooooouuuucn') LIKE translate(LOWER(:q), 'áàâãäéèêëíìîïóòôõöúùûüçñ', 'aaaaaeeeeiiiiooooouuuucn'))"
         params: dict = {"q": f"%{q.strip()}%"}
         if category_id:
             where += " AND p.category_id = :cat_id"
@@ -661,7 +661,7 @@ async def api_products(search: str = Query(""), unit: str = Query(""), category:
         await _ensure_shelf_code_column(conn)
         await _ensure_promo_column(conn)
     async with engine.connect() as conn:
-        where = "p.active = TRUE AND LOWER(p.name) LIKE LOWER(:q)"
+        where = "p.active = TRUE AND translate(LOWER(p.name), 'áàâãäéèêëíìîïóòôõöúùûüçñ', 'aaaaaeeeeiiiiooooouuuucn') LIKE translate(LOWER(:q), 'áàâãäéèêëíìîïóòôõöúùûüçñ', 'aaaaaeeeeiiiiooooouuuucn')"   # sem acento: valvula = válvula
         params: dict = {"q": f"%{search}%"}
         if unit:
             where += " AND p.unit = :unit"

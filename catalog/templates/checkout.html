@@ -132,7 +132,7 @@
         <input type="radio" name="dtype" value="lalamove">
         <div class="co-opt-main">
           <div class="co-opt-name">Entrega no endereço</div>
-          <div class="co-opt-hint">Lalamove no Rio (mesmo dia) · Correios/transportadora para outros estados</div>
+          <div class="co-opt-hint">Rio: Lalamove, pago até 16h chega hoje{% if envio_brasil() %} · Outros estados: Correios/transportadora, envio em até 1 dia útil{% endif %}</div>
         </div>
       </label>
 
@@ -315,7 +315,7 @@ async function calcFrete() {
     const isMe = !!d.correios;
     $('doc-box').classList.toggle('co-hidden', !isMe);
     $('entrega-note').textContent = isMe
-      ? 'Postamos em até 1 dia útil após o pagamento. Você recebe o código de rastreio pelo WhatsApp.'
+      ? 'Enviamos em até 1 dia útil após o pagamento. Você recebe o código de rastreio pelo WhatsApp.'
       : 'Pedido pago até 16h: entrega hoje (seg. a sáb.). Depois disso, no próximo dia útil.';
     if (d.combinar) {
       const wa = encodeURIComponent('Olá! Quero fazer um pedido com entrega para o CEP ' + $('f-cep').value + '. Qual o valor do frete?');
@@ -364,6 +364,12 @@ async function calcFrete() {
 function pickService() {
   const r = document.querySelector('input[name="service"]:checked');
   frete = r ? { service: r.value, price: parseFloat(r.dataset.price) } : null;
+  // Correios/transportadora (também dentro do Rio): pede CPF e muda o aviso de prazo
+  const me = !!(frete && String(frete.service).startsWith('ME-'));
+  $('doc-box').classList.toggle('co-hidden', !me);
+  $('entrega-note').textContent = me
+    ? 'Enviamos em até 1 dia útil após o pagamento. Você recebe o código de rastreio pelo WhatsApp.'
+    : 'Pedido pago até 16h: entrega hoje (seg. a sáb.). Depois disso, no próximo dia útil.';
   renderSummary();
 }
 

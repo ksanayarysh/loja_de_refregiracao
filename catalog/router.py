@@ -1856,6 +1856,9 @@ async def _frete_log(request: Request, cep: str, status: int, data: dict,
                             for s, p in prices.items() if s in FRETE_OPTIONS)
         km = str(data.get('distance_km', '')).replace('.', ',')
         corpo = f"{lugar} · {km} km\n{linhas}"
+        me = [o for o in opts if str(o.get("service", "")).startswith("ME-")]
+        if me:
+            corpo += "\n📮 " + " · ".join(f"{o['label']} {brl(o['price'])}" for o in me)
     elif resultado == "combinar" and data.get("nao_envia"):
         corpo = f"{lugar} · fora da área · ⛔ não vai por transportadora: {', '.join(data['nao_envia'])}"
     elif resultado == "combinar":
@@ -1894,6 +1897,23 @@ async def _frete_log(request: Request, cep: str, status: int, data: dict,
                 extra += "\n⚠️ Sem custo cadastrado (margem 0): " + ", ".join(calc["sem_custo"][:5])
     msg = f"🚚 <b>Frete calculado</b> — {origem}\nCEP {cep_fmt} · {corpo}{extra}"
     await _send_tg(msg)
+
+
+async def _frete_items(itens: str, pid: str) -> list:
+    """Itens para cotar envio: carrinho do checkout (JSON) ou o produto da página (1 un)."""
+    if itens:
+        from checkout import _load_items          # import tardio: checkout importa este módulo
+        items, _ = await _load_items(_json.loads(itens)[:50])
+        return items
+    if pid.isdigit():
+        async with engine.connect() as conn:
+            x = (await conn.execute(text(
+                "SELECT id, name, unit, sale_price, promo_price, promo_until FROM products "
+                "WHERE id = :id AND active = TRUE"), {"id": int(pid)})).mappings().first()
+        if x and x["sale_price"]:
+            x = _apply_promo(dict(x, sale_price=float(x["sale_price"])))
+            return [{"id": x["id"], "name": x["name"], "unit": x["unit"], "price": float(x["price"] or 0), "qty": 1}]
+    return []
 
 
 @router.get("/api/frete-cep")
@@ -1942,6 +1962,22 @@ async def api_frete_cep(request: Request, cep: str = "", src: str = "", valor: s
                 data = dict(data, _calc=calc)
         except Exception:
             _blog_log.exception("frete: falha ao aplicar desconto do frete (segue preço cheio)")
+    # dentro do Rio: além da Lalamove, mostra também Correios/transportadora (Melhor Envio) para comparar
+    if data.get("options") and not data.get("correios") and resp.status_code == 200:
+        try:
+            import correios
+            if correios.ativo():
+                items = await _frete_items(itens, pid)
+                if items:
+                    q = await correios.cotar(cep_d, items)
+                    extra = [dict(o, tipo="correios") for o in (q.get("options") or [])][:3]
+                    if extra:
+                        pub = _json.loads(resp.body)
+                        pub["options"] = pub["options"] + extra
+                        resp = JSONResponse(pub, headers={"Cache-Control": "no-store"})
+                        data = dict(data, options=data["options"] + extra)
+        except Exception:
+            _blog_log.exception("frete: falha ao cotar Melhor Envio dentro do Rio")
     # fora da área da Lalamove (outro estado / longe): Correios e transportadoras via Melhor Envio
     if data.get("combinar"):
         try:

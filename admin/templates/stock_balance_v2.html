@@ -202,7 +202,8 @@ function filterTable() {
     const name   = row.dataset.name || '';
     const cat    = row.dataset.cat  || '';
     const status = row.dataset.status;
-    const matchSearch = !q || name.includes(q) || cat.includes(q);
+    const _nrm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const matchSearch = !q || _nrm(name).includes(_nrm(q)) || _nrm(cat).includes(_nrm(q));
     const matchFilter = currentFilter === 'all'
       || (currentFilter === 'empty' && status === 'empty');
     row.style.display = (matchSearch && matchFilter) ? '' : 'none';

@@ -83,7 +83,11 @@
     .lala-block label { margin: 10px 0 4px; font-size: .88rem; }
     .lala-opt { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1.5px solid #e5e7eb; border-radius: 10px; margin-top: 8px; background: #fff; cursor: pointer; font-weight: 700; }
     .lala-opt:has(input:checked) { border-color: #ea580c; background: #fff1e6; }
-    .lala-opt .pr { margin-left: auto; font-weight: 900; }
+    .lala-opt .pr { margin-left: auto; font-weight: 900; white-space: nowrap; }
+    .lala-opt input[type=radio] { width: 18px; height: 18px; flex: 0 0 auto; margin: 0; padding: 0; }
+    .lala-total { margin-top: 12px; padding: 12px 14px; background: #fff; border: 1.5px solid #ea580c; border-radius: 10px; }
+    .lala-total .big { font-size: 1.25rem; font-weight: 900; color: #111; }
+    .lala-total .sub { font-size: .82rem; color: #6b7280; margin-top: 2px; }
     .lala-msg { margin-top: 10px; font-size: .9rem; font-weight: 700; }
     .lala-msg.err { color: #dc2626; } .lala-msg.ok { color: #166534; } .lala-msg.warn { color: #b45309; }
     .btn-lala { margin-top: 12px; padding: 12px 18px; border-radius: 10px; border: none; background: #ea580c; color: #fff; font-weight: 900; font-size: .95rem; cursor: pointer; font-family: inherit; }
@@ -190,6 +194,7 @@
               <input type="hidden" id="lala-cidade"><input type="hidden" id="lala-uf">
               <button class="btn-lala sec" type="button" id="lala-cotar" onclick="lalaCotar()">Cotar frete</button>
               <div id="lala-opts"></div>
+              <div id="lala-total" class="lala-total" style="display:none"></div>
               <div id="lala-msg" class="lala-msg"></div>
               <button class="btn-lala" type="button" id="lala-chamar" style="display:none" onclick="lalaChamar()">🛵 Chamar entregador</button>
               <div id="lala-done" style="display:none"></div>
@@ -318,6 +323,7 @@
     // Propaga para troco e saldo, que dependem do total com desconto
     if (document.getElementById('valor-pago').value) calcTroco();
     if (selectedClientBalance !== null) applySaldoDisplay(selectedClientBalance);
+    if (typeof lalaTotalUpdate === 'function') lalaTotalUpdate();
   }
 
   function submitCheckout() {
@@ -402,7 +408,8 @@
     document.getElementById('saldo-balance').style.display = 'none';
     selectedClientBalance = null;
     if (!q || q.length < 1) { box.style.display = 'none'; return; }
-    const filtered = allClients.filter(c => c.name.toLowerCase().includes(q.toLowerCase())).slice(0, 8);
+    const _nrm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const filtered = allClients.filter(c => _nrm(c.name).includes(_nrm(q))).slice(0, 8);
     if (!filtered.length) { box.innerHTML = '<div class="client-item" style="color:#888">Nenhum cliente encontrado</div>'; box.style.display = 'block'; return; }
     box.innerHTML = filtered.map(c =>
       `<div class="client-item" onclick="selectClient(${c.id}, '${c.name.replace(/'/g,"\'")}', ${c.balance})">
@@ -447,7 +454,39 @@
   function lalaEsc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   function lalaToggle() { $l('lala-box').style.display = $l('lala-on').checked ? 'block' : 'none'; }
   ['lala-cep','lala-num','lala-rua','lala-bairro','lala-comp','lala-loc'].forEach(id =>
-    $l(id).addEventListener('input', () => { lalaQuote = null; $l('lala-opts').innerHTML = ''; $l('lala-chamar').style.display = 'none'; }));
+    $l(id).addEventListener('input', () => { lalaQuote = null; $l('lala-opts').innerHTML = ''; $l('lala-chamar').style.display = 'none'; lalaTotalUpdate(); }));
+
+  // total com entrega (produtos com desconto + frete escolhido) e orçamento pronto para o cliente
+  function lalaFrete() {
+    const r = document.querySelector('input[name="lala-svc"]:checked');
+    if (!lalaQuote || !r) return null;
+    const o = lalaQuote.options.find(x => x.service === r.value);
+    return o ? o : null;
+  }
+  function lalaTotalUpdate() {
+    const box = $l('lala-total'); if (!box) return;
+    const o = lalaFrete();
+    if (!o) { box.style.display = 'none'; return; }
+    const prod = getDiscountedTotal();
+    box.style.display = 'block';
+    box.innerHTML = `<div class="big">Total com entrega: ${fmt(prod + o.price)}</div>
+      <div class="sub">Produtos ${fmt(prod)} + entrega ${o.label} ${fmt(o.price)}</div>
+      <button class="btn-lala sec" type="button" style="margin-top:8px" onclick="lalaOrcamento()">📲 Enviar orçamento com entrega</button>`;
+  }
+  function lalaOrcamento() {
+    const o = lalaFrete(); if (!o || !cart.length) return;
+    const tel = $l('lala-phone').value.replace(/\D/g, '');
+    const prod = getDiscountedTotal();
+    const linhas = cart.map(i => `• ${i.name} × ${i.qty} = ${fmt(i.price * i.qty)}`);
+    const pct = getDiscountPct();
+    let msg = `Olá! Segue o orçamento da MTF Refrigeração:\n\n${linhas.join('\n')}`;
+    if (pct > 0) msg += `\nDesconto: ${String(pct).replace('.', ',')}%`;
+    msg += `\nProdutos: ${fmt(prod)}\nEntrega (${o.label}, ${lalaQuote.address}): ${fmt(o.price)}\n*Total com entrega: ${fmt(prod + o.price)}*\n\nPodemos confirmar?`;
+    const dest = tel ? (tel.startsWith('55') ? tel : '55' + tel) : '';
+    const a = document.createElement('a');
+    a.href = `https://wa.me/${dest}?text=${encodeURIComponent(msg)}`; a.target = '_blank'; a.rel = 'noopener';
+    document.body.appendChild(a); a.click(); a.remove();
+  }
 
   async function lalaCep() {
     const cep = $l('lala-cep').value.replace(/\D/g, '');
@@ -477,6 +516,8 @@
       $l('lala-opts').innerHTML = d.options.map((o, i) => `
         <label class="lala-opt"><input type="radio" name="lala-svc" value="${o.service}" ${o.price === min ? 'checked' : ''}>
           ${o.label} <small style="color:#888;font-weight:400">${o.km} km</small><span class="pr">${fmt(o.price)}</span></label>`).join('');
+      document.querySelectorAll('input[name="lala-svc"]').forEach(r => r.addEventListener('change', lalaTotalUpdate));
+      lalaTotalUpdate();
       lalaMsg(`📍 ${lalaEsc(d.address)} — <a href="${d.maps}" target="_blank" rel="noopener">conferir no mapa</a>`
               + (d.aviso ? `<br>⚠️ ${lalaEsc(d.aviso)}` : ''), d.aviso ? 'warn' : '');
       $l('lala-chamar').style.display = 'inline-block';

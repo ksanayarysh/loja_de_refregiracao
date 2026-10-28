@@ -859,8 +859,8 @@ async function triggerFixedSearch() {
   try {
     const res = await fetch('/api/catalog');
     const products = await res.json();
-    const ql2 = q.toLowerCase();
-    let filtered = products.filter(p => p.name.toLowerCase().includes(ql2) || (p.description || '').toLowerCase().includes(ql2));
+    const ql2 = _normStr(q);   // sem acento: "valvula" acha "válvula" e vice-versa
+    let filtered = products.filter(p => _normStr(p.name).includes(ql2) || _normStr(p.description).includes(ql2));
     let isFallback = false;
     if (!filtered.length) {
       filtered = findSimilarProducts(products, q, 6);
@@ -917,8 +917,8 @@ async function quickSearchHandler(q) {
   try {
     const res = await fetch('/api/catalog');
     const products = await res.json();
-    const ql = q.toLowerCase();
-    let filtered = products.filter(p => p.name.toLowerCase().includes(ql) || (p.description || '').toLowerCase().includes(ql)).slice(0, 8);
+    const ql = _normStr(q);
+    let filtered = products.filter(p => _normStr(p.name).includes(ql) || _normStr(p.description).includes(ql)).slice(0, 8);
     let isFallback = false;
     if (!filtered.length) {
       filtered = findSimilarProducts(products, q, 5);

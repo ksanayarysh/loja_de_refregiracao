@@ -610,11 +610,12 @@ function sendCartWA() {
 updateBadge();
 
 function filterProducts() {
-  const q = document.getElementById('searchInput').value.toLowerCase().trim();
+  const _nrm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const q = _nrm(document.getElementById('searchInput').value.trim());
   let visible = 0;
   document.querySelectorAll('.product-card').forEach(row => {
     const name = row.dataset.name || '';
-    const show = !q || name.includes(q);
+    const show = !q || _nrm(name).includes(q);
     row.style.display = show ? '' : 'none';
     if (show) visible++;
   });

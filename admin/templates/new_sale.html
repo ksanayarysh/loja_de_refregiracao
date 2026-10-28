@@ -471,7 +471,8 @@
     document.getElementById('client_id').value = '';
     document.getElementById('saldo-balance').style.display = 'none';
     if (!q || q.length < 1) { box.style.display = 'none'; return; }
-    const filtered = allClients.filter(c => c.name.toLowerCase().includes(q.toLowerCase())).slice(0, 8);
+    const _nrm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const filtered = allClients.filter(c => _nrm(c.name).includes(_nrm(q))).slice(0, 8);
     if (!filtered.length) { box.innerHTML = '<div class="client-item" style="color:#888">Nenhum cliente encontrado</div>'; box.style.display = 'block'; return; }
     box.innerHTML = filtered.map(c =>
       `<div class="client-item" onclick="selectClient(${c.id}, '${c.name.replace(/'/g,"\'")}', ${c.balance})">

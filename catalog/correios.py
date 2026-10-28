@@ -55,22 +55,48 @@ _PROIBIDO = re.compile(
     r"[aá]lcool|isopropanol|thinner|solvente|141b|air ?flush|air ?repair|gpclear|fluido de limpeza",
     re.I)
 
-# caixa padrão por categoria: (peso kg, comprimento, largura, altura em cm)
+# caixa padrão por categoria: (peso kg, comprimento, largura, altura em cm) — já embalado
 _CAIXA = {
     "placa eletronica": (0.4, 25, 20, 8),
-    "ventilador": (1.0, 20, 20, 15),
-    "maquina de lavar": (0.8, 25, 20, 15),
-    "ar condicionado": (1.0, 40, 20, 20),
+    "ventilador": (0.8, 20, 20, 15),
+    "maquina de lavar": (0.6, 25, 20, 12),
+    "ar condicionado": (0.3, 20, 15, 10),
     "geladeira": (0.5, 25, 20, 10),
-    "bebedouro": (0.5, 20, 15, 10),
-    "ferramentas": (1.0, 30, 20, 10),
+    "bebedouro": (0.4, 20, 15, 10),
+    "ferramentas": (0.5, 25, 15, 10),
     "suporte": (3.0, 50, 15, 10),
     "esponjoso": (0.3, 40, 15, 15),
-    "limpeza": (0.6, 25, 20, 15),
+    "limpeza": (0.5, 25, 20, 12),
     "kit": (1.0, 30, 25, 15),
+    "compressor": (9.0, 30, 25, 25),
 }
-_CAIXA_PADRAO = (0.4, 20, 15, 10)
-_POR_METRO = {"tubo de cobre": 0.2, "tubo": 0.2, "cabo": 0.12, "capilar": 0.05, "esponjoso": 0.1}
+_CAIXA_PADRAO = (0.3, 20, 15, 10)       # capacitor, relé, sensor, termostato, pressostato, válvula...
+
+# peças grandes/pesadas pelo nome (vale mais que a categoria)
+_POR_NOME = [
+    (re.compile(r"^compressor.*embraco|embraco.*\bhp\b", re.I), (9.0, 30, 25, 25)),
+    (re.compile(r"turbina.*(split|samsung|12000|9000|18000)", re.I), (1.2, 65, 15, 15)),
+    (re.compile(r"turbina", re.I), (1.0, 30, 25, 20)),
+    (re.compile(r"agitador", re.I), (1.0, 40, 30, 30)),
+    (re.compile(r"bomba de v[aá]cuo", re.I), (6.0, 35, 20, 25)),
+    (re.compile(r"manifold", re.I), (1.5, 30, 25, 10)),
+    (re.compile(r"\bbomba\b|eletrobomba", re.I), (0.8, 20, 15, 15)),
+    (re.compile(r"motor", re.I), (0.8, 20, 20, 15)),
+    (re.compile(r"gaxeta|borracha.*porta", re.I), (0.6, 30, 25, 10)),
+]
+
+# vendidos por metro: kg por metro (cobre pela medida)
+_COBRE_KG_M = {"1/4": 0.11, "3/8": 0.17, "1/2": 0.25, "5/8": 0.32, "3/4": 0.38, "7/8": 0.45}
+_POR_METRO = {"cabo": 0.12, "capilar": 0.05, "esponjoso": 0.1}
+
+
+def _kg_metro(cat: str, nome: str) -> float:
+    if "cobre" in nome or cat in ("tubo de cobre", "tubo"):
+        for medida, kg in _COBRE_KG_M.items():
+            if medida in nome:
+                return kg
+        return 0.2
+    return _POR_METRO.get(cat, 0.15)
 
 
 def bloqueado(p: dict) -> bool:
@@ -87,11 +113,13 @@ def _caixa(p: dict, qty: float):
     unit = (p.get("unit") or "un").strip().lower()
     nome = (p.get("name") or "").lower()
     peso, c, l, a = _CAIXA.get(cat, _CAIXA_PADRAO)
-    if nome.startswith("compressor") and "embraco" in nome:
-        peso, c, l, a = 9.0, 30, 25, 25
+    for rx, caixa in _POR_NOME:
+        if rx.search(nome):
+            peso, c, l, a = caixa
+            break
     quantidade = qty
     if unit == "m":                      # metro: vira um rolo só, peso pelo comprimento
-        peso = _POR_METRO.get(cat, 0.15) * qty
+        peso = _kg_metro(cat, nome) * qty
         c, l, a = 35, 35, 10
         quantidade = 1
     if p.get("ship_peso"):
@@ -203,7 +231,7 @@ async def cotar(cep: str, items: list) -> dict:
         empresa = (s.get("company") or {}).get("name") or ""
         nome = s.get("name") or ""
         opts.append({"service": f"ME-{s.get('id')}", "label": f"{empresa} {nome}".strip(),
-                     "hint": f"Chega em até {dias} dias úteis" if dias else "Prazo informado na postagem",
+                     "hint": f"Chega em até {dias} dias úteis" if dias else "Prazo informado no envio",
                      "price": round(preco, 2), "dias": dias})
     opts.sort(key=lambda o: o["price"])
     res = {"options": opts[:4]} if opts else {"erro": "sem opção de envio para este CEP"}

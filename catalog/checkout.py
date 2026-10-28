@@ -532,7 +532,7 @@ def _msg_cliente_pago(row) -> str:
     from urllib.parse import quote
     nome = ((row["customer_name"] or "").split() or [""])[0].capitalize()
     if row["delivery_type"] == "correios":
-        fim = "Vamos postar em até 1 dia útil e enviar o código de rastreio por aqui. 📦"
+        fim = "Vamos enviar em até 1 dia útil e mandar o código de rastreio por aqui. 📦"
     elif row["delivery_type"] == "lalamove":
         fim = "Avisaremos você assim que ele estiver pronto e o entregador sair para a entrega. 🛵"
     else:

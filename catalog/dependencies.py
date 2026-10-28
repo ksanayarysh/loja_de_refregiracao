@@ -15,3 +15,12 @@ def so_balcao(p) -> bool:
 
 
 templates.env.globals["so_balcao"] = so_balcao
+
+
+def envio_brasil() -> bool:
+    """Correios/transportadora (Melhor Envio) configurado? Os textos do site só falam disso quando está ligado."""
+    import correios          # import tardio: correios importa este módulo
+    return correios.ativo()
+
+
+templates.env.globals["envio_brasil"] = envio_brasil

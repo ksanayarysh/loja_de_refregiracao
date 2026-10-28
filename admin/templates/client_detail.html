@@ -254,7 +254,8 @@ function searchProd(q) {
   currentProd = null;
   prodActive = -1;
   if (!q || q.length < 1) { box.style.display = 'none'; return; }
-  const filtered = allProducts.filter(p => p.name.toLowerCase().includes(q.toLowerCase())).slice(0, 12);
+  const _nrm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const filtered = allProducts.filter(p => _nrm(p.name).includes(_nrm(q))).slice(0, 12);
   if (!filtered.length) { box.innerHTML = '<div class="prod-item" style="color:#9ca3af">Nenhum produto encontrado</div>'; box.style.display = 'block'; return; }
   box.innerHTML = filtered.map((p, i) =>
     `<div class="prod-item" data-idx="${i}" onclick="selectProd(${i})">

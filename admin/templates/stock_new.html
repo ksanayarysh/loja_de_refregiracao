@@ -111,7 +111,7 @@ function acFilter() {
   const dd = document.getElementById('ac-dropdown');
   const matches = q.length === 0
     ? AC_PRODUCTS
-    : AC_PRODUCTS.filter(p => p.name.toLowerCase().includes(q));
+    : AC_PRODUCTS.filter(p => { const _nrm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); return _nrm(p.name).includes(_nrm(q)); });
 
   if (matches.length === 0) { dd.style.display = 'none'; return; }
 

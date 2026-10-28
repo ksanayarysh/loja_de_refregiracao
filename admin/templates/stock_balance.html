@@ -140,7 +140,8 @@ function filterCards() {
   document.querySelectorAll('.stock-card').forEach(card => {
     const name = card.dataset.name || '';
     const status = card.dataset.status;
-    const matchSearch = !q || name.includes(q);
+    const _nrm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const matchSearch = !q || _nrm(name).includes(_nrm(q));
     const matchFilter = currentFilter === 'all'
       || (currentFilter === 'low' && status === 'low')
       || (currentFilter === 'empty' && status === 'empty');
