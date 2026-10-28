@@ -232,13 +232,16 @@ async def cotar(cep: str, items: list) -> dict:
         except (TypeError, ValueError):
             continue
         rng = s.get("custom_delivery_range") or s.get("delivery_range") or {}
-        dias = int(rng.get("max") or s.get("custom_delivery_time") or s.get("delivery_time") or 0) + extra
+        base = int(s.get("custom_delivery_time") or s.get("delivery_time") or 0)
+        dmin = int(rng.get("min") or base or 0) + extra       # + dia(s) até a gente enviar
+        dias = int(rng.get("max") or base or 0) + extra       # pior caso (vai para o pedido / avaliações)
         empresa = (s.get("company") or {}).get("name") or ""
         nome = s.get("name") or ""
         # "Loggi Loggi Ponto" -> "Loggi Ponto": não repete a empresa se o serviço já começa com ela
         label = nome if empresa and nome.lower().startswith(empresa.lower()) else f"{empresa} {nome}".strip()
         opts.append({"service": f"ME-{s.get('id')}", "label": label, "sid": s.get("id"),
-                     "hint": f"Chega em até {dias} dias úteis" if dias else "Prazo informado no envio",
+                     "hint": (f"Chega em {dmin} a {dias} dias úteis" if 0 < dmin < dias
+                              else f"Chega em até {dias} dias úteis" if dias else "Prazo informado no envio"),
                      "price": round(preco, 2), "dias": dias})
     opts.sort(key=lambda o: o["price"])
     res = {"options": opts[:4]} if opts else {"erro": "sem opção de envio para este CEP"}
