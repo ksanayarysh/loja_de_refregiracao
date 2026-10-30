@@ -536,7 +536,7 @@
   <div class="search-bar-inner">
     <div class="header-search">
       <input type="text" id="quickSearch" placeholder="o que procura hoje?" oninput="quickSearchHandler(this.value)" autocomplete="off">
-      <button class="header-search-btn" onclick="document.getElementById('quickSearch').focus()">
+      <button class="header-search-btn" aria-label="Buscar" type="button" onclick="document.getElementById('quickSearch').focus()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
       </button>
       <div class="header-search-results" id="quickResults"></div>

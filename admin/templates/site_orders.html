@@ -47,7 +47,7 @@
 <div class="so-grid">
   <div>
     <div class="card so-card" style="margin-bottom:16px;">
-      <h2>Pedido #{{ order.id }}
+      <h2>Pedido #{{ order.num }}
         <span class="so-badge b-{{ order.status }}">{{ {'paid':'Pago','pending':'Aguardando pagamento','expired':'Expirado','error':'Erro','cancelled':'Cancelado','refunded':'Estornado'}.get(order.status, order.status) }}</span>
         <span class="so-badge b-ful">{{ order.fulfillment_label }}</span>
       </h2>
@@ -138,7 +138,7 @@
 
       <p style="margin-top:14px;">
         <a class="btn-secondary" target="_blank" rel="noopener"
-           href="https://wa.me/{{ order.wa_phone }}?text={{ ('Olá, ' ~ order.customer_name ~ '! Recebemos o pagamento do seu pedido #' ~ order.id ~ ' na M.T.F Refrigeração.') | urlencode }}">
+           href="https://wa.me/{{ order.wa_phone }}?text={{ ('Olá, ' ~ order.customer_name ~ '! Recebemos o pagamento do seu pedido #' ~ order.num ~ ' na M.T.F Refrigeração.') | urlencode }}">
           💬 Avisar cliente no WhatsApp</a>
       </p>
     {% endif %}
@@ -146,7 +146,7 @@
     <div class="so-danger-zone">
       {% if order.can_cancel %}
       <form method="post" action="/site-orders/{{ order.id }}/cancelar"
-            onsubmit="return confirm('Cancelar o pedido #{{ order.id }}?{% if order.lalamove_order_id %} O entregador também será cancelado.{% endif %}{% if order.sale_registered %} As vendas serão removidas e o estoque devolvido.{% endif %}');">
+            onsubmit="return confirm('Cancelar o pedido #{{ order.num }}?{% if order.lalamove_order_id %} O entregador também será cancelado.{% endif %}{% if order.sale_registered %} As vendas serão removidas e o estoque devolvido.{% endif %}');">
         {% if order.status == 'paid' %}
         <label class="so-check"><input type="checkbox" name="refund" value="1" checked>
           Devolver R$ {{ "%.2f"|format(order.total)|replace('.', ',') }} ao cliente (estorno no Mercado Pago)</label>
@@ -156,7 +156,7 @@
       {% endif %}
       {% if order.can_delete %}
       <form method="post" action="/site-orders/{{ order.id }}/delete" style="margin-top:10px;"
-            onsubmit="return confirm('Excluir o pedido #{{ order.id }} de vez? Não dá para desfazer.');">
+            onsubmit="return confirm('Excluir o pedido #{{ order.num }} de vez? Não dá para desfazer.');">
         <button class="btn-secondary" type="submit" style="width:100%;color:#6b7280;">🗑 Excluir pedido</button>
       </form>
       {% else %}
@@ -194,7 +194,7 @@
   <tbody>
     {% for o in orders %}
     <tr onclick="location.href='/site-orders/{{ o.id }}'" style="cursor:pointer;">
-      <td><a href="/site-orders/{{ o.id }}">#{{ o.id }}</a></td>
+      <td><a href="/site-orders/{{ o.id }}">#{{ o.num }}</a></td>
       <td>{{ o.created_brt }}</td>
       <td>{{ o.customer_name }}</td>
       <td class="so-hide-m">{% if o.delivery_type == 'lalamove' %}🛵 {{ o.service_label }}{% elif o.delivery_type == 'correios' %}📮 {{ o.service_label }}{% else %}🏪 Retirada{% endif %}</td>
@@ -206,7 +206,7 @@
       <td onclick="event.stopPropagation();">
         {% if o.can_delete %}
         <form method="post" action="/site-orders/{{ o.id }}/delete"
-              onsubmit="return confirm('Excluir o pedido #{{ o.id }} de vez?');">
+              onsubmit="return confirm('Excluir o pedido #{{ o.num }} de vez?');">
           <button class="so-del" type="submit" title="Excluir">🗑</button>
         </form>
         {% endif %}

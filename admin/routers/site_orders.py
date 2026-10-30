@@ -36,6 +36,7 @@ FULFILLMENT = {
     "entregue":  "Entregue / retirado",
     "cancelado": "Cancelado",
 }
+PEDIDO_OFFSET = int(os.environ.get("PEDIDO_OFFSET", "1000") or 0)   # mesmo valor do catálogo: id 3 → "#1003"
 SERVICE_LABEL = {"LALAGO": "Motoboy", "LALAPRO": "Moto com baú", "HATCHBACK": "Carro", "UBER": "Uber Moto"}
 
 
@@ -123,6 +124,7 @@ def _prep(o) -> dict:
     phone = re.sub(r"\D", "", o.get("customer_phone") or "")
     o["wa_phone"] = phone if phone.startswith("55") else "55" + phone
     # só exclui pedido sem venda registrada e sem entregador chamado (senão: cancelar primeiro)
+    o["num"] = int(o["id"]) + PEDIDO_OFFSET
     o["can_delete"] = not o.get("sale_registered") and not o.get("lalamove_order_id")
     o["can_cancel"] = o.get("fulfillment") != "cancelado" and o.get("status") in ("pending", "paid")
     ls = o.get("lalamove_status") or ""
@@ -279,7 +281,7 @@ async def site_order_lalamove(order_id: int, _=Depends(basic_auth)):
         else:
             quote = await get_quote(o["lat"], o["lng"], full_address, svc)
         res = await place_order(quote, o["customer_name"], phone,
-                                remarks=f"Pedido MTF #{order_id}. {full_address}", sale_id=order_id)
+                                remarks=f"Pedido MTF #{order_id + PEDIDO_OFFSET}. {full_address}", sale_id=order_id)
     except LalamoveError as e:
         return _go(order_id, err=f"{nome}: {str(e.payload)[:150]}")
 
@@ -362,7 +364,7 @@ async def _sync_lalamove(order_id: int, lid: str, prev: str | None, notify: bool
 
     # prev vazio = pedido chamado antes desta versão: só grava, sem notificar
     if notify and prev and status != prev and status in LALA_PUSH_TEXT:
-        await _push(f"Pedido #{order_id}", LALA_PUSH_TEXT[status],
+        await _push(f"Pedido #{order_id + PEDIDO_OFFSET}", LALA_PUSH_TEXT[status],
                     url=f"/site-orders/{order_id}", tag=f"lala-{order_id}")
     return status
 

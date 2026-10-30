@@ -1399,7 +1399,7 @@ async def interesse_report(request: Request, period: str = Query("today"), _=Dep
                 pe["src"] = r["src"]
             forma = "cartão" if r["pay_method"] == "card" else "Pix"
             valor = f"{float(r['total'] or 0):.2f}".replace(".", ",")
-            txt = (f"pedido #{r['id']} ({forma}) R$ {valor} — "
+            txt = (f"pedido #{int(r['id']) + 1000} ({forma}) R$ {valor} — "
                    f"{'PAGO ✅' if pago else 'não pagou (' + (r['status'] or '?') + ')'}")
             pe["linhas"].append((_to_brt(r["t"], BRT), "💰" if pago else "📝", txt))
             pe.setdefault("pedido_ids", []).append(r["id"])

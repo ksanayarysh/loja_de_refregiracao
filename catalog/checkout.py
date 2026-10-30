@@ -124,6 +124,15 @@ async def _ensure_orders_table():
 
 
 # ── HELPERS ────────────────────────────────────────────────────────────────────
+# Número do pedido que o cliente vê = id no banco + PEDIDO_OFFSET (id 3 → "Pedido #1003").
+# No banco e nos links (/pedido/3, /site-orders/3) continua o id real.
+PEDIDO_OFFSET = int(os.environ.get("PEDIDO_OFFSET", "1000") or 0)
+
+
+def num_pedido(order_id) -> int:
+    return int(order_id) + PEDIDO_OFFSET
+
+
 def _brl(v: float) -> str:
     return f"R$ {v:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
@@ -523,12 +532,12 @@ async def _mark_paid(order_id: int, extra: str = ""):
                      (row.get("delivery_label") or "Transportadora") if row["delivery_type"] == "correios" else
                      FRETE_OPTIONS.get(row["delivery_service"], (row["delivery_service"], ""))[0])
     await push.send_all(
-        engine, f"💰 Pedido #{row['id']} pago — {_brl(float(row['total']))}",
+        engine, f"💰 Pedido #{num_pedido(row['id'])} pago — {_brl(float(row['total']))}",
         f"{row['customer_name']} · {entrega_curta}",
         url=f"{ADMIN_URL.rstrip('/')}/site-orders/{row['id']}", tag=f"pedido-{row['id']}",
     )
     await _send_tg(
-        f"💰 <b>Pedido #{row['id']} PAGO ({'Cartão' if row.get('pay_method') == 'card' else 'Pix'})</b>\n"
+        f"💰 <b>Pedido #{num_pedido(row['id'])} PAGO ({'Cartão' if row.get('pay_method') == 'card' else 'Pix'})</b>\n"
         f"Total: <b>{_brl(float(row['total']))}</b>\n"
         f"Cliente: {row['customer_name']} · {row['customer_phone']}\n\n"
         f"{lines}\n\n{entrega}" + _margem_txt(row) + extra
@@ -549,14 +558,14 @@ def _msg_cliente_pago(row) -> str:
         fim = ("Avisaremos você assim que ele estiver pronto para retirada na loja: "
                "Av. Brasil, 6818 – Bonsucesso (seg. a sáb., 8h30–18h).")
     texto = (f"Olá{', ' + nome if nome else ''}! Aqui é da MTF Refrigeração. 😊\n"
-             f"Recebemos o pagamento do seu pedido nº {row['id']} ✅\n"
+             f"Recebemos o pagamento do seu pedido nº {num_pedido(row['id'])} ✅\n"
              f"Ele já está em processamento e estamos separando os produtos.\n"
              f"{fim}\nObrigado pela compra!")
     tel = re.sub(r"\D", "", row["customer_phone"] or "")
     if len(tel) in (10, 11):
         tel = "55" + tel
     link = f"https://wa.me/{tel}?text={quote(texto)}"
-    return (f"📲 <b>Mensagem para o cliente</b> (pedido #{row['id']})\n"
+    return (f"📲 <b>Mensagem para o cliente</b> (pedido #{num_pedido(row['id'])})\n"
             f'<a href="{html.escape(link)}">👉 Abrir WhatsApp do cliente com o texto pronto</a>\n\n'
             f"<pre>{html.escape(texto)}</pre>")
 
@@ -688,6 +697,7 @@ async def pedido_page(request: Request, order_id: int, t: str = ""):
         else FRETE_OPTIONS.get(order.get("delivery_service") or "", ("", ""))[0]
     order["pix_expires_iso"] = order["pix_expires_at"].isoformat() if order.get("pix_expires_at") else ""
     order["gcr_delivery"] = _gcr_delivery_date(order)
+    order["num"] = num_pedido(order["id"])
     return templates.TemplateResponse("pedido.html", _page_ctx(request, order=order,
                                                               gcr_merchant_id=GCR_MERCHANT_ID))
 
@@ -893,7 +903,7 @@ async def checkout_pix(request: Request):
     if method == "card":
         try:
             pref = await _mp_create_preference(order_id, token, total, email, name,
-                                               f"MTF Refrigeração — pedido #{order_id}")
+                                               f"MTF Refrigeração — pedido #{num_pedido(order_id)}")
             if not pref["url"]:
                 raise RuntimeError("Mercado Pago sem init_point")
         except Exception:
@@ -906,12 +916,12 @@ async def checkout_pix(request: Request):
             await conn.execute(text(
                 "UPDATE site_orders SET mp_init_point = :u, pix_expires_at = :exp WHERE id = :id"
             ), {"u": pref["url"], "exp": pref["expires_at"], "id": order_id})
-        await _send_tg(f"🧾 Pedido #{order_id} criado no site — aguardando cartão ({_brl(total)})")
+        await _send_tg(f"🧾 Pedido #{num_pedido(order_id)} criado no site — aguardando cartão ({_brl(total)})")
         return JSONResponse({"order_id": order_id, "token": token, "url": pref["url"],
                              "pedido": f"/pedido/{order_id}?t={token}"})
 
     try:
-        pix = await _mp_create_pix(order_id, total, email, name, f"MTF Refrigeração — pedido #{order_id}")
+        pix = await _mp_create_pix(order_id, total, email, name, f"MTF Refrigeração — pedido #{num_pedido(order_id)}")
     except Exception:
         _blog_log.exception("checkout: falha ao criar Pix do pedido %s", order_id)
         async with engine.begin() as conn:
@@ -924,7 +934,7 @@ async def checkout_pix(request: Request):
             WHERE id = :id
         """), {"pid": pix["id"], "qr": pix["qr"], "b64": pix["qr_base64"], "exp": pix["expires_at"], "id": order_id})
 
-    await _send_tg(f"🧾 Pedido #{order_id} criado no site — aguardando Pix ({_brl(total)})")
+    await _send_tg(f"🧾 Pedido #{num_pedido(order_id)} criado no site — aguardando Pix ({_brl(total)})")
     return JSONResponse({"order_id": order_id, "token": token, "url": f"/pedido/{order_id}?t={token}"})
 
 

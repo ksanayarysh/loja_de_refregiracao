@@ -63,7 +63,7 @@
       <span class="chip src">Veio de: {{ p.src or 'direto / desconhecido' }}</span>
       {% if p.device %}<span class="chip">{{ p.device }}</span>{% endif %}
       <span class="chip">IP {{ p.ip }}</span>
-      {% for oid in p.pedido_ids or [] %}<a class="chip" href="/site-orders/{{ oid }}">Pedido #{{ oid }} →</a>{% endfor %}
+      {% for oid in p.pedido_ids or [] %}<a class="chip" href="/site-orders/{{ oid }}">Pedido #{{ oid + 1000 }} →</a>{% endfor %}
     </div>
     <ul class="tl">
       {% for l in p.linhas %}

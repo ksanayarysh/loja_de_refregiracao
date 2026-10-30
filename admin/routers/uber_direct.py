@@ -145,7 +145,7 @@ async def place_order(quote: dict, client_name: str, client_phone: str, remarks:
         quote_id=quote["quotation_id"],
         pickup_name=STORE_NAME,
         pickup_phone_number=_env("MTF_PHONE"),
-        pickup_notes=f"Pedido MTF #{sale_id}" if sale_id else "",
+        pickup_notes=f"Pedido MTF #{int(sale_id) + int(_env('PEDIDO_OFFSET', '1000') or 0)}" if sale_id else "",
         dropoff_name=client_name[:80] or "Cliente",
         dropoff_phone_number=client_phone,
         dropoff_address=quote["_dropoff"],
