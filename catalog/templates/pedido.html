@@ -143,7 +143,7 @@
     {% endfor %}
     <div class="pd-line"><span>Produtos</span><span class="pd-money">R$ {{ "{:,.2f}".format(order.subtotal).replace(",", "X").replace(".", ",").replace("X", ".") }}</span></div>
     <div class="pd-line">
-      <span>{% if order.delivery_type == 'correios' %}Envio · {{ order.frete_label }}{% if order.delivery_days %} (até {{ order.delivery_days }} dias úteis){% endif %}{% elif order.delivery_type == 'lalamove' %}Entrega · {{ order.frete_label }} (Lalamove){% else %}Retirada na loja{% endif %}</span>
+      <span>{% if order.delivery_type == 'correios' %}Envio · {{ order.frete_label }}{% if order.delivery_days %} (até {{ order.delivery_days }} dias úteis){% endif %}{% elif order.delivery_type == 'lalamove' %}Entrega · {{ order.frete_label }}{% if order.delivery_service != 'UBER' %} (Lalamove){% endif %}{% else %}Retirada na loja{% endif %}</span>
       <span class="pd-money">{% if order.frete %}R$ {{ "{:,.2f}".format(order.frete).replace(",", "X").replace(".", ",").replace("X", ".") }}{% else %}Grátis{% endif %}</span>
     </div>
     <div class="pd-line pd-line-total"><span>Total</span><span class="pd-money">R$ {{ "{:,.2f}".format(order.total).replace(",", "X").replace(".", ",").replace("X", ".") }}</span></div>

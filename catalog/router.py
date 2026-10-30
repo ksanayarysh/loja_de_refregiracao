@@ -279,7 +279,8 @@ _events_ready = False
 _event_seen: dict = {}   # (ip, pid, event) -> ts: o mesmo evento da mesma pessoa conta 1x por hora
 
 
-async def log_product_events(ids, event: str, ip: str):
+async def log_product_events(ids, event: str, ip: str, detail: str | None = None, src: str | None = None) -> list:
+    """Grava o evento (1x por hora por pessoa/produto/evento). Devolve os ids gravados agora (vazio = repetido)."""
     global _events_ready
     import time
     now = time.time()
@@ -298,7 +299,7 @@ async def log_product_events(ids, event: str, ip: str):
             if now - t > 3600:
                 _event_seen.pop(k, None)
     if not novos:
-        return
+        return []
     try:
         async with engine.begin() as conn:
             if not _events_ready:
@@ -313,13 +314,19 @@ async def log_product_events(ids, event: str, ip: str):
                 """))
                 await conn.execute(text(
                     "CREATE INDEX IF NOT EXISTS ix_pe_prod_time ON product_events(product_id, created_at)"))
+                # botão clicado ('comprar' / 'carrinho') e de onde a pessoa veio (Google Ads, Instagram…)
+                await conn.execute(text("ALTER TABLE product_events ADD COLUMN IF NOT EXISTS detail VARCHAR(20)"))
+                await conn.execute(text("ALTER TABLE product_events ADD COLUMN IF NOT EXISTS src VARCHAR(80)"))
+                await conn.execute(text("CREATE INDEX IF NOT EXISTS ix_pe_ip_time ON product_events(ip, created_at)"))
                 _events_ready = True
             for pid in novos:
                 await conn.execute(text(
-                    "INSERT INTO product_events (product_id, event, ip) VALUES (:p, :e, :ip)"
-                ), {"p": pid, "e": event, "ip": ip})
+                    "INSERT INTO product_events (product_id, event, ip, detail, src) VALUES (:p, :e, :ip, :d, :s)"
+                ), {"p": pid, "e": event, "ip": ip, "d": (detail or None) and detail[:20], "s": (src or None) and src[:80]})
     except Exception:
         _blog_log.exception("product_events: falha ao gravar")
+        return []
+    return novos
 
 
 @router.post("/api/track/event")
@@ -333,8 +340,35 @@ async def track_event(request: Request):
     if (event not in ("cart", "phone") or _is_owner(request) or _is_bot(request.headers.get("user-agent", ""))
             or _is_datacenter(_client_ip(request))):
         return JSONResponse({"ok": True, "skip": True})
-    await log_product_events([body.get("product_id")], event, _client_ip(request))
+    btn = str(body.get("btn") or "")[:20]
+    src = str(body.get("src") or "")[:80]
+    novos = await log_product_events([body.get("product_id")], event, _client_ip(request), btn, src)
+    if event == "cart" and novos:
+        asyncio.ensure_future(_avisar_quer_comprar(int(novos[0]), btn, src, request.headers.get("user-agent", "")))
     return JSONResponse({"ok": True})
+
+
+async def _avisar_quer_comprar(pid: int, btn: str, src: str, ua: str):
+    """Telegram na hora em que alguém clica em Comprar / Adicionar ao carrinho na página do produto."""
+    try:
+        async with engine.connect() as conn:
+            x = (await conn.execute(text("SELECT name, sale_price FROM products WHERE id = :id"),
+                                    {"id": pid})).mappings().first()
+        nome = x["name"] if x else f"produto #{pid}"
+        preco = f' · R$ {float(x["sale_price"]):.2f}'.replace(".", ",") if x and x["sale_price"] else ""
+        botao = {"comprar": "⚡ Comprar agora", "carrinho": "🛒 Adicionar ao carrinho"}.get(btn, "carrinho")
+        u = ua.lower()
+        device = "📱 celular" if any(m in u for m in ("mobile", "android", "iphone")) else "🖥 computador"
+        await _send_tg(
+            f"🛒 <b>Alguém quer comprar</b>\n"
+            f"📦 {nome}{preco}\n"
+            f"Botão: {botao}\n"
+            f"Veio de: <b>{src or 'direto/desconhecido'}</b> · {device}\n"
+            f"Horário: {datetime.now(BRT).strftime('%d/%m %H:%M')}\n"
+            f"<i>Se abrir o checkout chega o aviso 👀; se não chegar, desistiu antes.</i>"
+        )
+    except Exception:
+        _blog_log.exception("aviso quer comprar falhou")
 
 async def _ensure_visits_table():
     """Создаёт таблицу site_visits если не существует."""
@@ -452,15 +486,60 @@ async def _send_daily_digest():
             today_str = datetime.now(BRT).strftime("%d/%m/%Y")
             top_txt = "\n".join([f"  • {r[0]} ({r[1]}x)" for r in top]) if top else "  —"
 
+            try:
+                funil = await _funil_do_dia()
+            except Exception:
+                _blog_log.exception("digest: funil falhou")
+                funil = ""
             await _send_tg(
                 f"📊 <b>Resumo do dia — {today_str}</b>\n\n"
                 f"👀 Visitantes: <b>{v}</b>\n"
                 f"💬 Cliques WhatsApp: <b>{w}</b>\n"
                 f"📞 Ligações: <b>{c}</b>\n\n"
                 f"🏆 Produtos mais consultados:\n{top_txt}"
+                f"{funil}"
             )
         except Exception:
-            pass
+            _blog_log.exception("digest diário falhou")
+
+async def _funil_do_dia() -> str:
+    """Funil de compra de hoje (horário de Brasília): viu produto → clicou comprar → frete → checkout → pedido → pago."""
+    hoje = "(NOW() AT TIME ZONE 'America/Sao_Paulo')::date"
+    def dia(col):
+        return f"({col} AT TIME ZONE 'America/Sao_Paulo')::date = {hoje}"
+    async def um(conn, sql):
+        try:
+            return (await conn.execute(text(sql))).scalar() or 0
+        except Exception:
+            return 0
+    async with engine.connect() as conn:
+        viram = await um(conn, f"SELECT COUNT(DISTINCT ip) FROM product_views WHERE {dia('viewed_at')} "
+                               "AND LENGTH(COALESCE(user_agent, '')) >= 20")
+        clicaram = await um(conn, f"SELECT COUNT(DISTINCT ip) FROM product_events WHERE event = 'cart' AND {dia('created_at')}")
+        frete = await um(conn, f"SELECT COUNT(DISTINCT ip) FROM frete_log WHERE {dia('created_at')}")
+        checkout = await um(conn, f"SELECT COUNT(DISTINCT ip) FROM product_events WHERE event = 'checkout' AND {dia('created_at')}")
+        pedidos = await um(conn, f"SELECT COUNT(*) FROM site_orders WHERE {dia('created_at')} AND status <> 'error'")
+        pagos = await um(conn, f"SELECT COUNT(*) FROM site_orders WHERE status = 'paid' AND {dia('paid_at')}")
+        valor = await um(conn, f"SELECT COALESCE(SUM(total), 0) FROM site_orders WHERE status = 'paid' AND {dia('paid_at')}")
+        try:
+            quem = (await conn.execute(text(f"""
+                SELECT p.name, COALESCE(NULLIF(e.src, ''), '?') AS src, COUNT(DISTINCT e.ip) AS n
+                FROM product_events e LEFT JOIN products p ON p.id = e.product_id
+                WHERE e.event = 'cart' AND {dia('e.created_at')}
+                GROUP BY p.name, src ORDER BY n DESC LIMIT 8"""))).fetchall()
+        except Exception:
+            quem = []
+    linhas = "\n".join(f"  • {r[0] or '?'} — {r[2]}x ({r[1]})" for r in quem) or "  —"
+    valor_txt = f"R$ {float(valor):,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    return (f"\n\n🛍 <b>Funil de compra no site</b>\n"
+            f"  Viram produtos: <b>{viram}</b> pessoas\n"
+            f"  Clicaram em comprar/carrinho: <b>{clicaram}</b>\n"
+            f"  Calcularam o frete: <b>{frete}</b>\n"
+            f"  Abriram o checkout: <b>{checkout}</b>\n"
+            f"  Fizeram pedido: <b>{pedidos}</b> · pagos: <b>{pagos}</b> ({valor_txt})\n\n"
+            f"🛒 Quem clicou em comprar (produto — pessoas, de onde veio):\n{linhas}\n\n"
+            f"Detalhes: {ADMIN_URL.rstrip('/')}/reports/interesse")
+
 
 # Запускаем дайджест при старте (защита от двойного запуска)
 _digest_started = False
@@ -1666,6 +1745,7 @@ FRETE_OPTIONS = {   # a ordem aqui é a ordem na tela
     "LALAGO":    ("Motoboy",      "Peças pequenas"),
     "HATCHBACK": ("Carro",        "Peças grandes ou pesadas"),
     "LALAPRO":   ("Moto com baú", "Caixas médias, protegidas da chuva"),
+    "UBER":      ("Uber Moto",    "Entrega rápida pela Uber"),
 }
 
 FRETE_MAX_KM = float(os.environ.get("FRETE_MAX_KM", "50"))
@@ -1698,15 +1778,21 @@ async def _frete_cep_core(request: Request, cep: str = ""):
         return JSONResponse(_frete_combinar(geo), headers={"Cache-Control": "no-store"})
 
     services = [s for s in FRETE_OPTIONS if s in LALA_SERVICES]
-    results = await asyncio.gather(
-        *(get_quote(geo["lat"], geo["lng"], geo["address"], s) for s in services),
-        return_exceptions=True,
-    )
+    tasks = [get_quote(geo["lat"], geo["lng"], geo["address"], s) for s in services]
+    try:
+        import uber_direct
+        if uber_direct.ativo():
+            services = services + ["UBER"]
+            tasks.append(uber_direct.get_quote(geo["lat"], geo["lng"], geo.get("rua") or geo["address"],
+                                               cep=cep, cidade=geo["cidade"], uf=geo["uf"]))
+    except ImportError:
+        pass
+    results = await asyncio.gather(*tasks, return_exceptions=True)
 
     options, distance_m = [], 0
     for s, q in zip(services, results):
         if isinstance(q, Exception):
-            _blog_log.warning("frete-cep: lalamove %s %s: %s", cep, s, q)
+            _blog_log.warning("frete-cep: %s %s %s: %s", "uber" if s == "UBER" else "lalamove", cep, s, q)
             continue
         label, hint = FRETE_OPTIONS[s]
         options.append({"service": s, "label": label, "hint": hint, "price": float(q["price"])})
@@ -1852,7 +1938,7 @@ async def _frete_log(request: Request, cep: str, status: int, data: dict,
             f"  {o['label']} {brl(o['price'])} · {o.get('hint', '')}" for o in opts)
     elif resultado == "ok":
         base = {o["service"]: o.get("_lalamove") for o in opts}
-        linhas = " · ".join(f"{FRETE_OPTIONS[s][0]} {brl(p)}" + (f" (Lalamove {brl(base[s])})" if base.get(s) else "")
+        linhas = " · ".join(f"{FRETE_OPTIONS[s][0]} {brl(p)}" + (f" ({'Uber' if s == 'UBER' else 'Lalamove'} {brl(base[s])})" if base.get(s) else "")
                             for s, p in prices.items() if s in FRETE_OPTIONS)
         km = str(data.get('distance_km', '')).replace('.', ',')
         corpo = f"{lugar} · {km} km\n{linhas}"

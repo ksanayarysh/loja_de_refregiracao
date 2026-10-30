@@ -31,6 +31,24 @@ window.addEventListener('load', function() {
 </script>
 <!-- End Clarity -->
 
+<!-- De onde a pessoa veio (1º acesso desta aba): vai junto nos eventos de compra -->
+<script>
+(function(){try{
+  if (sessionStorage.getItem('mtf_src')) return;
+  var q = new URLSearchParams(location.search), r = document.referrer || '', src = 'direto';
+  if (q.get('gclid') || q.get('gbraid') || q.get('wbraid')) src = 'Google Ads';
+  else if (q.get('utm_source')) src = q.get('utm_source') + (q.get('utm_medium') ? ' / ' + q.get('utm_medium') : '') + (q.get('utm_campaign') ? ' · ' + q.get('utm_campaign') : '');
+  else if (q.get('fbclid')) src = /instagram/i.test(r) ? 'Instagram' : 'Facebook/Instagram';
+  else if (r && r.indexOf(location.host) < 0) {
+    var h = r.replace(/^https?:\/\//, '').split('/')[0];
+    src = /google/.test(h) ? 'Google (busca)' : /instagram/.test(h) ? 'Instagram' : /facebook|fb\./.test(h) ? 'Facebook'
+        : /whatsapp|wa\.me/.test(h) ? 'WhatsApp' : h;
+  }
+  sessionStorage.setItem('mtf_src', src.slice(0, 80));
+}catch(e){}})();
+function mtfSrc(){ try { return sessionStorage.getItem('mtf_src') || ''; } catch(e) { return ''; } }
+</script>
+
 <!-- Visit tracking -->
 <script>
 window.addEventListener('load', function() {

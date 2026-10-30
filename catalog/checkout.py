@@ -117,6 +117,9 @@ async def _ensure_orders_table():
         await conn.execute(text("ALTER TABLE site_orders ADD COLUMN IF NOT EXISTS delivery_label VARCHAR(80)"))
         await conn.execute(text("ALTER TABLE site_orders ADD COLUMN IF NOT EXISTS delivery_days INTEGER"))
         await conn.execute(text("ALTER TABLE site_orders ADD COLUMN IF NOT EXISTS customer_doc VARCHAR(20)"))
+        # quem fez o pedido (para ligar ao que a pessoa viu antes — admin: Relatórios → Quem quis comprar)
+        await conn.execute(text("ALTER TABLE site_orders ADD COLUMN IF NOT EXISTS ip VARCHAR(64)"))
+        await conn.execute(text("ALTER TABLE site_orders ADD COLUMN IF NOT EXISTS src VARCHAR(80)"))
     _orders_ready = True
 
 
@@ -128,7 +131,7 @@ def _brl(v: float) -> str:
 # Produtos que podem entrar no kit de instalação (mesmos slugs do KIT em calculadora-instalacao.html).
 # Só estes recebem o desconto do kit — o navegador não decide quem tem desconto.
 # Kit de instalação (tubos de cobre, suporte) não vai de moto: só carro.
-KIT_BLOCKED_SERVICES = {"LALAGO", "LALAPRO"}
+KIT_BLOCKED_SERVICES = {"LALAGO", "LALAPRO", "UBER"}
 
 KIT_SLUGS = {
     "tubo-de-cobre-de-1-4", "tubo-de-cobre-de-3-8", "tubo-de-cobre-de-1-2", "tubo-de-cobre-de-3-4",
@@ -310,7 +313,7 @@ def _stock_msg(kg: list, short: list) -> str:
 
 async def _calc_frete(cep: str, service: str):
     """Recalcula o frete no servidor. Retorna (preço, geo) ou (None, motivo)."""
-    if service not in LALA_SERVICES or service not in FRETE_OPTIONS:
+    if service not in FRETE_OPTIONS or (service not in LALA_SERVICES and service != "UBER"):
         return None, "Tipo de entrega indisponível."
 
     geo = await _cep_to_coords(cep)
@@ -326,9 +329,16 @@ async def _calc_frete(cep: str, service: str):
                 return float(o["price"]), geo
 
     try:
-        q = await get_quote(geo["lat"], geo["lng"], geo["address"], service)
-    except LalamoveError as e:
-        _blog_log.warning("checkout: lalamove %s %s: %s", cep, service, e)
+        if service == "UBER":
+            import uber_direct
+            if not uber_direct.ativo():
+                return None, "Tipo de entrega indisponível."
+            q = await uber_direct.get_quote(geo["lat"], geo["lng"], geo.get("rua") or geo["address"],
+                                            cep=cep, cidade=geo["cidade"], uf=geo["uf"])
+        else:
+            q = await get_quote(geo["lat"], geo["lng"], geo["address"], service)
+    except Exception as e:      # LalamoveError / UberError / rede
+        _blog_log.warning("checkout: frete %s %s: %s", cep, service, e)
         return None, "Para este endereço, o frete é combinado com o vendedor."
     if int(q["distance_m"] or 0) / 1000 > FRETE_MAX_KM:
         return None, "Para este endereço, o frete é combinado com o vendedor."
@@ -493,7 +503,7 @@ async def _mark_paid(order_id: int, extra: str = ""):
         label = FRETE_OPTIONS.get(row["delivery_service"], (row["delivery_service"], ""))[0]
         pago_loja = (float(row["frete_lalamove"]) - float(row["frete"])) if row.get("frete_lalamove") is not None else 0.0
         entrega = (f"🛵 {label} ({_brl(float(row['frete']))}"
-                   + (f" · Lalamove {_brl(float(row['frete_lalamove']))}, loja paga {_brl(pago_loja)}" if pago_loja > 0.004 else "")
+                   + (f" · {'Uber' if row['delivery_service'] == 'UBER' else 'Lalamove'} {_brl(float(row['frete_lalamove']))}, loja paga {_brl(pago_loja)}" if pago_loja > 0.004 else "")
                    + ")\n"
                    f"{row['address']}, nº {row['numero']}"
                    + (f" — {row['complemento']}" if row["complemento"] else ""))
@@ -861,10 +871,10 @@ async def checkout_pix(request: Request):
             INSERT INTO site_orders (token, customer_name, customer_phone, customer_email,
                 delivery_type, delivery_service, cep, address, numero, complemento, lat, lng,
                 items, subtotal, frete, total, frete_lalamove, margem, margem_obs, pay_method,
-                delivery_label, delivery_days, customer_doc)
+                delivery_label, delivery_days, customer_doc, ip, src)
             VALUES (:token, :name, :phone, :email, :dtype, :service, :cep, :address, :numero, :compl,
                 :lat, :lng, CAST(:items AS JSONB), :subtotal, :frete, :total, :frete_lalamove, :margem, :margem_obs,
-                :pay_method, :delivery_label, :delivery_days, :customer_doc)
+                :pay_method, :delivery_label, :delivery_days, :customer_doc, :ip, :src)
             RETURNING id
         """), {
             "token": token, "name": name, "phone": phone, "email": email,
@@ -877,6 +887,7 @@ async def checkout_pix(request: Request):
             "margem": margem, "margem_obs": ("sem custo: " + ", ".join(sem_custo))[:500] if sem_custo else None,
             "pay_method": method,
             "delivery_label": me_label, "delivery_days": me_dias, "customer_doc": doc,
+            "ip": _client_ip(request), "src": str(body.get("src") or "")[:80] or None,
         })).scalar()
 
     if method == "card":
@@ -920,7 +931,7 @@ async def checkout_pix(request: Request):
 _checkout_vistos: dict = {}  # (ip, carrinho) -> timestamp do último aviso
 
 
-def _avisar_checkout_aberto(ip: str, items: list, subtotal: float):
+def _avisar_checkout_aberto(ip: str, items: list, subtotal: float, src: str = ""):
     """Telegram assim que alguém abre o checkout com produtos (antes de pagar).
     Mesmo IP + mesmo carrinho: no máximo um aviso a cada 30 min."""
     import asyncio
@@ -938,11 +949,12 @@ def _avisar_checkout_aberto(ip: str, items: list, subtotal: float):
             ids.update(c.get("id") for c in i["components"])
         else:
             ids.add(i.get("id"))
-    asyncio.ensure_future(log_product_events(ids, "checkout", ip))
+    asyncio.ensure_future(log_product_events(ids, "checkout", ip, None, src or None))
     linhas = "\n".join(f"  • {i['name']} × {i['qty']}" for i in items)
     asyncio.ensure_future(_send_tg(
         f"👀 <b>Alguém abriu o checkout</b> (ainda não pagou)\n{linhas}\n"
         f"Produtos: <b>{_brl(float(subtotal or 0))}</b>"
+        + (f"\nVeio de: <b>{src}</b>" if src else "")
     ))
 
 
@@ -955,7 +967,7 @@ async def checkout_stock(request: Request):
         return JSONResponse({"error": "Dados inválidos."}, status_code=400)
     items, subtotal = await _load_items(body.get("items"))
     if items and not _is_owner(request):
-        _avisar_checkout_aberto(_client_ip(request), items, subtotal)
+        _avisar_checkout_aberto(_client_ip(request), items, subtotal, str(body.get("src") or "")[:80])
     kg, short, stock = await _stock_problems(items)
     return JSONResponse({
         "kg": [i["id"] for i in kg],

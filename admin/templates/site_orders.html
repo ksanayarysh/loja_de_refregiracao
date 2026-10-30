@@ -106,19 +106,19 @@
       {% endif %}
       {% if order.delivery_type == 'lalamove' %}
         {% if order.lalamove_order_id %}
-          <div class="so-done">🛵 Lalamove chamado · #{{ order.lalamove_order_id }}</div>
+          <div class="so-done">🛵 {{ 'Uber' if order.delivery_service == 'UBER' else 'Lalamove' }} chamado · #{{ order.lalamove_order_id }}</div>
           {% if order.lalamove_link %}<p style="margin-bottom:10px;"><a class="btn-secondary" href="{{ order.lalamove_link }}" target="_blank" rel="noopener">Acompanhar entrega</a></p>{% endif %}
           <form method="post" action="/site-orders/{{ order.id }}/lalamove-status">
-            <button class="btn-secondary" type="submit">🔄 Atualizar status Lalamove</button>
+            <button class="btn-secondary" type="submit">🔄 Atualizar status {{ 'Uber' if order.delivery_service == 'UBER' else 'Lalamove' }}</button>
           </form>
           <form method="post" action="/site-orders/{{ order.id }}/lalamove-cancel"
-                onsubmit="return confirm('Cancelar o entregador Lalamove? Só é possível enquanto procura motorista ou até 5 min depois de aceitar.');">
+                onsubmit="return confirm('Cancelar o entregador {{ 'Uber' if order.delivery_service == 'UBER' else 'Lalamove' }}?');">
             <button class="btn-danger" type="submit" style="width:100%;">✕ Cancelar entregador</button>
           </form>
         {% else %}
           <form method="post" action="/site-orders/{{ order.id }}/lalamove"
                 onsubmit="return confirm('Chamar o entregador agora? O pedido já está separado?');">
-            <button class="btn-primary" type="submit">🛵 Chamar Lalamove ({{ order.service_label }})</button>
+            <button class="btn-primary" type="submit">🛵 Chamar {{ 'Uber' if order.delivery_service == 'UBER' else 'Lalamove' }} ({{ order.service_label }})</button>
           </form>
           <p class="so-muted" style="margin-bottom:12px;">Chame só com o pedido separado — o entregador vem na hora.</p>
         {% endif %}

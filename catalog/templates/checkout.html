@@ -132,7 +132,7 @@
         <input type="radio" name="dtype" value="lalamove">
         <div class="co-opt-main">
           <div class="co-opt-name">Entrega no endereço</div>
-          <div class="co-opt-hint">Rio: Lalamove, pago até 16h chega hoje{% if envio_brasil() %} · Outros estados: Correios/transportadora, envio em até 1 dia útil{% endif %}</div>
+          <div class="co-opt-hint">Rio: Lalamove ou Uber, pago até 16h chega hoje{% if envio_brasil() %} · Outros estados: Correios/transportadora, envio em até 1 dia útil{% endif %}</div>
         </div>
       </label>
 
@@ -208,7 +208,7 @@ const WA_NUMBER = '{{ wa_number }}';
 let cart = [];
 try { cart = JSON.parse(localStorage.getItem('mtf_cart') || '[]'); } catch (e) {}
 let frete = null; // { service, price } quando entrega
-const KIT_BLOCKED = ['LALAGO', 'LALAPRO']; // igual a KIT_BLOCKED_SERVICES em checkout.py
+const KIT_BLOCKED = ['LALAGO', 'LALAPRO', 'UBER']; // igual a KIT_BLOCKED_SERVICES em checkout.py
 
 const $ = id => document.getElementById(id);
 const brl = v => 'R$ ' + v.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
@@ -329,7 +329,7 @@ async function calcFrete() {
     }
     $('frete-msg').innerHTML = isMe
       ? `<div class="co-local">📍 ${lugar} · envio por <strong>Correios / transportadora</strong></div>`
-      : `<div class="co-local">📍 ${lugar} · ${d.distance_km.toFixed(1).replace('.', ',')} km · entrega via <strong>Lalamove</strong></div>`;
+      : `<div class="co-local">📍 ${lugar} · ${d.distance_km.toFixed(1).replace('.', ',')} km · entrega via <strong>${d.options.some(o => o.service === 'UBER') ? 'Lalamove ou Uber' : 'Lalamove'}</strong></div>`;
     // kit de instalação (tubos, suporte) não vai de moto (regra só da Lalamove)
     const hasKit = !isMe && cart.some(i => i.kit || i.car_only);
     const opts = hasKit ? d.options.filter(o => !KIT_BLOCKED.includes(o.service)) : d.options;
@@ -379,7 +379,7 @@ async function syncStock() {
   if (!cart.length) return '';
   let d;
   try {
-    const r = await fetch('/api/checkout/stock', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items: cartPayload() }) });
+    const r = await fetch('/api/checkout/stock', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items: cartPayload(), src: (typeof mtfSrc === 'function' ? mtfSrc() : '') }) });
     if (!r.ok) return '';
     d = await r.json();
   } catch (e) { return ''; }
@@ -441,7 +441,7 @@ async function pagar() {
   try {
     const r = await fetch('/api/checkout/pagar', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, phone, email, delivery, method: pmethod(), items: cart.map(i => i.kit_id ? { kit_id: i.kit_id, qty: i.qty } : { id: i.id, qty: i.qty, kit: !!i.kit }) }),
+      body: JSON.stringify({ name, phone, email, delivery, method: pmethod(), src: (typeof mtfSrc === 'function' ? mtfSrc() : ''), items: cart.map(i => i.kit_id ? { kit_id: i.kit_id, qty: i.qty } : { id: i.id, qty: i.qty, kit: !!i.kit }) }),
     });
     const d = await r.json();
     if (!r.ok && d.stock_issue) {

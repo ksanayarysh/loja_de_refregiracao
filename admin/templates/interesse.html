@@ -1,0 +1,78 @@
+{% extends '_base_admin.html' %}
+{% block title %}Quem quis comprar — M.T.F{% endblock %}
+
+{% block extra_styles %}
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, Helvetica, sans-serif; background: bisque; min-height: 100vh; font-size: 15px; }
+  .content { padding: 24px; display: flex; flex-direction: column; gap: 16px; max-width: 900px; }
+  h1 { font-size: 1.4rem; color: #111; }
+  .sub { color: #666; font-size: .85rem; margin-top: 4px; line-height: 1.4; }
+
+  .period-bar { background: #fff; border-radius: 12px; padding: 12px 16px; box-shadow: 0 2px 8px rgba(0,0,0,.06); display: flex; gap: 8px; flex-wrap: wrap; }
+  .period-btn { padding: 7px 13px; border-radius: 8px; border: 1px solid #ccc; background: #fff; color: #111; font-weight: 700; font-size: .85rem; text-decoration: none; }
+  .period-btn.active { background: #111827; color: #fff; border-color: #111827; }
+
+  .funil { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+  .f-card { background: #fff; border-radius: 12px; padding: 14px; box-shadow: 0 2px 8px rgba(0,0,0,.06); border-left: 4px solid #ccc; }
+  .f-card.ok { border-color: #16a34a; } .f-card.warn { border-color: #f59e0b; } .f-card.bad { border-color: #E2144A; }
+  .f-num { font-size: 1.6rem; font-weight: 900; color: #111; }
+  .f-lbl { font-size: .78rem; color: #666; margin-top: 2px; }
+
+  .pessoa { background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,.06); border-left: 5px solid #ccc; }
+  .pessoa.ok { border-color: #16a34a; } .pessoa.warn { border-color: #f59e0b; } .pessoa.bad { border-color: #E2144A; }
+  .p-res { font-weight: 900; font-size: 1rem; color: #111; }
+  .p-meta { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0 10px; }
+  .chip { font-size: .75rem; background: #f3f4f6; border-radius: 8px; padding: 3px 8px; color: #333; }
+  .chip.src { background: #e0f2fe; color: #075985; font-weight: 700; }
+  .tl { list-style: none; border-left: 2px solid #eee; margin-left: 6px; padding-left: 12px; }
+  .tl li { font-size: .86rem; padding: 4px 0; color: #222; line-height: 1.35; }
+  .tl .t { color: #888; font-size: .75rem; margin-right: 6px; font-family: monospace; }
+  .vazio { background: #fff; border-radius: 12px; padding: 24px; color: #666; text-align: center; }
+  .dica { background: #fffbeb; border: 1px solid #fde68a; border-radius: 12px; padding: 12px 14px; font-size: .84rem; color: #78350f; line-height: 1.45; }
+  @media (max-width: 600px) { .content { padding: 14px; } }
+{% endblock %}
+
+{% block content %}
+<div class="content">
+  <div>
+    <h1>🛒 Quem quis comprar</h1>
+    <p class="sub">Cada cartão é uma pessoa (mesmo IP) que clicou em comprar, abriu o checkout ou fez pedido — e tudo o que ela fez no site no período, em ordem.</p>
+  </div>
+
+  <div class="period-bar">
+    {% for k, label in periodos %}
+      <a class="period-btn {{ 'active' if period == k }}" href="/reports/interesse?period={{ k }}">{{ label }}</a>
+    {% endfor %}
+  </div>
+
+  <div class="funil">
+    <div class="f-card"><div class="f-num">{{ resumo.pessoas }}</div><div class="f-lbl">pessoas quiseram comprar</div></div>
+    <div class="f-card bad"><div class="f-num">{{ resumo.carrinho }}</div><div class="f-lbl">saíram antes do checkout</div></div>
+    <div class="f-card warn"><div class="f-num">{{ resumo.checkout }}</div><div class="f-lbl">abriram o checkout e desistiram</div></div>
+    <div class="f-card warn"><div class="f-num">{{ resumo.pedido }}</div><div class="f-lbl">fizeram pedido sem pagar</div></div>
+    <div class="f-card ok"><div class="f-num">{{ resumo.pagaram }}</div><div class="f-lbl">pagaram</div></div>
+  </div>
+
+  <div class="dica">💡 Para ver <b>o que a pessoa fez na tela</b> (onde rolou, onde parou), abra o
+    <a href="https://clarity.microsoft.com" target="_blank" rel="noopener">Microsoft Clarity</a> → Recordings e filtre pela página e pelo horário do cartão.</div>
+
+  {% for p in pessoas %}
+  <div class="pessoa {{ p.cor }}">
+    <div class="p-res">{{ p.resultado }}</div>
+    <div class="p-meta">
+      <span class="chip src">Veio de: {{ p.src or 'direto / desconhecido' }}</span>
+      {% if p.device %}<span class="chip">{{ p.device }}</span>{% endif %}
+      <span class="chip">IP {{ p.ip }}</span>
+      {% for oid in p.pedido_ids or [] %}<a class="chip" href="/site-orders/{{ oid }}">Pedido #{{ oid }} →</a>{% endfor %}
+    </div>
+    <ul class="tl">
+      {% for l in p.linhas %}
+        <li><span class="t">{{ l.t }}</span>{{ l.icon }} {{ l.txt }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% else %}
+  <div class="vazio">Ninguém clicou em comprar neste período.</div>
+  {% endfor %}
+</div>
+{% endblock %}

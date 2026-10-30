@@ -255,7 +255,7 @@
   {# Produtos sem conversão #}
   <div class="card">
     <h2>🚨 Vistos e pouca ação</h2>
-    <div style="font-size:.82rem;color:#888;margin-bottom:12px;">Produtos com ≥ 3 visualizações. Conversão = (WhatsApp + Comprar/checkout + Ligação) ÷ visitantes únicos. Comprar/checkout e Ligação contam a partir de 27/10/2026.</div>
+    <div style="font-size:.82rem;color:#888;margin-bottom:12px;">Produtos com ≥ 3 visualizações ou com alguma ação (mais vistos primeiro). Comprar = pessoas que clicaram em "Comprar agora"/"Adicionar ao carrinho"; Checkout = pessoas que abriram o checkout com o produto. Conversão = (WhatsApp + Comprar + Ligação) ÷ visitantes únicos. Comprar/checkout e Ligação contam a partir de 27/10/2026.</div>
     {% if no_conversion %}
       <table>
         <thead><tr>
@@ -263,7 +263,8 @@
           <th class="num">Views</th>
           <th class="num">Únicos</th>
           <th class="num">WhatsApp</th>
-          <th class="num">Comprar / checkout</th>
+          <th class="num">Comprar</th>
+          <th class="num">Checkout</th>
           <th class="num">Ligação</th>
           <th class="num">Conversão</th>
         </tr></thead>
@@ -280,6 +281,7 @@
             <td class="num">{{ r.unique_ips }}</td>
             <td class="num">{{ r.wa_clicks }}</td>
             <td class="num">{{ r.compra }}</td>
+            <td class="num">{{ r.checkout }}</td>
             <td class="num">{{ r.ligacao }}</td>
             <td class="num">
               <span class="conv-pct {% if conv == 0 %}conv-zero{% elif conv < 20 %}conv-low{% else %}conv-ok{% endif %}">

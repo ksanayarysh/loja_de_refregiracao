@@ -24,3 +24,15 @@ def envio_brasil() -> bool:
 
 
 templates.env.globals["envio_brasil"] = envio_brasil
+
+
+def envia_correios(p) -> bool:
+    """Este produto pode ir por Correios/transportadora para outros estados? (Melhor Envio ligado e item não proibido)"""
+    if p is None or not envio_brasil():
+        return False
+    import correios
+    get = p.get if isinstance(p, dict) else (lambda k, d=None: getattr(p, k, d))
+    return not correios.bloqueado({"name": get("name"), "unit": get("unit"), "ship_bloq": get("ship_bloq")})
+
+
+templates.env.globals["envia_correios"] = envia_correios

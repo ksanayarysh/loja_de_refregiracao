@@ -1089,6 +1089,7 @@ async def product_views_report(
                 COUNT(DISTINCT pv.ip)          AS unique_ips,
                 COALESCE(wa.clicks, 0)         AS wa_clicks,
                 COALESCE(ev.compra, 0)         AS compra,
+                COALESCE(ev.checkout, 0)       AS checkout,
                 COALESCE(ev.ligacao, 0)        AS ligacao
             FROM (SELECT * FROM product_views WHERE COALESCE(ip, '') !~ '^(127\.|10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|::1|66\.249\.|66\.102\.|64\.233\.|72\.14\.|74\.125\.|209\.85\.|216\.239\.|108\.177\.|173\.194\.|142\.250\.|172\.217\.|3\.|18\.|20\.|34\.|35\.|40\.|52\.|54\.|44\.(19[2-9]|2[0-5][0-9])\.|43\.(12[89]|1[3-8][0-9]|19[01])\.|82\.156\.|62\.234\.|192\.144\.|49\.51\.|49\.232\.|49\.233\.|101\.3[2-5]\.|101\.4[23]\.|119\.2[89]\.|124\.156\.|129\.226\.|150\.109\.|162\.62\.|170\.106\.|1\.1[2-5]\.|81\.6[89]\.|81\.7[01]\.|106\.5[2-5]\.|111\.2(29|3[01])\.|118\.(25|89|126)\.|121\.[45]\.|122\.51\.|129\.(204|211)\.|134\.175\.|139\.(155|186|199)\.|140\.143\.|150\.158\.|152\.136\.|159\.75\.|175\.2[47]\.|182\.254\.|193\.112\.|203\.195\.|212\.64\.|42\.19[2-4]\.|47\.(7[4-9]|8[0-9]|9[0-9]|2[3-5][0-9])\.|8\.2(09|1[0-9]|2[0-2])\.|119\.13\.|159\.138\.|190\.92\.)' AND (lang IS NULL OR lang = '' OR lang ILIKE '%pt%') AND LENGTH(COALESCE(user_agent, '')) >= 20 AND COALESCE(user_agent, '') !~* 'bot[^a-z]|bot$|spider|crawl|headless|lighthouse|pagespeed|facebookexternalhit|meta-external|whatsapp|python|curl|wget|okhttp|axios|node-fetch|go-http|java/|scrapy|mediapartners|google-|googleother|feedfetcher') pv
             LEFT JOIN products p   ON p.id  = pv.product_id
@@ -1102,17 +1103,20 @@ async def product_views_report(
             LEFT JOIN (
                 -- carrinho/checkout: pessoas (IPs) diferentes; ligação: cliques no telefone na página do produto
                 SELECT product_id,
-                       COUNT(DISTINCT ip) FILTER (WHERE event IN ('cart', 'checkout')) AS compra,
+                       COUNT(DISTINCT ip) FILTER (WHERE event = 'cart')     AS compra,
+                       COUNT(DISTINCT ip) FILTER (WHERE event = 'checkout') AS checkout,
                        COUNT(*)           FILTER (WHERE event = 'phone')               AS ligacao
                 FROM product_events
                 WHERE created_at::date >= :since AND created_at::date <= :date_end
                 GROUP BY product_id
             ) ev ON ev.product_id = pv.product_id
             WHERE pv.viewed_at::date >= :since AND pv.viewed_at::date <= :date_end
-            GROUP BY pv.slug, pv.product_id, p.name, c.name, wa.clicks, ev.compra, ev.ligacao
-            HAVING COUNT(*) >= 3
-            ORDER BY (COUNT(*) - COALESCE(wa.clicks, 0) - COALESCE(ev.compra, 0) - COALESCE(ev.ligacao, 0)) DESC
-            LIMIT 25
+            GROUP BY pv.slug, pv.product_id, p.name, c.name, wa.clicks, ev.compra, ev.checkout, ev.ligacao
+            -- produto com clique em comprar/checkout/WhatsApp/ligação aparece sempre, mesmo com poucas views
+            HAVING COUNT(*) >= 3 OR COALESCE(ev.compra, 0) + COALESCE(ev.checkout, 0) + COALESCE(ev.ligacao, 0)
+                                    + COALESCE(wa.clicks, 0) > 0
+            ORDER BY COUNT(DISTINCT pv.ip) DESC, COUNT(*) DESC
+            LIMIT 80
         """), {"since": since, "date_end": date_end})
         no_conversion = no_conv_res.mappings().all()
 
@@ -1249,3 +1253,182 @@ async def product_views_limpar(_=Depends(basic_auth)):
                OR (COALESCE(lang, '') <> '' AND lang NOT ILIKE '%pt%')
         """), {"bot": _BOT_RE_PY, "dc": _DC_RE_PY})).rowcount
     return RedirectResponse(f"/reports/product-views?days=90&limpos={n}", status_code=303)
+
+
+# ── QUEM QUIS COMPRAR: o caminho de cada pessoa que clicou em comprar / abriu o checkout / fez pedido ──
+def _to_brt(t, BRT):
+    from datetime import timezone as _tz
+    if t is None:
+        return None
+    if t.tzinfo is None:                 # coluna sem fuso (catalog_clicks grava em UTC)
+        t = t.replace(tzinfo=_tz.utc)
+    return t.astimezone(BRT)
+
+
+@router.get("/reports/interesse", response_class=HTMLResponse)
+async def interesse_report(request: Request, period: str = Query("today"), _=Depends(basic_auth)):
+    from datetime import timezone as _tz
+    from zoneinfo import ZoneInfo
+    BRT = ZoneInfo("America/Sao_Paulo")
+    hoje = datetime.now(BRT).date()
+    periodos = {
+        "today": (hoje, hoje, "Hoje"),
+        "yesterday": (hoje - timedelta(days=1), hoje - timedelta(days=1), "Ontem"),
+        "7": (hoje - timedelta(days=6), hoje, "7 dias"),
+        "30": (hoje - timedelta(days=29), hoje, "30 dias"),
+    }
+    if period not in periodos:
+        period = "today"
+    d1, d2, _label = periodos[period]
+    t0 = datetime.combine(d1, datetime.min.time(), BRT)
+    t1 = datetime.combine(d2 + timedelta(days=1), datetime.min.time(), BRT)
+    t0u = t0.astimezone(_tz.utc).replace(tzinfo=None)
+    t1u = t1.astimezone(_tz.utc).replace(tzinfo=None)
+    win = {"t0": t0, "t1": t1}
+
+    # colunas novas (o catálogo cria; aqui só garante, para a página não quebrar antes do 1º evento)
+    for sql in ("ALTER TABLE product_events ADD COLUMN IF NOT EXISTS detail VARCHAR(20)",
+                "ALTER TABLE product_events ADD COLUMN IF NOT EXISTS src VARCHAR(80)",
+                "ALTER TABLE site_orders ADD COLUMN IF NOT EXISTS ip VARCHAR(64)",
+                "ALTER TABLE site_orders ADD COLUMN IF NOT EXISTS src VARCHAR(80)"):
+        try:
+            async with engine.begin() as conn:
+                await conn.execute(text(sql))
+        except Exception:
+            pass
+
+    async def q(sql, params):
+        try:
+            async with engine.connect() as conn:
+                return (await conn.execute(text(sql), params)).mappings().all()
+        except Exception:
+            return []
+
+    ips = [r["ip"] for r in await q("""
+        SELECT ip, MAX(t) AS t FROM (
+            SELECT ip, created_at AS t FROM product_events
+             WHERE event IN ('cart', 'checkout') AND created_at >= :t0 AND created_at < :t1
+            UNION ALL
+            SELECT ip, created_at AS t FROM site_orders
+             WHERE created_at >= :t0 AND created_at < :t1
+        ) x WHERE ip IS NOT NULL AND ip <> '' GROUP BY ip ORDER BY MAX(t) DESC LIMIT 100
+    """, win)]
+
+    pessoas = []
+    if ips:
+        p = dict(win, ips=ips)
+        eventos = await q("""
+            SELECT e.ip, e.created_at AS t, e.event, e.detail, e.src, p.name
+            FROM product_events e LEFT JOIN products p ON p.id = e.product_id
+            WHERE e.ip = ANY(:ips) AND e.created_at >= :t0 AND e.created_at < :t1""", p)
+        views = await q("""
+            SELECT pv.ip, pv.viewed_at AS t, pv.product_id, p.name, pv.user_agent
+            FROM product_views pv LEFT JOIN products p ON p.id = pv.product_id
+            WHERE pv.ip = ANY(:ips) AND pv.viewed_at >= :t0 AND pv.viewed_at < :t1
+            ORDER BY pv.viewed_at LIMIT 3000""", p)
+        fretes = await q("""
+            SELECT ip, created_at AS t, cep, bairro, cidade, menor_frete, resultado, produto
+            FROM frete_log WHERE ip = ANY(:ips) AND created_at >= :t0 AND created_at < :t1""", p)
+        whats = await q("""
+            SELECT ip, clicked_at AS t, product_name FROM catalog_clicks
+            WHERE ip = ANY(:ips) AND clicked_at >= :t0u AND clicked_at < :t1u""",
+                        {"ips": ips, "t0u": t0u, "t1u": t1u})
+        pedidos = await q("""
+            SELECT id, ip, created_at AS t, status, total, pay_method, delivery_type, src
+            FROM site_orders WHERE ip = ANY(:ips) AND created_at >= :t0 AND created_at < :t1""", p)
+
+        por_ip = {ip: {"ip": ip, "linhas": [], "src": "", "device": "", "pago": False, "pedido": False,
+                       "checkout": False, "carrinho": False, "whats": False} for ip in ips}
+
+        ultimo_produto: dict = {}
+        for r in views:
+            pe = por_ip.get(r["ip"])
+            if not pe:
+                continue
+            if not pe["device"] and r["user_agent"]:
+                pe["device"] = _device(r["user_agent"])
+            if ultimo_produto.get(r["ip"]) == r["product_id"]:      # recarregou a mesma página: não repete
+                continue
+            ultimo_produto[r["ip"]] = r["product_id"]
+            pe["linhas"].append((_to_brt(r["t"], BRT), "👁", f"viu {r['name'] or 'produto #' + str(r['product_id'])}"))
+        for r in eventos:
+            pe = por_ip.get(r["ip"])
+            if not pe:
+                continue
+            if r["src"] and not pe["src"]:
+                pe["src"] = r["src"]
+            nome = r["name"] or "?"
+            if r["event"] == "cart":
+                pe["carrinho"] = True
+                botao = {"comprar": "⚡ Comprar agora", "carrinho": "🛒 Adicionar ao carrinho"}.get(r["detail"] or "", "comprar/carrinho")
+                pe["linhas"].append((_to_brt(r["t"], BRT), "🛒", f"clicou em {botao}: {nome}"))
+            elif r["event"] == "checkout":
+                pe["checkout"] = True
+                pe["linhas"].append((_to_brt(r["t"], BRT), "👀", f"abriu o checkout com {nome}"))
+            elif r["event"] == "phone":
+                pe["linhas"].append((_to_brt(r["t"], BRT), "📞", f"clicou em ligar ({nome})"))
+        for r in fretes:
+            pe = por_ip.get(r["ip"])
+            if not pe:
+                continue
+            lugar = ", ".join(x for x in (r["bairro"], r["cidade"]) if x) or r["cep"] or "?"
+            if r["resultado"] == "ok" and r["menor_frete"] is not None:
+                preco = f"{float(r['menor_frete']):.2f}".replace(".", ",")
+                txt = f"calculou o frete para {lugar}: a partir de R$ {preco}"
+            elif r["resultado"] == "combinar":
+                txt = f"calculou o frete para {lugar}: fora da área (a combinar)"
+            else:
+                txt = f"tentou calcular o frete para {lugar}: erro"
+            if r["produto"]:
+                txt += f" · {r['produto']}"
+            pe["linhas"].append((_to_brt(r["t"], BRT), "🚚", txt))
+        for r in whats:
+            pe = por_ip.get(r["ip"])
+            if not pe:
+                continue
+            pe["whats"] = True
+            pe["linhas"].append((_to_brt(r["t"], BRT), "💬", f"foi para o WhatsApp ({r['product_name']})"))
+        for r in pedidos:
+            pe = por_ip.get(r["ip"])
+            if not pe:
+                continue
+            pe["pedido"] = True
+            pago = r["status"] == "paid"
+            pe["pago"] = pe["pago"] or pago
+            if r["src"] and not pe["src"]:
+                pe["src"] = r["src"]
+            forma = "cartão" if r["pay_method"] == "card" else "Pix"
+            valor = f"{float(r['total'] or 0):.2f}".replace(".", ",")
+            txt = (f"pedido #{r['id']} ({forma}) R$ {valor} — "
+                   f"{'PAGO ✅' if pago else 'não pagou (' + (r['status'] or '?') + ')'}")
+            pe["linhas"].append((_to_brt(r["t"], BRT), "💰" if pago else "📝", txt))
+            pe.setdefault("pedido_ids", []).append(r["id"])
+
+        for ip in ips:
+            pe = por_ip[ip]
+            pe["linhas"].sort(key=lambda x: x[0] or t0)
+            pe["linhas"] = [{"t": x[0].strftime("%d/%m %H:%M") if x[0] else "", "icon": x[1], "txt": x[2]}
+                            for x in pe["linhas"]]
+            if pe["pago"]:
+                pe["resultado"], pe["cor"] = "💰 Comprou e pagou", "ok"
+            elif pe["pedido"]:
+                pe["resultado"], pe["cor"] = "📝 Fez o pedido, mas não pagou", "warn"
+            elif pe["checkout"]:
+                pe["resultado"], pe["cor"] = "👀 Abriu o checkout e desistiu", "warn"
+            else:
+                pe["resultado"], pe["cor"] = "🛒 Clicou em comprar e saiu antes do checkout", "bad"
+            if pe["whats"] and not pe["pago"]:
+                pe["resultado"] += " · 💬 foi para o WhatsApp"
+            pessoas.append(pe)
+
+    resumo = {
+        "pessoas": len(pessoas),
+        "pagaram": sum(1 for x in pessoas if x["pago"]),
+        "pedido": sum(1 for x in pessoas if x["pedido"] and not x["pago"]),
+        "checkout": sum(1 for x in pessoas if x["checkout"] and not x["pedido"]),
+        "carrinho": sum(1 for x in pessoas if not x["checkout"] and not x["pedido"]),
+    }
+    return templates.TemplateResponse("interesse.html", {
+        "request": request, "pessoas": pessoas, "resumo": resumo, "period": period,
+        "periodos": [(k, v[2]) for k, v in periodos.items()],
+    })

@@ -36,7 +36,43 @@ FULFILLMENT = {
     "entregue":  "Entregue / retirado",
     "cancelado": "Cancelado",
 }
-SERVICE_LABEL = {"LALAGO": "Motoboy", "LALAPRO": "Moto com baú", "HATCHBACK": "Carro"}
+SERVICE_LABEL = {"LALAGO": "Motoboy", "LALAPRO": "Moto com baú", "HATCHBACK": "Carro", "UBER": "Uber Moto"}
+
+
+# ── Lalamove ou Uber: mesmas funções, escolhe pelo serviço do pedido / id da entrega (Uber = "del_...") ──
+def _mod_lalamove():
+    try:
+        from routers import lalamove as m
+    except ImportError:
+        import lalamove as m
+    return m
+
+
+def _mod_uber():
+    try:
+        from routers import uber_direct as m
+    except ImportError:
+        import uber_direct as m
+    return m
+
+
+def _courier(service_or_id: str | None):
+    x = str(service_or_id or "")
+    return _mod_uber() if (x == "UBER" or x.startswith("del_")) else _mod_lalamove()
+
+
+def _courier_errors() -> tuple:
+    errs = [_mod_lalamove().LalamoveError]
+    try:
+        errs.append(_mod_uber().UberError)
+    except ImportError:
+        pass
+    return tuple(errs)
+
+
+def _courier_nome(service_or_id: str | None) -> str:
+    x = str(service_or_id or "")
+    return "Uber" if (x == "UBER" or x.startswith("del_")) else "Lalamove"
 
 _cols_ready = False
 
@@ -216,21 +252,20 @@ async def site_order_status(order_id: int, fulfillment: str = Form(...), admin_n
 
 @router.post("/site-orders/{order_id}/lalamove")
 async def site_order_lalamove(order_id: int, _=Depends(basic_auth)):
-    """Nova cotação (a do site já expirou) + pedido na Lalamove."""
-    try:
-        try:
-            from routers.lalamove import get_quote, place_order, LalamoveError
-        except ImportError:
-            from lalamove import get_quote, place_order, LalamoveError
-    except ImportError:
-        return _go(order_id, err="lalamove.py não está na admin")
-
+    """Nova cotação (a do site já expirou) + pedido na Lalamove ou na Uber (conforme o cliente escolheu)."""
     async with engine.connect() as conn:
         o = (await conn.execute(text("SELECT * FROM site_orders WHERE id = :id"), {"id": order_id})).mappings().first()
+    svc = (o or {}).get("delivery_service") or "LALAGO"
+    nome = _courier_nome(svc)
+    try:
+        mod = _courier(svc)
+        get_quote, place_order, LalamoveError = mod.get_quote, mod.place_order, _courier_errors()
+    except ImportError:
+        return _go(order_id, err=f"{'uber_direct.py' if nome == 'Uber' else 'lalamove.py'} não está na admin")
     if not o or o["status"] != "paid" or o["delivery_type"] != "lalamove":
         return _go(order_id, err="Pedido não é entrega paga")
     if o["lalamove_order_id"]:
-        return _go(order_id, err="Lalamove já chamado")
+        return _go(order_id, err=f"{nome} já chamado")
     if o["lat"] is None or o["lng"] is None:
         return _go(order_id, err="Pedido sem coordenadas")
 
@@ -238,11 +273,15 @@ async def site_order_lalamove(order_id: int, _=Depends(basic_auth)):
     phone = re.sub(r"\D", "", o["customer_phone"] or "")
     phone = "+" + (phone if phone.startswith("55") else "55" + phone)
     try:
-        quote = await get_quote(o["lat"], o["lng"], full_address, o["delivery_service"] or "LALAGO")
+        if nome == "Uber":
+            rua_num = f'{o["address"].split(",")[0]}, {o["numero"]}' + (f' - {o["complemento"]}' if o["complemento"] else "")
+            quote = await get_quote(o["lat"], o["lng"], rua_num, cep=o.get("cep") or "")
+        else:
+            quote = await get_quote(o["lat"], o["lng"], full_address, svc)
         res = await place_order(quote, o["customer_name"], phone,
                                 remarks=f"Pedido MTF #{order_id}. {full_address}", sale_id=order_id)
     except LalamoveError as e:
-        return _go(order_id, err=f"Lalamove: {str(e.payload)[:150]}")
+        return _go(order_id, err=f"{nome}: {str(e.payload)[:150]}")
 
     async with engine.begin() as conn:
         await conn.execute(text("""
@@ -251,8 +290,8 @@ async def site_order_lalamove(order_id: int, _=Depends(basic_auth)):
             WHERE id = :id
         """), {"lid": res["order_id"], "link": res.get("share_link"),
                "st": (res.get("status") or "ASSIGNING_DRIVER")[:30], "id": order_id})
-    price_note = f'Cobrado do cliente R$ {float(o["frete"]):.2f} · Lalamove agora R$ {float(quote["price"]):.2f}'
-    return _go(order_id, ok=f"Lalamove chamado. {price_note}")
+    price_note = f'Cobrado do cliente R$ {float(o["frete"]):.2f} · {nome} agora R$ {float(quote["price"]):.2f}'
+    return _go(order_id, ok=f"{nome} chamado. {price_note}")
 
 
 LALA_STATUS = {
@@ -280,11 +319,9 @@ LALA_POLL_SECONDS = max(30, int(os.environ.get("LALA_POLL_SECONDS", "90")))
 
 
 def _lala_get_order():
-    try:
-        from routers.lalamove import get_order, LalamoveError
-    except ImportError:
-        from lalamove import get_order, LalamoveError
-    return get_order, LalamoveError
+    async def get_order(lid):
+        return await _courier(lid).get_order(lid)
+    return get_order, _courier_errors()
 
 
 async def _push(title: str, body: str, url: str, tag: str):
@@ -415,11 +452,9 @@ MP_API = "https://api.mercadopago.com"
 
 
 def _lala():
-    try:
-        from routers.lalamove import cancel_order, LalamoveError
-    except ImportError:
-        from lalamove import cancel_order, LalamoveError
-    return cancel_order, LalamoveError
+    async def cancel_order(lid):
+        return await _courier(lid).cancel_order(lid)
+    return cancel_order, _courier_errors()
 
 
 def _mp_token() -> str:

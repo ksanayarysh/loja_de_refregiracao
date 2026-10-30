@@ -560,7 +560,7 @@
 </nav>
 
 {% set is_botija = "botija" in (product.name or "")|lower %}
-{% set is_kg = so_balcao(product) %}{# kg ou botija: só com o vendedor, sem carrinho/frete #}
+{% set is_kg = so_balcao(product) %}{% set envia_br = envia_correios(product) %}{# kg ou botija: só com o vendedor, sem carrinho/frete #}
 {% set wa_msg = "Olá! Tenho interesse no produto: " + product.name + " (" + product.unit + ")" + (". Preço: R$ " + ('%.2f'|format(product.price)|replace('.', ',')) if product.sale_price else "") + ". Está disponível?" %}
 
 <div class="product-page">
@@ -601,6 +601,9 @@
       {% if not is_kg %}<a href="#frete-box" class="entrega-pill" onclick="setTimeout(()=>document.getElementById('frete-cep').focus(),300)">
         🛵 Entrega no RJ
       </a>{% endif %}
+      {% if envia_br %}<a href="#frete-box" class="entrega-pill" onclick="setTimeout(()=>document.getElementById('frete-cep').focus(),300)">
+        📦 Enviamos para todo o Brasil
+      </a>{% endif %}
       {% else %}
       <div style="display:inline-flex;align-items:center;gap:6px;font-size:.8rem;font-weight:700;color:#6b7280;background:#f3f4f6;border:1px solid #d1d5db;padding:5px 12px;border-radius:10px;">
         <svg width="8" height="8" viewBox="0 0 8 8" fill="#9ca3af"><circle cx="4" cy="4" r="4"/></svg>
@@ -619,7 +622,7 @@
       <div><span class="price-old">R$ {{ "%.2f"|format(product.sale_price)|replace('.', ',') }}</span><span class="price-off">-{{ ((1 - product.price / product.sale_price) * 100)|round|int }}%</span></div>
       {% endif %}
       <div class="price-value" style="font-size:2.4rem;color:var(--accent);">R$ {{ "%.2f"|format(product.price)|replace('.', ',') }}{% if product.unit == 'kg' %}<span style="font-size:1.1rem;font-weight:400;color:var(--muted);">/kg</span>{% endif %}</div>
-      <div style="font-size:.8rem;color:var(--muted);margin-top:2px;">por {{ product.unit }} · Rio de Janeiro</div>
+      <div style="font-size:.8rem;color:var(--muted);margin-top:2px;">por {{ product.unit }}{% if not envia_br %} · Rio de Janeiro{% endif %}</div>
       {% else %}
       <div class="price-consult">Consulte disponibilidade</div>
       {% endif %}
@@ -637,6 +640,7 @@
       <div>
         <div class="cutoff-title">Pedido pago até 16h — entrega hoje</div>
         <div class="cutoff-sub">no Rio de Janeiro, seg. a sáb. · ou retire na loja agora</div>
+        {% if envia_br %}<div class="cutoff-sub">📦 Outros estados: envio pelos Correios/transportadora em até 1 dia útil</div>{% endif %}
         <div class="cutoff-timer" data-cutoff></div>
       </div>
     </div>
@@ -945,8 +949,16 @@ function fbTrack(ev, id, price, extra) {
   fbq('track', ev, Object.assign({ content_ids: [String(id)], content_type: 'product', value: Number(price) || 0, currency: 'BRL' }, extra || {}));
 }
 
+// evento para a admin/Telegram: botão clicado + de onde a pessoa veio
+function mtfEvent(id, event, btn) {
+  try {
+    const src = (typeof mtfSrc === 'function') ? mtfSrc() : '';
+    navigator.sendBeacon('/api/track/event', new Blob([JSON.stringify({ product_id: id, event, btn, src })], { type: 'application/json' }));
+  } catch (e) {}
+}
+
 function addToCart(id, name, price, unit, btn) {
-  try { navigator.sendBeacon('/api/track/event', new Blob([JSON.stringify({ product_id: id, event: 'cart' })], { type: 'application/json' })); } catch (e) {}
+  mtfEvent(id, 'cart', 'carrinho');
   const existing = cart.find(i => i.id === id && !i.kit);
   if (existing) { existing.qty += 1; }
   else { cart.push({ id, name, price, unit, qty: 1 }); }
@@ -961,7 +973,7 @@ function addToCart(id, name, price, unit, btn) {
 }
 
 function buyNow(id, name, price, unit) {
-  try { navigator.sendBeacon('/api/track/event', new Blob([JSON.stringify({ product_id: id, event: 'cart' })], { type: 'application/json' })); } catch (e) {}
+  mtfEvent(id, 'cart', 'comprar');
   if (!cart.find(i => i.id === id && !i.kit)) {
     cart.push({ id, name, price, unit, qty: 1 });
     saveCart();
@@ -969,7 +981,8 @@ function buyNow(id, name, price, unit) {
   }
   if (typeof gtag !== 'undefined') gtag('event', 'comprar_agora', { product_name: name });
   fbTrack('AddToCart', id, price, { content_name: name });
-  openCart();
+  // "Comprar agora" vai direto para o checkout (antes só abria o carrinho e muita gente parava ali)
+  setTimeout(() => { location.href = '/checkout'; }, 150);
 }
 
 function changeQty(idx, delta) {
@@ -1140,7 +1153,7 @@ document.querySelectorAll('.wa-track').forEach(el => {
 
 document.querySelectorAll('.phone-track').forEach(el => {
   el.addEventListener('click', function() {
-    try { navigator.sendBeacon('/api/track/event', new Blob([JSON.stringify({ product_id: {{ product.id }}, event: 'phone' })], { type: 'application/json' })); } catch (e) {}
+    mtfEvent({{ product.id }}, 'phone', '');
     fetch('/api/track/whatsapp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
