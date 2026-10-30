@@ -146,6 +146,8 @@
     }
 
     .payment-methods{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+    .product-info,.price-block,.cutoff-box{min-width:0;max-width:100%;}
+    .cutoff-box>div{min-width:0;}
     .pay-chip{font-size:.72rem;font-weight:600;padding:3px 9px;border-radius:20px;background:var(--bg);border:1px solid var(--border);color:var(--muted);}
     .pay-chip-pix{background:#e8f5e9;border-color:#c8e6c9;color:#2e7d32;}
     .tecnico-card-wrap{max-width:900px;margin:0 auto;padding:0 20px 40px;}
@@ -348,7 +350,7 @@
 
     @media(max-width:600px){
       .product-page{
-        grid-template-columns:1fr;
+        grid-template-columns:minmax(0,1fr);   /* minmax(0,…): conteúdo largo não estoura a tela */
         grid-template-areas:"img" "info" "desc";
         grid-template-rows:auto;
         gap:16px;

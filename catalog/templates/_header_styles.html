@@ -233,6 +233,14 @@ window.addEventListener('load', function() {
     .wa-float{padding:14px;border-radius:50%;bottom:16px;right:16px;}
     .footer-main{grid-template-columns:1fr;gap:20px;padding:24px 16px;}
   }
+  /* ── Celular com fonte grande (tamanho de texto do sistema / navegador do Instagram):
+        nada pode empurrar a página para fora da tela ── */
+  html{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
+  @media(max-width:600px){
+    html,body{max-width:100%;overflow-x:clip;}
+    html body .catbar-item,html body .catbar-all{overflow:hidden;text-overflow:ellipsis;}
+    .btn-foto{white-space:normal;text-align:center;justify-content:center;flex-shrink:1;min-width:0;}
+  }
   /* ── CATEGORIAS no celular: 5 botões numa linha, sem rolagem ── */
   .cb-s{display:none;}
   @media(max-width:600px){
