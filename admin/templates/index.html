@@ -303,13 +303,15 @@ function buyNow(id, name, price, unit, qty = 1) {
 
 const WA_NUMBER = '{{ wa_number }}';
 
+const brlO = v => 'R$ ' + Number(v).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+const qtyO = q => String(+Number(q).toFixed(3)).replace('.', ',');
 function shareOrcamento() {
   if (!cart.length) return;
   const lines = cart.map(i =>
-    `• ${i.name} (${i.unit}) × ${i.qty} = R$ ${(i.price * i.qty).toFixed(2).replace('.', ',')}`
+    `• ${i.name} — ${qtyO(i.qty)} ${i.unit || 'un'} × ${brlO(i.price)} = ${brlO(i.price * i.qty)}`
   );
   const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
-  const msg = `Olá! Segue o orçamento:\n\n${lines.join('\n')}\n\n*Total: R$ ${total.toFixed(2).replace('.', ',')}*\n\nPodemos confirmar?`;
+  const msg = `Segue o orçamento:\n\n${lines.join('\n')}\n\n*Total: ${brlO(total)}*`;
   const url = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`;
   const a = document.createElement('a');
   a.href = url; a.target = '_blank'; a.rel = 'noopener';

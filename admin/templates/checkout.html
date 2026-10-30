@@ -347,19 +347,21 @@
     document.getElementById('checkout-form').submit();
   }
 
+  const brlO = v => 'R$ ' + Number(v).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  const qtyO = q => String(+Number(q).toFixed(3)).replace('.', ',');
   function shareOrcamento() {
     if (!cart.length) { alert('Carrinho vazio!'); return; }
     const lines = cart.map(i =>
-      `• ${i.name} (${i.unit}) × ${i.qty} = R$ ${(i.price * i.qty).toFixed(2).replace('.', ',')}`
+      `• ${i.name} — ${qtyO(i.qty)} ${i.unit || 'un'} × ${brlO(i.price)} = ${brlO(i.price * i.qty)}`
     );
     const subtotal = getSubtotal();
     const discountPct = getDiscountPct();
     const total = getDiscountedTotal();
-    let msg = `Olá! Segue o orçamento:\n\n${lines.join('\n')}\n\nSubtotal: R$ ${subtotal.toFixed(2).replace('.', ',')}`;
+    let msg = `Segue o orçamento:\n\n${lines.join('\n')}\n\nSubtotal: ${brlO(subtotal)}`;
     if (discountPct > 0) {
       msg += `\nDesconto: ${discountPct.toFixed(2).replace(/\.?0+$/, '').replace('.', ',')}%`;
     }
-    msg += `\n*Total: R$ ${total.toFixed(2).replace('.', ',')}*\n\nPodemos confirmar?`;
+    msg += `\n*Total: ${brlO(total)}*`;
     const url = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`;
     const a = document.createElement('a');
     a.href = url;
@@ -477,11 +479,11 @@
     const o = lalaFrete(); if (!o || !cart.length) return;
     const tel = $l('lala-phone').value.replace(/\D/g, '');
     const prod = getDiscountedTotal();
-    const linhas = cart.map(i => `• ${i.name} × ${i.qty} = ${fmt(i.price * i.qty)}`);
+    const linhas = cart.map(i => `• ${i.name} — ${qtyO(i.qty)} ${i.unit || 'un'} × ${brlO(i.price)} = ${brlO(i.price * i.qty)}`);
     const pct = getDiscountPct();
-    let msg = `Olá! Segue o orçamento da MTF Refrigeração:\n\n${linhas.join('\n')}`;
+    let msg = `Segue o orçamento da MTF Refrigeração:\n\n${linhas.join('\n')}`;
     if (pct > 0) msg += `\nDesconto: ${String(pct).replace('.', ',')}%`;
-    msg += `\nProdutos: ${fmt(prod)}\nEntrega (${o.label}, ${lalaQuote.address}): ${fmt(o.price)}\n*Total com entrega: ${fmt(prod + o.price)}*\n\nPodemos confirmar?`;
+    msg += `\nProdutos: ${fmt(prod)}\nEntrega (${o.label}, ${lalaQuote.address}): ${fmt(o.price)}\n*Total com entrega: ${fmt(prod + o.price)}*`;
     const dest = tel ? (tel.startsWith('55') ? tel : '55' + tel) : '';
     const a = document.createElement('a');
     a.href = `https://wa.me/${dest}?text=${encodeURIComponent(msg)}`; a.target = '_blank'; a.rel = 'noopener';
