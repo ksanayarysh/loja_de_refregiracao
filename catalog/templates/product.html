@@ -654,6 +654,18 @@
     </div>
     {% endif %}
 
+    {% if not is_kg %}
+    <div class="frete-box" id="frete-box">
+      <div class="frete-title">🛵 Calcular frete</div>
+      <div class="frete-row">
+        <input id="frete-cep" class="frete-input" type="text" inputmode="numeric" placeholder="Digite seu CEP" maxlength="9" autocomplete="postal-code">
+        <button id="frete-btn" class="frete-btn" type="button" onclick="calcFrete()">Calcular</button>
+      </div>
+      <div id="frete-result" class="frete-result"></div>
+      <a class="frete-help" href="https://buscacepinter.correios.com.br/app/endereco/index.php" target="_blank" rel="noopener">Não sei meu CEP</a>
+    </div>
+    {% endif %}
+
     {% set wa_out_msg = "Olá! Vi o produto " + product.name + " no site mas está sem estoque. Quando volta? Posso reservar?" %}
     {% set in_stock = product.current_stock and product.current_stock > 0 %}
     {% if product.sale_price and in_stock and not is_kg %}
@@ -696,17 +708,6 @@
     </a>
     {% endif %}
 
-    {% if not is_kg %}
-    <div class="frete-box" id="frete-box">
-      <div class="frete-title">🛵 Calcular frete</div>
-      <div class="frete-row">
-        <input id="frete-cep" class="frete-input" type="text" inputmode="numeric" placeholder="Digite seu CEP" maxlength="9" autocomplete="postal-code">
-        <button id="frete-btn" class="frete-btn" type="button" onclick="calcFrete()">Calcular</button>
-      </div>
-      <div id="frete-result" class="frete-result"></div>
-      <a class="frete-help" href="https://buscacepinter.correios.com.br/app/endereco/index.php" target="_blank" rel="noopener">Não sei meu CEP</a>
-    </div>
-    {% endif %}
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
       <div style="display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;">
