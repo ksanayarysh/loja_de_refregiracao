@@ -1890,6 +1890,9 @@ async def _frete_log(request: Request, cep: str, status: int, data: dict,
 
     opts = data.get("options") or []
     prices = {o["service"]: o["price"] for o in opts}
+    # no banco: Melhor Envio guarda também o nome do serviço ("ME-1|Correios PAC"), para o relatório mostrar qual era
+    precos_log = {(f'{o["service"]}|{o.get("label", "")}'[:60] if str(o["service"]).startswith("ME-") else o["service"]): o["price"]
+                  for o in opts}
     menor = min(prices.values()) if prices else None
     if status != 200:
         resultado = "erro"
@@ -1925,7 +1928,7 @@ async def _frete_log(request: Request, cep: str, status: int, data: dict,
                 VALUES (:cep, :bairro, :cidade, :km, :menor, CAST(:precos AS JSONB), :res,
                         :src, :valor, :pid, :prod, :ip)"""), {
                 "cep": cep, "bairro": (data.get("bairro") or "")[:120], "cidade": (data.get("cidade") or "")[:120],
-                "km": data.get("distance_km"), "menor": menor, "precos": _json.dumps(prices),
+                "km": data.get("distance_km"), "menor": menor, "precos": _json.dumps(precos_log, ensure_ascii=False),
                 "res": resultado, "src": src, "valor": valor, "pid": pid, "prod": prod, "ip": ip,
             })
     except Exception:

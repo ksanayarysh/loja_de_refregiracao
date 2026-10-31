@@ -1397,7 +1397,7 @@ async def interesse_report(request: Request, period: str = Query("today"), _=Dep
                 def _brl(v):
                     return f"R$ {float(v or 0):.2f}".replace(".", ",")
                 opcoes = " · ".join(
-                    f"{nomes_frete.get(k, 'Correios/transportadora' if str(k).startswith('ME-') else k)} {_brl(v)}"
+                    f"{nomes_frete.get(k) or ((str(k).split('|', 1)[1] or 'Correios/transportadora') if '|' in str(k) else 'Correios/transportadora' if str(k).startswith('ME-') else k)} {_brl(v)}"
                     for k, v in sorted(precos.items(), key=lambda kv: float(kv[1] or 0)))
                 menor = f"{float(r['menor_frete']):.2f}".replace(".", ",")
                 txt = f"calculou o frete {origem} para {lugar} ({cep_fmt}{km}): {opcoes or 'a partir de R$ ' + menor}"
