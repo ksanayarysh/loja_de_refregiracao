@@ -1733,8 +1733,11 @@ async def _cep_to_coords(cep: str):
                                   cep, candidates[0][0])
 
     if not coords:
-        _blog_log.warning("frete-cep: sem coordenadas para %s (%s)", cep, address)
-        raise RuntimeError(f"sem coordenadas para {cep}")
+        # CEP geral de cidade (ex.: 48400-000, sem rua/bairro): sem ponto exato. Fora do RJ isso não importa
+        # (Correios/Melhor Envio só usam o CEP); no RJ vira "frete a combinar" + opções de transportadora.
+        _blog_log.warning("frete-cep: sem coordenadas para %s (%s) — segue só com o CEP", cep, address)
+        return {"lat": None, "lng": None, "address": address, "rua": street, "bairro": bairro,
+                "cidade": cidade, "uf": uf}
 
     _blog_log.info("frete-cep: %s -> %s via %s", cep, coords, source)
     res = {"lat": coords[0], "lng": coords[1], "address": address, "rua": street, "bairro": bairro, "cidade": cidade, "uf": uf}
@@ -1774,7 +1777,7 @@ async def _frete_cep_core(request: Request, cep: str = ""):
         return JSONResponse({"error": "Não foi possível calcular o frete agora. Tente novamente."}, status_code=503)
     if not geo:
         return JSONResponse({"error": "CEP não encontrado."}, status_code=404)
-    if geo["uf"] != "RJ":
+    if geo["uf"] != "RJ" or geo.get("lat") is None:
         return JSONResponse(_frete_combinar(geo), headers={"Cache-Control": "no-store"})
 
     services = [s for s in FRETE_OPTIONS if s in LALA_SERVICES]

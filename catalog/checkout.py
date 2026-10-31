@@ -328,7 +328,7 @@ async def _calc_frete(cep: str, service: str):
     geo = await _cep_to_coords(cep)
     if not geo:
         return None, "CEP não encontrado."
-    if geo["uf"] != "RJ":
+    if geo["uf"] != "RJ" or geo.get("lat") is None:
         return None, "Para este endereço, o frete é combinado com o vendedor."
 
     cached = _quote_cache.get(cep)
