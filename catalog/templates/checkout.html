@@ -349,6 +349,13 @@ async function calcFrete() {
         <div class="co-opt-main"><div class="co-opt-name">${esc(o.label)}${opts.length > 1 && idx === pick ? ' <span class="mais-barato">mais barato</span>' : ''}</div><div class="co-opt-hint">${esc(o.hint)}</div></div>
         <div class="co-opt-price">${brl(o.price)}</div>
       </label>`).join('');
+    // dúvida antes de pagar -> WhatsApp com o carrinho já escrito; peça barata -> dica de juntar peças
+    const sub = cart.reduce((s, i) => s + i.price * i.qty, 0);
+    const itensTxt = cart.map(i => `${i.name} × ${i.qty}`).join(', ');
+    const waDuv = encodeURIComponent(`Olá! Estou no site com: ${itensTxt}. Calculei o frete para o CEP ${$('f-cep').value}. Tenho uma dúvida antes de pagar: `);
+    $('frete-opts').innerHTML +=
+      (minP >= sub * 0.5 ? `<div class="co-note" style="margin-top:8px;background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:9px 11px;color:#78350f;">💡 O frete sai quase o valor das peças. Aproveite e adicione outras peças ao pedido — o frete é um só.${isMe ? '' : ' Ou escolha <strong>Retirada na loja</strong> (grátis).'}</div>` : '')
+      + `<a class="co-wa-link" style="display:block;margin-top:10px;" href="https://wa.me/${WA_NUMBER}?text=${waDuv}" target="_blank" rel="noopener">💬 Ficou com dúvida se serve? Fale com a gente no WhatsApp →</a>`;
     document.querySelectorAll('input[name="service"]').forEach(r => r.addEventListener('change', pickService));
     pickService();
     if (d.rua && !$('f-rua').value) $('f-rua').value = d.rua;

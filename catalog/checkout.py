@@ -32,7 +32,7 @@ from dependencies import engine, templates
 from lalamove import get_quote, LalamoveError
 from router import (
     _apply_promo, _cep_to_coords, geocode_endereco, _km, _quote_cache, _send_tg, _blog_log, _ensure_kit_settings, slugify,
-    margem_detalhe, frete_final, linhas_dos_itens, FRETE_SUBSIDIO_MIN, _client_ip, _is_owner, log_product_events,
+    margem_detalhe, frete_final, linhas_dos_itens, FRETE_SUBSIDIO_MIN, _client_ip, _is_owner, log_product_events, _is_bot, _is_datacenter,
     FRETE_MAX_KM, FRETE_OPTIONS, LALA_SERVICES, LALA_DEBUG_TOKEN,
     GA_ID, SITE_URL, STORE_ADDRESS, STORE_PHONE, WA_OWNER_NUMBER, ADMIN_URL,
 )
@@ -976,7 +976,8 @@ async def checkout_stock(request: Request):
     except Exception:
         return JSONResponse({"error": "Dados inválidos."}, status_code=400)
     items, subtotal = await _load_items(body.get("items"))
-    if items and not _is_owner(request):
+    if (items and not _is_owner(request) and not _is_bot(request.headers.get("user-agent", ""))
+            and not _is_datacenter(_client_ip(request))):   # robô do Google também abre o checkout
         _avisar_checkout_aberto(_client_ip(request), items, subtotal, str(body.get("src") or "")[:80])
     kg, short, stock = await _stock_problems(items)
     return JSONResponse({
