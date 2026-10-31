@@ -1,0 +1,77 @@
+{# Busca de CEP pelo endereço (ViaCEP, direto do navegador).
+   Uso: um link  onclick="cepBuscaAbrir('id-do-input-cep', minhaFuncaoCalcular)"  + este include uma vez na página. #}
+<style>
+  .cepb-link{display:inline-block;margin-top:8px;font-size:.78rem;font-weight:600;color:var(--accent,#0e7c99);background:none;border:none;padding:0;cursor:pointer;text-decoration:underline;font-family:inherit;}
+  .cepb-panel{display:none;margin-top:10px;padding:12px;border:1px solid var(--border,#dde7ec);border-radius:12px;background:var(--bg,#f4f8fa);}
+  .cepb-panel.open{display:block;}
+  .cepb-title{font-size:.82rem;font-weight:700;color:var(--text,#0f1e2e);margin-bottom:8px;}
+  .cepb-grid{display:grid;grid-template-columns:70px minmax(0,1fr);gap:6px;}
+  .cepb-grid input,.cepb-grid select{width:100%;padding:10px;border:1.5px solid var(--border,#dde7ec);border-radius:9px;font-family:inherit;font-size:.95rem;background:#fff;color:var(--text,#0f1e2e);min-width:0;}
+  .cepb-rua{grid-column:1/-1;}
+  .cepb-btn{grid-column:1/-1;padding:10px;border:none;border-radius:9px;background:var(--text,#0f1e2e);color:#fff;font-weight:700;font-family:inherit;cursor:pointer;}
+  .cepb-res{margin-top:8px;display:grid;gap:6px;max-height:260px;overflow:auto;}
+  .cepb-item{display:block;width:100%;text-align:left;padding:9px 10px;border:1px solid var(--border,#dde7ec);border-radius:9px;background:#fff;cursor:pointer;font-family:inherit;font-size:.82rem;color:var(--text,#0f1e2e);line-height:1.35;}
+  .cepb-item b{color:var(--accent,#0e7c99);}
+  .cepb-item small{color:var(--muted,#6b7c8a);}
+  .cepb-msg{font-size:.8rem;color:var(--muted,#6b7c8a);margin-top:6px;}
+</style>
+<div class="cepb-panel" id="cepb-panel">
+  <div class="cepb-title">🔎 Encontre seu CEP pelo endereço</div>
+  <div class="cepb-grid">
+    <select id="cepb-uf" aria-label="Estado">
+      {% for uf in ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'] %}
+      <option value="{{ uf }}" {% if uf == 'RJ' %}selected{% endif %}>{{ uf }}</option>
+      {% endfor %}
+    </select>
+    <input id="cepb-cidade" type="text" value="Rio de Janeiro" placeholder="Cidade" aria-label="Cidade" autocomplete="address-level2">
+    <input id="cepb-rua" class="cepb-rua" type="text" placeholder="Nome da rua (ex.: Avenida Brasil)" aria-label="Rua" autocomplete="address-line1">
+    <button class="cepb-btn" type="button" onclick="cepBuscaBuscar()">Buscar CEP</button>
+  </div>
+  <div class="cepb-msg" id="cepb-msg"></div>
+  <div class="cepb-res" id="cepb-res"></div>
+</div>
+<script>
+(function () {
+  let alvo = null, aoEscolher = null;
+  const $c = id => document.getElementById(id);
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  window.cepBuscaAbrir = function (inputId, onPick) {
+    alvo = inputId; aoEscolher = onPick;
+    const panel = $c('cepb-panel'), input = $c(inputId);
+    // o painel aparece logo abaixo do campo de CEP que pediu
+    const caixa = input && (input.closest('.frete-box, .co-card') || input.parentElement);
+    if (caixa && panel.parentElement !== caixa) caixa.appendChild(panel);
+    panel.classList.toggle('open');
+    if (panel.classList.contains('open')) setTimeout(() => $c('cepb-rua').focus(), 50);
+  };
+
+  window.cepBuscaBuscar = async function () {
+    const uf = $c('cepb-uf').value, cidade = $c('cepb-cidade').value.trim(), rua = $c('cepb-rua').value.trim();
+    const msg = $c('cepb-msg'), res = $c('cepb-res');
+    res.innerHTML = '';
+    if (cidade.length < 3 || rua.length < 3) { msg.textContent = 'Digite a cidade e pelo menos 3 letras do nome da rua.'; return; }
+    msg.textContent = 'Buscando...';
+    try {
+      const r = await fetch(`https://viacep.com.br/ws/${encodeURIComponent(uf)}/${encodeURIComponent(cidade)}/${encodeURIComponent(rua)}/json/`);
+      const d = await r.json();
+      if (!Array.isArray(d) || !d.length) { msg.textContent = 'Nenhum CEP encontrado. Confira o nome da rua e da cidade.'; return; }
+      msg.textContent = d.length > 1 ? 'Escolha o seu (ruas longas têm um CEP por trecho de numeração):' : '';
+      res.innerHTML = d.slice(0, 30).map(x => `
+        <button type="button" class="cepb-item" data-cep="${esc(x.cep)}">
+          <b>${esc(x.cep)}</b> — ${esc(x.logradouro)}${x.complemento ? ' <small>(' + esc(x.complemento) + ')</small>' : ''}<br>
+          <small>${esc(x.bairro)}, ${esc(x.localidade)} - ${esc(x.uf)}</small>
+        </button>`).join('');
+      res.querySelectorAll('.cepb-item').forEach(b => b.addEventListener('click', () => {
+        const input = $c(alvo);
+        if (input) { input.value = b.dataset.cep; input.dispatchEvent(new Event('input', { bubbles: true })); }
+        $c('cepb-panel').classList.remove('open');
+        if (typeof aoEscolher === 'function') aoEscolher();
+      }));
+    } catch (e) {
+      msg.innerHTML = 'Não foi possível buscar agora. <a href="https://buscacepinter.correios.com.br/app/endereco/index.php" target="_blank" rel="noopener">Buscar no site dos Correios →</a>';
+    }
+  };
+  document.addEventListener('keydown', e => { if (e.key === 'Enter' && document.activeElement && document.activeElement.id === 'cepb-rua') cepBuscaBuscar(); });
+})();
+</script>

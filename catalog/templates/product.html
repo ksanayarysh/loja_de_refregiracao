@@ -662,8 +662,9 @@
         <button id="frete-btn" class="frete-btn" type="button" onclick="calcFrete()">Calcular</button>
       </div>
       <div id="frete-result" class="frete-result"></div>
-      <a class="frete-help" href="https://buscacepinter.correios.com.br/app/endereco/index.php" target="_blank" rel="noopener">Não sei meu CEP</a>
+      <button class="cepb-link" type="button" onclick="cepBuscaAbrir('frete-cep', calcFrete)">Não sabe seu CEP? Busque pelo endereço</button>
     </div>
+    {% include '_cep_busca.html' %}
     {% endif %}
 
     {% set wa_out_msg = "Olá! Vi o produto " + product.name + " no site mas está sem estoque. Quando volta? Posso reservar?" %}
@@ -1162,7 +1163,8 @@ async function calcFrete() {
         <div class="frete-price frete-free">Grátis</div>
       </div>
       <div class="frete-note">Entrega via <strong>Lalamove</strong>. Valores estimados, confirmamos no pedido.<br>Pedido pago até 16h: entrega hoje (seg. a sáb.). Depois disso, no próximo dia útil.</div>`
-      + freteExtras(minP, freteCep.value, true);
+      + freteExtras(minP, freteCep.value, true)
+      + `<div class="frete-note" style="margin-top:8px;">🛵 Prefere chamar seu próprio <strong>Uber Moto ou 99</strong> para retirar aqui? <a href="https://wa.me/${WA_NUMBER}?text=${encodeURIComponent('Olá! Quero comprar ' + PROD_NOME + ' e mandar meu próprio motoboy (Uber/99) buscar. Podemos combinar?')}" target="_blank" rel="noopener" onclick="trackWa()" style="color:#128c4a;font-weight:700;">Fale com a gente</a> para combinarmos os detalhes.</div>`;
     if (typeof gtag !== 'undefined') gtag('event', 'calcular_frete', { cep_prefix: cep.slice(0, 5) });
   } catch (e) {
     const waTxt = encodeURIComponent('Olá! Quero saber sobre entrega para o CEP ' + freteCep.value + '.');

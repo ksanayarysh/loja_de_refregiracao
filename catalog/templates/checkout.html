@@ -143,6 +143,8 @@
             <input class="co-input" id="f-cep" inputmode="numeric" placeholder="00000-000" maxlength="9" autocomplete="postal-code">
             <button class="co-btn-sec" id="cep-btn" type="button" onclick="calcFrete()">Calcular</button>
           </div>
+          <button class="cepb-link" type="button" onclick="cepBuscaAbrir('f-cep', calcFrete)">Não sabe seu CEP? Busque pelo endereço</button>
+          {% include '_cep_busca.html' %}
         </div>
         <div id="frete-msg"></div>
         <div id="frete-opts"></div>
@@ -355,7 +357,8 @@ async function calcFrete() {
     const waDuv = encodeURIComponent(`Olá! Estou no site com: ${itensTxt}. Calculei o frete para o CEP ${$('f-cep').value}. Tenho uma dúvida antes de pagar: `);
     $('frete-opts').innerHTML +=
       (minP >= sub * 0.5 ? `<div class="co-note" style="margin-top:8px;background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:9px 11px;color:#78350f;">💡 O frete sai quase o valor das peças. Aproveite e adicione outras peças ao pedido — o frete é um só.${isMe ? '' : ' Ou escolha <strong>Retirada na loja</strong> (grátis).'}</div>` : '')
-      + `<a class="co-wa-link" style="display:block;margin-top:10px;" href="https://wa.me/${WA_NUMBER}?text=${waDuv}" target="_blank" rel="noopener">💬 Ficou com dúvida se serve? Fale com a gente no WhatsApp →</a>`;
+      + `<a class="co-wa-link" style="display:block;margin-top:10px;" href="https://wa.me/${WA_NUMBER}?text=${waDuv}" target="_blank" rel="noopener">💬 Ficou com dúvida se serve? Fale com a gente no WhatsApp →</a>`
+      + (isMe ? '' : `<div class="co-note" style="margin-top:6px;">🛵 Prefere chamar seu próprio <strong>Uber Moto ou 99</strong> para retirar aqui? <a href="https://wa.me/${WA_NUMBER}?text=${encodeURIComponent('Olá! Quero comprar (' + itensTxt + ') e mandar meu próprio motoboy (Uber/99) buscar. Podemos combinar?')}" target="_blank" rel="noopener" style="color:#128c4a;font-weight:700;">Fale com a gente</a> para combinarmos os detalhes.</div>`);
     document.querySelectorAll('input[name="service"]').forEach(r => r.addEventListener('change', pickService));
     pickService();
     if (d.rua && !$('f-rua').value) $('f-rua').value = d.rua;
