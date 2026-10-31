@@ -14,7 +14,7 @@
 
   .funil { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
   .f-card { background: #fff; border-radius: 12px; padding: 14px; box-shadow: 0 2px 8px rgba(0,0,0,.06); border-left: 4px solid #ccc; }
-  .f-card.ok { border-color: #16a34a; } .f-card.warn { border-color: #f59e0b; } .f-card.bad { border-color: #E2144A; }
+  .f-card.ok { border-color: #16a34a; } .f-card.info { border-color: #3b82f6; } .pessoa.info { border-color: #3b82f6; } .f-card.warn { border-color: #f59e0b; } .f-card.bad { border-color: #E2144A; }
   .f-num { font-size: 1.6rem; font-weight: 900; color: #111; }
   .f-lbl { font-size: .78rem; color: #666; margin-top: 2px; }
 
@@ -36,7 +36,7 @@
 <div class="content">
   <div>
     <h1>🛒 Quem quis comprar</h1>
-    <p class="sub">Cada cartão é uma pessoa (mesmo IP) que clicou em comprar, abriu o checkout ou fez pedido — e tudo o que ela fez no site no período, em ordem.</p>
+    <p class="sub">Cada cartão é uma pessoa (mesmo IP) que calculou o frete, clicou em comprar, abriu o checkout ou fez pedido — e tudo o que ela fez no site no período, em ordem.</p>
   </div>
 
   <div class="period-bar">
@@ -46,7 +46,8 @@
   </div>
 
   <div class="funil">
-    <div class="f-card"><div class="f-num">{{ resumo.pessoas }}</div><div class="f-lbl">pessoas quiseram comprar</div></div>
+    <div class="f-card"><div class="f-num">{{ resumo.pessoas }}</div><div class="f-lbl">pessoas interessadas</div></div>
+    <div class="f-card info"><div class="f-num">{{ resumo.frete }}</div><div class="f-lbl">só calcularam o frete</div></div>
     <div class="f-card bad"><div class="f-num">{{ resumo.carrinho }}</div><div class="f-lbl">saíram antes do checkout</div></div>
     <div class="f-card warn"><div class="f-num">{{ resumo.checkout }}</div><div class="f-lbl">abriram o checkout e desistiram</div></div>
     <div class="f-card warn"><div class="f-num">{{ resumo.pedido }}</div><div class="f-lbl">fizeram pedido sem pagar</div></div>
@@ -72,7 +73,7 @@
     </ul>
   </div>
   {% else %}
-  <div class="vazio">Ninguém clicou em comprar neste período.</div>
+  <div class="vazio">Ninguém calculou frete nem clicou em comprar neste período.</div>
   {% endfor %}
 </div>
 {% endblock %}

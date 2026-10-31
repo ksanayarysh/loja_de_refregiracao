@@ -1311,6 +1311,9 @@ async def interesse_report(request: Request, period: str = Query("today"), _=Dep
             UNION ALL
             SELECT ip, created_at AS t FROM site_orders
              WHERE created_at >= :t0 AND created_at < :t1
+            UNION ALL
+            SELECT ip, created_at AS t FROM frete_log          -- quem só calculou o frete também entra
+             WHERE created_at >= :t0 AND created_at < :t1
         ) x WHERE ip IS NOT NULL AND ip <> '' GROUP BY ip ORDER BY MAX(t) DESC LIMIT 100
     """, win)]
     import re as _re_i
@@ -1330,7 +1333,8 @@ async def interesse_report(request: Request, period: str = Query("today"), _=Dep
             WHERE pv.ip = ANY(:ips) AND pv.viewed_at >= :t0 AND pv.viewed_at < :t1
             ORDER BY pv.viewed_at LIMIT 3000""", p)
         fretes = await q("""
-            SELECT ip, created_at AS t, cep, bairro, cidade, menor_frete, resultado, produto
+            SELECT ip, created_at AS t, cep, bairro, cidade, menor_frete, resultado, produto, precos, origem,
+                   distance_km
             FROM frete_log WHERE ip = ANY(:ips) AND created_at >= :t0 AND created_at < :t1""", p)
         whats = await q("""
             SELECT ip, clicked_at AS t, product_name FROM catalog_clicks
@@ -1341,7 +1345,7 @@ async def interesse_report(request: Request, period: str = Query("today"), _=Dep
             FROM site_orders WHERE ip = ANY(:ips) AND created_at >= :t0 AND created_at < :t1""", p)
 
         por_ip = {ip: {"ip": ip, "linhas": [], "src": "", "device": "", "pago": False, "pedido": False,
-                       "checkout": False, "carrinho": False, "whats": False} for ip in ips}
+                       "checkout": False, "carrinho": False, "whats": False, "frete": False} for ip in ips}
 
         ultimo_produto: dict = {}
         for r in views:
@@ -1370,18 +1374,37 @@ async def interesse_report(request: Request, period: str = Query("today"), _=Dep
                 pe["linhas"].append((_to_brt(r["t"], BRT), "👀", f"abriu o checkout com {nome}"))
             elif r["event"] == "phone":
                 pe["linhas"].append((_to_brt(r["t"], BRT), "📞", f"clicou em ligar ({nome})"))
+        nomes_frete = {"LALAGO": "Motoboy", "LALAPRO": "Moto com baú", "HATCHBACK": "Carro", "UBER": "Uber"}
+        onde = {"produto": "na página do produto", "checkout": "no checkout", "home": "na página inicial"}
         for r in fretes:
             pe = por_ip.get(r["ip"])
             if not pe:
                 continue
+            pe["frete"] = True
             lugar = ", ".join(x for x in (r["bairro"], r["cidade"]) if x) or r["cep"] or "?"
+            cep = r["cep"] or ""
+            cep_fmt = f"CEP {cep[:5]}-{cep[5:]}" if len(cep) == 8 else ""
+            km = f" · {str(r['distance_km']).replace('.', ',')} km" if r.get("distance_km") else ""
+            origem = onde.get(r.get("origem") or "", "")
             if r["resultado"] == "ok" and r["menor_frete"] is not None:
-                preco = f"{float(r['menor_frete']):.2f}".replace(".", ",")
-                txt = f"calculou o frete para {lugar}: a partir de R$ {preco}"
+                precos = r.get("precos") or {}
+                if isinstance(precos, str):
+                    try:
+                        import json as _js
+                        precos = _js.loads(precos)
+                    except Exception:
+                        precos = {}
+                def _brl(v):
+                    return f"R$ {float(v or 0):.2f}".replace(".", ",")
+                opcoes = " · ".join(
+                    f"{nomes_frete.get(k, 'Correios/transportadora' if str(k).startswith('ME-') else k)} {_brl(v)}"
+                    for k, v in sorted(precos.items(), key=lambda kv: float(kv[1] or 0)))
+                menor = f"{float(r['menor_frete']):.2f}".replace(".", ",")
+                txt = f"calculou o frete {origem} para {lugar} ({cep_fmt}{km}): {opcoes or 'a partir de R$ ' + menor}"
             elif r["resultado"] == "combinar":
-                txt = f"calculou o frete para {lugar}: fora da área (a combinar)"
+                txt = f"calculou o frete {origem} para {lugar} ({cep_fmt}): fora da área (a combinar)"
             else:
-                txt = f"tentou calcular o frete para {lugar}: erro"
+                txt = f"tentou calcular o frete {origem} para {lugar or cep_fmt} ({cep_fmt}): ❌ erro — não viu preço"
             if r["produto"]:
                 txt += f" · {r['produto']}"
             pe["linhas"].append((_to_brt(r["t"], BRT), "🚚", txt))
@@ -1418,6 +1441,8 @@ async def interesse_report(request: Request, period: str = Query("today"), _=Dep
                 pe["resultado"], pe["cor"] = "📝 Fez o pedido, mas não pagou", "warn"
             elif pe["checkout"]:
                 pe["resultado"], pe["cor"] = "👀 Abriu o checkout e desistiu", "warn"
+            elif pe["frete"] and not pe["carrinho"]:
+                pe["resultado"], pe["cor"] = "🚚 Só calculou o frete", "info"
             else:
                 pe["resultado"], pe["cor"] = "🛒 Clicou em comprar e saiu antes do checkout", "bad"
             if pe["whats"] and not pe["pago"]:
@@ -1429,7 +1454,8 @@ async def interesse_report(request: Request, period: str = Query("today"), _=Dep
         "pagaram": sum(1 for x in pessoas if x["pago"]),
         "pedido": sum(1 for x in pessoas if x["pedido"] and not x["pago"]),
         "checkout": sum(1 for x in pessoas if x["checkout"] and not x["pedido"]),
-        "carrinho": sum(1 for x in pessoas if not x["checkout"] and not x["pedido"]),
+        "carrinho": sum(1 for x in pessoas if x["carrinho"] and not x["checkout"] and not x["pedido"]),
+        "frete": sum(1 for x in pessoas if x["frete"] and not x["carrinho"] and not x["checkout"] and not x["pedido"]),
     }
     return templates.TemplateResponse("interesse.html", {
         "request": request, "pessoas": pessoas, "resumo": resumo, "period": period,
