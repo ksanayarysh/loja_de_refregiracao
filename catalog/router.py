@@ -390,6 +390,7 @@ async def track_visit(request: Request):
         body = await request.json()
         page = body.get("page", "/")
         referrer = body.get("referrer", "")[:500]
+        src = str(body.get("src") or "")[:80]
         ip = _client_ip(request)
         ua = request.headers.get("user-agent", "")[:200]
         now = datetime.now(BRT)
@@ -418,8 +419,12 @@ async def track_visit(request: Request):
 
         # Определяем источник
         source = "direto"
-        if referrer:
-            if "google" in referrer: source = "🔍 Google"
+        if src == "Google Ads":
+            source = "💰 Google Ads (anúncio pago)"
+        elif src == "Google (grátis)":
+            source = "🛍 Google grátis (aba Shopping / produto no Google)"
+        elif referrer:
+            if "google" in referrer: source = "🔍 Google (busca orgânica)"
             elif "facebook" in referrer or "instagram" in referrer: source = "📘 Facebook/IG"
             elif "whatsapp" in referrer: source = "💬 WhatsApp"
             else: source = f"🔗 {referrer[:40]}"

@@ -38,6 +38,7 @@ window.addEventListener('load', function() {
   if (sessionStorage.getItem('mtf_src')) return;
   var q = new URLSearchParams(location.search), r = document.referrer || '', src = 'direto';
   if (q.get('gclid') || q.get('gbraid') || q.get('wbraid')) src = 'Google Ads';
+  else if (q.get('srsltid')) src = 'Google (grátis)';   // vitrine grátis do Merchant Center / resultado orgânico com produto
   else if (q.get('utm_source')) src = q.get('utm_source') + (q.get('utm_medium') ? ' / ' + q.get('utm_medium') : '') + (q.get('utm_campaign') ? ' · ' + q.get('utm_campaign') : '');
   else if (q.get('fbclid')) src = /instagram/i.test(r) ? 'Instagram' : 'Facebook/Instagram';
   else if (r && r.indexOf(location.host) < 0) {
@@ -58,7 +59,8 @@ window.addEventListener('load', function() {
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({
       page: window.location.pathname,
-      referrer: document.referrer || ''
+      referrer: document.referrer || '',
+      src: mtfSrc()
     })
   }).catch(function(){});
 });
