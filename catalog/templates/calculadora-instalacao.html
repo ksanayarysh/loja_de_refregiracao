@@ -94,6 +94,10 @@
     .cart-kit-btn.added{background:var(--green);}
     .cart-kit-go{display:none;text-align:center;margin-top:10px;font-size:.9rem;font-weight:700;color:var(--accent);text-decoration:none;}
     .cart-kit-go.show{display:block;}
+    .kit-share{display:block;width:100%;margin-top:10px;padding:12px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);font-family:inherit;font-size:.9rem;font-weight:700;cursor:pointer;}
+    .kit-share:hover{border-color:var(--accent);color:var(--accent);}
+    .kit-share.off{opacity:.4;pointer-events:none;}
+    .kit-share-hint{font-size:.76rem;color:var(--muted);text-align:center;margin-top:6px;line-height:1.4;}
     .load-msg{color:var(--muted);font-size:.9rem;padding:8px 0;}
     @media(max-width:500px){
       .calc-card{padding:20px 16px;}
@@ -181,6 +185,8 @@
       <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a10 10 0 0 1-5.195-1.452l-.372-.22-3.862.955.984-3.78-.243-.389A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
       Pedir kit pelo WhatsApp
     </a>
+    <button type="button" class="kit-share off" id="kit-share" onclick="shareKit()">🔗 Copiar link deste kit</button>
+    <div class="kit-share-hint">Envie o link para a loja ou para o seu técnico: ele abre esta calculadora com os mesmos itens e quantidades.</div>
   </div>
 
   <section class="seo-text" aria-labelledby="seo-h2">
@@ -237,6 +243,7 @@ let CATALOG = {};   // key -> item do kit já com name/price/slug/in_stock
 let metros = 3;
 let discountPct = 0; // desconto do kit (%), definido no admin e lido de /api/kit-config
 let kit = [];       // [{key, qty, auto}]
+let loaded = false; // catálogo carregado (só então a barra de endereço passa a refletir o kit)
 
 const brl = n => 'R$ ' + n.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
 const cap = s => (s || '').trim().replace(/^./, c => c.toUpperCase());
@@ -369,10 +376,51 @@ function renderAddOptions(){
   document.getElementById('btn-medida').disabled = !medidas.length;
 }
 
+/* ── link do kit ──
+   ?m=5&k=cobre_1_4.5~cobre_3_8.5~suporte.1  (chave.quantidade)
+   Quem abre o link vê a calculadora com os mesmos itens, com preços e estoque de agora. */
+function kitQuery(){
+  return '?m=' + metros + '&k=' + kit.map(k => k.key + '.' + k.qty).join('~');
+}
+function kitLink(){ return location.origin + location.pathname + kitQuery(); }
+function syncUrl(){
+  if (!loaded) return;                         // não apaga o link recebido antes de restaurar o kit
+  try { history.replaceState(null, '', kit.length ? kitQuery() : location.pathname); } catch(e){}
+}
+function restoreFromUrl(){
+  const q = new URLSearchParams(location.search);
+  if (!q.get('k')) return false;
+  const m = parseFloat(String(q.get('m') || '').replace(',', '.'));
+  if (isFinite(m) && m >= 1){ metros = Math.min(m, 50); mIn.value = metros; }
+  const itens = [];
+  q.get('k').split('~').forEach(part => {
+    const [key, qs] = part.split('.');
+    const qty = Math.min(Math.max(parseInt(qs, 10) || 1, 1), 999);
+    if (CATALOG[key] && !itens.some(x => x.key === key))
+      itens.push({key, qty, auto: qty === autoQty(CATALOG[key].rule)});
+  });
+  if (!itens.length) return false;
+  kit = itens;
+  return true;
+}
+async function shareKit(){
+  if (!kit.length) return;
+  const url = kitLink(), b = document.getElementById('kit-share');
+  if (navigator.share && /Android|iPhone|iPad/i.test(navigator.userAgent)){
+    try { await navigator.share({title: 'Meu kit de instalação — MTF Refrigeração', url}); return; } catch(e){ if (e && e.name === 'AbortError') return; }
+  }
+  try { await navigator.clipboard.writeText(url); }
+  catch(e){ window.prompt('Copie o link do kit:', url); return; }
+  b.textContent = '✓ Link copiado!';
+  setTimeout(() => { b.textContent = '🔗 Copiar link deste kit'; }, 2000);
+}
+
 function buildOrder(total, discount, final){
   const a = document.getElementById('order-wa');
   const cb = document.getElementById('kit-cart-btn');
   cb.classList.toggle('off', !kit.length);
+  document.getElementById('kit-share').classList.toggle('off', !kit.length);
+  syncUrl();
   if (!kit.length){ a.classList.add('off'); a.href = '#'; return; }
   a.classList.remove('off');
   const lines = ['Olá! Quero pedir o kit de instalação de ar-condicionado (' + metros + ' m de tubulação):', ''];
@@ -386,6 +434,8 @@ function buildOrder(total, discount, final){
     lines.push('Desconto de ' + String(discountPct).replace('.', ',') + '%: − ' + brl(discount));
   }
   lines.push('Total: ' + brl(final));
+  lines.push('');
+  lines.push('Ver o kit: ' + kitLink());
   a.href = 'https://wa.me/' + WA_NUMBER + '?text=' + encodeURIComponent(lines.join('\n'));
 }
 
@@ -493,7 +543,8 @@ function loadCatalog(){
     });
     if (!Object.keys(CATALOG).length) throw new Error('catalogo vazio');
     kit = [];
-    KIT.forEach(i => { if (i.base) addToKit(i.key); });
+    if (!restoreFromUrl()) KIT.forEach(i => { if (i.base) addToKit(i.key); });
+    loaded = true;
     renderChips();
     render();
   }).catch(err => {
