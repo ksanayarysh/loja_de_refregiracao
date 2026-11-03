@@ -1403,6 +1403,8 @@ async def interesse_report(request: Request, period: str = Query("today"), _=Dep
                 txt = f"calculou o frete {origem} para {lugar} ({cep_fmt}{km}): {opcoes or 'a partir de R$ ' + menor}"
             elif r["resultado"] == "combinar":
                 txt = f"calculou o frete {origem} para {lugar} ({cep_fmt}): fora da área (a combinar)"
+            elif r["resultado"] == "cep_errado":
+                txt = f"digitou um CEP que não existe ({cep_fmt}) — o site avisou \"CEP não encontrado\""
             else:
                 txt = f"tentou calcular o frete {origem} para {lugar or cep_fmt} ({cep_fmt}): ❌ erro — não viu preço"
             if r["produto"]:

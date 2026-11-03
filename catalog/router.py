@@ -1899,7 +1899,9 @@ async def _frete_log(request: Request, cep: str, status: int, data: dict,
     precos_log = {(f'{o["service"]}|{o.get("label", "")}'[:60] if str(o["service"]).startswith("ME-") else o["service"]): o["price"]
                   for o in opts}
     menor = min(prices.values()) if prices else None
-    if status != 200:
+    if status in (400, 404):
+        resultado = "cep_errado"      # CEP que não existe / digitado errado: o site já avisou o cliente
+    elif status != 200:
         resultado = "erro"
     elif data.get("combinar"):
         resultado = "combinar"
