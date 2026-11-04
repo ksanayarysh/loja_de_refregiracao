@@ -32,7 +32,7 @@ from dependencies import engine, templates
 from lalamove import get_quote, LalamoveError
 from router import (
     _apply_promo, _cep_to_coords, geocode_endereco, _km, _quote_cache, _send_tg, _blog_log, _ensure_kit_settings, slugify,
-    margem_detalhe, frete_final, linhas_dos_itens, FRETE_SUBSIDIO_MIN, _client_ip, _is_owner, log_product_events, _is_bot, _is_datacenter,
+    margem_detalhe, frete_final, linhas_dos_itens, FRETE_SUBSIDIO_MIN, envio_final, ENVIO_SUBSIDIO_MIN, _client_ip, _is_owner, log_product_events, _is_bot, _is_datacenter,
     FRETE_MAX_KM, FRETE_OPTIONS, LALA_SERVICES, LALA_DEBUG_TOKEN,
     GA_ID, SITE_URL, STORE_ADDRESS, STORE_PHONE, WA_OWNER_NUMBER, ADMIN_URL,
 )
@@ -817,6 +817,12 @@ async def checkout_pix(request: Request):
                                 status_code=400)
         info = await correios.cep_info(cep) or {}
         frete, me_label, me_dias = float(opt["price"]), opt["label"][:80], opt.get("dias")
+        # mesma regra do /api/frete-cep: pedido > R$ 100 -> loja paga 1/3 do envio (até metade da margem)
+        if subtotal > ENVIO_SUBSIDIO_MIN:
+            try:
+                frete = envio_final(frete, subtotal, margem)
+            except Exception:
+                _blog_log.exception("checkout: falha no desconto do envio (segue preço cheio)")
         geo = {"bairro": info.get("bairro", ""), "cidade": info.get("cidade", ""), "uf": info.get("uf", ""),
                "lat": None, "lng": None}
         address = ", ".join(x for x in [rua, geo["bairro"], f'{geo["cidade"]} - {geo["uf"]}' if geo["cidade"] else "",

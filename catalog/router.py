@@ -1858,6 +1858,20 @@ def frete_final(preco_lalamove: float, subtotal: float, margem: float) -> float:
     return round(preco_lalamove - desconto, 2)
 
 
+# Envio para OUTROS ESTADOS (Correios/transportadora, Melhor Envio): pedido acima de ENVIO_SUBSIDIO_MIN ->
+#   a loja paga 1/3 do envio, mas nunca mais que metade da margem do pedido.
+#   desconto = min(envio / 3, margem / 2). O cliente vê só o preço final (igual ao Rio).
+ENVIO_SUBSIDIO_MIN = float(os.environ.get("ENVIO_SUBSIDIO_MIN", "100"))
+ENVIO_SUBSIDIO_PARTE = float(os.environ.get("ENVIO_SUBSIDIO_PARTE", "0.3333"))
+
+
+def envio_final(preco: float, subtotal: float, margem: float) -> float:
+    if subtotal <= ENVIO_SUBSIDIO_MIN or margem <= 0:
+        return round(preco, 2)
+    desconto = min(preco * ENVIO_SUBSIDIO_PARTE, margem / 2)
+    return round(preco - desconto, 2)
+
+
 def linhas_dos_itens(items: list) -> list:
     """Itens do checkout (_load_items) -> linhas (id, qty, preço pago). Kit da admin abre nos componentes."""
     out = []
@@ -1976,7 +1990,21 @@ async def _frete_log(request: Request, cep: str, status: int, data: dict,
         if menor:
             extra += f" · frete = {round(menor / valor * 100)}% do valor"
     calc = data.get("_calc")
-    if calc and resultado == "ok":
+    if calc and calc.get("envio") and resultado == "ok":
+        if calc["subtotal"] <= ENVIO_SUBSIDIO_MIN:
+            extra += f"\nℹ️ Pedido {brl(calc['subtotal'])} (até {brl(ENVIO_SUBSIDIO_MIN)}): envio cheio"
+        else:
+            mg = calc.get("margem", 0)
+            partes = [f"{o['label']}: cliente {brl(o['price'])} · loja paga {brl(float(o['_cheio']) - float(o['price']))}"
+                      for o in opts if o.get("_cheio") is not None]
+            extra += f"\n💰 Pedido {brl(calc['subtotal'])} · lucro dos produtos {brl(mg)}"
+            if partes and mg > 0:
+                extra += "\n📉 Envio com desconto (1/3, até metade do lucro):\n  " + "\n  ".join(partes[:4])
+            elif mg <= 0:
+                extra += " · sem lucro conhecido: envio cheio"
+            if calc.get("sem_custo"):
+                extra += "\n⚠️ Sem custo cadastrado (margem 0): " + ", ".join(calc["sem_custo"][:5])
+    elif calc and resultado == "ok":
         if calc["subtotal"] <= FRETE_SUBSIDIO_MIN:
             extra += f"\nℹ️ Pedido {brl(calc['subtotal'])} (até {brl(FRETE_SUBSIDIO_MIN)}): frete cheio"
         else:
@@ -2103,9 +2131,21 @@ async def api_frete_cep(request: Request, cep: str = "", src: str = "", valor: s
                 if items:
                     q = await correios.cotar(cep_d, items)
                     if q.get("options"):
+                        opts_pub, opts_log, calc_me = q["options"], q["options"], None
+                        try:
+                            sub_me = sum(float(i.get("price") or 0) * float(i.get("qty") or 1) for i in items)
+                            calc_me = {"subtotal": sub_me, "envio": True}
+                            if sub_me > ENVIO_SUBSIDIO_MIN:
+                                mg, sem_custo = await margem_detalhe(linhas_dos_itens(items))
+                                calc_me.update(margem=mg, sem_custo=sem_custo)
+                                opts_pub = [dict(o, price=envio_final(o["price"], sub_me, mg)) for o in q["options"]]
+                                opts_log = [dict(n, _cheio=o["price"]) for n, o in zip(opts_pub, q["options"])]
+                        except Exception:
+                            _blog_log.exception("frete: falha no desconto do envio (segue preço cheio)")
                         data = {"correios": True, "bairro": data.get("bairro", ""), "cidade": data.get("cidade", ""),
-                                "uf": data.get("uf", ""), "options": q["options"]}
+                                "uf": data.get("uf", ""), "options": opts_pub}
                         resp = JSONResponse(data, headers={"Cache-Control": "no-store"})
+                        data = dict(data, options=opts_log, _calc=calc_me)
                     elif q.get("bloqueados"):
                         data = dict(data, nao_envia=q["bloqueados"][:5])
                         resp = JSONResponse(data, headers={"Cache-Control": "no-store"})
