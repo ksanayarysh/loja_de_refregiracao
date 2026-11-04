@@ -495,10 +495,13 @@
     .frete-ok{display:grid !important;grid-template-columns:24px minmax(0,1fr) auto;align-items:center;gap:8px;}
     .fr-ic{font-size:1.1rem;line-height:1;text-align:center;}
     .fr-h{font-size:.8rem;color:var(--muted);font-weight:400;}
+    .frete-inwrap{position:relative;flex:1;min-width:0;display:flex;}
+    .frete-inwrap .frete-input{width:100%;}
+    .frete-pinbtn{position:absolute;left:2px;top:50%;transform:translateY(-50%);width:32px;height:36px;border:none;background:transparent;cursor:pointer;padding:0;}
     .frete-pin{padding-left:34px !important;background:var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7c8a' stroke-width='2'%3E%3Cpath d='M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z'/%3E%3Ccircle cx='12' cy='10' r='2.5'/%3E%3C/svg%3E") no-repeat 11px center;}
     .price-row{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;}
     .price-parc{font-size:.8rem;color:var(--muted);text-align:right;line-height:1.3;padding-bottom:6px;}
-    .co-rj,.co-m,.pl-m,.co-svg{display:none;}
+    .co-rj,.pl-m,.co-svg{display:none;}
     .cutoff-sub a{color:#1a6bc4;font-weight:700;text-decoration:none;}
     .frete-free{color:var(--green);}
     .mais-barato{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;background:var(--green-l,#e8f7ee);color:var(--green,#15803d);font-size:.68rem;font-weight:800;letter-spacing:.02em;vertical-align:middle;white-space:nowrap;}
@@ -548,8 +551,7 @@
       .cutoff-title{font-size:.86rem;font-weight:800;color:#14532d;}
       .cutoff-sub{font-size:.72rem;margin-top:1px;}
       .cutoff-timer{display:none;}
-      .co-rj,.co-m,.pl-m{display:inline;} .co-d,.co-br,.pl-d{display:none;}
-      .cepb-d{display:none !important;}
+      .co-rj,.pl-m{display:inline;} .co-d,.co-br,.pl-d{display:none;}
       .frete-box{padding:12px 14px;}
       .frete-title{font-size:.95rem;margin-bottom:8px;}
       .frete-ok{font-size:.84rem;}
@@ -704,7 +706,7 @@
       </svg></div>
       <div>
         <div class="cutoff-title">Pedido pago até 16h — entrega hoje<span class="co-rj"> no RJ</span></div>
-        <div class="cutoff-sub"><span class="co-d">no Rio de Janeiro, seg. a sáb. · ou retire na loja agora</span><span class="co-m">No Rio de Janeiro, seg. a sáb. · <a href="#frete-box" onclick="setTimeout(()=>document.getElementById('frete-cep').focus(),300)">Consulte seu CEP</a></span></div>
+        <div class="cutoff-sub"><span>No Rio de Janeiro, seg. a sáb. · <a href="#frete-box" onclick="setTimeout(()=>document.getElementById('frete-cep').focus(),300)">Consulte seu CEP</a></span></div>
         {% if envia_br %}<div class="cutoff-sub co-br">📦 Outros estados: envio pelos Correios/transportadora em até 1 dia útil</div>{% endif %}
       </div>
     </div>
@@ -714,10 +716,9 @@
     <div class="frete-box" id="frete-box">
       <div class="frete-title">🚚 Calcule o frete</div>
       <div class="frete-row">
-        <input id="frete-cep" class="frete-input frete-pin" type="text" inputmode="numeric" placeholder="Digite seu CEP" maxlength="9" autocomplete="postal-code">
+        <span class="frete-inwrap"><button class="frete-pinbtn" type="button" title="Não sabe seu CEP? Busque pelo endereço" aria-label="Não sabe seu CEP? Busque pelo endereço" onclick="cepBuscaAbrir('frete-cep', calcFrete)"></button><input id="frete-cep" class="frete-input frete-pin" type="text" inputmode="numeric" placeholder="Digite seu CEP" maxlength="9" autocomplete="postal-code"></span>
         <button id="frete-btn" class="frete-btn" type="button" onclick="calcFrete()">Calcular</button>
       </div>
-      <button class="cepb-link cepb-d" type="button" onclick="cepBuscaAbrir('frete-cep', calcFrete)">Não sabe seu CEP? Busque pelo endereço</button>
       <div id="frete-result" class="frete-result"></div>
     </div>
     {% include '_cep_busca.html' %}
