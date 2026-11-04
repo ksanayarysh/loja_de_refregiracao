@@ -861,7 +861,8 @@ async function triggerFixedSearch() {
     const res = await fetch('/api/catalog');
     const products = await res.json();
     const ql2 = _normStr(q);   // sem acento: "valvula" acha "válvula" e vice-versa
-    let filtered = products.filter(p => _normStr(p.name).includes(ql2) || _normStr(p.description).includes(ql2));
+    let filtered = (typeof mtfSearch === 'function') ? mtfSearch(products, q, 1000)
+      : products.filter(p => _normStr(p.name).includes(ql2) || _normStr(p.description).includes(ql2));
     let isFallback = false;
     if (!filtered.length) {
       filtered = findSimilarProducts(products, q, 6);
@@ -919,8 +920,10 @@ async function quickSearchHandler(q) {
     const res = await fetch('/api/catalog');
     const products = await res.json();
     const ql = _normStr(q);
-    let filtered = (typeof mtfSearch === 'function') ? mtfSearch(products, q, 8)
-      : products.filter(p => _normStr(p.name).includes(ql) || _normStr(p.description).includes(ql)).slice(0, 8);
+    const todos = (typeof mtfSearch === 'function') ? mtfSearch(products, q, 1000)
+      : products.filter(p => _normStr(p.name).includes(ql) || _normStr(p.description).includes(ql));
+    const total = todos.length;
+    let filtered = todos.slice(0, 8);
     let isFallback = false;
     if (!filtered.length) {
       filtered = findSimilarProducts(products, q, 5);
@@ -937,7 +940,8 @@ async function quickSearchHandler(q) {
       const img = p.image ? `<img loading="lazy" src="${imgProxy(p.image,72)}" style="width:36px;height:36px;object-fit:contain;border-radius:6px;border:1px solid var(--border);background:var(--bg);flex-shrink:0;">` : `<div style="width:36px;height:36px;border-radius:6px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;">📦</div>`;
       const cartBtn = (p.sale_price && p.in_stock !== false && String(p.unit || '').toLowerCase() !== 'kg' && !/botija/i.test(p.name || '')) ? `<button class="search-item-cart" data-id="${p.id}" data-name="${p.name.replace(/"/g,'&quot;')}" data-price="${eff}" data-image="${(p.image||'').replace(/"/g,'&quot;')}">🛒</button>` : '';
       return `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);"><a href="/product/${slug}" style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;text-decoration:none;color:inherit;">${img}<div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</div><div style="font-size:.75rem;color:var(--muted);">${p.category} · ${p.unit}</div></div>${price}</a>${cartBtn}</div>`;
-    }).join('') + `<a href="/catalogo" style="display:block;padding:10px 16px;text-align:center;font-size:.82rem;color:var(--accent);font-weight:700;text-decoration:none;border-top:1px solid var(--border);">Ver catálogo →</a>`;
+    }).join('') + (isFallback ? `<a href="/catalogo" style="display:block;padding:10px 16px;text-align:center;font-size:.82rem;color:var(--accent);font-weight:700;text-decoration:none;border-top:1px solid var(--border);">Ver catálogo →</a>`
+      : `<a href="/catalogo?q=${encodeURIComponent(q)}" style="display:block;padding:10px 16px;text-align:center;font-size:.82rem;color:var(--accent);font-weight:700;text-decoration:none;border-top:1px solid var(--border);">Ver todos os resultados${total > 8 ? ' (' + total + ')' : ''} →</a>`);
     box.style.display = 'block';
   } catch(e) { box.style.display = 'none'; }
 }

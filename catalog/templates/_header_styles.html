@@ -79,6 +79,12 @@ function mtfSearch(products, q, limit){
   out.sort(function(a, b){ return (b.s - a.s) || (a.l - b.l) || (a.i - b.i); });
   return out.slice(0, limit || 8).map(function(x){ return x.p; });
 }
+document.addEventListener('keydown', function(e){
+  if (e.key === 'Enter' && e.target && e.target.id === 'quickSearch' && typeof triggerFixedSearch !== 'function') {   // a home tem a própria lista
+    var v = (e.target.value || '').trim();
+    if (v.length >= 2) location.href = '/catalogo?q=' + encodeURIComponent(v);
+  }
+});
 function mtfSrc(){ try { return sessionStorage.getItem('mtf_src') || ''; } catch(e) { return ''; } }
 </script>
 

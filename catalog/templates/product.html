@@ -1315,8 +1315,10 @@ async function quickSearchHandler(q) {
     const res = await fetch('/api/catalog');
     const products = await res.json();
     const _nrm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    const filtered = (typeof mtfSearch === 'function') ? mtfSearch(products, q, 8)
-      : products.filter(p => _nrm(p.name).includes(_nrm(q))).slice(0, 8);
+    const todos = (typeof mtfSearch === 'function') ? mtfSearch(products, q, 1000)
+      : products.filter(p => _nrm(p.name).includes(_nrm(q)));
+    const total = todos.length, isFallback = false;
+    const filtered = todos.slice(0, 8);
     if (!filtered.length) {
       box.innerHTML = `<div style="padding:14px 16px;color:var(--muted);font-size:.88rem;">Nenhum produto encontrado. <a href="https://wa.me/${WA_NUMBER}" style="color:var(--accent);font-weight:700;" target="_blank">Pergunte no WhatsApp →</a></div>`;
       box.style.display = 'block'; return;
@@ -1328,7 +1330,8 @@ async function quickSearchHandler(q) {
       const price = p.sale_price ? `<span style="text-align:right;white-space:nowrap;">${oldp}<span style="font-family:'DM Mono',monospace;font-weight:700;color:var(--accent);font-size:.88rem;">R$ ${eff.toFixed(2).replace('.',',')}</span></span>` : `<span style="color:var(--muted);font-size:.82rem;">Consulte</span>`;
       const img = p.image ? `<img src="${p.image}" style="width:36px;height:36px;object-fit:contain;border-radius:6px;border:1px solid var(--border);background:var(--bg);flex-shrink:0;">` : `<div style="width:36px;height:36px;border-radius:6px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;">📦</div>`;
       return `<a href="/product/${slug}" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);text-decoration:none;color:inherit;">${img}<div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</div><div style="font-size:.75rem;color:var(--muted);">${p.category} · ${p.unit}</div></div>${price}</a>`;
-    }).join('') + `<a href="/catalogo" style="display:block;padding:10px 16px;text-align:center;font-size:.82rem;color:var(--accent);font-weight:700;text-decoration:none;border-top:1px solid var(--border);">Ver catálogo completo →</a>`;
+    }).join('') + (isFallback ? `<a href="/catalogo" style="display:block;padding:10px 16px;text-align:center;font-size:.82rem;color:var(--accent);font-weight:700;text-decoration:none;border-top:1px solid var(--border);">Ver catálogo →</a>`
+      : `<a href="/catalogo?q=${encodeURIComponent(q)}" style="display:block;padding:10px 16px;text-align:center;font-size:.82rem;color:var(--accent);font-weight:700;text-decoration:none;border-top:1px solid var(--border);">Ver todos os resultados${total > 8 ? ' (' + total + ')' : ''} →</a>`);
     box.style.display = 'block';
   } catch(e) { box.style.display = 'none'; }
 }

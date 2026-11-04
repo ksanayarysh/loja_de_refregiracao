@@ -1004,7 +1004,8 @@ async function filterProducts() {
 
   try {
     const products = await _getCatalogData();
-    let filtered = products.filter(p => _normStr(p.name).includes(_normStr(q)));
+    let filtered = (typeof mtfSearch === 'function') ? mtfSearch(products, q, 1000)
+      : products.filter(p => _normStr(p.name).includes(_normStr(q)));
     let isFallback = false;
     if (!filtered.length) {
       filtered = findSimilarProducts(products, q, 8);
