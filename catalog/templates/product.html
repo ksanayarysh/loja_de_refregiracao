@@ -1314,7 +1314,8 @@ async function quickSearchHandler(q) {
     const res = await fetch('/api/catalog');
     const products = await res.json();
     const _nrm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    const filtered = products.filter(p => _nrm(p.name).includes(_nrm(q))).slice(0, 8);
+    const filtered = (typeof mtfSearch === 'function') ? mtfSearch(products, q, 8)
+      : products.filter(p => _nrm(p.name).includes(_nrm(q))).slice(0, 8);
     if (!filtered.length) {
       box.innerHTML = `<div style="padding:14px 16px;color:var(--muted);font-size:.88rem;">Nenhum produto encontrado. <a href="https://wa.me/${WA_NUMBER}" style="color:var(--accent);font-weight:700;" target="_blank">Pergunte no WhatsApp →</a></div>`;
       box.style.display = 'block'; return;

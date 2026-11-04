@@ -48,6 +48,37 @@ window.addEventListener('load', function() {
   }
   sessionStorage.setItem('mtf_src', src.slice(0, 80));
 }catch(e){}})();
+/* Busca rápida do topo (todas as páginas): todas as palavras precisam aparecer (nome, categoria ou descrição);
+   ordem: palavra inteira no NOME > começo de palavra no nome > dentro do nome > categoria > só na descrição.
+   "rele" acha "Relé"; "rele 1/4" acha "Rele embraco 1/4" antes do kit que só cita relé na descrição. */
+function mtfSearch(products, q, limit){
+  var n = function(s){ return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); };
+  var toks = n(q).split(/\s+/).filter(Boolean);
+  if (!toks.length) return [];
+  var qq = toks.join(' ');
+  var out = [];
+  products.forEach(function(p, i){
+    var nome = n(p.name), cat = n(p.category), desc = n(p.description);
+    var words = nome.split(/[^a-z0-9/.,]+/).filter(Boolean);
+    var score = 0;
+    for (var k = 0; k < toks.length; k++) {
+      var t = toks[k];
+      if (words.indexOf(t) >= 0) score += 10;
+      else if (words.some(function(w){ return w.indexOf(t) === 0; })) score += 7;
+      else if (nome.indexOf(t) >= 0) score += 4;
+      else if (cat.indexOf(t) >= 0) score += 2;
+      else if (desc.indexOf(t) >= 0) score += 0.5;
+      else return;                                   // falta uma palavra: fora
+    }
+    if (nome.indexOf(qq) === 0) score += 6;          // nome começa com a busca
+    else if (nome.indexOf(qq) >= 0) score += 3;      // frase inteira no nome
+    if (p.in_stock === false) score -= 3;            // sem estoque vai para o fim do grupo
+    if (!p.sale_price) score -= 1;                   // "consulte" depois dos que têm preço
+    out.push({ p: p, s: score, i: i, l: nome.length });
+  });
+  out.sort(function(a, b){ return (b.s - a.s) || (a.l - b.l) || (a.i - b.i); });
+  return out.slice(0, limit || 8).map(function(x){ return x.p; });
+}
 function mtfSrc(){ try { return sessionStorage.getItem('mtf_src') || ''; } catch(e) { return ''; } }
 </script>
 
