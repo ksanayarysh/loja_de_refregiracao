@@ -240,7 +240,7 @@ function cartQty(idx, d) {
   renderSummary();
   // kit entrou/saiu: as opções de frete mudam (kit só de carro)
   // o frete depende do carrinho (kit vai de carro; pedido maior paga frete menor): recalcula
-  if (cart.length && dtype() === 'lalamove' && $('f-cep').value.replace(/\D/g, '').length === 8) calcFrete();
+  if (cart.length && dtype() === 'lalamove' && $('f-cep').value.replace(/\D/g, '').length === 8) calcFrete(true);
   if (d > 0) { clearTimeout(cartQty._t); cartQty._t = setTimeout(syncStock, 400); }
 }
 function cartRemove(idx) { const it = cart[idx]; if (it) cartQty(idx, -it.qty); }
@@ -303,7 +303,7 @@ $('f-phone').addEventListener('input', e => {
   e.target.value = v;
 });
 
-async function calcFrete() {
+async function calcFrete(auto) {
   const cep = $('f-cep').value.replace(/\D/g, '');
   frete = null; $('frete-opts').innerHTML = ''; $('addr-box').classList.add('co-hidden'); renderSummary();
   if (cep.length !== 8) { $('frete-msg').innerHTML = '<div class="co-msg co-err">Digite um CEP válido (8 dígitos).</div>'; return; }
@@ -364,7 +364,7 @@ async function calcFrete() {
     pickService();
     if (d.rua && !$('f-rua').value) $('f-rua').value = d.rua;
     $('addr-box').classList.remove('co-hidden');
-    if (!$('f-num').value) ($('f-rua').value ? $('f-num') : $('f-rua')).focus();
+    if (!auto && !$('f-num').value) ($('f-rua').value ? $('f-num') : $('f-rua')).focus();   // ao abrir a página não pula o passo 1
   } catch (e) {
     $('frete-msg').innerHTML = `<div class="co-msg co-err">${esc(e.message)}</div>`;
   } finally {
@@ -480,6 +480,17 @@ try {
 
 renderSummary();
 syncStock();
+
+// já calculou o frete (na página do produto, no catálogo ou aqui antes)? o checkout abre com
+// "Entrega no endereço" marcada e o frete calculado para esse CEP — no Rio ou fora dele
+if (cart.length && $('f-cep').value.replace(/\D/g, '').length === 8) {
+  const ent = document.querySelector('input[name="dtype"][value="lalamove"]');
+  if (ent && !ent.disabled) {
+    ent.checked = true;
+    ent.dispatchEvent(new Event('change', { bubbles: true }));
+    calcFrete(true);
+  }
+}
 </script>
 </body>
 </html>
