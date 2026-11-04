@@ -467,8 +467,13 @@
     .trust-box div{display:flex;gap:8px;align-items:flex-start;line-height:1.35;}
     .trust-box span.ic{flex-shrink:0;width:18px;text-align:center;}
     .trust-box a{color:var(--accent);font-weight:700;text-decoration:none;}
-    .frete-duvida{display:flex;align-items:center;gap:8px;margin-top:10px;padding:10px 12px;border-radius:10px;background:#ecfdf3;border:1px solid #bbf7d0;color:#14532d;font-size:.84rem;font-weight:600;text-decoration:none;line-height:1.35;}
-    .frete-dica{margin-top:10px;padding:10px 12px;border-radius:10px;background:#fffbeb;border:1px solid #fde68a;color:#78350f;font-size:.82rem;line-height:1.45;}
+    .frete-duvida{display:flex;align-items:center;gap:8px;margin-top:8px;padding:8px 12px;border-radius:10px;background:#ecfdf3;border:1px solid #bbf7d0;color:#14532d;font-size:.84rem;font-weight:600;text-decoration:none;line-height:1.35;}
+    .frete-mais{margin-top:8px;}
+    .frete-mais summary{cursor:pointer;font-size:.75rem;color:var(--muted);font-weight:600;list-style:none;}
+    .frete-mais summary::-webkit-details-marker{display:none;}
+    .frete-mais summary::after{content:" ▾";}
+    .frete-mais[open] summary::after{content:" ▴";}
+    .frete-dica{margin-top:8px;padding:8px 12px;border-radius:10px;background:#fffbeb;border:1px solid #fde68a;color:#78350f;font-size:.82rem;line-height:1.45;}
     .kg-note{background:#fffbeb;border:1px solid #fde68a;color:#92400e;border-radius:12px;padding:12px 14px;font-size:.88rem;line-height:1.5;}
     .frete-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;}
     .frete-title{font-size:.82rem;font-weight:700;margin-bottom:10px;}
@@ -487,6 +492,14 @@
     .frete-help{display:inline-block;margin-top:8px;font-size:.72rem;color:var(--muted);}
     .frete-local{font-size:.75rem;color:var(--muted);margin-bottom:8px;}
     .frete-ok + .frete-ok{margin-top:8px;padding-top:8px;border-top:1px solid var(--border);}
+    .frete-ok{display:grid !important;grid-template-columns:24px minmax(0,1fr) auto;align-items:center;gap:8px;}
+    .fr-ic{font-size:1.1rem;line-height:1;text-align:center;}
+    .fr-h{font-size:.8rem;color:var(--muted);font-weight:400;}
+    .frete-pin{padding-left:34px !important;background:var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7c8a' stroke-width='2'%3E%3Cpath d='M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z'/%3E%3Ccircle cx='12' cy='10' r='2.5'/%3E%3C/svg%3E") no-repeat 11px center;}
+    .price-row{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;}
+    .price-parc{font-size:.8rem;color:var(--muted);text-align:right;line-height:1.3;padding-bottom:6px;}
+    .co-rj,.co-m,.pl-m,.co-svg{display:none;}
+    .cutoff-sub a{color:#1a6bc4;font-weight:700;text-decoration:none;}
     .frete-free{color:var(--green);}
     .mais-barato{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;background:var(--green-l,#e8f7ee);color:var(--green,#15803d);font-size:.68rem;font-weight:800;letter-spacing:.02em;vertical-align:middle;white-space:nowrap;}
     .frete-combinar{font-size:.88rem;font-weight:600;}
@@ -506,8 +519,43 @@
       .buy-bar.show{transform:none;}
       .bb-price{font-family:"DM Mono",monospace;font-size:1.25rem;font-weight:600;color:var(--accent);white-space:nowrap;}
       .bb-price small{font-size:.8rem;color:var(--muted);font-weight:400;}
-      .bb-btn{flex:1;max-width:220px;border:none;border-radius:12px;background:var(--accent);color:#fff;font-family:inherit;font-size:1rem;font-weight:700;padding:13px 16px;cursor:pointer;}
+      .bb-btn{flex:1;max-width:220px;border:none;border-radius:12px;background:var(--accent);color:#fff;font-family:inherit;font-size:1rem;font-weight:700;padding:13px 16px;cursor:pointer;white-space:nowrap;}
       body.bb-on .wa-float{bottom:84px;}
+      /* carrinho + adicionar + comprar numa barra só (a barra escura do carrinho some nesta página) */
+      .bb-cart{display:flex;flex-direction:column;line-height:1.15;min-width:0;text-decoration:none;color:var(--text);font-size:.78rem;font-weight:700;}
+      .bb-cart b{font-family:"DM Mono",monospace;font-size:1rem;color:var(--accent);white-space:nowrap;}
+      .bb-acts{display:flex;gap:8px;flex:1;justify-content:flex-end;min-width:0;}
+      .bb-add{flex:0 0 auto;border:1.5px solid var(--border);border-radius:12px;background:#fff;color:var(--text);font-family:inherit;font-size:.9rem;font-weight:700;padding:12px 12px;cursor:pointer;white-space:nowrap;}
+      .bb-add.added{border-color:var(--green,#15803d);color:var(--green,#15803d);}
+      .bb-go{flex:1;max-width:220px;text-align:center;border-radius:12px;background:var(--navy,#0b2545);color:#fff;font-weight:700;padding:13px 16px;text-decoration:none;white-space:nowrap;}
+      .buy-bar [hidden]{display:none!important;}
+      body.pp-bar .cart-bar{display:none!important;}
+    }
+    @media(max-width:600px){
+      /* ── compacto no celular ── */
+      .product-name{font-size:1.25rem;line-height:1.2;}
+      .product-cat{font-size:.68rem;}
+      .product-info{gap:10px;}
+      .stock-pill,.entrega-pill,.product-info [style*="#fefce8"]{font-size:.7rem !important;padding:3px 8px !important;}
+      .price-block{padding:12px 14px !important;}
+      .price-label{font-size:.68rem;}
+      .price-value{font-size:1.8rem !important;line-height:1.1;}
+      .price-per,.pay-d{display:none;}
+      .pay-chip{font-size:.72rem;padding:4px 10px;border-radius:8px;background:#fff;}
+      .cutoff-box{padding:9px 12px;gap:10px;background:#effaf3 !important;border:1px solid #b9e6c9 !important;border-radius:10px;}
+      .cutoff-icon{display:flex;align-items:center;}
+      .co-svg{display:block !important;}
+      .cutoff-title{font-size:.86rem;font-weight:800;color:#14532d;}
+      .cutoff-sub{font-size:.72rem;margin-top:1px;}
+      .cutoff-timer{display:none;}
+      .co-rj,.co-m,.pl-m{display:inline;} .co-d,.co-br,.pl-d{display:none;}
+      .cepb-d{display:none !important;}
+      .frete-box{padding:12px 14px;}
+      .frete-title{font-size:.95rem;margin-bottom:8px;}
+      .frete-ok{font-size:.84rem;}
+      .frete-ok + .frete-ok{margin-top:6px;padding-top:6px;}
+      .frete-price{font-size:.95rem;}
+    }
     }
   </style>
 </head>
@@ -610,7 +658,7 @@
         🛵 Entrega no RJ
       </a>{% endif %}
       {% if envia_br %}<a href="#frete-box" class="entrega-pill" onclick="setTimeout(()=>document.getElementById('frete-cep').focus(),300)">
-        📦 Enviamos para todo o Brasil
+        📦 <span class="pl-d">Enviamos para todo o Brasil</span><span class="pl-m">Todo o Brasil</span>
       </a>{% endif %}
       {% else %}
       <div style="display:inline-flex;align-items:center;gap:6px;font-size:.8rem;font-weight:700;color:#6b7280;background:#f3f4f6;border:1px solid #d1d5db;padding:5px 12px;border-radius:10px;">
@@ -629,40 +677,48 @@
       {% if product.on_promo %}
       <div><span class="price-old">R$ {{ "%.2f"|format(product.sale_price)|replace('.', ',') }}</span><span class="price-off">-{{ ((1 - product.price / product.sale_price) * 100)|round|int }}%</span></div>
       {% endif %}
-      <div class="price-value" style="font-size:2.4rem;color:var(--accent);">R$ {{ "%.2f"|format(product.price)|replace('.', ',') }}{% if product.unit == 'kg' %}<span style="font-size:1.1rem;font-weight:400;color:var(--muted);">/kg</span>{% endif %}</div>
-      <div style="font-size:.8rem;color:var(--muted);margin-top:2px;">por {{ product.unit }}{% if not envia_br %} · Rio de Janeiro{% endif %}</div>
+      <div class="price-row">
+        <div class="price-value" style="font-size:2.4rem;color:var(--accent);">R$ {{ "%.2f"|format(product.price)|replace('.', ',') }}{% if product.unit == 'kg' %}<span style="font-size:1.1rem;font-weight:400;color:var(--muted);">/kg</span>{% endif %}</div>
+        {% if product.unit != 'kg' %}<div class="price-parc">ou em até <strong>12x</strong><br>no cartão</div>{% endif %}
+      </div>
+      <div class="price-per" style="font-size:.8rem;color:var(--muted);margin-top:2px;">por {{ product.unit }}{% if not envia_br %} · Rio de Janeiro{% endif %}</div>
       {% else %}
       <div class="price-consult">Consulte disponibilidade</div>
       {% endif %}
       <div class="payment-methods">
+        <span class="pay-chip pay-chip-pix">💠 Pix</span>
+        <span class="pay-chip">💳 Cartão</span>
         <span class="pay-chip">💵 Dinheiro</span>
-        <span class="pay-chip pay-chip-pix">Pix</span>
-        <span class="pay-chip">Cartão</span>
-        <span class="pay-chip">Parcelamos</span>
+        <span class="pay-chip pay-d">Parcelamos</span>
       </div>
     </div>
 
     {% if product.sale_price and product.current_stock and product.current_stock > 0 and not is_kg %}
     <div class="cutoff-box">
-      <div class="cutoff-icon">🛵</div>
+      <div class="cutoff-icon"><span class="co-d">🛵</span><svg class="co-svg" width="34" height="28" viewBox="0 0 34 28" fill="none" aria-hidden="true">
+        <rect x="3" y="4" width="10" height="8" rx="2" fill="#1a8fb0"/><path d="M5 7h6M5 9.5h4" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/>
+        <path d="M6 18h13l3-6h4l2 6" stroke="#0e5f78" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M22 12l-2-5h-3" stroke="#0e5f78" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M4 15.5h9a3 3 0 0 1 3 2.5H4z" fill="#1a8fb0"/>
+        <circle cx="8" cy="21.5" r="3.2" fill="#fff" stroke="#0e5f78" stroke-width="2.2"/><circle cx="27" cy="21.5" r="3.2" fill="#fff" stroke="#0e5f78" stroke-width="2.2"/>
+      </svg></div>
       <div>
-        <div class="cutoff-title">Pedido pago até 16h — entrega hoje</div>
-        <div class="cutoff-sub">no Rio de Janeiro, seg. a sáb. · ou retire na loja agora</div>
-        {% if envia_br %}<div class="cutoff-sub">📦 Outros estados: envio pelos Correios/transportadora em até 1 dia útil</div>{% endif %}
-        <div class="cutoff-timer" data-cutoff></div>
+        <div class="cutoff-title">Pedido pago até 16h — entrega hoje<span class="co-rj"> no RJ</span></div>
+        <div class="cutoff-sub"><span class="co-d">no Rio de Janeiro, seg. a sáb. · ou retire na loja agora</span><span class="co-m">No Rio de Janeiro, seg. a sáb. · <a href="#frete-box" onclick="setTimeout(()=>document.getElementById('frete-cep').focus(),300)">Consulte seu CEP</a></span></div>
+        {% if envia_br %}<div class="cutoff-sub co-br">📦 Outros estados: envio pelos Correios/transportadora em até 1 dia útil</div>{% endif %}
       </div>
     </div>
     {% endif %}
 
     {% if not is_kg %}
     <div class="frete-box" id="frete-box">
-      <div class="frete-title">🛵 Calcular frete</div>
+      <div class="frete-title">🚚 Calcule o frete</div>
       <div class="frete-row">
-        <input id="frete-cep" class="frete-input" type="text" inputmode="numeric" placeholder="Digite seu CEP" maxlength="9" autocomplete="postal-code">
+        <input id="frete-cep" class="frete-input frete-pin" type="text" inputmode="numeric" placeholder="Digite seu CEP" maxlength="9" autocomplete="postal-code">
         <button id="frete-btn" class="frete-btn" type="button" onclick="calcFrete()">Calcular</button>
       </div>
+      <button class="cepb-link cepb-d" type="button" onclick="cepBuscaAbrir('frete-cep', calcFrete)">Não sabe seu CEP? Busque pelo endereço</button>
       <div id="frete-result" class="frete-result"></div>
-      <button class="cepb-link" type="button" onclick="cepBuscaAbrir('frete-cep', calcFrete)">Não sabe seu CEP? Busque pelo endereço</button>
     </div>
     {% include '_cep_busca.html' %}
     {% endif %}
@@ -824,18 +880,53 @@
 
 {% if product.sale_price and product.current_stock and product.current_stock > 0 and not so_balcao(product) %}
 <div class="buy-bar" id="buy-bar">
-  <div class="bb-price">R$ {{ "%.2f"|format(product.price)|replace('.', ',') }}{% if product.unit == 'kg' %}<small>/kg</small>{% endif %}</div>
-  <button class="bb-btn" type="button"
-    onclick='buyNow({{ product.id }}, {{ product.name|tojson }}, {{ product.price|float }}, {{ product.unit|tojson }})'>⚡ Comprar agora</button>
+  <div class="bb-price" id="bb-price">R$ {{ "%.2f"|format(product.price)|replace('.', ',') }}{% if product.unit == 'kg' %}<small>/kg</small>{% endif %}</div>
+  <a class="bb-cart" id="bb-cart" href="/checkout" hidden><span>🛒 <span id="bb-n">0 itens</span></span><b id="bb-t">R$ 0,00</b></a>
+  <div class="bb-acts" id="bb-acts">
+    <button class="bb-add" id="bb-add" type="button" aria-label="Adicionar ao carrinho"
+      onclick='bbAdd({{ product.id }}, {{ product.name|tojson }}, {{ product.price|float }}, {{ product.unit|tojson }})'>+ 🛒</button>
+    <button class="bb-btn" type="button"
+      onclick='buyNow({{ product.id }}, {{ product.name|tojson }}, {{ product.price|float }}, {{ product.unit|tojson }})'>⚡ Comprar agora</button>
+  </div>
+  <a class="bb-go" id="bb-go" href="/checkout" hidden>Finalizar compra →</a>
 </div>
 <script>
+/* Barra fixa no celular, uma só:
+   - botões principais fora da tela -> [preço ou 🛒 carrinho] [+🛒] [⚡ Comprar agora]
+   - botões principais na tela e carrinho com itens -> [🛒 carrinho] [Finalizar compra →] */
+function bbAdd(id, name, price, unit) {
+  addToCart(id, name, price, unit, null);
+  const b = document.getElementById('bb-add');
+  b.classList.add('added'); b.textContent = '✓';
+  setTimeout(() => { b.classList.remove('added'); b.textContent = '+ 🛒'; }, 1300);
+}
 (function(){
-  var bar=document.getElementById('buy-bar'), btn=document.querySelector('.buy-now-btn');
-  if(!bar||!btn||!('IntersectionObserver' in window)) return;
-  new IntersectionObserver(function(es){
-    var hide=es[0].isIntersecting;
-    bar.classList.toggle('show',!hide); document.body.classList.toggle('bb-on',!hide);
-  }).observe(btn);
+  var bar = document.getElementById('buy-bar'), btn = document.querySelector('.buy-now-btn');
+  if (!bar || !btn) return;
+  document.body.classList.add('pp-bar');
+  var botoesNaTela = true;
+  function render() {
+    var c = []; try { c = JSON.parse(localStorage.getItem('mtf_cart') || '[]'); } catch (e) {}
+    var n = c.reduce(function(s, i){ return s + (Number(i.qty) || 0); }, 0);
+    var t = c.reduce(function(s, i){ return s + (Number(i.price) || 0) * (Number(i.qty) || 0); }, 0);
+    document.getElementById('bb-n').textContent = n + (n === 1 ? ' item' : ' itens');
+    document.getElementById('bb-t').textContent = 'R$ ' + t.toFixed(2).replace('.', ',');
+    document.getElementById('bb-cart').hidden = n === 0;
+    document.getElementById('bb-price').hidden = n > 0;
+    document.getElementById('bb-acts').hidden = botoesNaTela;
+    document.getElementById('bb-go').hidden = !(botoesNaTela && n > 0);
+    var show = !botoesNaTela || n > 0;
+    bar.classList.toggle('show', show); document.body.classList.toggle('bb-on', show);
+  }
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(function(es){ botoesNaTela = es[0].isIntersecting; render(); }).observe(btn);
+  }
+  try {
+    var orig = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (k, v) { orig.apply(this, arguments); if (k === 'mtf_cart') setTimeout(render, 0); };
+  } catch (e) {}
+  window.addEventListener('storage', function(e){ if (e.key === 'mtf_cart') render(); });
+  render();
 })();
 </script>
 {% endif %}
@@ -1092,16 +1183,24 @@ try { const saved = localStorage.getItem('mtf_cep'); if (saved) freteCep.value =
 }
 
 const PROD_PRECO = {{ product.price|float }};
+function freteIcone(label) {
+  const l = String(label || '').toLowerCase();
+  if (/ba[uú]/.test(l)) return '🛵';
+  if (/carro/.test(l)) return '🚗';
+  if (/uber/.test(l)) return '🏍️';
+  if (/moto/.test(l)) return '🏍️';
+  return '📦';
+}
 const PROD_NOME = {{ product.name|tojson }};
 function freteExtras(minFrete, cepTxt, entregaLocal) {
   // peça barata: o frete custa metade do preço ou mais -> sugerir juntar peças ou retirar grátis
   let html = '';
   if (minFrete >= PROD_PRECO * 0.5) {
-    html += `<div class="frete-dica">💡 O frete sai quase o preço da peça. <strong>Aproveite a entrega:</strong> adicione outras peças ao mesmo pedido — o frete é um só.`
-         + (entregaLocal ? ` Ou <strong>retire grátis na loja hoje</strong> (Av. Brasil, 6818 – seg. a sáb.).` : '') + `</div>`;
+    html += `<div class="frete-dica">💡 Junte outras peças no mesmo pedido — o frete é um só.`
+         + (entregaLocal ? ` Ou <strong>retire grátis na loja hoje</strong>.` : '') + `</div>`;
   }
   const txt = encodeURIComponent(`Olá! Vi no site: ${PROD_NOME} (R$ ${PROD_PRECO.toFixed(2).replace('.', ',')}). Calculei o frete para o CEP ${cepTxt}. Tenho uma dúvida: serve para o meu modelo?`);
-  html += `<a class="frete-duvida" href="https://wa.me/${WA_NUMBER}?text=${txt}" target="_blank" rel="noopener" onclick="trackWa()">💬 <span>Ficou com dúvida se serve? <u>Fale com a gente no WhatsApp</u> — a mensagem já vai pronta.</span></a>`;
+  html += `<a class="frete-duvida" href="https://wa.me/${WA_NUMBER}?text=${txt}" target="_blank" rel="noopener" onclick="trackWa()">💬 <span>Dúvida se serve? <u>Fale no WhatsApp</u></span></a>`;
   return html;
 }
 function trackWa() {
@@ -1128,7 +1227,8 @@ async function calcFrete() {
         <div class="frete-local">📦 Envio para ${lugarMe}</div>
         ${d.options.map(o => `
         <div class="frete-ok">
-          <div><strong>${escHtml(o.label)}</strong>${(d.options.length > 1 && o.price === minMe) ? ' <span class="mais-barato">mais barato</span>' : ''}<div class="frete-sub">${escHtml(o.hint)}</div></div>
+          <div class="fr-ic">📦</div>
+          <div><strong>${escHtml(o.label)}</strong> <span class="fr-h">– ${escHtml(o.hint)}</span>${(d.options.length > 1 && o.price === minMe) ? ' <span class="mais-barato">mais barato</span>' : ''}</div>
           <div class="frete-price">R$ ${o.price.toFixed(2).replace('.', ',')}</div>
         </div>`).join('')}
         <div class="frete-note">Envio por <strong>Correios / transportadora</strong>. Enviamos em até 1 dia útil após o pagamento.</div>`
@@ -1152,19 +1252,24 @@ async function calcFrete() {
     const tag = o => (d.options.length > 1 && o.price === minP) ? ' <span class="mais-barato">mais barato</span>' : '';
     const rows = d.options.map(o => `
       <div class="frete-ok">
-        <div><strong>${escHtml(o.label)}</strong>${tag(o)}<div class="frete-sub">${escHtml(o.hint)}</div></div>
+        <div class="fr-ic">${freteIcone(o.label)}</div>
+        <div><strong>${escHtml(o.label)}</strong> <span class="fr-h">– ${escHtml(o.hint)}</span>${tag(o)}</div>
         <div class="frete-price">R$ ${o.price.toFixed(2).replace('.', ',')}</div>
       </div>`).join('');
     box.innerHTML = `
       <div class="frete-local">📍 ${local} · ${km} km</div>
       ${rows}
       <div class="frete-ok">
-        <div><strong>Retirada na loja</strong><div class="frete-sub">Av. Brasil, 6818</div></div>
+        <div class="fr-ic">🏪</div>
+        <div><strong>Retirada na loja</strong> <span class="fr-h">– Av. Brasil, 6818</span></div>
         <div class="frete-price frete-free">Grátis</div>
       </div>
-      <div class="frete-note">Entrega via <strong>Lalamove</strong>. Valores estimados, confirmamos no pedido.<br>Pedido pago até 16h: entrega hoje (seg. a sáb.). Depois disso, no próximo dia útil.</div>`
+      `
       + freteExtras(minP, freteCep.value, true)
-      + `<div class="frete-note" style="margin-top:8px;">🛵 Prefere chamar seu próprio <strong>Uber Moto ou 99</strong> para retirar aqui? <a href="https://wa.me/${WA_NUMBER}?text=${encodeURIComponent('Olá! Quero comprar ' + PROD_NOME + ' e mandar meu próprio motoboy (Uber/99) buscar. Podemos combinar?')}" target="_blank" rel="noopener" onclick="trackWa()" style="color:#128c4a;font-weight:700;">Fale com a gente</a> para combinarmos os detalhes.</div>`;
+      + `<details class="frete-mais"><summary>ℹ️ Prazo e outras formas de entrega</summary>
+          <div class="frete-note">Entrega via <strong>Lalamove</strong>. Valores estimados, confirmamos no pedido. Pedido pago até 16h: entrega hoje (seg. a sáb.). Depois disso, no próximo dia útil.</div>
+          <div class="frete-note">🛵 Prefere chamar seu próprio <strong>Uber Moto ou 99</strong> para retirar aqui? <a href="https://wa.me/${WA_NUMBER}?text=${encodeURIComponent('Olá! Quero comprar ' + PROD_NOME + ' e mandar meu próprio motoboy (Uber/99) buscar. Podemos combinar?')}" target="_blank" rel="noopener" onclick="trackWa()" style="color:#128c4a;font-weight:700;">Fale com a gente</a>.</div>
+        </details>`;
     if (typeof gtag !== 'undefined') gtag('event', 'calcular_frete', { cep_prefix: cep.slice(0, 5) });
   } catch (e) {
     const waTxt = encodeURIComponent('Olá! Quero saber sobre entrega para o CEP ' + freteCep.value + '.');

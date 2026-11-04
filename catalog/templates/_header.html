@@ -1,10 +1,11 @@
+{% set _wa = (wa_number or '')|string %}{% set _wa_fmt = ('(' ~ _wa[2:4] ~ ') ' ~ _wa[4:9] ~ '-' ~ _wa[9:]) if _wa|length == 13 else '' %}
 <div class="address-bar">
-  <a href="https://maps.google.com/?q=Av.+Brasil,+6818,+Rio+de+Janeiro" target="_blank" rel="noopener">📍 {{ store_address }} · <span style="text-decoration:underline;opacity:.7;">Ver no mapa →</span></a>
+  <a class="ab-addr" href="https://maps.google.com/?q=Av.+Brasil,+6818,+Rio+de+Janeiro" target="_blank" rel="noopener">📍 {{ store_address }}<span class="ab-map" style="opacity:1"> · <span style="text-decoration:underline;opacity:.7;">Ver no mapa →</span></span></a>
   {% if store_phone %}
-  <span>·</span>
-  <a href="tel:+55{{ store_phone | replace('(','') | replace(')','') | replace(' ','') | replace('-','') }}" class="phone-track">📞 {{ store_phone }}</a>
-  <span>·</span>
-  <a href="https://wa.me/{{ wa_number }}" class="wa-track" data-product="Geral">💬 WhatsApp</a>
+  <span class="ab-sep ab-d">·</span>
+  <a href="tel:+55{{ store_phone | replace('(','') | replace(')','') | replace(' ','') | replace('-','') }}" class="phone-track ab-d">📞 {{ store_phone }}</a>
+  <span class="ab-sep">·</span>
+  <a href="https://wa.me/{{ wa_number }}" class="wa-track ab-wa" data-product="Geral"><span class="ab-d" style="opacity:1">💬 WhatsApp</span><span class="ab-m" style="opacity:1">{% if _wa_fmt %}<svg width="13" height="13" viewBox="0 0 24 24" fill="#25d366" aria-hidden="true" style="vertical-align:-2px"><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.122 1.532 5.853L.057 23.854a.5.5 0 0 0 .609.61l6.084-1.506A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/></svg> {{ _wa_fmt }}{% else %}💬 WhatsApp{% endif %}</span></a>
   {% endif %}
 </div>
 

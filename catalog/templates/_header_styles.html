@@ -96,6 +96,7 @@ window.addEventListener('load', function() {
   /* ── ADDRESS BAR ── */
   .address-bar{background:var(--navy);color:#fff;padding:10px 20px;font-size:.95rem;font-weight:500;display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap;text-align:center;}
   .address-bar a{color:#fff;text-decoration:none;opacity:.9;}.address-bar a:hover{opacity:1;}.address-bar span{opacity:.4;}
+  .address-bar .ab-m{display:none;}
 
   /* ── HEADER ── */
   header{background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;}
@@ -224,6 +225,12 @@ window.addEventListener('load', function() {
     .wa-btn-header{padding:9px 12px;}
     .address-bar{font-size:.78rem;gap:8px;padding:8px 16px;}
     .address-bar{row-gap:0;padding:2px 16px;} .address-bar a{display:inline-block;padding:7px 2px;}
+    /* celular: endereço + WhatsApp numa linha só */
+    .address-bar{flex-wrap:nowrap;justify-content:space-between;gap:8px;font-size:.74rem;}
+    .address-bar .ab-addr{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .address-bar .ab-wa{flex-shrink:0;white-space:nowrap;}
+    .address-bar .ab-map,.address-bar .ab-d{display:none !important;}
+    .address-bar .ab-m{display:inline !important;}
     .ajuda-btn{min-width:40px;min-height:40px;justify-content:center;}
     .catbar{overflow-x:auto;-webkit-overflow-scrolling:touch;}
     .catbar-inner{flex-wrap:nowrap;padding:0 16px;gap:6px;}
