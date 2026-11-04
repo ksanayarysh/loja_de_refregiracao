@@ -735,7 +735,8 @@ async function hfCalc() {
   if (cep.length !== 8) { box.innerHTML = '<div class="hf-err">Digite um CEP válido (8 dígitos).</div>'; return; }
   btn.disabled = true; btn.textContent = '...'; box.innerHTML = '';
   try {
-    const r = await fetch('/api/frete-cep?cep=' + cep + '&src=home');
+    const r = await fetch('/api/frete-cep?cep=' + cep + '&src=home'
+      + (typeof mtfSrc === 'function' ? '&vd=' + encodeURIComponent(mtfSrc()) : ''));
     const d = await r.json();
     if (!r.ok) throw new Error(d.error || 'Não foi possível calcular agora.');
     try { localStorage.setItem('mtf_cep', inp.value); } catch (e) {}

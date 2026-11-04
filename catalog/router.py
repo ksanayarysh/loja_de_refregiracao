@@ -1882,7 +1882,7 @@ def _real_ip(request: Request) -> str:
     return _client_ip(request)
 
 async def _frete_log(request: Request, cep: str, status: int, data: dict,
-                     src: str, valor: float | None, pid: int | None, prod: str):
+                     src: str, valor: float | None, pid: int | None, prod: str, vd: str = ""):
     global _frete_log_table_ok
     import time
     ip = _real_ip(request)
@@ -1928,15 +1928,18 @@ async def _frete_log(request: Request, cep: str, status: int, data: dict,
                         ip          VARCHAR(64)
                     )"""))
                 await conn.execute(text("CREATE INDEX IF NOT EXISTS ix_frete_log_cep ON frete_log(cep, created_at)"))
+                # de onde a pessoa veio (Google Ads, Google grátis, Instagram...): mesma origem dos eventos de compra
+                await conn.execute(text("ALTER TABLE frete_log ADD COLUMN IF NOT EXISTS veio_de VARCHAR(80)"))
                 _frete_log_table_ok = True
             await conn.execute(text("""
                 INSERT INTO frete_log (cep, bairro, cidade, distance_km, menor_frete, precos, resultado,
-                                       origem, valor, product_id, produto, ip)
+                                       origem, valor, product_id, produto, ip, veio_de)
                 VALUES (:cep, :bairro, :cidade, :km, :menor, CAST(:precos AS JSONB), :res,
-                        :src, :valor, :pid, :prod, :ip)"""), {
+                        :src, :valor, :pid, :prod, :ip, :vd)"""), {
                 "cep": cep, "bairro": (data.get("bairro") or "")[:120], "cidade": (data.get("cidade") or "")[:120],
                 "km": data.get("distance_km"), "menor": menor, "precos": _json.dumps(precos_log, ensure_ascii=False),
                 "res": resultado, "src": src, "valor": valor, "pid": pid, "prod": prod, "ip": ip,
+                "vd": (vd or None),
             })
     except Exception:
         _blog_log.exception("frete_log: falha ao gravar")
@@ -1994,6 +1997,8 @@ async def _frete_log(request: Request, cep: str, status: int, data: dict,
                 extra += " · sem lucro conhecido: frete cheio"
             if calc.get("sem_custo"):
                 extra += "\n⚠️ Sem custo cadastrado (margem 0): " + ", ".join(calc["sem_custo"][:5])
+    if vd:
+        extra += f"\n🔎 Veio de: {vd}"
     msg = f"🚚 <b>Frete calculado</b> — {origem}\nCEP {cep_fmt} · {corpo}{extra}"
     await _send_tg(msg)
 
@@ -2017,7 +2022,7 @@ async def _frete_items(itens: str, pid: str) -> list:
 
 @router.get("/api/frete-cep")
 async def api_frete_cep(request: Request, cep: str = "", src: str = "", valor: str = "",
-                        pid: str = "", prod: str = "", itens: str = ""):
+                        pid: str = "", prod: str = "", itens: str = "", vd: str = ""):
     import re as _re
     resp = await _frete_cep_core(request, cep)
     cep_d = _re.sub(r"\D", "", cep)
@@ -2118,7 +2123,7 @@ async def api_frete_cep(request: Request, cep: str = "", src: str = "", valor: s
             v = None
         p = int(pid) if pid.isdigit() else None
         asyncio.create_task(_frete_log(request, cep_d, resp.status_code, data,
-                                       src[:20], v, p, prod[:160]))
+                                       src[:20], v, p, prod[:160], vd[:80]))
     return resp
 
 

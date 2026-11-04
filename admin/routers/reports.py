@@ -1290,7 +1290,8 @@ async def interesse_report(request: Request, period: str = Query("today"), _=Dep
     for sql in ("ALTER TABLE product_events ADD COLUMN IF NOT EXISTS detail VARCHAR(20)",
                 "ALTER TABLE product_events ADD COLUMN IF NOT EXISTS src VARCHAR(80)",
                 "ALTER TABLE site_orders ADD COLUMN IF NOT EXISTS ip VARCHAR(64)",
-                "ALTER TABLE site_orders ADD COLUMN IF NOT EXISTS src VARCHAR(80)"):
+                "ALTER TABLE site_orders ADD COLUMN IF NOT EXISTS src VARCHAR(80)",
+                "ALTER TABLE frete_log ADD COLUMN IF NOT EXISTS veio_de VARCHAR(80)"):
         try:
             async with engine.begin() as conn:
                 await conn.execute(text(sql))
@@ -1334,7 +1335,7 @@ async def interesse_report(request: Request, period: str = Query("today"), _=Dep
             ORDER BY pv.viewed_at LIMIT 3000""", p)
         fretes = await q("""
             SELECT ip, created_at AS t, cep, bairro, cidade, menor_frete, resultado, produto, precos, origem,
-                   distance_km
+                   distance_km, veio_de
             FROM frete_log WHERE ip = ANY(:ips) AND created_at >= :t0 AND created_at < :t1""", p)
         whats = await q("""
             SELECT ip, clicked_at AS t, product_name FROM catalog_clicks
@@ -1381,6 +1382,8 @@ async def interesse_report(request: Request, period: str = Query("today"), _=Dep
             if not pe:
                 continue
             pe["frete"] = True
+            if r.get("veio_de") and not pe["src"]:
+                pe["src"] = r["veio_de"]
             lugar = ", ".join(x for x in (r["bairro"], r["cidade"]) if x) or r["cep"] or "?"
             cep = r["cep"] or ""
             cep_fmt = f"CEP {cep[:5]}-{cep[5:]}" if len(cep) == 8 else ""
