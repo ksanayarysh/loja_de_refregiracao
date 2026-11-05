@@ -996,11 +996,6 @@ async function filterProducts() {
   }
 
   // трекинг
-  clearTimeout(_catalogTrackTimer);
-  _catalogTrackTimer = setTimeout(() => {
-    fetch('/api/track/search', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({query: q, page: 'catalogo'})}).catch(()=>{});
-    if (typeof gtag !== 'undefined') gtag('event', 'search', {search_term: q});
-  }, 1500);
 
   try {
     const products = await _getCatalogData();
@@ -1011,6 +1006,7 @@ async function filterProducts() {
       filtered = findSimilarProducts(products, q, 8);
       isFallback = true;
     }
+    if (typeof mtfTrackSearch === 'function') mtfTrackSearch(q, isFallback ? 0 : filtered.length, 'catalogo');
 
     // скрыть обычный каталог, показать результаты
     catalogEl.style.display = 'none';

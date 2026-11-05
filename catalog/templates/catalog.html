@@ -911,11 +911,6 @@ let _searchTrackTimer = null;
 async function quickSearchHandler(q) {
   const box = document.getElementById('quickResults');
   if (!q || q.length < 2) { box.style.display = 'none'; return; }
-  clearTimeout(_searchTrackTimer);
-  _searchTrackTimer = setTimeout(() => {
-    fetch('/api/track/search', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({query: q, page: 'inicio'})}).catch(()=>{});
-    if (typeof gtag !== 'undefined') gtag('event', 'search', {search_term: q});
-  }, 1500);
   try {
     const res = await fetch('/api/catalog');
     const products = await res.json();
@@ -929,6 +924,7 @@ async function quickSearchHandler(q) {
       filtered = findSimilarProducts(products, q, 5);
       isFallback = true;
     }
+    if (typeof mtfTrackSearch === 'function') mtfTrackSearch(q, isFallback ? 0 : total, 'inicio');
     if (!filtered.length) {
       box.innerHTML = `<div style="padding:14px 16px;color:var(--muted);font-size:.88rem;">Nenhum produto encontrado. <a href="https://wa.me/${WA_NUMBER}?text=Ol%C3%A1!%20N%C3%A3o%20encontrei%20o%20produto%20que%20preciso." style="color:var(--accent);font-weight:700;" target="_blank">Pergunte no WhatsApp →</a></div>`;
       box.style.display = 'block';

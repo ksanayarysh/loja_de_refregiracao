@@ -1466,3 +1466,34 @@ async def interesse_report(request: Request, period: str = Query("today"), _=Dep
         "request": request, "pessoas": pessoas, "resumo": resumo, "period": period,
         "periodos": [(k, v[2]) for k, v in periodos.items()],
     })
+
+
+# ── BUSCAS NO SITE: o que as pessoas procuram — e o que procuram e NÃO acham ──
+@router.get("/reports/buscas", response_class=HTMLResponse)
+async def buscas_report(request: Request, dias: int = Query(30), _=Depends(basic_auth)):
+    dias = dias if dias in (7, 30, 90) else 30
+    rows = []
+    try:
+        async with engine.connect() as conn:
+            rows = (await conn.execute(text("""
+                SELECT LOWER(TRIM(query)) AS q, COUNT(*) AS vezes, COUNT(DISTINCT ip) AS pessoas,
+                       MAX(n_results) AS max_n, MAX(created_at) AS ultima
+                FROM site_searches
+                WHERE created_at >= NOW() - make_interval(days => :d) AND LENGTH(TRIM(query)) >= 2
+                GROUP BY LOWER(TRIM(query))
+                ORDER BY COUNT(DISTINCT ip) DESC, COUNT(*) DESC
+                LIMIT 400"""), {"d": dias})).mappings().all()
+    except Exception:
+        rows = []   # tabela ainda não existe (nenhuma busca desde a atualização)
+    from zoneinfo import ZoneInfo
+    BRT = ZoneInfo("America/Sao_Paulo")
+    def fmt(r):
+        t = r["ultima"]
+        return {"q": r["q"], "vezes": r["vezes"], "pessoas": r["pessoas"], "max_n": r["max_n"],
+                "ultima": t.astimezone(BRT).strftime("%d/%m %H:%M") if t else ""}
+    nada = [fmt(r) for r in rows if r["max_n"] == 0]
+    achou = [fmt(r) for r in rows if r["max_n"] and r["max_n"] > 0][:60]
+    return templates.TemplateResponse("buscas.html", {
+        "request": request, "dias": dias, "nada": nada, "achou": achou,
+        "total": sum(r["vezes"] for r in rows),
+    })

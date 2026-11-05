@@ -1319,6 +1319,7 @@ async function quickSearchHandler(q) {
       : products.filter(p => _nrm(p.name).includes(_nrm(q)));
     const total = todos.length, isFallback = false;
     const filtered = todos.slice(0, 8);
+    if (typeof mtfTrackSearch === 'function') mtfTrackSearch(q, total, 'produto');
     if (!filtered.length) {
       box.innerHTML = `<div style="padding:14px 16px;color:var(--muted);font-size:.88rem;">Nenhum produto encontrado. <a href="https://wa.me/${WA_NUMBER}" style="color:var(--accent);font-weight:700;" target="_blank">Pergunte no WhatsApp →</a></div>`;
       box.style.display = 'block'; return;

@@ -79,6 +79,18 @@ function mtfSearch(products, q, limit){
   out.sort(function(a, b){ return (b.s - a.s) || (a.l - b.l) || (a.i - b.i); });
   return out.slice(0, limit || 8).map(function(x){ return x.p; });
 }
+/* registra a busca (com quantos produtos achou) 1,5 s depois que a pessoa para de digitar */
+var _mtfBuscaT = null;
+function mtfTrackSearch(q, n, page){
+  clearTimeout(_mtfBuscaT);
+  _mtfBuscaT = setTimeout(function(){
+    try {
+      fetch('/api/track/search', {method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({query: q, page: page, n: n})}).catch(function(){});
+      if (typeof gtag !== 'undefined') gtag('event', 'search', {search_term: q});
+    } catch(e) {}
+  }, 1500);
+}
 document.addEventListener('keydown', function(e){
   if (e.key === 'Enter' && e.target && e.target.id === 'quickSearch' && typeof triggerFixedSearch !== 'function') {   // a home tem a própria lista
     var v = (e.target.value || '').trim();

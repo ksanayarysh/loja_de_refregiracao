@@ -2331,11 +2331,26 @@ async def track_search(request: Request):
         if (_is_owner(request) or _is_bot(request.headers.get("user-agent", ""))
                 or _is_datacenter(_client_ip(request)) or "${" in query or "encodeuri" in query.lower()):
             return JSONResponse({"ok": True, "skip": True})
+        try:
+            n = int(body.get("n")) if body.get("n") is not None else None
+        except (TypeError, ValueError):
+            n = None
+        # guarda no banco: relatório "Buscas" da admin (o que procuram e não acham)
+        try:
+            async with engine.begin() as conn:
+                await conn.execute(text("""CREATE TABLE IF NOT EXISTS site_searches (
+                    id SERIAL PRIMARY KEY, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                    query VARCHAR(100), page VARCHAR(30), n_results INTEGER, ip VARCHAR(64))"""))
+                await conn.execute(text("INSERT INTO site_searches (query, page, n_results, ip) VALUES (:q, :p, :n, :ip)"),
+                                   {"q": query, "p": page, "n": n, "ip": _client_ip(request)})
+        except Exception:
+            _blog_log.exception("busca: falha ao gravar")
         import html as _html
         query = _html.escape(query)
         now_str = datetime.now(BRT).strftime('%d/%m %H:%M')
-        page_label = "🏠 Início" if page == "inicio" else "📋 Catálogo"
-        await _send_tg(f"🔍 <b>Busca no site</b>\nPágina: {page_label}\nBusca: <b>{query}</b>\nHorário: {now_str}")
+        page_label = {"inicio": "🏠 Início", "produto": "📦 Página de produto"}.get(page, "📋 Catálogo")
+        achou = ("" if n is None else ("\n⚠️ <b>Nenhum produto encontrado</b>" if n == 0 else f"\nResultados: {n}"))
+        await _send_tg(f"🔍 <b>Busca no site</b>\nPágina: {page_label}\nBusca: <b>{query}</b>{achou}\nHorário: {now_str}")
         return JSONResponse({"ok": True})
     except Exception:
         return JSONResponse({"ok": False})
