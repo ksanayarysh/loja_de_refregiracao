@@ -905,6 +905,13 @@ async def checkout_pix(request: Request):
             "delivery_label": me_label, "delivery_days": me_dias, "customer_doc": doc,
             "ip": _client_ip(request), "src": str(body.get("src") or "")[:80] or None,
         })).scalar()
+    try:   # fez o pedido: sai da lista de checkouts abandonados
+        await _ensure_leads_table()
+        async with engine.begin() as conn:
+            await conn.execute(text("UPDATE checkout_leads SET order_id = :o WHERE phone = :p AND order_id IS NULL "
+                                    "AND created_at > NOW() - INTERVAL '3 days'"), {"o": order_id, "p": phone})
+    except Exception:
+        _blog_log.exception("checkout: falha ao ligar lead ao pedido")
 
     if method == "card":
         try:
@@ -945,6 +952,81 @@ async def checkout_pix(request: Request):
 
 
 _checkout_vistos: dict = {}  # (ip, carrinho) -> timestamp do último aviso
+
+
+# ── CHECKOUT ABANDONADO: o cliente deixou o WhatsApp mas ainda não pagou ──────────────────────
+# A admin lista quem não fez o pedido (/reports/abandonados) com o botão de WhatsApp já escrito.
+_leads_ok = False
+
+
+async def _ensure_leads_table():
+    global _leads_ok
+    if _leads_ok:
+        return
+    async with engine.begin() as conn:
+        await conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS checkout_leads (
+                id           SERIAL PRIMARY KEY,
+                created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                updated_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                phone        VARCHAR(20) NOT NULL,
+                name         VARCHAR(120),
+                email        VARCHAR(160),
+                items        JSONB,
+                subtotal     NUMERIC(10,2),
+                ip           VARCHAR(64),
+                src          VARCHAR(80),
+                order_id     INTEGER,
+                contatado_at TIMESTAMPTZ
+            )"""))
+        await conn.execute(text("CREATE INDEX IF NOT EXISTS ix_checkout_leads_phone ON checkout_leads(phone, created_at)"))
+    _leads_ok = True
+
+
+@router.post("/api/checkout/lead")
+async def checkout_lead(request: Request):
+    """O checkout manda assim que o WhatsApp está completo e válido (antes de pagar)."""
+    try:
+        body = await request.json()
+    except Exception:
+        return JSONResponse({"ok": False})
+    phone = _norm_cel(body.get("phone", ""))
+    ua = request.headers.get("user-agent", "")
+    if (not phone or _is_owner(request) or _is_bot(ua) or _is_datacenter(_client_ip(request))):
+        return JSONResponse({"ok": True, "skip": True})
+    items, subtotal = await _load_items(body.get("items"))
+    if not items:
+        return JSONResponse({"ok": True, "skip": True})
+    name = str(body.get("name") or "").strip()[:120] or None
+    email = str(body.get("email") or "").strip()[:160] or None
+    resumo = [{"name": i.get("name"), "qty": i.get("qty"), "price": i.get("price")} for i in items]
+    await _ensure_leads_table()
+    novo = False
+    async with engine.begin() as conn:
+        lid = (await conn.execute(text(
+            "SELECT id FROM checkout_leads WHERE phone = :p AND order_id IS NULL "
+            "AND created_at > NOW() - INTERVAL '24 hours' ORDER BY id DESC LIMIT 1"), {"p": phone})).scalar()
+        if lid:
+            await conn.execute(text("""
+                UPDATE checkout_leads SET updated_at = NOW(), name = COALESCE(:n, name), email = COALESCE(:e, email),
+                       items = CAST(:it AS JSONB), subtotal = :s WHERE id = :id"""),
+                {"n": name, "e": email, "it": json.dumps(resumo, ensure_ascii=False), "s": subtotal, "id": lid})
+        else:
+            novo = True
+            await conn.execute(text("""
+                INSERT INTO checkout_leads (phone, name, email, items, subtotal, ip, src)
+                VALUES (:p, :n, :e, CAST(:it AS JSONB), :s, :ip, :src)"""),
+                {"p": phone, "n": name, "e": email, "it": json.dumps(resumo, ensure_ascii=False), "s": subtotal,
+                 "ip": _client_ip(request), "src": str(body.get("src") or "")[:80] or None})
+    if novo:
+        import asyncio
+        tel = f"({phone[:2]}) {phone[2:7]}-{phone[7:]}"
+        linhas = "\n".join(f"  • {i['name']} × {i['qty']}" for i in resumo)
+        asyncio.ensure_future(_send_tg(
+            f"📝 <b>Deixou o WhatsApp no checkout</b> (ainda não pagou)\n{name or 'Sem nome'} · {tel}\n{linhas}\n"
+            f"Produtos: <b>{_brl(float(subtotal or 0))}</b>\n"
+            f"Se não pagar em ~30 min, veja em Relatórios → Checkouts abandonados."))
+    return JSONResponse({"ok": True})
 
 
 def _avisar_checkout_aberto(ip: str, items: list, subtotal: float, src: str = ""):

@@ -1497,3 +1497,54 @@ async def buscas_report(request: Request, dias: int = Query(30), _=Depends(basic
         "request": request, "dias": dias, "nada": nada, "achou": achou,
         "total": sum(r["vezes"] for r in rows),
     })
+
+
+# ── CHECKOUTS ABANDONADOS: deixou o WhatsApp no checkout e não fez o pedido ──
+@router.get("/reports/abandonados", response_class=HTMLResponse)
+async def abandonados_report(request: Request, dias: int = Query(7), _=Depends(basic_auth)):
+    import json as _json
+    from urllib.parse import quote
+    from zoneinfo import ZoneInfo
+    BRT = ZoneInfo("America/Sao_Paulo")
+    dias = dias if dias in (1, 7, 30) else 7
+    rows = []
+    try:
+        async with engine.connect() as conn:
+            rows = (await conn.execute(text("""
+                SELECT id, created_at, updated_at, phone, name, items, subtotal, src, contatado_at
+                FROM checkout_leads
+                WHERE order_id IS NULL AND created_at >= NOW() - make_interval(days => :d)
+                  AND updated_at < NOW() - INTERVAL '20 minutes'          -- dá tempo de terminar o pedido
+                ORDER BY created_at DESC LIMIT 200"""), {"d": dias})).mappings().all()
+    except Exception:
+        rows = []   # tabela ainda não existe
+    leads = []
+    for r in rows:
+        itens = r["items"] if isinstance(r["items"], list) else _json.loads(r["items"] or "[]")
+        nomes = ", ".join(f"{i.get('name')}" + (f" × {i.get('qty')}" if (i.get('qty') or 1) != 1 else "") for i in itens)
+        primeiro = (r["name"] or "").split(" ")[0].strip().title()
+        msg = (f"Olá{(', ' + primeiro) if primeiro else ''}! Aqui é da MTF Refrigeração 😊 "
+               f"Vi que você estava finalizando o pedido de {nomes} no nosso site. "
+               f"Ficou alguma dúvida — sobre compatibilidade, frete ou pagamento? Posso ajudar por aqui.")
+        p = r["phone"] or ""
+        leads.append({
+            "id": r["id"], "nome": r["name"] or "Sem nome",
+            "tel": f"({p[:2]}) {p[2:7]}-{p[7:]}" if len(p) == 11 else p,
+            "quando": r["created_at"].astimezone(BRT).strftime("%d/%m %H:%M"),
+            "itens": nomes, "subtotal": f"{float(r['subtotal'] or 0):.2f}".replace(".", ","),
+            "src": r["src"] or "", "wa": f"https://wa.me/55{p}?text={quote(msg)}",
+            "contatado": r["contatado_at"].astimezone(BRT).strftime("%d/%m %H:%M") if r["contatado_at"] else "",
+        })
+    return templates.TemplateResponse("abandonados.html", {"request": request, "leads": leads, "dias": dias})
+
+
+@router.post("/reports/abandonados/{lead_id}/contatado")
+async def abandonados_contatado(lead_id: int, _=Depends(basic_auth)):
+    from fastapi.responses import RedirectResponse
+    try:
+        async with engine.begin() as conn:
+            await conn.execute(text("UPDATE checkout_leads SET contatado_at = COALESCE(contatado_at, NOW()) WHERE id = :id"),
+                               {"id": lead_id})
+    except Exception:
+        pass
+    return RedirectResponse(url="/reports/abandonados", status_code=303)

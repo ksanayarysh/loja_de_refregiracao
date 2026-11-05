@@ -109,6 +109,7 @@
         <div class="co-field">
           <label for="f-phone">WhatsApp com DDD</label>
           <input class="co-input" id="f-phone" inputmode="tel" autocomplete="tel" placeholder="(21) 99999-9999" maxlength="16">
+          <div class="co-note" style="margin-top:4px;font-size:.74rem;">Usamos seu WhatsApp só para falar sobre este pedido.</div>
         </div>
         <div class="co-field">
           <label for="f-email">E-mail</label>
@@ -294,6 +295,22 @@ function celOk(v) {
   if (d.length > 11 && d.startsWith('55')) d = d.slice(2);
   return d.length === 11 && DDDS.includes(+d.slice(0, 2)) && d[2] === '9' && new Set(d.slice(2)).size > 1;
 }
+// WhatsApp completo e válido -> avisa a loja (se não pagar, a gente chama para ajudar). Uma vez por número/carrinho.
+let _leadEnviado = '';
+function enviarLead() {
+  const phone = $('f-phone').value;
+  if (!celOk(phone) || !cart.length) return;
+  const chave = phone.replace(/\D/g, '') + '|' + $('f-name').value.trim() + '|' + JSON.stringify(cartPayload());
+  if (chave === _leadEnviado) return;
+  _leadEnviado = chave;
+  try {
+    fetch('/api/checkout/lead', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: $('f-name').value.trim(), phone, email: $('f-email').value.trim(),
+        items: cartPayload(), src: (typeof mtfSrc === 'function' ? mtfSrc() : '') }) }).catch(() => {});
+  } catch (e) {}
+}
+['f-phone', 'f-name', 'f-email'].forEach(id => $(id).addEventListener('blur', enviarLead));
+$('f-phone').addEventListener('input', () => { if (celOk($('f-phone').value)) setTimeout(enviarLead, 800); });
 $('f-phone').addEventListener('input', e => {
   let v = e.target.value.replace(/\D/g, '');
   if (v.length > 11 && v.startsWith('55')) v = v.slice(2);   // colou com +55
@@ -480,6 +497,7 @@ try {
 
 renderSummary();
 syncStock();
+setTimeout(enviarLead, 4000);   // WhatsApp já preenchido de um pedido anterior
 
 // já calculou o frete (na página do produto, no catálogo ou aqui antes)? o checkout abre com
 // "Entrega no endereço" marcada e o frete calculado para esse CEP — no Rio ou fora dele
