@@ -2327,6 +2327,12 @@ async def track_search(request: Request):
         page  = (body.get("page") or "").strip()[:30]
         if not query:
             return JSONResponse({"ok": False})
+        # loja (/eu), robôs e "buscas" que são pedaço de código lido por robô (ex.: ${encodeURIComponent(q)})
+        if (_is_owner(request) or _is_bot(request.headers.get("user-agent", ""))
+                or _is_datacenter(_client_ip(request)) or "${" in query or "encodeuri" in query.lower()):
+            return JSONResponse({"ok": True, "skip": True})
+        import html as _html
+        query = _html.escape(query)
         now_str = datetime.now(BRT).strftime('%d/%m %H:%M')
         page_label = "🏠 Início" if page == "inicio" else "📋 Catálogo"
         await _send_tg(f"🔍 <b>Busca no site</b>\nPágina: {page_label}\nBusca: <b>{query}</b>\nHorário: {now_str}")
