@@ -75,6 +75,8 @@ async def _ensure_google_category_column(conn):
     for col, tipo in (("ship_peso", "NUMERIC(8,3)"), ("ship_comp", "NUMERIC(6,1)"), ("ship_larg", "NUMERIC(6,1)"),
                       ("ship_alt", "NUMERIC(6,1)"), ("ship_bloq", "BOOLEAN")):
         await conn.execute(text(f"ALTER TABLE products ADD COLUMN IF NOT EXISTS {col} {tipo}"))
+    # custo estimado (script/estimar_custos.py) — vira FALSE quando alguém digita o custo de verdade
+    await conn.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS cost_estimado BOOLEAN DEFAULT FALSE"))
     _google_cat_ready = True
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -263,7 +265,7 @@ async def edit_product_form(product_id: int, request: Request, _=Depends(basic_a
         res = await conn.execute(
             text("""SELECT id, name, category_id, category2_id, unit, sale_price, promo_price, promo_until, cost_price, min_stock,
                            image, description, shelf_code, linked_product_id, linked_qty, google_category,
-                           gtin, brand, sku, ship_peso, ship_comp, ship_larg, ship_alt, ship_bloq
+                           gtin, brand, sku, ship_peso, ship_comp, ship_larg, ship_alt, ship_bloq, cost_estimado
                     FROM products WHERE id = :id AND active = TRUE"""),
             {"id": product_id},
         )
@@ -343,7 +345,7 @@ async def update_product(
             res = await conn.execute(
                 text("""SELECT id, name, category_id, category2_id, unit, sale_price, promo_price, promo_until, cost_price, min_stock,
                                image, description, shelf_code, linked_product_id, linked_qty, google_category,
-                               gtin, brand, sku, ship_peso, ship_comp, ship_larg, ship_alt, ship_bloq
+                               gtin, brand, sku, ship_peso, ship_comp, ship_larg, ship_alt, ship_bloq, cost_estimado
                         FROM products WHERE id = :id"""),
                 {"id": product_id}
             )
@@ -357,8 +359,10 @@ async def update_product(
                           else "O preço promocional deve ser menor que o preço de venda."),
             }, status_code=400)
 
-        cur = await conn.execute(text("SELECT image, sale_price FROM products WHERE id=:id"), {"id": product_id})
+        cur = await conn.execute(text("SELECT image, sale_price, cost_price FROM products WHERE id=:id"), {"id": product_id})
         cur_row   = cur.mappings().first() or {}
+        # custo mudou na mão -> deixa de ser estimado
+        custo_mudou = Decimal(str(cur_row.get("cost_price") or 0)) != Decimal(str(cost or 0))
         cur_image = cur_row.get("image")
         cur_price = cur_row.get("sale_price")
 
@@ -395,6 +399,7 @@ async def update_product(
                         gtin=:gtin, brand=:brand, sku=:sku,
                         ship_peso=:ship_peso, ship_comp=:ship_comp, ship_larg=:ship_larg,
                         ship_alt=:ship_alt, ship_bloq=:ship_bloq
+                        {", cost_estimado=FALSE" if custo_mudou else ""}
                         {extra_sql}
                     WHERE id=:id"""),
             {"id": product_id, "name": name.strip(), "category_id": category_id,
