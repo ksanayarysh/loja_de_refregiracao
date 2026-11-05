@@ -17,9 +17,9 @@ SITE_URL = os.environ.get("SITE_URL", "https://www.mtfrefrigeracao.com.br").rstr
 
 def _pct() -> float:
     try:
-        return float(os.environ.get("TECNICO_PCT", "5") or 5)
+        return float(os.environ.get("TECNICO_PCT", "3") or 3)
     except ValueError:
-        return 5.0
+        return 3.0
 
 
 async def _ensure():

@@ -3,7 +3,7 @@ a loja aprova na admin (Técnicos) e o técnico recebe um código pessoal.
 Com o código no checkout: TECNICO_PCT % de desconto nos produtos (kits já têm desconto próprio).
 Na loja física: o vendedor procura o técnico pelo WhatsApp na admin e dá o mesmo desconto.
 
-Variável de ambiente (catálogo): TECNICO_PCT (padrão 5)
+Variável de ambiente (catálogo): TECNICO_PCT (padrão 3)
 """
 import os
 import re
@@ -21,9 +21,9 @@ _ok = False
 
 def tecnico_pct() -> float:
     try:
-        return max(0.0, min(30.0, float(os.environ.get("TECNICO_PCT", "5") or 5)))
+        return max(0.0, min(30.0, float(os.environ.get("TECNICO_PCT", "3") or 3)))
     except ValueError:
-        return 5.0
+        return 3.0
 
 
 async def ensure_tecnicos_table():
