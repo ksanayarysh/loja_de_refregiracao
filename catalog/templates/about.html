@@ -88,7 +88,13 @@
       .wa-float span{display:none;}
       .wa-float{padding:14px;border-radius:50%;bottom:16px;right:16px;}
     }
-  </style>
+      .loja-mapa{margin-top:4px;border-radius:14px;overflow:hidden;border:1px solid var(--border);background:var(--surface);}
+    .loja-mapa iframe{display:block;width:100%;height:320px;border:0;}
+    .loja-mapa-acoes{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+    .mapa-btn{display:inline-flex;align-items:center;gap:6px;padding:11px 16px;border-radius:10px;background:var(--accent);color:#fff;font-weight:700;font-size:.9rem;text-decoration:none;}
+    .mapa-btn-sec{background:var(--surface);color:var(--text);border:1.5px solid var(--border);}
+    @media(max-width:600px){.loja-mapa iframe{height:240px;}.mapa-btn{flex:1;justify-content:center;}}
+</style>
 </head>
 <body>
 
@@ -111,6 +117,17 @@
 
   <div class="section">
     <div class="section-label">Onde estamos</div>
+    {# mapa da loja: embed simples do Google Maps (sem chave de API, sem custo) #}
+    <div class="loja-mapa">
+      <iframe title="Mapa: M.T.F Refrigeração — Av. Brasil, 6818, Bonsucesso"
+        src="https://www.google.com/maps?q=M.T.F+Refrigera%C3%A7%C3%A3o,+Av.+Brasil,+6818+-+Bonsucesso,+Rio+de+Janeiro+-+RJ&z=16&output=embed"
+        loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+    </div>
+    <div class="loja-mapa-acoes">
+      <a class="mapa-btn" href="https://www.google.com/maps/dir/?api=1&destination=M.T.F+Refrigera%C3%A7%C3%A3o,+Av.+Brasil,+6818+-+Bonsucesso,+Rio+de+Janeiro+-+RJ" target="_blank" rel="noopener">🧭 Como chegar</a>
+      <a class="mapa-btn mapa-btn-sec" href="https://waze.com/ul?q=Av.%20Brasil%2C%206818%20-%20Bonsucesso%2C%20Rio%20de%20Janeiro&navigate=yes" target="_blank" rel="noopener">🚗 Abrir no Waze</a>
+    </div>
+    <div style="height:14px"></div>
     <div class="info-grid">
       <div class="info-card">
         <div class="ic-icon">📍</div>
@@ -154,6 +171,7 @@
       </div>
 
     </div>
+
   </div>
 
   <div class="section">
