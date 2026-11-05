@@ -2490,6 +2490,7 @@ async def sitemap():
     add_url(f"{base}/servicos", "0.7")
     add_url(f"{base}/blog", "0.7")
     add_url(f"{base}/calculadora-instalacao", "0.8")
+    add_url(f"{base}/tecnico", "0.6")
     add_url(f"{base}/calculadora-gas", "0.6")
     for article in ARTICLES:
         if article.get("published"):

@@ -50,6 +50,11 @@
     .co-err{color:var(--accent);}
     .co-local{font-size:.8rem;color:var(--muted);margin:8px 0;}
     .co-note{font-size:.75rem;color:var(--muted);margin-top:4px;line-height:1.5;}
+    .co-tec{margin:6px 0 10px;border:1px dashed var(--border);border-radius:10px;padding:8px 10px;}
+    .co-tec summary{cursor:pointer;font-size:.82rem;font-weight:700;color:var(--text);list-style:none;}
+    .co-tec summary::-webkit-details-marker{display:none;}
+    .co-tec-row{display:flex;gap:8px;margin-top:8px;}
+    .co-tec-row .co-input{flex:1;min-width:0;}
     .co-hidden{display:none;}
 
     .co-summary{position:sticky;top:90px;}
@@ -180,7 +185,16 @@
       <h2><span class="co-step">3</span> Resumo</h2>
       <div id="stock-note" class="co-stock-note co-hidden"></div>
       <div id="sum-items"></div>
+      <details class="co-tec" id="tec-box">
+        <summary>🔧 Sou técnico cadastrado</summary>
+        <div class="co-tec-row">
+          <input class="co-input" id="tec-cod" placeholder="Seu código de técnico" maxlength="20" autocomplete="off" style="text-transform:uppercase">
+          <button class="co-btn-sec" type="button" onclick="aplicarTecnico()">Aplicar</button>
+        </div>
+        <div class="co-note" id="tec-msg">Ainda não tem? <a href="/tecnico" target="_blank" rel="noopener">Cadastre-se e ganhe preço de técnico →</a></div>
+      </details>
       <div class="co-line"><span>Produtos</span><span class="co-money" id="sum-sub">R$ 0,00</span></div>
+      <div class="co-line co-hidden" id="tec-line" style="color:#15803d;"><span id="tec-lbl">Desconto de técnico</span><span class="co-money" id="sum-tec">− R$ 0,00</span></div>
       <div class="co-line"><span>Frete</span><span class="co-money" id="sum-frete">Grátis</span></div>
       <div class="co-total"><span>Total</span><span class="co-money" id="sum-total">R$ 0,00</span></div>
       <div style="margin-top:16px;">
@@ -248,6 +262,29 @@ function cartRemove(idx) { const it = cart[idx]; if (it) cartQty(idx, -it.qty); 
 
 // ── resumo ──
 function subtotal() { return cart.reduce((s, i) => s + i.price * i.qty, 0); }
+// ── preço de técnico (o servidor recalcula; aqui é só para mostrar o mesmo valor) ──
+let tec = null;   // {codigo, pct, nome}
+function descTecnico() {
+  if (!tec) return 0;
+  return cart.reduce((s, i) => (i.kit || i.kit_id) ? s
+    : s + (i.price - Math.round(i.price * (100 - tec.pct)) / 100) * i.qty, 0);
+}
+async function aplicarTecnico(silencioso) {
+  const cod = $('tec-cod').value.trim(), msg = $('tec-msg');
+  if (!cod) { tec = null; renderSummary(); return; }
+  try {
+    const d = await (await fetch('/api/tecnico/validar?codigo=' + encodeURIComponent(cod))).json();
+    if (!d.ok) throw new Error(d.error || 'Código inválido.');
+    tec = { codigo: d.codigo, pct: d.pct, nome: d.nome };
+    try { localStorage.setItem('mtf_tecnico', d.codigo); } catch (e) {}
+    msg.innerHTML = `✅ Olá, ${esc(d.nome)}! Desconto de ${String(d.pct).replace('.', ',')}% aplicado nos produtos.`;
+    $('tec-box').open = true;
+  } catch (e) {
+    tec = null;
+    if (!silencioso) msg.innerHTML = `<span style="color:var(--accent);font-weight:700;">${esc(e.message)}</span>`;
+  }
+  renderSummary();
+}
 function dtype() { return document.querySelector('input[name="dtype"]:checked').value; }
 function pmethod() { const el = document.querySelector('input[name="pmethod"]:checked'); return el ? el.value : 'pix'; }
 function payLabel() { return pmethod() === 'card' ? 'Pagar com cartão' : 'Pagar com Pix'; }
@@ -269,9 +306,12 @@ function renderSummary() {
     </div>`).join('');
   const sub = subtotal();
   const fr = dtype() === 'lalamove' ? (frete ? frete.price : null) : 0;
+  const dt = descTecnico();
   $('sum-sub').textContent = brl(sub);
+  $('tec-line').classList.toggle('co-hidden', !dt);
+  if (dt) { $('tec-lbl').textContent = `Desconto de técnico (${String(tec.pct).replace('.', ',')}%)`; $('sum-tec').textContent = '− ' + brl(dt); }
   $('sum-frete').textContent = fr === null ? '—' : (fr === 0 ? 'Grátis' : brl(fr));
-  $('sum-total').textContent = brl(sub + (fr || 0));
+  $('sum-total').textContent = brl(sub - dt + (fr || 0));
   $('pay-btn').disabled = dtype() === 'lalamove' && !frete;
 }
 
@@ -469,7 +509,7 @@ async function pagar() {
   try {
     const r = await fetch('/api/checkout/pagar', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, phone, email, delivery, method: pmethod(), src: (typeof mtfSrc === 'function' ? mtfSrc() : ''), items: cart.map(i => i.kit_id ? { kit_id: i.kit_id, qty: i.qty } : { id: i.id, qty: i.qty, kit: !!i.kit }) }),
+      body: JSON.stringify({ name, phone, email, delivery, method: pmethod(), tecnico: tec ? tec.codigo : '', src: (typeof mtfSrc === 'function' ? mtfSrc() : ''), items: cart.map(i => i.kit_id ? { kit_id: i.kit_id, qty: i.qty } : { id: i.id, qty: i.qty, kit: !!i.kit }) }),
     });
     const d = await r.json();
     if (!r.ok && d.stock_issue) {
@@ -498,6 +538,7 @@ try {
 renderSummary();
 syncStock();
 setTimeout(enviarLead, 4000);   // WhatsApp já preenchido de um pedido anterior
+try { const tc = localStorage.getItem('mtf_tecnico'); if (tc) { $('tec-cod').value = tc; aplicarTecnico(true); } } catch (e) {}
 
 // já calculou o frete (na página do produto, no catálogo ou aqui antes)? o checkout abre com
 // "Entrega no endereço" marcada e o frete calculado para esse CEP — no Rio ou fora dele

@@ -15,6 +15,7 @@ from routers.kit_discount import router as kit_discount_router
 from routers.site_orders import router as site_orders_router
 from routers.pwa import router as pwa_router
 from routers.kits import router as kits_router
+from routers.tecnicos import router as tecnicos_router
 try:   # se o arquivo não subir, a admin continua no ar (só sem o Lalamove do balcão)
     from routers.lalamove_balcao import router as lalamove_balcao_router
 except ImportError:
@@ -23,6 +24,7 @@ except ImportError:
 app = FastAPI()
 
 app.include_router(site_orders_router)
+app.include_router(tecnicos_router)
 app.include_router(pwa_router)
 
 @app.on_event("startup")

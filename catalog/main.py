@@ -3,6 +3,7 @@ from fastapi.middleware.gzip import GZipMiddleware
 from router import router as catalog_router
 from checkout import router as checkout_router
 from kits_public import router as kits_router
+from tecnicos import router as tecnicos_router
 
 
 app = FastAPI(title="M.T.F Refrigeração — Catálogo")
@@ -10,6 +11,7 @@ app = FastAPI(title="M.T.F Refrigeração — Catálogo")
 app.add_middleware(GZipMiddleware, minimum_size=500)
 app.include_router(checkout_router)
 app.include_router(kits_router)
+app.include_router(tecnicos_router)
 
 app.include_router(catalog_router)
 

@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <link rel="icon" type="image/png" href="/static/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Preço de técnico — cadastro | M.T.F Refrigeração</title>
+  <meta name="description" content="Técnico de refrigeração, ar-condicionado ou eletrodomésticos? Cadastre-se e compre peças com {{ pct }}% de desconto no site e na loja da Av. Brasil, 6818 – Bonsucesso.">
+  <link rel="canonical" href="{{ site_url }}/tecnico">
+  {% include '_header_styles.html' %}
+  <style>
+    .tc-wrap{max-width:640px;margin:0 auto;padding:36px 20px 80px;}
+    .tc-hero h1{font-size:clamp(1.5rem,4vw,2.1rem);font-weight:800;letter-spacing:-.02em;line-height:1.15;}
+    .tc-hero p{color:var(--muted);margin-top:10px;line-height:1.55;}
+    .tc-bens{display:grid;gap:8px;margin:20px 0 26px;}
+    .tc-bem{display:flex;gap:10px;align-items:flex-start;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;font-size:.92rem;line-height:1.4;}
+    .tc-bem b{color:var(--text);}
+    .tc-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;}
+    .tc-card h2{font-size:1.05rem;margin-bottom:12px;}
+    .tc-f{margin-bottom:12px;}
+    .tc-f label{display:block;font-size:.8rem;font-weight:700;margin-bottom:5px;color:var(--text);}
+    .tc-f input,.tc-f textarea{width:100%;padding:11px 12px;border:1.5px solid var(--border);border-radius:10px;font-family:inherit;font-size:.95rem;background:var(--bg);color:var(--text);}
+    .tc-f input:focus,.tc-f textarea:focus{outline:none;border-color:var(--accent);}
+    .tc-chips{display:flex;flex-wrap:wrap;gap:6px;}
+    .tc-chips label{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:.85rem;border:1.5px solid var(--border);border-radius:999px;padding:6px 12px;cursor:pointer;background:var(--bg);}
+    .tc-btn{width:100%;padding:14px;border:none;border-radius:12px;background:var(--accent);color:#fff;font-family:inherit;font-weight:800;font-size:1rem;cursor:pointer;}
+    .tc-btn:disabled{opacity:.6;}
+    .tc-msg{margin-top:12px;font-size:.9rem;line-height:1.5;}
+    .tc-ok{background:#ecfdf3;border:1px solid #bbf7d0;color:#14532d;border-radius:12px;padding:14px;}
+    .tc-err{color:var(--accent);font-weight:700;}
+    .tc-note{font-size:.76rem;color:var(--muted);margin-top:10px;line-height:1.45;}
+  </style>
+</head>
+<body>
+{% include '_header.html' %}
+<div class="tc-wrap">
+  <div class="tc-hero">
+    <h1>🔧 Preço de técnico: {{ pct }}% de desconto em todas as peças</h1>
+    <p>Você é técnico de refrigeração, ar-condicionado ou eletrodomésticos? Cadastre-se uma vez e compre com desconto — no site e na nossa loja da Av. Brasil, 6818 (Bonsucesso).</p>
+  </div>
+
+  <div class="tc-bens">
+    <div class="tc-bem">💸 <span><b>{{ pct }}% de desconto</b> em todas as peças (kits de instalação já têm desconto próprio)</span></div>
+    <div class="tc-bem">🏪 <span><b>Na loja:</b> é só falar seu WhatsApp no balcão · <b>No site:</b> use seu código pessoal no checkout</span></div>
+    <div class="tc-bem">⚡ <span><b>Retirada na hora</b> em Bonsucesso, ou entrega no mesmo dia no Rio (pedido pago até 16h)</span></div>
+    <div class="tc-bem">💬 <span><b>Dúvida de peça?</b> Mande a foto da etiqueta no WhatsApp que a gente confirma a compatibilidade</span></div>
+  </div>
+
+  <div class="tc-card" id="tc-form">
+    <h2>Cadastro de técnico</h2>
+    <div class="tc-f"><label for="t-nome">Nome completo</label><input id="t-nome" autocomplete="name" maxlength="120"></div>
+    <div class="tc-f"><label for="t-phone">WhatsApp com DDD</label><input id="t-phone" inputmode="tel" autocomplete="tel" placeholder="(21) 99999-9999" maxlength="16"></div>
+    <div class="tc-f"><label for="t-cidade">Cidade / bairro onde atende</label><input id="t-cidade" maxlength="120" placeholder="Ex.: Rio de Janeiro – Penha"></div>
+    <div class="tc-f"><label>Trabalha com</label>
+      <div class="tc-chips">
+        {% for e in ['Refrigeração / geladeira', 'Ar-condicionado', 'Máquina de lavar', 'Bebedouro / freezer', 'Refrigeração comercial'] %}
+        <label><input type="checkbox" name="esp" value="{{ e }}"> {{ e }}</label>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="tc-f"><label for="t-doc">CPF ou CNPJ (opcional)</label><input id="t-doc" inputmode="numeric" maxlength="18"></div>
+    <div class="tc-f"><label for="t-obs">Algo mais? (opcional)</label><textarea id="t-obs" rows="2" maxlength="500" placeholder="Ex.: Instagram, há quanto tempo trabalha, empresa..."></textarea></div>
+    <button class="tc-btn" id="t-btn" type="button" onclick="cadastrar()">Quero o preço de técnico</button>
+    <div class="tc-msg" id="t-msg"></div>
+    <div class="tc-note">Avaliamos o cadastro e mandamos seu código pelo WhatsApp, normalmente no mesmo dia útil. Usamos seus dados só para o programa de técnicos e para falar com você sobre pedidos.</div>
+  </div>
+</div>
+{% include '_footer.html' %}
+<script>
+const $t = id => document.getElementById(id);
+$t('t-phone').addEventListener('input', e => {
+  let v = e.target.value.replace(/\D/g, '');
+  if (v.length > 11 && v.startsWith('55')) v = v.slice(2);
+  v = v.slice(0, 11);
+  if (v.length > 6) v = `(${v.slice(0, 2)}) ${v.slice(2, v.length - 4)}-${v.slice(-4)}`;
+  else if (v.length > 2) v = `(${v.slice(0, 2)}) ${v.slice(2)}`;
+  e.target.value = v;
+});
+async function cadastrar() {
+  const btn = $t('t-btn'), msg = $t('t-msg');
+  msg.innerHTML = ''; btn.disabled = true; btn.textContent = 'Enviando...';
+  try {
+    const r = await fetch('/api/tecnico/cadastro', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nome: $t('t-nome').value, phone: $t('t-phone').value, cidade: $t('t-cidade').value,
+        doc: $t('t-doc').value, obs: $t('t-obs').value,
+        especialidade: [...document.querySelectorAll('input[name=esp]:checked')].map(x => x.value) }) });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Não foi possível enviar agora.');
+    $t('tc-form').innerHTML = d.ja === 'aprovado'
+      ? '<div class="tc-ok">✅ Você já é técnico cadastrado. Não lembra o código? Chame a gente no WhatsApp.</div>'
+      : '<div class="tc-ok">✅ <b>Cadastro recebido!</b><br>Vamos avaliar e mandar seu código de técnico pelo WhatsApp, normalmente no mesmo dia útil.</div>';
+  } catch (e) {
+    msg.innerHTML = '<span class="tc-err">' + e.message + '</span>';
+    btn.disabled = false; btn.textContent = 'Quero o preço de técnico';
+  }
+}
+</script>
+</body>
+</html>
