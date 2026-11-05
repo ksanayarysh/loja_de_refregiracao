@@ -1141,7 +1141,7 @@ async function reservaEnviar() {
     try { const old = JSON.parse(localStorage.getItem('mtf_checkout_dados') || '{}');
           localStorage.setItem('mtf_checkout_dados', JSON.stringify(Object.assign(old, { name, phone }))); } catch (e) {}
     document.getElementById('reserva-box').innerHTML =
-      `<div class="reserva-feito">✅ <b>Reservado!</b> Vamos separar para você.<br>Retire <b>${d.quando}</b> na Av. Brasil, 6818 – Bonsucesso e pague na loja.<br>Vamos confirmar pelo WhatsApp.</div>`;
+      `<div class="reserva-feito">✅ <b>Reservado!</b> Reserva <b>${d.numero || ''}</b> — vamos separar para você.<br>Retire <b>${d.quando}</b> na Av. Brasil, 6818 – Bonsucesso e pague na loja.<br>Vamos confirmar pelo WhatsApp.</div>`;
     document.getElementById('reserva-btn').hidden = true;
     if (typeof gtag !== 'undefined') gtag('event', 'reserva_loja', { product_name: PROD_NOME });
   } catch (e) {

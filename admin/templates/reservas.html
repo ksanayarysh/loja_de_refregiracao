@@ -44,7 +44,7 @@
       <span class="r-prod">{{ r.produto }} × {{ r.qty }} — R$ {{ r.total }}</span>
       <span class="tag {{ r.status }}">{{ r.status }}{% if r.status_at %} {{ r.status_at }}{% endif %}</span>
     </div>
-    <div class="r-meta">👤 {{ r.nome }} · {{ r.tel }}<br>🕐 Reservado {{ r.quando }}{% if r.src %} · veio de: {{ r.src }}{% endif %} · #{{ r.id }}</div>
+    <div class="r-meta">👤 {{ r.nome }} · {{ r.tel }}<br>🕐 Reservado {{ r.quando }}{% if r.src %} · veio de: {{ r.src }}{% endif %} · <b>{{ r.numero }}</b></div>
     <div class="acoes">
       <a class="btn b-wa" href="{{ r.wa }}" target="_blank" rel="noopener">💬 Confirmar no WhatsApp</a>
       {% if r.status == 'nova' %}

@@ -16,6 +16,12 @@ _ok = False
 _por_ip: dict = {}          # ip -> [timestamps] (no máximo 5 reservas por hora por pessoa)
 
 ABRE, FECHA = (8, 30), (18, 0)   # seg. a sáb.
+# número que o cliente e a loja veem: id + 1000 (id 1 -> "R-1001"), como os pedidos do site
+RESERVA_OFFSET = 1000
+
+
+def num_reserva(rid: int) -> str:
+    return f"R-{int(rid) + RESERVA_OFFSET}"
 
 
 async def _ensure():
@@ -105,13 +111,13 @@ async def criar_reserva(request: Request):
             pass
     from urllib.parse import quote
     primeiro = name.split(" ")[0].title()
-    msg_cliente = (f"Olá, {primeiro}! Aqui é da MTF Refrigeração 😊 Recebemos sua reserva: {it['name']} × {qty}. "
+    msg_cliente = (f"Olá, {primeiro}! Aqui é da MTF Refrigeração 😊 Recebemos sua reserva {num_reserva(rid)}: {it['name']} × {qty}. "
                    f"Já está separado para você — pode retirar {quando} na Av. Brasil, 6818 – Bonsucesso. "
                    f"Pagamento na loja (Pix, cartão ou dinheiro).")
     tel = f"({phone[:2]}) {phone[2:7]}-{phone[7:]}"
     try:
         await _send_tg(
-            f"🏪 <b>RESERVA para retirar na loja</b> #{rid}\n"
+            f"🏪 <b>RESERVA para retirar na loja</b> {num_reserva(rid)}\n"
             f"{it['name']} × {qty} — {_brl(float(it['price']) * qty)}\n"
             f"Cliente: {name} · {tel}\nRetirada: {quando}"
             + (f"\nVeio de: {src}" if src else "")
@@ -119,4 +125,4 @@ async def criar_reserva(request: Request):
             + f"\n\n👉 Separe a peça e confirme: <a href=\"https://wa.me/55{phone}?text={quote(msg_cliente)}\">abrir WhatsApp com a mensagem</a>")
     except Exception:
         _blog_log.exception("reserva: falha ao avisar")
-    return JSONResponse({"ok": True, "id": rid, "quando": quando})
+    return JSONResponse({"ok": True, "id": rid, "numero": num_reserva(rid), "quando": quando})

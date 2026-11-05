@@ -28,10 +28,11 @@ async def reservas_page(request: Request, ver: str = Query("abertas"), _=Depends
         primeiro = (r["name"] or "").split(" ")[0].title()
         qty = float(r["qty"] or 1)
         qtxt = f"{qty:g}"
-        msg = (f"Olá, {primeiro}! Aqui é da MTF Refrigeração 😊 Sua reserva está separada: {r['product_name']} × {qtxt}. "
+        numero = f"R-{int(r['id']) + 1000}"      # mesmo número do site (id + 1000)
+        msg = (f"Olá, {primeiro}! Aqui é da MTF Refrigeração 😊 Sua reserva {numero} está separada: {r['product_name']} × {qtxt}. "
                f"Pode retirar na Av. Brasil, 6818 – Bonsucesso (seg. a sáb., 8h30–18h). Pagamento na loja.")
         lista.append({
-            "id": r["id"], "status": r["status"], "nome": r["name"], "produto": r["product_name"], "qty": qtxt,
+            "id": r["id"], "numero": numero, "status": r["status"], "nome": r["name"], "produto": r["product_name"], "qty": qtxt,
             "total": f"{float(r['price'] or 0) * qty:.2f}".replace(".", ","),
             "tel": f"({p[:2]}) {p[2:7]}-{p[7:]}" if len(p) == 11 else p,
             "quando": r["created_at"].astimezone(BRT).strftime("%d/%m %H:%M"),
