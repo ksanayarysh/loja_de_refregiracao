@@ -137,6 +137,23 @@ def _caixa(p: dict, qty: float):
     }
 
 
+def rotulo_envio(p: dict) -> tuple[str, float]:
+    """Para o Google Merchant Center: (rótulo de frete, peso da caixa em kg) de 1 unidade.
+    so_rio = não vai por transportadora (gás, inflamável, kg, botija, ou marcado "nunca" na admin)
+    leve   = até 1 kg e caixa até 40 cm   (placa, sensor, relé, capacitor, termostato...)
+    medio  = até 5 kg                     (turbina, suporte, manifold...)
+    pesado = mais de 5 kg                 (compressor, bomba de vácuo...)"""
+    cx = _caixa(p, 1)
+    peso, maior = cx["weight"], max(cx["width"], cx["height"], cx["length"])
+    if bloqueado(p):
+        return "so_rio", peso
+    if peso <= 1 and maior <= 40:
+        return "leve", peso
+    if peso <= 5:
+        return "medio", peso
+    return "pesado", peso
+
+
 async def _extras(ids: list) -> dict:
     """categoria + colunas de envio dos produtos (colunas podem ainda não existir)."""
     ids = [int(i) for i in ids if i]

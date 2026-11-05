@@ -2552,6 +2552,12 @@ async def product_feed():
                 ids_by_product[x["id"]] = x
     except Exception:
         _blog_log.exception("feed: falha ao ler brand/sku/gtin")
+    envio_extra = {}   # categoria + medidas/peso/bloqueio de envio (mesma caixa que o Melhor Envio usa)
+    try:
+        import correios
+        envio_extra = await correios._extras([r.get("id") for r in rows if r.get("id")])
+    except Exception:
+        _blog_log.exception("feed: falha ao ler dados de envio")
 
     items = []
     seen = set()
@@ -2614,6 +2620,16 @@ async def product_feed():
         if not ident_tag:
             ident_tag = "\n    <g:identifier_exists>no</g:identifier_exists>"
 
+        # frete no Google: peso da caixa + rótulo (so_rio / leve / medio / pesado) -> tabelas do Merchant Center
+        ship_tag = ""
+        try:
+            import correios
+            rotulo, peso = correios.rotulo_envio(dict(r, **envio_extra.get(r.get("id"), {})))
+            ship_tag = (f"\n    <g:shipping_weight>{peso:.2f} kg</g:shipping_weight>"
+                        f"\n    <g:shipping_label>{rotulo}</g:shipping_label>")
+        except Exception:
+            pass
+
         item = f"""
   <item>
     <g:id>{escape(product_id)}</g:id>
@@ -2625,7 +2641,7 @@ async def product_feed():
     <g:availability>{availability}</g:availability>
     <g:condition>new</g:condition>
     <g:brand>{escape(brand)}</g:brand>{ident_tag}{gcat_tag}
-    <g:product_type>{escape(category + (" > " + tipo if tipo else ""))}</g:product_type>
+    <g:product_type>{escape(category + (" > " + tipo if tipo else ""))}</g:product_type>{ship_tag}
   </item>"""
         items.append(item)
 
