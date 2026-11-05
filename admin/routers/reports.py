@@ -1308,7 +1308,7 @@ async def interesse_report(request: Request, period: str = Query("today"), _=Dep
     ips = [r["ip"] for r in await q("""
         SELECT ip, MAX(t) AS t FROM (
             SELECT ip, created_at AS t FROM product_events
-             WHERE event IN ('cart', 'checkout') AND created_at >= :t0 AND created_at < :t1
+             WHERE event IN ('cart', 'checkout', 'reserva') AND created_at >= :t0 AND created_at < :t1
             UNION ALL
             SELECT ip, created_at AS t FROM site_orders
              WHERE created_at >= :t0 AND created_at < :t1
@@ -1373,6 +1373,9 @@ async def interesse_report(request: Request, period: str = Query("today"), _=Dep
             elif r["event"] == "checkout":
                 pe["checkout"] = True
                 pe["linhas"].append((_to_brt(r["t"], BRT), "👀", f"abriu o checkout com {nome}"))
+            elif r["event"] == "reserva":
+                pe["reserva"] = True
+                pe["linhas"].append((_to_brt(r["t"], BRT), "🏪", f"reservou para retirar na loja: {nome}"))
             elif r["event"] == "phone":
                 pe["linhas"].append((_to_brt(r["t"], BRT), "📞", f"clicou em ligar ({nome})"))
         nomes_frete = {"LALAGO": "Motoboy", "LALAPRO": "Moto com baú", "HATCHBACK": "Carro", "UBER": "Uber"}
@@ -1442,6 +1445,8 @@ async def interesse_report(request: Request, period: str = Query("today"), _=Dep
                             for x in pe["linhas"]]
             if pe["pago"]:
                 pe["resultado"], pe["cor"] = "💰 Comprou e pagou", "ok"
+            elif pe.get("reserva"):
+                pe["resultado"], pe["cor"] = "🏪 Reservou para retirar na loja", "ok"
             elif pe["pedido"]:
                 pe["resultado"], pe["cor"] = "📝 Fez o pedido, mas não pagou", "warn"
             elif pe["checkout"]:
@@ -1457,6 +1462,7 @@ async def interesse_report(request: Request, period: str = Query("today"), _=Dep
     resumo = {
         "pessoas": len(pessoas),
         "pagaram": sum(1 for x in pessoas if x["pago"]),
+        "reservas": sum(1 for x in pessoas if x.get("reserva") and not x["pago"]),
         "pedido": sum(1 for x in pessoas if x["pedido"] and not x["pago"]),
         "checkout": sum(1 for x in pessoas if x["checkout"] and not x["pedido"]),
         "carrinho": sum(1 for x in pessoas if x["carrinho"] and not x["checkout"] and not x["pedido"]),

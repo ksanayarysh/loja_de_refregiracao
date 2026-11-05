@@ -52,6 +52,7 @@
     <div class="f-card warn"><div class="f-num">{{ resumo.checkout }}</div><div class="f-lbl">abriram o checkout e desistiram</div></div>
     <div class="f-card warn"><div class="f-num">{{ resumo.pedido }}</div><div class="f-lbl">fizeram pedido sem pagar</div></div>
     <div class="f-card ok"><div class="f-num">{{ resumo.pagaram }}</div><div class="f-lbl">pagaram</div></div>
+    <div class="f-card ok"><div class="f-num">{{ resumo.reservas or 0 }}</div><div class="f-lbl">reservaram para retirar</div></div>
   </div>
 
   <div class="dica">💡 Para ver <b>o que a pessoa fez na tela</b> (onde rolou, onde parou), abra o

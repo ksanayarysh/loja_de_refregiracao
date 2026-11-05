@@ -514,6 +514,21 @@
     .buy-now-btn:hover{opacity:.92;transform:translateY(-1px);}
     .wa-seller-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:12px;border-radius:10px;border:1.5px solid var(--wa);background:#effaf3;color:#128c4a;font-weight:700;font-size:.92rem;text-decoration:none;margin-top:10px;transition:background .15s;}
     .wa-seller-btn:hover{background:#dff5e7;}
+    .reserva-btn{width:100%;margin-top:10px;padding:12px;border-radius:10px;border:1.5px dashed var(--border);background:var(--surface);color:var(--text);font-family:inherit;font-weight:700;font-size:.92rem;cursor:pointer;}
+    .reserva-btn span{font-weight:500;color:var(--muted);font-size:.82rem;}
+    .reserva-btn:hover{border-color:var(--accent);}
+    .reserva-box{margin-top:8px;padding:12px;border:1px solid var(--border);border-radius:12px;background:var(--surface);}
+    .reserva-tit{font-size:.84rem;line-height:1.4;margin-bottom:10px;color:var(--text);}
+    .reserva-row{display:flex;gap:8px;}
+    .reserva-in{width:100%;min-width:0;padding:11px 12px;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:.95rem;background:var(--bg);color:var(--text);margin-bottom:8px;}
+    .reserva-in:focus{outline:none;border-color:var(--accent);}
+    .reserva-qty{width:76px;flex:0 0 76px;text-align:center;}
+    .reserva-ok{width:100%;padding:12px;border:none;border-radius:10px;background:var(--text);color:#fff;font-family:inherit;font-weight:800;font-size:.95rem;cursor:pointer;}
+    .reserva-ok:disabled{opacity:.6;}
+    .reserva-msg{font-size:.86rem;margin-top:8px;line-height:1.45;}
+    .reserva-msg:empty{display:none;}
+    .reserva-feito{background:#ecfdf3;border:1px solid #bbf7d0;color:#14532d;border-radius:10px;padding:12px;font-size:.9rem;line-height:1.5;}
+    .reserva-note{font-size:.72rem;color:var(--muted);margin-top:8px;line-height:1.4;}
   
     /* barra fixa de compra (mobile) */
     .buy-bar{display:none;}
@@ -736,6 +751,18 @@
         onclick='addToCart({{ product.id }}, {{ product.name|tojson }}, {{ product.price|float }}, {{ product.unit|tojson }}, this)'>
         🛒 Adicionar ao carrinho
       </button>
+      <button class="reserva-btn" id="reserva-btn" type="button" onclick="reservaAbrir()">🏪 Reservar e retirar na loja <span>— paga na hora</span></button>
+      <div class="reserva-box" id="reserva-box" hidden>
+        <div class="reserva-tit">Separamos para você — <b>sem pagar agora</b>. Você retira e paga na loja (Pix, cartão ou dinheiro).</div>
+        <div class="reserva-row">
+          <input id="rs-name" class="reserva-in" placeholder="Seu nome" autocomplete="name" maxlength="120">
+          <input id="rs-qty" class="reserva-in reserva-qty" type="number" inputmode="numeric" min="1" max="50" value="1" aria-label="Quantidade">
+        </div>
+        <input id="rs-phone" class="reserva-in" placeholder="WhatsApp com DDD" inputmode="tel" autocomplete="tel" maxlength="16">
+        <button class="reserva-ok" id="rs-btn" type="button" onclick="reservaEnviar()">Reservar</button>
+        <div class="reserva-msg" id="rs-msg"></div>
+        <div class="reserva-note">📍 Av. Brasil, 6818 – Bonsucesso · seg. a sáb., 8h30–18h · Usamos seu WhatsApp só para falar sobre esta reserva.</div>
+      </div>
       <a class="wa-seller-btn wa-track"
          href="https://wa.me/{{ wa_number }}?text={{ wa_msg | urlencode }}"
          target="_blank" rel="noopener"
@@ -1077,6 +1104,49 @@ function addToCart(id, name, price, unit, btn) {
     btn.classList.add('added');
     btn.textContent = '✓ Adicionado!';
     setTimeout(() => { btn.classList.remove('added'); btn.textContent = '🛒 Adicionar ao carrinho'; }, 1500);
+  }
+}
+
+// ── reservar e retirar na loja (sem pagar online) ──
+function reservaAbrir() {
+  const box = document.getElementById('reserva-box');
+  box.hidden = !box.hidden;
+  if (!box.hidden) {
+    try { const d = JSON.parse(localStorage.getItem('mtf_checkout_dados') || 'null');
+          if (d) { const n = document.getElementById('rs-name'), p = document.getElementById('rs-phone');
+                   if (!n.value) n.value = d.name || ''; if (!p.value) p.value = d.phone || ''; } } catch (e) {}
+    setTimeout(() => document.getElementById(document.getElementById('rs-name').value ? 'rs-phone' : 'rs-name').focus(), 50);
+  }
+}
+document.addEventListener('input', e => {
+  if (e.target && e.target.id === 'rs-phone') {
+    let v = e.target.value.replace(/\D/g, '');
+    if (v.length > 11 && v.startsWith('55')) v = v.slice(2);
+    v = v.slice(0, 11);
+    if (v.length > 6) v = `(${v.slice(0, 2)}) ${v.slice(2, v.length - 4)}-${v.slice(-4)}`;
+    else if (v.length > 2) v = `(${v.slice(0, 2)}) ${v.slice(2)}`;
+    e.target.value = v;
+  }
+});
+async function reservaEnviar() {
+  const btn = document.getElementById('rs-btn'), msg = document.getElementById('rs-msg');
+  const name = document.getElementById('rs-name').value.trim(), phone = document.getElementById('rs-phone').value;
+  msg.textContent = ''; btn.disabled = true; btn.textContent = 'Reservando...';
+  try {
+    const r = await fetch('/api/reserva', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ product_id: {{ product.id }}, qty: parseInt(document.getElementById('rs-qty').value, 10) || 1,
+        name, phone, src: (typeof mtfSrc === 'function' ? mtfSrc() : '') }) });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Não foi possível reservar agora.');
+    try { const old = JSON.parse(localStorage.getItem('mtf_checkout_dados') || '{}');
+          localStorage.setItem('mtf_checkout_dados', JSON.stringify(Object.assign(old, { name, phone }))); } catch (e) {}
+    document.getElementById('reserva-box').innerHTML =
+      `<div class="reserva-feito">✅ <b>Reservado!</b> Vamos separar para você.<br>Retire <b>${d.quando}</b> na Av. Brasil, 6818 – Bonsucesso e pague na loja.<br>Vamos confirmar pelo WhatsApp.</div>`;
+    document.getElementById('reserva-btn').hidden = true;
+    if (typeof gtag !== 'undefined') gtag('event', 'reserva_loja', { product_name: PROD_NOME });
+  } catch (e) {
+    msg.innerHTML = '<span style="color:var(--accent);font-weight:700;">' + escHtml(e.message) + '</span>';
+    btn.disabled = false; btn.textContent = 'Reservar';
   }
 }
 

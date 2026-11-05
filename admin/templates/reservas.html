@@ -1,0 +1,64 @@
+{% extends '_base_admin.html' %}
+{% block title %}Reservas — M.T.F{% endblock %}
+
+{% block extra_styles %}
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, Helvetica, sans-serif; background: bisque; min-height: 100vh; font-size: 15px; }
+  .content { padding: 24px; display: flex; flex-direction: column; gap: 14px; max-width: 900px; }
+  h1 { font-size: 1.4rem; color: #111; }
+  .sub { color: #666; font-size: .85rem; margin-top: 4px; line-height: 1.45; }
+  .tabs { background: #fff; border-radius: 12px; padding: 12px 16px; box-shadow: 0 2px 8px rgba(0,0,0,.06); display: flex; gap: 8px; }
+  .tab { padding: 7px 13px; border-radius: 8px; border: 1px solid #ccc; background: #fff; color: #111; font-weight: 700; font-size: .85rem; text-decoration: none; }
+  .tab.active { background: #111827; color: #fff; border-color: #111827; }
+  .r { background: #fff; border-radius: 12px; padding: 14px 16px; box-shadow: 0 2px 8px rgba(0,0,0,.06); border-left: 5px solid #0e7c99; }
+  .r.retirada { border-color: #16a34a; opacity: .7; } .r.cancelada { border-color: #9ca3af; opacity: .6; }
+  .r-top { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: baseline; }
+  .r-prod { font-weight: 900; color: #111; }
+  .r-meta { font-size: .84rem; color: #444; margin: 6px 0 10px; line-height: 1.45; }
+  .tag { font-size: .72rem; font-weight: 800; padding: 2px 8px; border-radius: 999px; }
+  .tag.nova { background: #e0f2fe; color: #075985; } .tag.retirada { background: #dcfce7; color: #166534; } .tag.cancelada { background: #f3f4f6; color: #4b5563; }
+  .acoes { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .acoes form { display: inline; }
+  .btn { padding: 9px 14px; border-radius: 9px; border: none; font-weight: 800; cursor: pointer; font-size: .86rem; text-decoration: none; display: inline-block; }
+  .b-wa { background: #25d366; color: #fff; } .b-ok { background: #16a34a; color: #fff; } .b-no { background: #fff; color: #b91c1c; border: 1px solid #fca5a5; } .b-gray { background: #fff; color: #111; border: 1px solid #ccc; }
+  .vazio { background: #fff; border-radius: 12px; padding: 24px; color: #666; text-align: center; }
+  .dica { background: #fffbeb; border: 1px solid #fde68a; border-radius: 12px; padding: 12px 14px; font-size: .84rem; color: #78350f; line-height: 1.5; }
+  @media (max-width: 600px) { .content { padding: 14px; } }
+{% endblock %}
+
+{% block content %}
+<div class="content">
+  <div>
+    <h1>🏪 Reservas para retirar na loja</h1>
+    <p class="sub">Feitas no site (botão "Reservar e retirar na loja"). O cliente paga na retirada. Separe a peça, confirme pelo WhatsApp e, quando ele buscar, registre a venda normalmente e marque "Retirou".</p>
+  </div>
+
+  <div class="tabs">
+    <a class="tab {{ 'active' if ver == 'abertas' }}" href="/reservas?ver=abertas">Abertas</a>
+    <a class="tab {{ 'active' if ver != 'abertas' }}" href="/reservas?ver=todas">Últimos 30 dias</a>
+  </div>
+
+  {% for r in lista %}
+  <div class="r {{ r.status }}">
+    <div class="r-top">
+      <span class="r-prod">{{ r.produto }} × {{ r.qty }} — R$ {{ r.total }}</span>
+      <span class="tag {{ r.status }}">{{ r.status }}{% if r.status_at %} {{ r.status_at }}{% endif %}</span>
+    </div>
+    <div class="r-meta">👤 {{ r.nome }} · {{ r.tel }}<br>🕐 Reservado {{ r.quando }}{% if r.src %} · veio de: {{ r.src }}{% endif %} · #{{ r.id }}</div>
+    <div class="acoes">
+      <a class="btn b-wa" href="{{ r.wa }}" target="_blank" rel="noopener">💬 Confirmar no WhatsApp</a>
+      {% if r.status == 'nova' %}
+        <form method="post" action="/reservas/{{ r.id }}/retirada"><button class="btn b-ok" type="submit">✓ Retirou</button></form>
+        <form method="post" action="/reservas/{{ r.id }}/cancelar"><button class="btn b-no" type="submit">Cancelar</button></form>
+      {% else %}
+        <form method="post" action="/reservas/{{ r.id }}/reabrir"><button class="btn b-gray" type="submit">Reabrir</button></form>
+      {% endif %}
+    </div>
+  </div>
+  {% else %}
+  <div class="vazio">{{ 'Nenhuma reserva aberta.' if ver == 'abertas' else 'Nenhuma reserva nos últimos 30 dias.' }}</div>
+  {% endfor %}
+
+  <div class="dica">💡 A reserva não baixa o estoque sozinha — registre a venda quando o cliente pagar. Se ele não aparecer até o dia seguinte, mande uma mensagem antes de cancelar.</div>
+</div>
+{% endblock %}
