@@ -7,3 +7,5 @@ admin/.env
 /script/broken_links.py
 /script/fix_links.py
 /catalog/frete_zonas.py
+__pycache__/
+*.pyc
