@@ -71,7 +71,7 @@ _CAIXA = {
     "kit": (1.0, 30, 25, 15),
     "compressor": (9.0, 30, 25, 25),
 }
-_CAIXA_PADRAO = (0.3, 20, 15, 10)       # capacitor, relé, sensor, termostato, pressostato, válvula...
+_CAIXA_PADRAO = (0.2, 16, 12, 6)       # capacitor, relé, sensor, termostato, pressostato, válvula...
 
 # peças grandes/pesadas pelo nome (vale mais que a categoria)
 _POR_NOME = [
@@ -85,6 +85,12 @@ _POR_NOME = [
     (re.compile(r"motor", re.I), (0.8, 20, 20, 15)),
     (re.compile(r"gaxeta|borracha.*porta", re.I), (0.6, 30, 25, 10)),
 ]
+
+# peças miúdas (cabem numa caixinha): só se o nome não casou com nada maior acima
+_MINI = re.compile(r"pastilha|peltier|capacitor|\brel[eé]\b|sensor|termostato|timer|fus[ií]vel|n[uú]cleo|"
+                r"protetor t[eé]rmico|chave seletora|bimetal|resist[eê]ncia de degelo|termofus|"
+                r"interruptor|micro ?switch|plug|conector|bucha|parafuso|kit torneira|torneira", re.I)
+_MINI_CAIXA = (0.15, 16, 11, 5)
 
 # vendidos por metro: kg por metro (cobre pela medida)
 _COBRE_KG_M = {"1/4": 0.11, "3/8": 0.17, "1/2": 0.25, "5/8": 0.32, "3/4": 0.38, "7/8": 0.45}
@@ -118,6 +124,9 @@ def _caixa(p: dict, qty: float):
         if rx.search(nome):
             peso, c, l, a = caixa
             break
+    else:
+        if _MINI.search(nome) and not re.search(r"placa|\bkit\b(?! torneira)|compressor|suporte", nome):
+            peso, c, l, a = _MINI_CAIXA
     quantidade = qty
     if unit == "m":                      # metro: vira um rolo só, peso pelo comprimento
         peso = _kg_metro(cat, nome) * qty
