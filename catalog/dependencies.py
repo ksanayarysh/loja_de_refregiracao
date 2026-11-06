@@ -36,3 +36,12 @@ def envia_correios(p) -> bool:
 
 
 templates.env.globals["envia_correios"] = envia_correios
+
+
+def frete_gratis_cfg() -> dict:
+    """Regra do frete grátis no Rio, para os textos do site (valores vêm das variáveis do router)."""
+    import router
+    return {"min": router.FRETE_GRATIS_MIN, "km": router.FRETE_GRATIS_KM, "sem_limite": router.FRETE_GRATIS_SEM_LIMITE}
+
+
+templates.env.globals["frete_gratis_cfg"] = frete_gratis_cfg

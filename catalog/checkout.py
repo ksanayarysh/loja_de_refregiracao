@@ -338,7 +338,7 @@ async def _calc_frete(cep: str, service: str):
     if cached and time.time() - cached[0] < 600 and not cached[1].get("combinar"):
         for o in cached[1].get("options", []):
             if o["service"] == service:
-                return float(o["price"]), geo
+                return float(o["price"]), dict(geo, distance_km=cached[1].get("distance_km"))
 
     try:
         if service == "UBER":
@@ -354,7 +354,7 @@ async def _calc_frete(cep: str, service: str):
         return None, "Para este endereço, o frete é combinado com o vendedor."
     if int(q["distance_m"] or 0) / 1000 > FRETE_MAX_KM:
         return None, "Para este endereço, o frete é combinado com o vendedor."
-    return float(q["price"]), geo
+    return float(q["price"]), dict(geo, distance_km=round(int(q["distance_m"] or 0) / 1000, 1))
 
 
 async def _mp_create_pix(order_id: int, total: float, email: str, name: str, description: str) -> dict:
@@ -866,7 +866,7 @@ async def checkout_pix(request: Request):
         frete_lalamove = frete
         if subtotal > FRETE_SUBSIDIO_MIN:
             try:
-                frete = frete_final(frete, subtotal, margem)
+                frete = frete_final(frete, subtotal, margem, geo.get("distance_km"))
             except Exception:
                 _blog_log.exception("checkout: falha no desconto do frete (segue preço cheio)")
         address = ", ".join(x for x in [rua, geo["bairro"], f'{geo["cidade"]} - {geo["uf"]}',

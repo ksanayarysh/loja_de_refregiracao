@@ -731,6 +731,7 @@
       <div>
         <div class="cutoff-title">Pedido pago até 16h — entrega hoje<span class="co-rj"> no RJ</span></div>
         <div class="cutoff-sub"><span>No Rio de Janeiro, seg. a sáb. · <a href="#frete-box" onclick="setTimeout(()=>document.getElementById('frete-cep').focus(),300)">Consulte seu CEP</a></span></div>
+        {% set _fg = frete_gratis_cfg() %}{% if _fg.min > 0 %}<div class="cutoff-sub co-fg">🎁 <strong>Entrega grátis</strong> acima de R$ {{ '%.0f'|format(_fg.min) }} (até {{ '%.0f'|format(_fg.km) }} km da loja) · acima de R$ {{ '%.0f'|format(_fg.sem_limite) }} sem limite</div>{% endif %}
         {% if envia_br %}<div class="cutoff-sub co-br">📦 Outros estados: envio pelos Correios/transportadora em até 1 dia útil</div>{% endif %}
       </div>
     </div>
@@ -1329,7 +1330,8 @@ async function calcFrete() {
   if (cep.length !== 8) { box.innerHTML = '<span class="frete-err">Digite um CEP válido (8 dígitos).</span>'; return; }
   btn.disabled = true; btn.textContent = '...'; box.innerHTML = '';
   try {
-    const r = await fetch('/api/frete-cep?cep=' + cep + '&src=produto&pid={{ product.id }}&valor={{ product.price|float }}&prod=' + encodeURIComponent({{ product.name|tojson }})
+    const _q = (typeof pqQtd === 'function') ? pqQtd() : 1;
+    const r = await fetch('/api/frete-cep?cep=' + cep + '&src=produto&pid={{ product.id }}&qtd=' + _q + '&valor=' + (PROD_PRECO * _q).toFixed(2) + '&prod=' + encodeURIComponent({{ product.name|tojson }})
       + (typeof mtfSrc === 'function' ? '&vd=' + encodeURIComponent(mtfSrc()) : ''));
     const d = await r.json();
     if (!r.ok) { const err = new Error(d.error || 'Não foi possível calcular o frete.'); err.wa = r.status !== 400 || /Rio de Janeiro/.test(d.error || ''); throw err; }
@@ -1368,7 +1370,7 @@ async function calcFrete() {
       <div class="frete-ok">
         <div class="fr-ic">${freteIcone(o.label)}</div>
         <div><strong>${escHtml(o.label)}</strong> <span class="fr-h">– ${escHtml(o.hint)}</span>${tag(o)}</div>
-        <div class="frete-price">R$ ${o.price.toFixed(2).replace('.', ',')}</div>
+        ${o.price === 0 ? '<div class="frete-price frete-free">Grátis</div>' : `<div class="frete-price">R$ ${o.price.toFixed(2).replace('.', ',')}</div>`}
       </div>`).join('');
     box.innerHTML = `
       <div class="frete-local">📍 ${local} · ${km} km</div>

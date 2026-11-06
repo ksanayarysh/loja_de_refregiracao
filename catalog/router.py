@@ -1851,7 +1851,33 @@ async def margem_pedido(linhas: list) -> float:
     return (await margem_detalhe(linhas))[0]
 
 
-def frete_final(preco_lalamove: float, subtotal: float, margem: float) -> float:
+# FRETE GRÁTIS no Rio (Lalamove/Uber):
+#   pedido >= FRETE_GRATIS_MIN (300) e até FRETE_GRATIS_KM (25 km) da loja, ou
+#   pedido >= FRETE_GRATIS_SEM_LIMITE (999) a qualquer distância atendida.
+#   Trava: só se o frete custar no máximo FRETE_GRATIS_MAX_MARGEM (70%) da margem do pedido;
+#   senão vale o desconto normal (metade). Assim a loja nunca fica no prejuízo.
+FRETE_GRATIS_MIN = float(os.environ.get("FRETE_GRATIS_MIN", "300"))
+FRETE_GRATIS_KM = float(os.environ.get("FRETE_GRATIS_KM", "25"))
+FRETE_GRATIS_SEM_LIMITE = float(os.environ.get("FRETE_GRATIS_SEM_LIMITE", "999"))
+FRETE_GRATIS_MAX_MARGEM = float(os.environ.get("FRETE_GRATIS_MAX_MARGEM", "0.7"))
+
+
+def frete_gratis(preco_lalamove: float, subtotal: float, margem: float, km=None) -> bool:
+    if margem <= 0 or FRETE_GRATIS_MIN <= 0:
+        return False
+    try:
+        km = float(km) if km is not None else None
+    except (TypeError, ValueError):
+        km = None
+    perto = km is not None and km <= FRETE_GRATIS_KM
+    if not ((subtotal >= FRETE_GRATIS_MIN and perto) or subtotal >= FRETE_GRATIS_SEM_LIMITE):
+        return False
+    return preco_lalamove <= margem * FRETE_GRATIS_MAX_MARGEM
+
+
+def frete_final(preco_lalamove: float, subtotal: float, margem: float, km=None) -> float:
+    if frete_gratis(preco_lalamove, subtotal, margem, km):
+        return 0.0
     if subtotal <= FRETE_SUBSIDIO_MIN or margem <= 0:
         return round(preco_lalamove, 2)
     desconto = min(preco_lalamove / 2, margem / 2)
@@ -2018,7 +2044,8 @@ async def _frete_log(request: Request, cep: str, status: int, data: dict,
                         continue
                     loja = max(0.0, float(o["_lalamove"]) - float(o["price"]))
                     nome = FRETE_OPTIONS.get(o["service"], (o["service"], ""))[0]
-                    partes.append(f"{nome}: {brl(mg)} → <b>{brl(mg - loja)}</b> (loja paga {brl(loja)})")
+                    gr = " 🎁 GRÁTIS" if float(o["price"]) == 0 else ""
+                    partes.append(f"{nome}: {brl(mg)} → <b>{brl(mg - loja)}</b> (loja paga {brl(loja)}){gr}")
                 if partes:
                     extra += "\n📉 Lucro com o frete:\n  " + "\n  ".join(partes)
             else:
@@ -2050,7 +2077,7 @@ async def _frete_items(itens: str, pid: str) -> list:
 
 @router.get("/api/frete-cep")
 async def api_frete_cep(request: Request, cep: str = "", src: str = "", valor: str = "",
-                        pid: str = "", prod: str = "", itens: str = "", vd: str = ""):
+                        pid: str = "", prod: str = "", itens: str = "", vd: str = "", qtd: str = ""):
     import re as _re
     resp = await _frete_cep_core(request, cep)
     cep_d = _re.sub(r"\D", "", cep)
@@ -2075,15 +2102,16 @@ async def api_frete_cep(request: Request, cep: str = "", src: str = "", valor: s
                         "WHERE id = :id AND active = TRUE"), {"id": int(pid)})).mappings().first()
                 if x and x["sale_price"]:
                     x = _apply_promo(dict(x, sale_price=float(x["sale_price"])))
-                    subtotal = float(x["price"] or 0)
-                    linhas = [(x["id"], 1, subtotal)]
+                    n = max(1, min(999, int(qtd))) if qtd.isdigit() else 1    # quantidade escolhida na página
+                    subtotal = float(x["price"] or 0) * n
+                    linhas = [(x["id"], n, float(x["price"] or 0))]
             calc = {"subtotal": subtotal} if linhas else None
             if subtotal > FRETE_SUBSIDIO_MIN and linhas:
                 margem, sem_custo = await margem_detalhe(linhas)
                 calc.update(margem=margem, sem_custo=sem_custo)
                 novas = []
                 for o in data["options"]:
-                    p = frete_final(o["price"], subtotal, margem)
+                    p = frete_final(o["price"], subtotal, margem, data.get("distance_km"))
                     novas.append(dict(o, price=p))
                 if any(n["price"] != o["price"] for n, o in zip(novas, data["options"])):
                     log_opts = [dict(n, _lalamove=o["price"]) for n, o in zip(novas, data["options"])]
