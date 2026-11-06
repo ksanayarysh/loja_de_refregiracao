@@ -361,6 +361,7 @@ $('f-phone').addEventListener('input', e => {
   e.target.value = v;
 });
 
+let ruaDoCep = null;   // CEP do último cálculo (para não deixar a rua de outro CEP)
 async function calcFrete(auto) {
   const cep = $('f-cep').value.replace(/\D/g, '');
   frete = null; $('frete-opts').innerHTML = ''; $('addr-box').classList.add('co-hidden'); renderSummary();
@@ -432,7 +433,13 @@ async function calcFrete(auto) {
       + (isMe ? '' : `<div class="co-note" style="margin-top:6px;">🛵 Prefere chamar seu próprio <strong>Uber Moto ou 99</strong> para retirar aqui? <a href="https://wa.me/${WA_NUMBER}?text=${encodeURIComponent('Olá! Quero comprar (' + itensTxt + ') e mandar meu próprio motoboy (Uber/99) buscar. Podemos combinar?')}" target="_blank" rel="noopener" style="color:#128c4a;font-weight:700;">Fale com a gente</a> para combinarmos os detalhes.</div>`);
     document.querySelectorAll('input[name="service"]').forEach(r => r.addEventListener('change', pickService));
     pickService();
-    if (d.rua && !$('f-rua').value) $('f-rua').value = d.rua;
+    // a rua pertence ao CEP: trocou o CEP -> troca a rua (ou limpa) e zera número/complemento
+    if (ruaDoCep !== null && ruaDoCep !== cep) {
+      $('f-rua').value = d.rua || ''; $('f-num').value = ''; $('f-comp').value = '';
+    } else if (d.rua && (!$('f-rua').value || ruaDoCep === null)) {   // 1º cálculo: a rua do CEP vale mais que o autocompletar do navegador
+      $('f-rua').value = d.rua;
+    }
+    ruaDoCep = cep;
     $('addr-box').classList.remove('co-hidden');
     if (!auto && !$('f-num').value) ($('f-rua').value ? $('f-num') : $('f-rua')).focus();   // ao abrir a página não pula o passo 1
   } catch (e) {
