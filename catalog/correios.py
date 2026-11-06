@@ -237,12 +237,16 @@ async def cotar(cep: str, items: list) -> dict:
 
     extra = dias_postagem()
     excluir = [x.strip().lower() for x in os.environ.get("MELHOR_ENVIO_EXCLUIR", "Loggi").split(",") if x.strip()]
+    # MELHOR_ENVIO_SO: se preenchido, mostra SÓ estas transportadoras (as que têm ponto de postagem perto da loja)
+    so = [x.strip().lower() for x in os.environ.get("MELHOR_ENVIO_SO", "").split(",") if x.strip()]
     opts = []
     for s in data:
         if s.get("error") or s.get("custom_price") in (None, ""):
             continue
         empresa_low = ((s.get("company") or {}).get("name") or "").lower()
         if any(x in empresa_low for x in excluir):      # sem ponto de postagem perto da loja
+            continue
+        if so and not any(x in empresa_low for x in so):  # lista do que aceitar (ex.: Correios,J&T,Jadlog)
             continue
         try:
             preco = float(s.get("custom_price") or s.get("price"))
