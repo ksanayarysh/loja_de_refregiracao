@@ -1891,7 +1891,18 @@ ENVIO_SUBSIDIO_MIN = float(os.environ.get("ENVIO_SUBSIDIO_MIN", "100"))
 ENVIO_SUBSIDIO_PARTE = float(os.environ.get("ENVIO_SUBSIDIO_PARTE", "0.3333"))
 
 
-def envio_final(preco: float, subtotal: float, margem: float) -> float:
+# ENVIO GRÁTIS para outros estados: pedido >= ENVIO_GRATIS_MIN (1499) -> a opção mais barata sai grátis
+#   e as outras custam só a diferença (ex.: PAC grátis, SEDEX + R$ 20). Trava: o envio mais barato
+#   tem que caber em FRETE_GRATIS_MAX_MARGEM (70%) da margem; senão vale o desconto normal de 1/3.
+ENVIO_GRATIS_MIN = float(os.environ.get("ENVIO_GRATIS_MIN", "1499"))
+
+
+def envio_final(preco: float, subtotal: float, margem: float, menor: float | None = None) -> float:
+    if menor is None:
+        menor = preco
+    if (ENVIO_GRATIS_MIN > 0 and subtotal >= ENVIO_GRATIS_MIN and margem > 0
+            and menor <= margem * FRETE_GRATIS_MAX_MARGEM):
+        return round(max(0.0, preco - menor), 2)
     if subtotal <= ENVIO_SUBSIDIO_MIN or margem <= 0:
         return round(preco, 2)
     desconto = min(preco * ENVIO_SUBSIDIO_PARTE, margem / 2)
@@ -2155,7 +2166,8 @@ async def api_frete_cep(request: Request, cep: str = "", src: str = "", valor: s
                     if x and x["sale_price"]:
                         x = _apply_promo(dict(x, sale_price=float(x["sale_price"])))
                         items = [{"id": x["id"], "name": x["name"], "unit": x["unit"],
-                                  "price": float(x["price"] or 0), "qty": 1}]
+                                  "price": float(x["price"] or 0),
+                                  "qty": max(1, min(999, int(qtd))) if qtd.isdigit() else 1}]
                 if items:
                     q = await correios.cotar(cep_d, items)
                     if q.get("options"):
@@ -2166,7 +2178,8 @@ async def api_frete_cep(request: Request, cep: str = "", src: str = "", valor: s
                             if sub_me > ENVIO_SUBSIDIO_MIN:
                                 mg, sem_custo = await margem_detalhe(linhas_dos_itens(items))
                                 calc_me.update(margem=mg, sem_custo=sem_custo)
-                                opts_pub = [dict(o, price=envio_final(o["price"], sub_me, mg)) for o in q["options"]]
+                                menor_me = min(float(o["price"]) for o in q["options"])
+                                opts_pub = [dict(o, price=envio_final(o["price"], sub_me, mg, menor_me)) for o in q["options"]]
                                 opts_log = [dict(n, _cheio=o["price"]) for n, o in zip(opts_pub, q["options"])]
                         except Exception:
                             _blog_log.exception("frete: falha no desconto do envio (segue preço cheio)")

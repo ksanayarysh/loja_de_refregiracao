@@ -732,7 +732,7 @@
         <div class="cutoff-title">Pedido pago até 16h — entrega hoje<span class="co-rj"> no RJ</span></div>
         <div class="cutoff-sub"><span>No Rio de Janeiro, seg. a sáb. · <a href="#frete-box" onclick="setTimeout(()=>document.getElementById('frete-cep').focus(),300)">Consulte seu CEP</a></span></div>
         {% set _fg = frete_gratis_cfg() %}{% if _fg.min > 0 %}<div class="cutoff-sub co-fg">🎁 <strong>Entrega grátis</strong> acima de R$ {{ '%.0f'|format(_fg.min) }} (até {{ '%.0f'|format(_fg.km) }} km da loja) · acima de R$ {{ '%.0f'|format(_fg.sem_limite) }} sem limite</div>{% endif %}
-        {% if envia_br %}<div class="cutoff-sub co-br">📦 Outros estados: envio pelos Correios/transportadora em até 1 dia útil</div>{% endif %}
+        {% if envia_br %}<div class="cutoff-sub co-br">📦 Outros estados: envio pelos Correios/transportadora em até 1 dia útil{% if _fg.estados > 0 %} · <strong>grátis</strong> acima de R$ {{ '{:,.0f}'.format(_fg.estados).replace(',', '.') }}{% endif %}</div>{% endif %}
       </div>
     </div>
     {% endif %}
@@ -1345,7 +1345,7 @@ async function calcFrete() {
         <div class="frete-ok">
           <div class="fr-ic">📦</div>
           <div><strong>${escHtml(o.label)}</strong> <span class="fr-h">– ${escHtml(o.hint)}</span>${(d.options.length > 1 && o.price === minMe) ? ' <span class="mais-barato">mais barato</span>' : ''}</div>
-          <div class="frete-price">R$ ${o.price.toFixed(2).replace('.', ',')}</div>
+          ${o.price === 0 ? '<div class="frete-price frete-free">Grátis</div>' : `<div class="frete-price">R$ ${o.price.toFixed(2).replace('.', ',')}</div>`}
         </div>`).join('')}
         <div class="frete-note">Envio por <strong>Correios / transportadora</strong>. Enviamos em até 1 dia útil após o pagamento.</div>`
         + freteExtras(minMe, freteCep.value, false);

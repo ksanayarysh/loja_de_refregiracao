@@ -222,7 +222,7 @@
 
 <script>
 const WA_NUMBER = '{{ wa_number }}';
-{% set _fg = frete_gratis_cfg() %}const FG = { min: {{ _fg.min }}, km: {{ _fg.km }}, sem_limite: {{ _fg.sem_limite }} };
+{% set _fg = frete_gratis_cfg() %}const FG = { min: {{ _fg.min }}, km: {{ _fg.km }}, sem_limite: {{ _fg.sem_limite }}, estados: {{ _fg.estados }} };
 let cart = [];
 try { cart = JSON.parse(localStorage.getItem('mtf_cart') || '[]'); } catch (e) {}
 let frete = null; // { service, price } quando entrega
@@ -411,8 +411,10 @@ async function calcFrete(auto) {
       const km = Number(d.distance_km || 0);
       const alvo = km <= FG.km ? FG.min : FG.sem_limite;
       if (subFg < alvo) falta = `<div class="co-note" style="margin:0 0 10px;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:9px 11px;color:#065f46;">🎁 Faltam <strong>${brl(alvo - subFg)}</strong> para a <strong>entrega grátis</strong>${km <= FG.km ? '' : ` (para ${String(km).replace('.', ',')} km, pedidos acima de ${brl(FG.sem_limite)})`}.</div>`;
-    } else if (!isMe && minP === 0) {
-      falta = '<div class="co-note" style="margin:0 0 10px;color:#065f46;">🎁 Seu pedido ganhou <strong>entrega grátis</strong>.</div>';
+    } else if (isMe && minP > 0 && FG.estados > 0 && subFg < FG.estados) {
+      falta = `<div class="co-note" style="margin:0 0 10px;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:9px 11px;color:#065f46;">🎁 Faltam <strong>${brl(FG.estados - subFg)}</strong> para o <strong>envio grátis</strong> para todo o Brasil.</div>`;
+    } else if (minP === 0) {
+      falta = `<div class="co-note" style="margin:0 0 10px;color:#065f46;">🎁 Seu pedido ganhou <strong>${isMe ? 'envio' : 'entrega'} grátis</strong>.</div>`;
     }
     $('frete-opts').innerHTML = falta + opts.map((o, idx) => `
       <label class="co-opt">
