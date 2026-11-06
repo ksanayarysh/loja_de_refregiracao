@@ -522,6 +522,14 @@
     .reserva-row{display:flex;gap:8px;}
     .reserva-in{width:100%;min-width:0;padding:11px 12px;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:.95rem;background:var(--bg);color:var(--text);margin-bottom:8px;}
     .reserva-in:focus{outline:none;border-color:var(--accent);}
+    .pq-row{display:flex;align-items:center;gap:10px;margin:2px 0 10px;flex-wrap:wrap;}
+    .pq-lab{font-size:.85rem;font-weight:700;color:var(--text);}
+    .pq-step{display:flex;align-items:center;border:1.5px solid var(--border);border-radius:10px;overflow:hidden;background:var(--surface);}
+    .pq-btn{width:38px;height:38px;border:0;background:transparent;font-size:1.15rem;font-weight:700;cursor:pointer;color:var(--text);}
+    .pq-btn:hover{color:var(--accent);}
+    .pq-in{width:46px;height:38px;border:0;text-align:center;font-size:1rem;font-weight:700;background:transparent;color:var(--text);-moz-appearance:textfield;}
+    .pq-in::-webkit-outer-spin-button,.pq-in::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+    .pq-disp{font-size:.78rem;color:var(--muted);}
     .reserva-qty{width:76px;flex:0 0 76px;text-align:center;}
     .reserva-ok{width:100%;padding:12px;border:none;border-radius:10px;background:var(--text);color:#fff;font-family:inherit;font-weight:800;font-size:.95rem;cursor:pointer;}
     .reserva-ok:disabled{opacity:.6;}
@@ -743,7 +751,19 @@
     {% set wa_out_msg = "Olá! Vi o produto " + product.name + " no site mas está sem estoque. Quando volta? Posso reservar?" %}
     {% set in_stock = product.current_stock and product.current_stock > 0 %}
     {% if product.sale_price and in_stock and not is_kg %}
+    {% set max_qty = product.current_stock|int if product.current_stock|int >= 1 else 1 %}
     <div>
+      {% if max_qty > 1 %}
+      <div class="pq-row">
+        <span class="pq-lab">Quantidade</span>
+        <div class="pq-step">
+          <button type="button" class="pq-btn" onclick="pqMudar(-1)" aria-label="Diminuir">−</button>
+          <input id="pq-qty" class="pq-in" type="number" inputmode="numeric" min="1" max="{{ max_qty }}" value="1" aria-label="Quantidade" onchange="pqMudar(0)">
+          <button type="button" class="pq-btn" onclick="pqMudar(1)" aria-label="Aumentar">+</button>
+        </div>
+        <span class="pq-disp">{{ max_qty }} disponíve{{ 'l' if max_qty == 1 else 'is' }}</span>
+      </div>
+      {% endif %}
       <button class="buy-now-btn" type="button"
         onclick='buyNow({{ product.id }}, {{ product.name|tojson }}, {{ product.price|float }}, {{ product.unit|tojson }})'>
         ⚡ Comprar agora
@@ -757,7 +777,7 @@
         <div class="reserva-tit">Separamos para você — <b>sem pagar agora</b>. Você retira e paga na loja (Pix, cartão ou dinheiro).</div>
         <div class="reserva-row">
           <input id="rs-name" class="reserva-in" placeholder="Seu nome" autocomplete="name" maxlength="120">
-          <input id="rs-qty" class="reserva-in reserva-qty" type="number" inputmode="numeric" min="1" max="50" value="1" aria-label="Quantidade">
+          <input id="rs-qty" class="reserva-in reserva-qty" type="number" inputmode="numeric" min="1" max="{{ [max_qty, 50]|min }}" value="1" aria-label="Quantidade">
         </div>
         <input id="rs-phone" class="reserva-in" placeholder="WhatsApp com DDD" inputmode="tel" autocomplete="tel" maxlength="16">
         <button class="reserva-ok" id="rs-btn" type="button" onclick="reservaEnviar()">Reservar</button>
@@ -1093,11 +1113,30 @@ function mtfEvent(id, event, btn) {
   } catch (e) {}
 }
 
+// ── quantidade na página (limitada ao estoque) ──
+const PROD_MAX = {{ (product.current_stock|int) if product.current_stock and product.current_stock|int >= 1 else 1 }};
+function pqQtd() {
+  const el = document.getElementById('pq-qty');
+  const n = el ? parseInt(el.value, 10) : 1;
+  return Math.min(PROD_MAX, Math.max(1, isNaN(n) ? 1 : n));
+}
+function pqMudar(d) {
+  const el = document.getElementById('pq-qty');
+  if (!el) return;
+  el.value = Math.min(PROD_MAX, Math.max(1, (parseInt(el.value, 10) || 1) + d));
+  const rs = document.getElementById('rs-qty');
+  if (rs) rs.value = el.value;
+}
 function addToCart(id, name, price, unit, btn) {
   mtfEvent(id, 'cart', 'carrinho');
+  const q = (id === {{ product.id }}) ? pqQtd() : 1;
   const existing = cart.find(i => i.id === id && !i.kit);
-  if (existing) { existing.qty += 1; }
-  else { cart.push({ id, name, price, unit, qty: 1 }); }
+  if (existing) {
+    const lim = (id === {{ product.id }}) ? PROD_MAX : Infinity;
+    if (existing.qty >= lim) { if (btn) { btn.textContent = 'Máximo em estoque: ' + lim; setTimeout(() => { btn.textContent = '🛒 Adicionar ao carrinho'; }, 1800); } return; }
+    existing.qty = Math.min(lim, existing.qty + q);
+  }
+  else { cart.push({ id, name, price, unit, qty: q }); }
   saveCart();
   updateBadge();
   fbTrack('AddToCart', id, price, { content_name: name });
@@ -1153,11 +1192,12 @@ async function reservaEnviar() {
 
 function buyNow(id, name, price, unit) {
   mtfEvent(id, 'cart', 'comprar');
-  if (!cart.find(i => i.id === id && !i.kit)) {
-    cart.push({ id, name, price, unit, qty: 1 });
-    saveCart();
-    updateBadge();
-  }
+  const q = pqQtd();
+  const ex = cart.find(i => i.id === id && !i.kit);
+  if (ex) ex.qty = Math.min(PROD_MAX, Math.max(ex.qty, q));
+  else cart.push({ id, name, price, unit, qty: q });
+  saveCart();
+  updateBadge();
   if (typeof gtag !== 'undefined') gtag('event', 'comprar_agora', { product_name: name });
   fbTrack('AddToCart', id, price, { content_name: name });
   // "Comprar agora" vai direto para o checkout (antes só abria o carrinho e muita gente parava ali)
@@ -1167,6 +1207,7 @@ function buyNow(id, name, price, unit) {
 function changeQty(idx, delta) {
   const item = cart[idx];
   if (!item) return;
+  if (delta > 0 && item.id === {{ product.id }} && !item.kit && item.qty >= PROD_MAX) return;   // estoque
   item.qty += delta;
   if (item.qty <= 0) cart.splice(idx, 1);
   saveCart(); updateBadge(); renderCart();
