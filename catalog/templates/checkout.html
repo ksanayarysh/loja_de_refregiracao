@@ -307,7 +307,7 @@ function renderSummary() {
     </div>`).join('');
   const sub = subtotal();
   const fr = dtype() === 'lalamove' ? (frete ? frete.price : null) : 0;
-  const dt = descTecnico();
+  const dt = (tec && tec.pct > 0) ? Math.round(descTecnico() * 100) / 100 : 0;   // sem código: linha escondida
   $('sum-sub').textContent = brl(sub);
   $('tec-line').classList.toggle('co-hidden', !dt);
   if (dt) { $('tec-lbl').textContent = `Desconto de técnico (${String(tec.pct).replace('.', ',')}%)`; $('sum-tec').textContent = '− ' + brl(dt); }
