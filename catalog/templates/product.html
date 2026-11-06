@@ -1323,6 +1323,11 @@ function trackWa() {
     body: JSON.stringify({ product: PROD_NOME }) }).catch(() => {});
 }
 
+function donoInfo(o) {   // só aparece para a dona (cookie /eu)
+  const x = o && o._dono; if (!x) return '';
+  const f = v => 'R$ ' + Number(v).toFixed(2).replace('.', ',');
+  return `<div style="font-size:.72rem;color:#7c3aed;margin-top:2px;">👁 custo ${f(x.cheio)}${x.loja ? ' · loja paga ' + f(x.loja) : ''} · lucro ${f(x.lucro)}${x.sem_custo ? ' · ⚠️ ' + x.sem_custo + ' sem custo' : ''}</div>`;
+}
 async function calcFrete() {
   const cep = freteCep.value.replace(/\D/g, '');
   const box = document.getElementById('frete-result');
@@ -1344,7 +1349,7 @@ async function calcFrete() {
         ${d.options.map(o => `
         <div class="frete-ok">
           <div class="fr-ic">📦</div>
-          <div><strong>${escHtml(o.label)}</strong> <span class="fr-h">– ${escHtml(o.hint)}</span>${(d.options.length > 1 && o.price === minMe) ? ' <span class="mais-barato">mais barato</span>' : ''}</div>
+          <div><strong>${escHtml(o.label)}</strong> <span class="fr-h">– ${escHtml(o.hint)}</span>${(d.options.length > 1 && o.price === minMe) ? ' <span class="mais-barato">mais barato</span>' : ''}${donoInfo(o)}</div>
           ${o.price === 0 ? '<div class="frete-price frete-free">Grátis</div>' : `<div class="frete-price">R$ ${o.price.toFixed(2).replace('.', ',')}</div>`}
         </div>`).join('')}
         <div class="frete-note">Envio por <strong>Correios / transportadora</strong>. Enviamos em até 1 dia útil após o pagamento.</div>`
@@ -1369,7 +1374,7 @@ async function calcFrete() {
     const rows = d.options.map(o => `
       <div class="frete-ok">
         <div class="fr-ic">${freteIcone(o.label)}</div>
-        <div><strong>${escHtml(o.label)}</strong> <span class="fr-h">– ${escHtml(o.hint)}</span>${tag(o)}</div>
+        <div><strong>${escHtml(o.label)}</strong> <span class="fr-h">– ${escHtml(o.hint)}</span>${tag(o)}${donoInfo(o)}</div>
         ${o.price === 0 ? '<div class="frete-price frete-free">Grátis</div>' : `<div class="frete-price">R$ ${o.price.toFixed(2).replace('.', ',')}</div>`}
       </div>`).join('');
     box.innerHTML = `

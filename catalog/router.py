@@ -2205,7 +2205,41 @@ async def api_frete_cep(request: Request, cep: str = "", src: str = "", valor: s
         p = int(pid) if pid.isdigit() else None
         asyncio.create_task(_frete_log(request, cep_d, resp.status_code, data,
                                        src[:20], v, p, prod[:160], vd[:80]))
+    # só para a dona (cookie /eu): custo real de cada entrega e o lucro que sobra
+    if resp.status_code == 200 and data.get("options") and _is_owner(request):
+        try:
+            resp = await _frete_info_dono(resp, data, itens, pid, qtd)
+        except Exception:
+            _blog_log.exception("frete: falha na info da dona")
     return resp
+
+
+async def _frete_info_dono(resp, data: dict, itens: str, pid: str, qtd: str):
+    calc = data.get("_calc") or {}
+    margem, sem_custo = calc.get("margem"), calc.get("sem_custo") or []
+    if margem is None:                          # pedido pequeno: o site não calculou a margem, calcula aqui
+        linhas = []
+        if itens:
+            from checkout import _load_items
+            items, _ = await _load_items(_json.loads(itens)[:50])
+            linhas = linhas_dos_itens(items)
+        elif pid.isdigit():
+            async with engine.connect() as conn:
+                x = (await conn.execute(text(
+                    "SELECT id, sale_price, promo_price, promo_until FROM products WHERE id = :id"),
+                    {"id": int(pid)})).mappings().first()
+            if x and x["sale_price"]:
+                x = _apply_promo(dict(x, sale_price=float(x["sale_price"])))
+                n = max(1, min(999, int(qtd))) if qtd.isdigit() else 1
+                linhas = [(x["id"], n, float(x["price"] or 0))]
+        margem, sem_custo = await margem_detalhe(linhas) if linhas else (0.0, [])
+    pub = _json.loads(resp.body)
+    for po, lo in zip(pub.get("options") or [], data["options"]):
+        cheio = lo.get("_lalamove") or lo.get("_cheio") or lo["price"]
+        loja = max(0.0, float(cheio) - float(po["price"]))
+        po["_dono"] = {"cheio": round(float(cheio), 2), "loja": round(loja, 2),
+                       "lucro": round(float(margem) - loja, 2), "sem_custo": len(sem_custo)}
+    return JSONResponse(pub, headers={"Cache-Control": "no-store"})
 
 
 @router.get("/politica-de-devolucao", response_class=HTMLResponse)

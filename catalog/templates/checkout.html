@@ -362,6 +362,11 @@ $('f-phone').addEventListener('input', e => {
 });
 
 let ruaDoCep = null;   // CEP do último cálculo (para não deixar a rua de outro CEP)
+function donoInfo(o) {   // só aparece para a dona (cookie /eu)
+  const x = o && o._dono; if (!x) return '';
+  const f = v => 'R$ ' + Number(v).toFixed(2).replace('.', ',');
+  return `<div style="font-size:.72rem;color:#7c3aed;margin-top:2px;">👁 custo ${f(x.cheio)}${x.loja ? ' · loja paga ' + f(x.loja) : ''} · lucro ${f(x.lucro)}${x.sem_custo ? ' · ⚠️ ' + x.sem_custo + ' sem custo' : ''}</div>`;
+}
 async function calcFrete(auto) {
   const cep = $('f-cep').value.replace(/\D/g, '');
   frete = null; $('frete-opts').innerHTML = ''; $('addr-box').classList.add('co-hidden'); renderSummary();
@@ -420,7 +425,7 @@ async function calcFrete(auto) {
     $('frete-opts').innerHTML = falta + opts.map((o, idx) => `
       <label class="co-opt">
         <input type="radio" name="service" value="${esc(o.service)}" data-price="${o.price}" ${idx === pick ? 'checked' : ''}>
-        <div class="co-opt-main"><div class="co-opt-name">${esc(o.label)}${opts.length > 1 && idx === pick ? ' <span class="mais-barato">mais barato</span>' : ''}</div><div class="co-opt-hint">${esc(o.hint)}</div></div>
+        <div class="co-opt-main"><div class="co-opt-name">${esc(o.label)}${opts.length > 1 && idx === pick ? ' <span class="mais-barato">mais barato</span>' : ''}</div><div class="co-opt-hint">${esc(o.hint)}</div>${donoInfo(o)}</div>
         <div class="co-opt-price${o.price === 0 ? ' co-free' : ''}">${o.price === 0 ? 'Grátis' : brl(o.price)}</div>
       </label>`).join('');
     // dúvida antes de pagar -> WhatsApp com o carrinho já escrito; peça barata -> dica de juntar peças
