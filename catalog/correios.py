@@ -244,7 +244,9 @@ async def cotar(cep: str, items: list) -> dict:
         if s.get("error") or s.get("custom_price") in (None, ""):
             continue
         empresa_low = ((s.get("company") or {}).get("name") or "").lower()
-        if any(x in empresa_low for x in excluir):      # sem ponto de postagem perto da loja
+        # empresa + serviço ("jadlog .package centralizado"): dá para excluir só um serviço, não a empresa toda
+        completo_low = " ".join(f'{empresa_low} {(s.get("name") or "").lower()}'.split())
+        if any(" ".join(x.split()) in completo_low for x in excluir):      # sem ponto de postagem perto da loja
             continue
         if so and not any(x in empresa_low for x in so):  # lista do que aceitar (ex.: Correios,J&T,Jadlog)
             continue
