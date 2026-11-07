@@ -384,7 +384,7 @@
 
   // link do carrinho: o cliente abre o checkout do site com estes itens e paga com cartão/Pix
   const SITE_URL = '{{ site_url }}';
-  function linkCarrinho() {
+  async function linkCarrinho() {
     if (!cart.length) { alert('Carrinho vazio!'); return; }
     const ok = [], fora = [];
     for (const i of cart) {
@@ -395,7 +395,14 @@
     if (!ok.length) { alert('Nenhum item pode ir para o site (kit, kg ou quantidade fracionada).'); return; }
     const cep = (document.getElementById('link-cep').value || '').replace(/\D/g, '');
     if (cep && cep.length !== 8) { alert('CEP do cliente: digite os 8 dígitos (ou deixe vazio).'); return; }
-    const url = `${SITE_URL}/checkout?c=${ok.join('~')}${cep ? '&cep=' + cep : ''}`;
+    let url = '';
+    try {
+      const r = await fetch('/api/link-carrinho', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                                                     body: JSON.stringify({ itens: ok.join('~'), cep }) });
+      const d = await r.json();
+      if (!d.ok) throw new Error(d.error || 'erro');
+      url = d.url;
+    } catch (e) { alert('Não consegui criar o link: ' + e.message); return; }
     const box = document.getElementById('link-box');
     box.style.display = 'block';
     box.innerHTML = `<input readonly value="${url}" style="width:100%;padding:8px;border:1px solid #d6d9e0;border-radius:8px;font-size:.85rem" onclick="this.select()">`

@@ -25,7 +25,7 @@ from datetime import datetime, timedelta, timezone
 
 import httpx
 from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from sqlalchemy import text
 
 from dependencies import engine, templates
@@ -699,6 +699,30 @@ def _page_ctx(request: Request, **extra) -> dict:
 # ── PÁGINAS ────────────────────────────────────────────────────────────────────
 @router.get("/checkout", response_class=HTMLResponse)
 async def checkout_page(request: Request, c: str = "", cep: str = ""):
+    return await _checkout_com_link(request, c, cep)
+
+
+@router.get("/l/{token}", response_class=HTMLResponse)
+async def checkout_link_curto(request: Request, token: str):
+    """Link curto que a loja manda ao cliente (criado na admin). Vale 30 dias."""
+    row = None
+    if re.fullmatch(r"[\w-]{4,20}", token):
+        try:
+            async with engine.begin() as conn:
+                await conn.execute(text("""CREATE TABLE IF NOT EXISTS cart_links (
+            token TEXT PRIMARY KEY, itens TEXT NOT NULL, cep TEXT,
+            criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW(), aberto INT NOT NULL DEFAULT 0)"""))
+                row = (await conn.execute(text(
+                    "UPDATE cart_links SET aberto = aberto + 1 WHERE token = :t "
+                    "AND criado_em > NOW() - INTERVAL '30 days' RETURNING itens, cep"), {"t": token})).mappings().first()
+        except Exception:
+            row = None
+    if not row:
+        return RedirectResponse("/checkout", status_code=302)
+    return await _checkout_com_link(request, row["itens"], row["cep"] or "")
+
+
+async def _checkout_com_link(request: Request, c: str = "", cep: str = ""):
     ctx = _page_ctx(request)
     cep_d = re.sub(r"\D", "", cep or "")
     ctx["link_cep"] = f"{cep_d[:5]}-{cep_d[5:]}" if len(cep_d) == 8 else ""

@@ -2815,7 +2815,7 @@ async def local_inventory_feed():
 
 @router.get("/robots.txt", response_class=PlainTextResponse)
 async def robots():
-    return f"User-agent: *\nAllow: /\nSitemap: {SITE_URL}/sitemap.xml\n"
+    return f"User-agent: *\nAllow: /\nDisallow: /l/\nDisallow: /checkout\nSitemap: {SITE_URL}/sitemap.xml\n"
 
 
 import re

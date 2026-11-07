@@ -211,6 +211,28 @@ async def sales_create(
 # ── CHECKOUT (корзина → несколько продаж) ──
 
 import json as _json
+import re as _re
+import secrets as _secrets
+
+
+@router.post("/api/link-carrinho")
+async def criar_link_carrinho(request: Request, _=Depends(basic_auth)):
+    """Link curto do carrinho para o cliente pagar no site: /l/<código> (não mostra ids nem CEP na URL)."""
+    body = await request.json()
+    itens = "~".join(p for p in str(body.get("itens") or "").split("~")[:50] if _re.fullmatch(r"\d+\.\d+", p))
+    cep = _re.sub(r"\D", "", str(body.get("cep") or ""))
+    if not itens:
+        return {"ok": False, "error": "Carrinho vazio"}
+    token = _secrets.token_urlsafe(6)
+    async with engine.begin() as conn:
+        await conn.execute(text("""CREATE TABLE IF NOT EXISTS cart_links (
+            token TEXT PRIMARY KEY, itens TEXT NOT NULL, cep TEXT,
+            criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW(), aberto INT NOT NULL DEFAULT 0)"""))
+        await conn.execute(text("INSERT INTO cart_links (token, itens, cep) VALUES (:t, :i, :c)"),
+                           {"t": token, "i": itens, "c": cep if len(cep) == 8 else None})
+    site = os.environ.get("SITE_URL", "https://www.mtfrefrigeracao.com.br").rstrip("/")
+    return {"ok": True, "url": f"{site}/l/{token}"}
+
 
 @router.get("/checkout", response_class=HTMLResponse)
 async def checkout_page(request: Request, _=Depends(basic_auth)):
