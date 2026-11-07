@@ -698,8 +698,10 @@ def _page_ctx(request: Request, **extra) -> dict:
 
 # ── PÁGINAS ────────────────────────────────────────────────────────────────────
 @router.get("/checkout", response_class=HTMLResponse)
-async def checkout_page(request: Request, c: str = ""):
+async def checkout_page(request: Request, c: str = "", cep: str = ""):
     ctx = _page_ctx(request)
+    cep_d = re.sub(r"\D", "", cep or "")
+    ctx["link_cep"] = f"{cep_d[:5]}-{cep_d[5:]}" if len(cep_d) == 8 else ""
     # ?c=12.2~40.1 -> carrinho montado pela loja (botão "Link do carrinho" na admin); preço sempre do banco
     link = []
     if c:

@@ -592,8 +592,8 @@ async function pagar() {
 try {
   const saved = JSON.parse(localStorage.getItem('mtf_checkout_dados') || 'null');
   if (saved) { $('f-name').value = saved.name || ''; $('f-phone').value = saved.phone || ''; $('f-email').value = saved.email || ''; }
-  const cep = localStorage.getItem('mtf_cep');
-  if (cep) $('f-cep').value = cep;
+  const cep = {{ (link_cep or '')|tojson }} || localStorage.getItem('mtf_cep');   // CEP do link da loja vale mais
+  if (cep) { $('f-cep').value = cep; try { localStorage.setItem('mtf_cep', cep); } catch (e) {} }
 } catch (e) {}
 
 renderSummary();
