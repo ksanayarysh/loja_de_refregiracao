@@ -228,6 +228,13 @@ const WA_NUMBER = '{{ wa_number }}';
 {% set _fg = frete_gratis_cfg() %}const FG = { min: {{ _fg.min }}, km: {{ _fg.km }}, sem_limite: {{ _fg.sem_limite }}, estados: {{ _fg.estados }} };
 let cart = [];
 try { cart = JSON.parse(localStorage.getItem('mtf_cart') || '[]'); } catch (e) {}
+// link do carrinho enviado pela loja (?c=...): substitui o carrinho e some da barra de endereço
+const LINK_CART = {{ (link_cart or [])|tojson }};
+if (LINK_CART.length) {
+  cart = LINK_CART;
+  try { localStorage.setItem('mtf_cart', JSON.stringify(cart)); sessionStorage.setItem('mtf_src', 'Link da loja'); } catch (e) {}
+  try { history.replaceState(null, '', location.pathname); } catch (e) {}
+}
 let frete = null; // { service, price } quando entrega
 const KIT_BLOCKED = ['LALAGO', 'LALAPRO', 'UBER']; // igual a KIT_BLOCKED_SERVICES em checkout.py
 

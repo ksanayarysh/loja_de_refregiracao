@@ -698,8 +698,27 @@ def _page_ctx(request: Request, **extra) -> dict:
 
 # ── PÁGINAS ────────────────────────────────────────────────────────────────────
 @router.get("/checkout", response_class=HTMLResponse)
-async def checkout_page(request: Request):
-    return templates.TemplateResponse("checkout.html", _page_ctx(request))
+async def checkout_page(request: Request, c: str = ""):
+    ctx = _page_ctx(request)
+    # ?c=12.2~40.1 -> carrinho montado pela loja (botão "Link do carrinho" na admin); preço sempre do banco
+    link = []
+    if c:
+        pares = {}
+        for parte in c.split("~")[:50]:
+            try:
+                pid, q = parte.split(".", 1)
+                pid, q = int(pid), int(q)
+            except ValueError:
+                continue
+            if pid > 0 and 0 < q <= 100:
+                pares[pid] = pares.get(pid, 0) + q
+        prods = await _fetch_products(set(pares))
+        for pid, q in pares.items():
+            r = prods.get(pid)
+            if r and not _so_balcao(r):
+                link.append({"id": pid, "name": r["name"], "price": r["price"], "unit": r["unit"], "qty": q})
+    ctx["link_cart"] = link
+    return templates.TemplateResponse("checkout.html", ctx)
 
 
 @router.get("/pedido/{order_id}", response_class=HTMLResponse)

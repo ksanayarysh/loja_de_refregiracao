@@ -217,6 +217,7 @@ async def checkout_page(request: Request, _=Depends(basic_auth)):
     return templates.TemplateResponse("checkout.html", {
         "request": request,
         "wa_number": os.environ.get("WA_OWNER_NUMBER", ""),
+        "site_url": os.environ.get("SITE_URL", "https://www.mtfrefrigeracao.com.br").rstrip("/"),
     })
 
 
