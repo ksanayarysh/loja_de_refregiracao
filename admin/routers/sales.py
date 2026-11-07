@@ -69,8 +69,20 @@ def _sort_url(request: Request, field: str, current_sort: str, current_dir: str)
 
 
 async def _get_products(conn):
-    res = await conn.execute(text("SELECT id, name, sale_price, unit FROM products WHERE active = TRUE ORDER BY name"))
-    return res.mappings().all()
+    from routers.products import _promo2_ativo
+    try:
+        res = await conn.execute(text("SELECT id, name, sale_price, unit, promo2_pct, promo2_until "
+                                      "FROM products WHERE active = TRUE ORDER BY name"))
+    except Exception:                      # colunas da promoção ainda não criadas
+        await conn.rollback()
+        res = await conn.execute(text("SELECT id, name, sale_price, unit FROM products WHERE active = TRUE ORDER BY name"))
+    out = []
+    for r in res.mappings().all():
+        r = dict(r)
+        r["promo2"] = (_promo2_ativo(r.get("promo2_pct"), r.get("promo2_until"))
+                       if str(r.get("unit") or "").strip().lower() != "kg" else None)
+        out.append(r)
+    return out
 
 
 # ── NEW SALE ──
@@ -145,6 +157,13 @@ async def sales_create(
                         total_d = None
                 else:
                     total_d = qty_d * price_d
+                # "2ª unidade com X% off": sem total digitado, o servidor aplica; e anota na venda
+                p2 = next((x.get("promo2") for x in products if x["id"] == product_id), None)
+                n2 = int(qty_d) // 2 if (p2 and qty_d is not None and qty_d == qty_d.to_integral_value()) else 0
+                if n2 and not error:
+                    if not total.strip():
+                        total_d = qty_d * price_d - n2 * (price_d - money2(price_d * (100 - Decimal(str(p2))) / 100))
+                    note = " · ".join(x for x in (note.strip(), f"2ª unidade -{p2:g}%") if x)
 
                 if not error:
                     total_d = money2(total_d)

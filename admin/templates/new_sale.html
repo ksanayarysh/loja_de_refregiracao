@@ -70,6 +70,7 @@
             <option value="{{ p['id'] }}"
                     data-price="{{ p['sale_price'] or 0 }}"
                     data-unit="{{ p['unit'] or '' }}"
+                    data-p2="{{ p['promo2'] or '' }}"
                     data-image="{{ p['image'] or '' }}">
               {{ p['name'] }}{% if p['unit'] %} ({{ p['unit'] }}){% endif %}
             </option>
@@ -99,6 +100,7 @@
 
         <label for="total">Total</label>
         <input id="total" name="total" inputmode="decimal" placeholder="Auto (quantidade × preço)">
+        <div class="hint" id="p2Hint" style="color:#15803d;font-weight:800;"></div>
         <div class="hint">Você pode corrigir o total manualmente (desconto, etc.).</div>
 
         <label for="payment_type">Forma de pagamento</label>
@@ -187,7 +189,18 @@
     const q=parseNum(qtyEl.value);
     const p=parseNum(priceEl.value) ?? getSelectedPrice();
     // умножаем через целые числа чтобы избежать 28*1.000 = 27.9999...
-    if(q!==null && p!==null) totalEl.value=fmt2(Math.round(q*1000) * Math.round(p*100) / 100000);
+    if(q===null || p===null) return;
+    let tot = Math.round(q*1000) * Math.round(p*100) / 100000;
+    // "2ª unidade com X% off" (o servidor anota na venda)
+    const o = selectedOpt(), pct = o ? parseFloat(o.dataset.p2 || '0') : 0;
+    const h = document.getElementById('p2Hint');
+    if (pct && Math.abs(q - Math.round(q)) < 1e-9) {
+      const n = Math.floor(Math.round(q) / 2), um = p - Math.round(p * (100 - pct)) / 100;
+      tot -= n * um;
+      h.textContent = n ? `🎁 2ª unidade −${String(pct).replace('.', ',')}%: −R$ ${(n * um).toFixed(2).replace('.', ',')} (já no total)`
+                        : `🎁 Leve 2: a 2ª sai com ${String(pct).replace('.', ',')}% off`;
+    } else if (h) { h.textContent = ''; }
+    totalEl.value=fmt2(tot);
   }
 
   priceEl.addEventListener("input",()=>{
