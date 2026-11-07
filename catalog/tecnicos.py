@@ -68,7 +68,8 @@ def aplicar_desconto(items: list, pct: float) -> tuple[list, float, float]:
     novos, sub, desc = [], 0.0, 0.0
     for it in items:
         it = dict(it)
-        if not it.get("kit") and not it.get("kit_id") and pct > 0:
+        # promoção "2ª unidade" já é desconto: não soma com o de técnico
+        if not it.get("kit") and not it.get("kit_id") and not it.get("promo2") and pct > 0:
             cheio = float(it["price"])
             preco = round(cheio * (100 - pct) / 100, 2)
             desc += (cheio - preco) * float(it["qty"])

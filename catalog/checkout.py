@@ -170,7 +170,7 @@ async def _fetch_products(ids: list) -> dict:
         return {}
     async with engine.connect() as conn:
         res = await conn.execute(text("""
-            SELECT id, name, unit, sale_price, promo_price, promo_until
+            SELECT id, name, unit, sale_price, promo_price, promo_until, promo2_pct, promo2_until
             FROM products
             WHERE active = TRUE AND id = ANY(:ids)
         """), {"ids": list(ids)})
@@ -244,6 +244,22 @@ async def _load_items(raw_items: list) -> tuple[list, float]:
                 "subtotal": round(price * qty, 2)}
         if kit_ok:
             item.update({"kit": True, "discount_pct": pct, "full_price": r["price"]})
+        p2 = r.get("promo2_pct") if not is_kit else None
+        if p2:
+            # "2ª unidade com X% off": em cada par, uma unidade com desconto -> vira 2 linhas
+            # (preço cheio + preço com desconto), assim a venda na admin e a margem ficam certas
+            item["promo2"] = p2
+            n_desc = int(qty) // 2 if float(qty).is_integer() else 0
+            if n_desc:
+                p_desc = round(price * (100 - p2) / 100, 2)
+                item.update({"qty": qty - n_desc, "subtotal": round(price * (qty - n_desc), 2)})
+                items.append(item)
+                subtotal += price * (qty - n_desc)
+                items.append({"id": pid, "name": f"{r['name']} (2ª unidade -{p2:g}%)", "unit": r["unit"],
+                              "price": p_desc, "qty": n_desc, "subtotal": round(p_desc * n_desc, 2),
+                              "promo2": p2, "promo2_linha": True, "full_price": price})
+                subtotal += p_desc * n_desc
+                continue
         items.append(item)
         subtotal += price * qty
     return items, round(subtotal, 2)
@@ -300,8 +316,9 @@ async def _stock_problems(items: list) -> tuple[list, list, dict]:
         if i.get("kit_id"):
             if any(c.get("id") in short_ids for c in i.get("components") or []):
                 short.append({"kit_id": i["kit_id"], "name": i["name"]})
-        elif i["id"] in short_ids:
-            short.append({"id": i["id"], "name": i["name"], "qty": i["qty"], "stock": stock.get(i["id"], 0)})
+        elif i["id"] in short_ids and not i.get("promo2_linha"):     # 2ª unidade: mesma peça, não repete
+            short.append({"id": i["id"], "name": i["name"], "qty": need.get(i["id"], i["qty"]),
+                          "stock": stock.get(i["id"], 0)})
     return kg, short, stock
 
 
@@ -1094,6 +1111,7 @@ async def checkout_stock(request: Request):
         "kg": [i["id"] for i in kg],
         "stock": {str(s["id"]): s["stock"] for s in short if s.get("id")},
         "kits": [s["kit_id"] for s in short if s.get("kit_id")],
+        "promo2": {str(i["id"]): i["promo2"] for i in items if i.get("promo2")},
         "message": _stock_msg(kg, short),
     }, headers={"Cache-Control": "no-store"})
 

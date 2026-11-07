@@ -575,6 +575,9 @@ async def _ensure_promo_column():
                 await conn.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS promo_price NUMERIC(10,2)"))
             # validade da promoção (opcional): depois desta data volta o preço normal sozinho
             await conn.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS promo_until DATE"))
+            # "2ª unidade com X% off" (a admin também cria)
+            await conn.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS promo2_pct NUMERIC(5,2)"))
+            await conn.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS promo2_until DATE"))
         _promo_col_ready = True
     except Exception:
         _blog_log.exception("promo_price: não foi possível garantir a coluna")
@@ -613,6 +616,15 @@ def _apply_promo(r: dict) -> dict:
     if hasattr(until, "isoformat"):
         r["promo_until"] = until.isoformat()
     r["price"] = promo if r["on_promo"] else sale
+    # "2ª unidade com X% off": promo2_pct só vale se estiver entre 1 e 90 e dentro da validade
+    p2, u2 = r.get("promo2_pct"), r.get("promo2_until")
+    p2 = float(p2) if p2 is not None else None
+    if not p2 or not (1 <= p2 <= 90) or (u2 and hasattr(u2, "isoformat") and u2 < datetime.now(BRT).date()):
+        p2 = None
+    r["promo2_pct"] = p2
+    r["promo2_days_left"] = ((u2 - datetime.now(BRT).date()).days if p2 and hasattr(u2, "isoformat") else None)
+    if hasattr(u2, "isoformat"):
+        r["promo2_until"] = u2.isoformat()
     if r.get("name"):
         r["name"] = _nice_name(r["name"])
     return r
@@ -623,7 +635,7 @@ async def _get_products(conn):
     await _ensure_promo_column()
     res = await conn.execute(text("""
         SELECT p.id, p.name, p.sale_price, p.promo_price, p.promo_until, p.unit, p.image, p.description,
-               p.google_category,
+               p.google_category, p.promo2_pct, p.promo2_until,
                COALESCE(c.name, 'Outro') AS category_name,
                c2.name AS category2_name,
                GREATEST(0, COALESCE(SUM(sm.qty), 0)) AS current_stock
@@ -633,7 +645,7 @@ async def _get_products(conn):
         LEFT JOIN stock_movements sm ON sm.product_id = p.id
         WHERE p.active = TRUE
         GROUP BY p.id, p.name, p.sale_price, p.promo_price, p.promo_until, p.unit, p.image, p.description,
-               p.google_category, c.name, c2.name
+               p.google_category, p.promo2_pct, p.promo2_until, c.name, c2.name
         ORDER BY
             CASE WHEN c.name ILIKE '%gas%' OR c.name ILIKE '%gás%' THEN 0 ELSE 1 END,
             c.name NULLS LAST,

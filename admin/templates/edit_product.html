@@ -136,6 +136,14 @@
     <input id="promo_until" name="promo_until" type="date" value="{{ product.promo_until.isoformat() if product.promo_until else '' }}" style="max-width:220px;">
     <div class="hint">Último dia da promoção. Depois dessa data o preço normal volta sozinho (site e vendas). O site mostra "Termina em X dias". Vazio = sem prazo.</div>
 
+    <label for="promo2_pct">2ª unidade com desconto (%) — só no site, opcional</label>
+    <input id="promo2_pct" name="promo2_pct" inputmode="decimal" value="{% if product.promo2_pct %}{{ '%g'|format(product.promo2_pct|float) }}{% endif %}" placeholder="Ex.: 50" style="max-width:140px;">
+    <div class="hint">Vazio = sem promoção. Ex.: 50 = "Leve 2, a 2ª sai com 50% off" (em cada par, uma unidade com desconto). De 1 a 90.</div>
+    <div class="hint" id="promo2-hint"></div>
+    <label for="promo2_until">2ª unidade com desconto — válida até (opcional)</label>
+    <input id="promo2_until" name="promo2_until" type="date" value="{{ product.promo2_until.isoformat() if product.promo2_until else '' }}" style="max-width:220px;">
+    <div class="hint">Último dia. Depois dessa data a promoção some sozinha do site. Vazio = sem prazo.</div>
+
 
 
         <div class="desc-row">
@@ -243,6 +251,25 @@ function updatePromo() {
   hint.innerHTML = `<span style="font-weight:800;">${txt}</span>`;
 }
 ['sale_price','promo_price','cost_price'].forEach(id => document.getElementById(id).addEventListener('input', updatePromo));
+// "2ª unidade com X% off": quanto sobra de lucro no par
+function updatePromo2() {
+  const n = id => parseFloat((document.getElementById(id).value || '').replace(',', '.')) || 0;
+  const pct = n('promo2_pct'), cost = n('cost_price');
+  const p = (n('promo_price') && n('promo_price') < n('sale_price')) ? n('promo_price') : n('sale_price');
+  const h = document.getElementById('promo2-hint');
+  if (!pct) { h.innerHTML = ''; return; }
+  if (pct < 1 || pct > 90) { h.innerHTML = '<span style="color:#dc2626;font-weight:800;">Use um número de 1 a 90.</span>'; return; }
+  const par = p * 2 - p * pct / 100;
+  let txt = `Par sai por R$ ${par.toFixed(2)} (${(pct / 2).toFixed(0)}% de desconto no par)`;
+  if (cost) {
+    const lucro = par - cost * 2, m = lucro / par * 100;
+    const color = m >= 15 ? '#16a34a' : m >= 0 ? '#d97706' : '#dc2626';
+    txt += ` — <span style="color:${color};">lucro no par: R$ ${lucro.toFixed(2)} (${m.toFixed(1)}%)</span>`;
+  }
+  h.innerHTML = `<span style="font-weight:800;">${txt}</span>`;
+}
+['sale_price','promo_price','cost_price','promo2_pct'].forEach(id => document.getElementById(id).addEventListener('input', updatePromo2));
+updatePromo2();
 updatePromo();
 
 function toggleGasLink() {

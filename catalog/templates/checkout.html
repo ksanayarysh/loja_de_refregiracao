@@ -56,6 +56,8 @@
     .co-tec-row{display:flex;gap:8px;margin-top:8px;}
     .co-tec-row .co-input{flex:1;min-width:0;}
     .co-hidden{display:none !important;}
+    .co-p2{font-size:.78rem;font-weight:700;color:#15803d;margin-top:3px;}
+    .co-p2 a{color:#15803d;}
 
     .co-summary{position:sticky;top:90px;}
     .co-item{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);font-size:.95rem;}
@@ -194,6 +196,7 @@
         <div class="co-note" id="tec-msg">Ainda não tem? <a href="/tecnico" target="_blank" rel="noopener">Cadastre-se e ganhe preço de técnico →</a></div>
       </details>
       <div class="co-line"><span>Produtos</span><span class="co-money" id="sum-sub">R$ 0,00</span></div>
+      <div class="co-line co-hidden" id="p2-line" style="color:#15803d;"><span>Promoção 2ª unidade</span><span class="co-money" id="sum-p2">− R$ 0,00</span></div>
       <div class="co-line co-hidden" id="tec-line" style="color:#15803d;"><span id="tec-lbl">Desconto de técnico</span><span class="co-money" id="sum-tec">− R$ 0,00</span></div>
       <div class="co-line"><span>Frete</span><span class="co-money" id="sum-frete">Grátis</span></div>
       <div class="co-total"><span>Total</span><span class="co-money" id="sum-total">R$ 0,00</span></div>
@@ -265,9 +268,18 @@ function cartRemove(idx) { const it = cart[idx]; if (it) cartQty(idx, -it.qty); 
 function subtotal() { return cart.reduce((s, i) => s + i.price * i.qty, 0); }
 // ── preço de técnico (o servidor recalcula; aqui é só para mostrar o mesmo valor) ──
 let tec = null;   // {codigo, pct, nome}
+// ── "2ª unidade com X% off" (o servidor diz quais produtos têm e recalcula no pedido) ──
+let P2 = {};   // id -> %
+function p2Desc(i) {
+  const pct = (!i.kit && !i.kit_id) ? P2[String(i.id)] : 0;
+  if (!pct) return 0;
+  const um = i.price - Math.round(i.price * (100 - pct)) / 100;
+  return Math.floor(i.qty / 2) * um;
+}
+function descPromo2() { return cart.reduce((s, i) => s + p2Desc(i), 0); }
 function descTecnico() {
   if (!tec) return 0;
-  return cart.reduce((s, i) => (i.kit || i.kit_id) ? s
+  return cart.reduce((s, i) => (i.kit || i.kit_id || P2[String(i.id)]) ? s
     : s + (i.price - Math.round(i.price * (100 - tec.pct)) / 100) * i.qty, 0);
 }
 async function aplicarTecnico(silencioso) {
@@ -294,11 +306,19 @@ document.querySelectorAll('input[name="pmethod"]').forEach(r => r.addEventListen
   $('pay-badge').textContent = pmethod() === 'card' ? '🔒 Pagamento seguro pelo Mercado Pago' : '⚡ Pix · aprovação na hora';
 }));
 
+function p2Nota(i, idx) {
+  const pct = (!i.kit && !i.kit_id) ? P2[String(i.id)] : 0;
+  if (!pct) return '';
+  const pc = String(pct).replace('.', ',');
+  const d = p2Desc(i);
+  if (d > 0) return `<div class="co-p2">🎁 2ª unidade −${pc}%: −${brl(d)}${i.qty % 2 ? ` · <a href="#" onclick="cartQty(${idx},1);return false;">+1 e ganhe mais</a>` : ''}</div>`;
+  return `<div class="co-p2">🎁 Leve 2: a 2ª sai com ${pc}% off · <a href="#" onclick="cartQty(${idx},1);return false;">adicionar mais 1</a></div>`;
+}
 function renderSummary() {
   if (!cart.length) { $('co-main').classList.add('co-hidden'); $('co-empty').classList.remove('co-hidden'); return; }
   $('sum-items').innerHTML = cart.map((i, idx) => `
     <div class="co-item">
-      <div class="co-item-name">${esc(i.name)}${i.kit ? ' <span class="co-kit">kit</span>' : ''} <div class="co-item-qty">${i.qty} × ${brl(i.price)}${i.unit ? ' / ' + esc(i.unit) : ''}</div>${i.items ? `<div class="co-item-qty">${i.items.map(c => esc(c.qty + ' ' + c.unit + ' ' + c.name) + (c.is_gift ? ' 🎁' : '')).join(' · ')}</div>` : ''}</div>
+      <div class="co-item-name">${esc(i.name)}${i.kit ? ' <span class="co-kit">kit</span>' : ''} <div class="co-item-qty">${i.qty} × ${brl(i.price)}${i.unit ? ' / ' + esc(i.unit) : ''}</div>${p2Nota(i, idx)}${i.items ? `<div class="co-item-qty">${i.items.map(c => esc(c.qty + ' ' + c.unit + ' ' + c.name) + (c.is_gift ? ' 🎁' : '')).join(' · ')}</div>` : ''}</div>
       <div class="co-item-r">
         <div class="co-money">${brl(i.price * i.qty)}</div>
         <div class="co-stepper"><button type="button" onclick="cartQty(${idx},-1)" aria-label="Diminuir">−</button><span>${i.qty}</span><button type="button" onclick="cartQty(${idx},1)" aria-label="Aumentar">+</button></div>
@@ -306,13 +326,16 @@ function renderSummary() {
       </div>
     </div>`).join('');
   const sub = subtotal();
+  const p2 = Math.round(descPromo2() * 100) / 100;
+  $('p2-line').classList.toggle('co-hidden', !p2);
+  if (p2) $('sum-p2').textContent = '− ' + brl(p2);
   const fr = dtype() === 'lalamove' ? (frete ? frete.price : null) : 0;
   const dt = (tec && tec.pct > 0) ? Math.round(descTecnico() * 100) / 100 : 0;   // sem código: linha escondida
   $('sum-sub').textContent = brl(sub);
   $('tec-line').classList.toggle('co-hidden', !dt);
   if (dt) { $('tec-lbl').textContent = `Desconto de técnico (${String(tec.pct).replace('.', ',')}%)`; $('sum-tec').textContent = '− ' + brl(dt); }
   $('sum-frete').textContent = fr === null ? '—' : (fr === 0 ? 'Grátis' : brl(fr));
-  $('sum-total').textContent = brl(sub - dt + (fr || 0));
+  $('sum-total').textContent = brl(sub - p2 - dt + (fr || 0));
   $('pay-btn').disabled = dtype() === 'lalamove' && !frete;
 }
 
@@ -410,7 +433,7 @@ async function calcFrete(auto) {
     // a opção mais barata vem marcada e já selecionada
     const minP = Math.min(...opts.map(o => o.price));
     const pick = opts.findIndex(o => o.price === minP);
-    const subFg = cart.reduce((s, i) => s + i.price * i.qty, 0);
+    const subFg = subtotal() - descPromo2();
     // frete grátis no Rio: mostra quanto falta (só entrega local, não Correios)
     let falta = '';
     if (!isMe && minP > 0 && FG.min > 0) {
@@ -477,6 +500,7 @@ async function syncStock() {
     d = await r.json();
   } catch (e) { return ''; }
   const kg = new Set((d.kg || []).map(Number)), stock = d.stock || {}, kits = new Set((d.kits || []).map(Number));
+  P2 = d.promo2 || {};
   const notes = [];
   cart = cart.filter(i => {
     if (i.kit_id) {

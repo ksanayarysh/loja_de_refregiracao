@@ -90,6 +90,9 @@ async def _ensure_promo_column(conn):
     await conn.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS promo_price NUMERIC(10,2)"))
     # validade da promoção (opcional): depois desta data o preço normal volta sozinho (site e PDV)
     await conn.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS promo_until DATE"))
+    # "2ª unidade com X% off" (só no site): % de desconto na 2ª unidade de cada par + validade opcional
+    await conn.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS promo2_pct NUMERIC(5,2)"))
+    await conn.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS promo2_until DATE"))
     _promo_ready = True
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -133,6 +136,16 @@ def _parse_date(value: str) -> Optional[date]:
         return date.fromisoformat((value or "").strip())
     except ValueError:
         return None
+
+
+def _parse_pct(value: str) -> Optional[Decimal]:
+    """'50' / '50%' / '30,5' -> Decimal entre 1 e 90; vazio/0/inválido -> None (sem promoção)."""
+    v = (value or "").strip().replace("%", "").replace(",", ".")
+    try:
+        d = Decimal(v)
+    except Exception:
+        return None
+    return d if Decimal("1") <= d <= Decimal("90") else None
 
 
 def _parse_promo(value: str) -> Optional[Decimal]:
@@ -263,7 +276,7 @@ async def edit_product_form(product_id: int, request: Request, _=Depends(basic_a
 
     async with engine.connect() as conn:
         res = await conn.execute(
-            text("""SELECT id, name, category_id, category2_id, unit, sale_price, promo_price, promo_until, cost_price, min_stock,
+            text("""SELECT id, name, category_id, category2_id, unit, sale_price, promo_price, promo_until, promo2_pct, promo2_until, cost_price, min_stock,
                            image, description, shelf_code, linked_product_id, linked_qty, google_category,
                            gtin, brand, sku, ship_peso, ship_comp, ship_larg, ship_alt, ship_bloq, cost_estimado
                     FROM products WHERE id = :id AND active = TRUE"""),
@@ -295,6 +308,8 @@ async def update_product(
     shelf_code: str = Form(""),
     promo_price: str = Form(""),
     promo_until: str = Form(""),
+    promo2_pct: str = Form(""),
+    promo2_until: str = Form(""),
     linked_product_id: str = Form(""),
     linked_qty: str = Form(""),
     google_category: str = Form(""),
@@ -335,6 +350,8 @@ async def update_product(
 
         promo = _parse_promo(promo_price)
         until = _parse_date(promo_until) if promo is not None else None
+        p2 = _parse_pct(promo2_pct)
+        p2_until = _parse_date(promo2_until) if p2 is not None else None
         dup = await conn.execute(
             text("SELECT id FROM products WHERE LOWER(TRIM(name)) = LOWER(TRIM(:name)) AND active = TRUE AND id != :id"),
             {"name": name.strip(), "id": product_id}
@@ -343,7 +360,7 @@ async def update_product(
         promo_bad = promo is not None and promo >= price
         if dup_found or promo_bad:
             res = await conn.execute(
-                text("""SELECT id, name, category_id, category2_id, unit, sale_price, promo_price, promo_until, cost_price, min_stock,
+                text("""SELECT id, name, category_id, category2_id, unit, sale_price, promo_price, promo_until, promo2_pct, promo2_until, cost_price, min_stock,
                                image, description, shelf_code, linked_product_id, linked_qty, google_category,
                                gtin, brand, sku, ship_peso, ship_comp, ship_larg, ship_alt, ship_bloq, cost_estimado
                         FROM products WHERE id = :id"""),
@@ -393,6 +410,7 @@ async def update_product(
                     SET name=:name, category_id=:category_id, category2_id=:category2_id,
                         unit=:unit, description=:description, shelf_code=:shelf_code,
                         sale_price=:sale_price, promo_price=:promo_price, promo_until=:promo_until,
+                        promo2_pct=:promo2_pct, promo2_until=:promo2_until,
                         cost_price=:cost_price, min_stock=:min_stock,
                         linked_product_id=:linked_product_id, linked_qty=:linked_qty,
                         google_category=:google_category,
@@ -406,6 +424,7 @@ async def update_product(
              "category2_id": category2_id if category2_id and category2_id > 0 else None,
              "description": description.strip() or None, "shelf_code": shelf_code.strip() or None,
              "unit": unit, "sale_price": price, "promo_price": promo, "promo_until": until,
+             "promo2_pct": p2, "promo2_until": p2_until,
              "cost_price": cost, "min_stock": min_stock,
              "linked_product_id": linked_pid, "linked_qty": linked_qty_d,
              "google_category": google_category.strip() or None,

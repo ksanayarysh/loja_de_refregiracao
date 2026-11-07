@@ -522,6 +522,9 @@
     .reserva-row{display:flex;gap:8px;}
     .reserva-in{width:100%;min-width:0;padding:11px 12px;border:1.5px solid var(--border);border-radius:9px;font-family:inherit;font-size:.95rem;background:var(--bg);color:var(--text);margin-bottom:8px;}
     .reserva-in:focus{outline:none;border-color:var(--accent);}
+    .p2-box{margin-top:10px;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:8px 11px;color:#065f46;font-size:.86rem;line-height:1.35;}
+    .p2-sub{display:block;font-size:.76rem;color:#047857;margin-top:2px;}
+    .pq-econ{font-size:.78rem;font-weight:700;color:#15803d;width:100%;}
     .pq-row{display:flex;align-items:center;gap:10px;margin:2px 0 10px;flex-wrap:wrap;}
     .pq-lab{font-size:.85rem;font-weight:700;color:var(--text);}
     .pq-step{display:flex;align-items:center;border:1.5px solid var(--border);border-radius:10px;overflow:hidden;background:var(--surface);}
@@ -708,6 +711,11 @@
         {% if product.unit != 'kg' %}<div class="price-parc">ou em até <strong>12x</strong><br>no cartão</div>{% endif %}
       </div>
       <div class="price-per" style="font-size:.8rem;color:var(--muted);margin-top:2px;">por {{ product.unit }}{% if not envia_br %} · Rio de Janeiro{% endif %}</div>
+      {% if product.promo2_pct and not is_kg %}{% set _p2 = product.promo2_pct %}{% set _p2v = (product.price * (100 - _p2) / 100)|round(2) %}
+      <div class="p2-box">🎁 <strong>Leve 2: a 2ª unidade sai com {{ '%g'|format(_p2)|replace('.', ',') }}% off</strong>
+        <span class="p2-sub">2 un. por R$ {{ "%.2f"|format(product.price + _p2v)|replace('.', ',') }} em vez de R$ {{ "%.2f"|format(product.price * 2)|replace('.', ',') }}{% if product.promo2_days_left is not none %} · {% if product.promo2_days_left == 0 %}termina hoje{% else %}termina em {{ product.promo2_days_left }} dia{{ 's' if product.promo2_days_left != 1 }}{% endif %}{% endif %} · só no site</span>
+      </div>
+      {% endif %}
       {% else %}
       <div class="price-consult">Consulte disponibilidade</div>
       {% endif %}
@@ -763,6 +771,7 @@
           <button type="button" class="pq-btn" onclick="pqMudar(1)" aria-label="Aumentar">+</button>
         </div>
         <span class="pq-disp">{{ max_qty }} disponíve{{ 'l' if max_qty == 1 else 'is' }}</span>
+        {% if product.promo2_pct %}<span class="pq-econ" id="pq-econ"></span>{% endif %}
       </div>
       {% endif %}
       <button class="buy-now-btn" type="button"
@@ -1121,12 +1130,23 @@ function pqQtd() {
   const n = el ? parseInt(el.value, 10) : 1;
   return Math.min(PROD_MAX, Math.max(1, isNaN(n) ? 1 : n));
 }
+const PROD_P2 = {{ product.promo2_pct or 0 }};   // "2ª unidade com X% off"
+document.addEventListener('DOMContentLoaded', () => { try { pqEcon(); } catch (e) {} });
+function pqEcon() {
+  const box = document.getElementById('pq-econ');
+  if (!box || !PROD_P2) return;
+  const q = pqQtd(), um = PROD_PRECO - Math.round(PROD_PRECO * (100 - PROD_P2)) / 100;
+  const ec = Math.floor(q / 2) * um, f = v => 'R$ ' + v.toFixed(2).replace('.', ',');
+  box.textContent = ec > 0 ? `Total ${f(PROD_PRECO * q - ec)} · você economiza ${f(ec)}`
+                           : 'Escolha 2 para ganhar o desconto na 2ª unidade';
+}
 function pqMudar(d) {
   const el = document.getElementById('pq-qty');
   if (!el) return;
   el.value = Math.min(PROD_MAX, Math.max(1, (parseInt(el.value, 10) || 1) + d));
   const rs = document.getElementById('rs-qty');
   if (rs) rs.value = el.value;
+  pqEcon();
 }
 function addToCart(id, name, price, unit, btn) {
   mtfEvent(id, 'cart', 'carrinho');
