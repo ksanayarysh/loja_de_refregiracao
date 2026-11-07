@@ -713,7 +713,7 @@
       <div class="price-per" style="font-size:.8rem;color:var(--muted);margin-top:2px;">por {{ product.unit }}{% if not envia_br %} · Rio de Janeiro{% endif %}</div>
       {% if product.promo2_pct and not is_kg %}{% set _p2 = product.promo2_pct %}{% set _p2v = (product.price * (100 - _p2) / 100)|round(2) %}
       <div class="p2-box">🎁 <strong>Leve 2: a 2ª unidade sai com {{ '%g'|format(_p2)|replace('.', ',') }}% off</strong>
-        <span class="p2-sub">2 un. por R$ {{ "%.2f"|format(product.price + _p2v)|replace('.', ',') }} em vez de R$ {{ "%.2f"|format(product.price * 2)|replace('.', ',') }}{% if product.promo2_days_left is not none %} · {% if product.promo2_days_left == 0 %}termina hoje{% else %}termina em {{ product.promo2_days_left }} dia{{ 's' if product.promo2_days_left != 1 }}{% endif %}{% endif %} · só no site</span>
+        <span class="p2-sub">2 un. por R$ {{ "%.2f"|format(product.price + _p2v)|replace('.', ',') }} em vez de R$ {{ "%.2f"|format(product.price * 2)|replace('.', ',') }}{% if product.promo2_days_left is not none %} · {% if product.promo2_days_left == 0 %}termina hoje{% else %}termina em {{ product.promo2_days_left }} dia{{ 's' if product.promo2_days_left != 1 }}{% endif %}{% endif %} · no site e na loja</span>
       </div>
       {% endif %}
       {% else %}

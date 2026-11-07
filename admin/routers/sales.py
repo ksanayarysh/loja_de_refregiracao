@@ -231,17 +231,40 @@ async def sales_checkout(
         # Подтягиваем nome + custo real (nunca confiar no cost_price vindo do cliente)
         product_ids = [int(i["product_id"]) for i in items]
         cost_map = {}
+        p2_map = {}       # "2ª unidade com X% off" (vale no site e na loja)
         if product_ids:
+            from routers.products import _promo2_ativo, _ensure_promo_column
+            await _ensure_promo_column(conn)
             names_res = await conn.execute(
-                text("SELECT id, name, cost_price FROM products WHERE id = ANY(:ids)"),
+                text("SELECT id, name, unit, cost_price, promo2_pct, promo2_until FROM products WHERE id = ANY(:ids)"),
                 {"ids": product_ids}
             )
             names_map = {}
             for r in names_res.mappings():
                 names_map[r["id"]] = r["name"]
                 cost_map[r["id"]] = Decimal(str(r["cost_price"])) if r["cost_price"] is not None else Decimal(0)
+                if str(r["unit"] or "").strip().lower() != "kg":
+                    p2 = _promo2_ativo(r["promo2_pct"], r["promo2_until"])
+                    if p2:
+                        p2_map[r["id"]] = Decimal(str(p2))
             for item in items:
                 item["name"] = names_map.get(int(item["product_id"]), "")
+
+        # 2ª unidade: em cada par, uma unidade com desconto -> a linha vira duas (cheia + com desconto)
+        divididos = []
+        for item in items:
+            pct2 = p2_map.get(int(item["product_id"]))
+            q = Decimal(str(item["qty"]))
+            n_desc = int(q) // 2 if pct2 and q == q.to_integral_value() else 0
+            if n_desc and not item.get("kit"):
+                base = Decimal(str(item["unit_price"]))
+                cheio = dict(item, qty=float(q - n_desc))
+                desc = dict(item, qty=n_desc, unit_price=float(money2(base * (100 - pct2) / 100)),
+                            name=f"{item['name']} (2ª unidade -{pct2:g}%)", _promo2=f"{pct2:g}")
+                divididos += [cheio, desc]
+            else:
+                divididos.append(item)
+        items = divididos
 
         total_cost = Decimal(0)
         grand_total = Decimal(0)
@@ -258,7 +281,8 @@ async def sales_checkout(
             await conn.exec_driver_sql(
                 "INSERT INTO sales (sold_at, product_id, qty, unit_price, total, note, payment_type, client_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)",
                 (sold_at_date, int(item["product_id"]), qty_d, price_d, total_d,
-                 f"Desconto {discount_pct}%" if discount_pct > 0 else None,
+                 " · ".join(x for x in (f"Desconto {discount_pct}%" if discount_pct > 0 else "",
+                                        f"2ª unidade -{item['_promo2']}%" if item.get("_promo2") else "") if x) or None,
                  payment_type, int(client_id.strip()) if client_id.strip() else None)
             )
             # Автосписание стока

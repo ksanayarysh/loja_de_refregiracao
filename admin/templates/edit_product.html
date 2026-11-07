@@ -136,7 +136,7 @@
     <input id="promo_until" name="promo_until" type="date" value="{{ product.promo_until.isoformat() if product.promo_until else '' }}" style="max-width:220px;">
     <div class="hint">Último dia da promoção. Depois dessa data o preço normal volta sozinho (site e vendas). O site mostra "Termina em X dias". Vazio = sem prazo.</div>
 
-    <label for="promo2_pct">2ª unidade com desconto (%) — só no site, opcional</label>
+    <label for="promo2_pct">2ª unidade com desconto (%) — site e loja, opcional</label>
     <input id="promo2_pct" name="promo2_pct" inputmode="decimal" value="{% if product.promo2_pct %}{{ '%g'|format(product.promo2_pct|float) }}{% endif %}" placeholder="Ex.: 50" style="max-width:140px;">
     <div class="hint">Vazio = sem promoção. Ex.: 50 = "Leve 2, a 2ª sai com 50% off" (em cada par, uma unidade com desconto). De 1 a 90.</div>
     <div class="hint" id="promo2-hint"></div>

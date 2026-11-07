@@ -598,6 +598,19 @@ async def generate_description(request: Request, _=Depends(basic_auth)):
         return {"error": str(e)}
 
 
+def _promo2_ativo(pct, until=None) -> Optional[float]:
+    """% da "2ª unidade com desconto" se estiver valendo (1–90 e dentro da validade), senão None."""
+    try:
+        pct = float(pct) if pct is not None else None
+    except (TypeError, ValueError):
+        return None
+    if not pct or not (1 <= pct <= 90):
+        return None
+    if until and until < datetime.now(BRT).date():
+        return None
+    return pct
+
+
 def _eff_price(sale, promo, until=None) -> dict:
     """Preço efetivo para PDV/API: promo (se menor que o preço de venda e não vencida) senão sale_price."""
     sale = float(sale or 0)
@@ -668,13 +681,16 @@ async def api_products_batch(ids: str = Query(""), _=Depends(basic_auth)):
         await _ensure_promo_column(conn)
     async with engine.connect() as conn:
         res = await conn.execute(
-            text("SELECT id, sale_price, promo_price, promo_until, cost_price FROM products WHERE id = ANY(:ids)"),
+            text("SELECT id, unit, sale_price, promo_price, promo_until, promo2_pct, promo2_until, cost_price "
+                 "FROM products WHERE id = ANY(:ids)"),
             {"ids": id_list},
         )
         rows = res.mappings().all()
     return [
         {"id": r["id"], **_eff_price(r["sale_price"], r["promo_price"], r.get("promo_until")),
-         "cost_price": float(r["cost_price"]) if r["cost_price"] is not None else None}
+         "cost_price": float(r["cost_price"]) if r["cost_price"] is not None else None,
+         "promo2_pct": _promo2_ativo(r.get("promo2_pct"), r.get("promo2_until"))
+                       if str(r.get("unit") or "").strip().lower() != "kg" else None}
         for r in rows
     ]
 

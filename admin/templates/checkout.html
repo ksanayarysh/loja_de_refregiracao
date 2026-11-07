@@ -21,6 +21,7 @@
 
     /* TOTAL */
     .totals-block { margin-bottom: 20px; }
+    .p2-note { font-size: .78rem; font-weight: 700; color: #15803d; margin-top: 2px; }
     .subtotal-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; font-size: .95rem; color: #444; }
     .discount-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; }
     .discount-row label { margin: 0; font-weight: 700; font-size: .95rem; color: #111; }
@@ -128,6 +129,10 @@
             <div class="subtotal-row">
               <span>Subtotal:</span>
               <span id="subtotal-display">R$ 0,00</span>
+            </div>
+            <div class="subtotal-row" id="p2-row" style="display:none;color:#15803d;font-weight:700;">
+              <span>Promoção 2ª unidade:</span>
+              <span id="p2-display">− R$ 0,00</span>
             </div>
             <div class="discount-row">
               <label for="discount_percent">Desconto (%)</label>
@@ -242,8 +247,17 @@
     return cart.reduce((s, i) => s + i.price * i.qty, 0);
   }
 
+  // "2ª unidade com X% off" (vem da /api/products/batch; o servidor refaz a conta ao finalizar)
+  const p2Map = {};
+  function p2Desc(i) {
+    const pct = i.kit ? 0 : p2Map[i.id];
+    if (!pct || Math.abs(i.qty - Math.round(i.qty)) > 1e-9) return 0;
+    return Math.floor(Math.round(i.qty) / 2) * (i.price - Math.round(i.price * (100 - pct)) / 100);
+  }
+  function getP2() { return cart.reduce((s, i) => s + p2Desc(i), 0); }
+
   function getDiscountedTotal() {
-    const subtotal = getSubtotal();
+    const subtotal = getSubtotal() - getP2();
     return subtotal - (subtotal * getDiscountPct() / 100);
   }
 
@@ -253,7 +267,8 @@
     try {
       const r = await fetch('/api/products/batch?ids=' + ids.join(','));
       const data = await r.json();
-      data.forEach(p => { costMap[p.id] = p.cost_price; });
+      data.forEach(p => { costMap[p.id] = p.cost_price; if (p.promo2_pct) p2Map[p.id] = p.promo2_pct; });
+      if (Object.keys(p2Map).length) { renderCartRows(); }
     } catch (e) { /* segue sem margem se falhar */ }
     updateTotal();
   }
@@ -267,7 +282,7 @@
     }
     tbody.innerHTML = cart.map((item, idx) => `
       <tr id="row-${idx}">
-        <td><strong>${item.name}</strong>${item.kit ? '<span class="cart-kit">KIT</span>' : ''}<br><small style="color:#888">${item.unit}</small></td>
+        <td><strong>${item.name}</strong>${item.kit ? '<span class="cart-kit">KIT</span>' : ''}<br><small style="color:#888">${item.unit}</small><div class="p2-note" id="p2-${idx}">${p2Nota(item)}</div></td>
         <td class="price">${fmt(item.price)}</td>
         <td>
           <input class="qty-input" type="number" value="${item.qty}" min="0.001" step="any"
@@ -286,6 +301,7 @@
     cart[idx].qty = qty;
     saveCart();
     document.getElementById(`sub-${idx}`).textContent = fmt(cart[idx].price * qty);
+    const n = document.getElementById(`p2-${idx}`); if (n) n.innerHTML = p2Nota(cart[idx]);
     updateTotal();
   }
 
@@ -295,9 +311,20 @@
     renderCart();
   }
 
+  function p2Nota(item) {
+    const pct = item.kit ? 0 : p2Map[item.id];
+    if (!pct) return '';
+    const d = p2Desc(item), pc = String(pct).replace('.', ',');
+    return d > 0 ? `🎁 2ª unidade −${pc}%: −${fmt(d)}` : `🎁 Leve 2: a 2ª sai com ${pc}% off`;
+  }
+  function renderCartRows() { cart.forEach((it, idx) => { const n = document.getElementById(`p2-${idx}`); if (n) n.innerHTML = p2Nota(it); }); }
+
   function updateTotal() {
     const subtotal = getSubtotal();
     const total = getDiscountedTotal();
+    const p2 = getP2();
+    document.getElementById('p2-row').style.display = p2 > 0 ? 'flex' : 'none';
+    document.getElementById('p2-display').textContent = '− ' + fmt(p2);
     document.getElementById('subtotal-display').textContent = fmt(subtotal);
     document.getElementById('total-display').textContent = fmt(total);
 
@@ -342,6 +369,7 @@
       product_id: i.id,
       qty: i.qty,
       unit_price: i.price,
+      kit: !!i.kit,
       total: parseFloat((i.price * i.qty).toFixed(2))
     })));
     document.getElementById('checkout-form').submit();
