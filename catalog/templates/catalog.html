@@ -724,7 +724,9 @@ cartUpdateUI();
   const inp = document.getElementById('hfCep');
   if (!inp) return;
   try { const c = localStorage.getItem('mtf_cep'); if (c) inp.value = c; } catch (e) {}
-  inp.addEventListener('input', () => { let v = inp.value.replace(/\D/g, '').slice(0, 8); if (v.length > 5) v = v.slice(0, 5) + '-' + v.slice(5); inp.value = v; });
+  let ultimo = '';
+  inp.addEventListener('input', () => { let v = inp.value.replace(/\D/g, '').slice(0, 8); if (v.length > 5) v = v.slice(0, 5) + '-' + v.slice(5); inp.value = v;
+    const d = v.replace(/\D/g, ''); if (d.length === 8 && d !== ultimo) { ultimo = d; hfCalc(); } });
   inp.addEventListener('keydown', e => { if (e.key === 'Enter') hfCalc(); });
 })();
 async function hfCalc() {

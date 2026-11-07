@@ -1307,10 +1307,13 @@ updateBadge();
 const freteCep = document.getElementById('frete-cep');
 function escHtml(s) { return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 if (freteCep) {  // gás por kg: sem bloco de frete
+let freteCepFeito = '';
 freteCep.addEventListener('input', e => {
   let v = e.target.value.replace(/\D/g, '').slice(0, 8);
   if (v.length > 5) v = v.slice(0, 5) + '-' + v.slice(5);
   e.target.value = v;
+  const d = v.replace(/\D/g, '');   // 8 dígitos: calcula na hora
+  if (d.length === 8 && d !== freteCepFeito) calcFrete();
 });
 freteCep.addEventListener('keydown', e => { if (e.key === 'Enter') calcFrete(); });
 try { const saved = localStorage.getItem('mtf_cep'); if (saved) freteCep.value = saved; } catch (e) {}
@@ -1350,6 +1353,7 @@ function donoInfo(o) {   // só aparece para a dona (cookie /eu)
 }
 async function calcFrete() {
   const cep = freteCep.value.replace(/\D/g, '');
+  freteCepFeito = cep;
   const box = document.getElementById('frete-result');
   const btn = document.getElementById('frete-btn');
   if (cep.length !== 8) { box.innerHTML = '<span class="frete-err">Digite um CEP válido (8 dígitos).</span>'; return; }

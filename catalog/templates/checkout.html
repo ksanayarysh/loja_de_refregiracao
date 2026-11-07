@@ -352,10 +352,14 @@ document.querySelectorAll('input[name="dtype"]').forEach(r => r.addEventListener
   renderSummary();
 }));
 
+let cepCalculado = '';
 $('f-cep').addEventListener('input', e => {
   let v = e.target.value.replace(/\D/g, '').slice(0, 8);
   if (v.length > 5) v = v.slice(0, 5) + '-' + v.slice(5);
   e.target.value = v;
+  // 8 dígitos digitados (ou colados): calcula na hora, sem precisar tocar em "Calcular"
+  const d = v.replace(/\D/g, '');
+  if (d.length === 8 && d !== cepCalculado) { cepCalculado = d; calcFrete(); }
 });
 $('f-cep').addEventListener('keydown', e => { if (e.key === 'Enter') calcFrete(); });
 const DDDS = [11,12,13,14,15,16,17,18,19,21,22,24,27,28,31,32,33,34,35,37,38,41,42,43,44,45,46,47,48,49,
@@ -399,6 +403,7 @@ function donoInfo(o) {   // só aparece para a dona (cookie /eu)
 }
 async function calcFrete(auto) {
   const cep = $('f-cep').value.replace(/\D/g, '');
+  cepCalculado = cep;
   frete = null; $('frete-opts').innerHTML = ''; $('addr-box').classList.add('co-hidden'); renderSummary();
   if (cep.length !== 8) { $('frete-msg').innerHTML = '<div class="co-msg co-err">Digite um CEP válido (8 dígitos).</div>'; return; }
   const btn = $('cep-btn'); btn.disabled = true; btn.textContent = '...'; $('frete-msg').innerHTML = '';
