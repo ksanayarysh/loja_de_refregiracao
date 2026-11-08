@@ -2729,7 +2729,10 @@ async def product_feed():
             import correios
             rotulo, peso = correios.rotulo_envio(dict(r, **envio_extra.get(r.get("id"), {})))
             ship_tag = (f"\n    <g:shipping_weight>{peso:.2f} kg</g:shipping_weight>"
-                        f"\n    <g:shipping_label>{rotulo}</g:shipping_label>")
+                        f"\n    <g:shipping_label>{rotulo}</g:shipping_label>"
+                        # para separar campanhas no Google Ads: custom_label_0 = so_rio | brasil
+                        f"\n    <g:custom_label_0>{'so_rio' if rotulo == 'so_rio' else 'brasil'}</g:custom_label_0>"
+                        f"\n    <g:custom_label_1>{rotulo}</g:custom_label_1>")
         except Exception:
             pass
 
