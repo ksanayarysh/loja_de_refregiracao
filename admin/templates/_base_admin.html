@@ -179,13 +179,31 @@
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js').catch(() => {});
   }
-  // Pedidos do site: menu pisca enquanto houver pedido pago em aberto (checa a cada 60 s)
+  // Pedidos do site: menu pisca enquanto houver pedido pago em aberto (checa a cada 30 s)
+  // e o TÍTULO DA ABA também pisca, para ver de outra aba
   (function () {
+    const tituloOriginal = document.title;
+    let piscaTimer = null, ligado = false;
+    function piscarTitulo(n) {
+      if (n > 0) {
+        const msg = `🔔 (${n}) Novo pedido!`;
+        if (!piscaTimer) {
+          piscaTimer = setInterval(() => {
+            ligado = !ligado;
+            document.title = ligado ? msg : tituloOriginal;
+          }, 1000);
+        }
+      } else if (piscaTimer) {
+        clearInterval(piscaTimer); piscaTimer = null; ligado = false;
+        document.title = tituloOriginal;
+      }
+    }
     async function checkSiteOrders() {
       try {
         const r = await fetch('/site-orders/count', { cache: 'no-store' });
         if (!r.ok) return;
         const n = (await r.json()).open || 0;
+        piscarTitulo(n);
         document.querySelectorAll('a[href="/site-orders"]').forEach(a => {
           a.classList.toggle('so-alert', n > 0);
           let b = a.querySelector('.so-count');
@@ -197,7 +215,7 @@
       } catch (e) {}
     }
     checkSiteOrders();
-    setInterval(checkSiteOrders, 60000);
+    setInterval(checkSiteOrders, 30000);
   })();
 </script>
 
