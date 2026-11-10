@@ -155,6 +155,8 @@ window.addEventListener('load', function() {
   .logo-text{font-weight:700;font-size:1.1rem;color:var(--text);line-height:1.1;}
   .logo-sub{font-size:.76rem;color:var(--muted);font-weight:400;letter-spacing:.04em;}
   .nav-links{display:flex;align-items:center;gap:24px;}
+  .nav-links a{white-space:nowrap;}
+  .header-top{max-width:1240px;}
   .nav-links a{color:var(--muted);text-decoration:none;font-size:.92rem;font-weight:500;transition:color .15s;}
   .nav-links a:hover{color:var(--accent);}
   .nav-links a.active{color:var(--text);font-weight:700;}
@@ -263,6 +265,20 @@ window.addEventListener('load', function() {
     html body .cart-btn{width:36px;height:36px;}
     html body .wa-btn-header{padding:8px 10px;}
     html body .ajuda-btn{display:none;}
+  }
+  /* notebook (até ~1300px): tudo numa linha só, textos mais curtos */
+  @media(max-width:1300px){
+    .header-top{gap:16px;}
+    .nav-links{gap:16px;}
+    .nav-links a{font-size:.88rem;}
+    .nl-long{display:none;}
+    .ajuda-btn span{display:none;}
+  }
+  .wb-short{display:none;}
+  @media(max-width:1150px){.wb-long{display:none;}.wb-short{display:inline;}}
+  @media(max-width:1060px){
+    .nav-links{gap:12px;}
+    .nav-links a[href="/sobre"]{display:none;}
   }
   @media(max-width:900px){.nav-links{display:none;}}
   @media(max-width:700px){
