@@ -863,6 +863,50 @@ async def _remember_slugs(rows):
         _blog_log.exception("slugs: falha ao salvar histórico")
 
 
+_SLUG_STOP = {"de", "da", "do", "para", "com", "e", "a", "o", "em", "p", "x"}
+
+
+def _slug_parecidos(slug: str, rows) -> list:
+    """[(nota 0..1, produto)] por palavras do endereço em comum, melhor primeiro."""
+    alvo = {t for t in slugify(slug).split("-") if t and t not in _SLUG_STOP}
+    if not alvo:
+        return []
+    out = []
+    for r in rows:
+        toks = {t for t in slugify(r["name"]).split("-") if t and t not in _SLUG_STOP}
+        if not toks:
+            continue
+        comum = len(alvo & toks)
+        if comum:
+            out.append((comum / len(alvo | toks), r))
+    out.sort(key=lambda x: (-x[0], float(x[1].get("current_stock") or 0) <= 0))
+    return out
+
+
+def _pagina_nao_encontrado(slug: str, sugestoes: list) -> str:
+    from html import escape
+    q = " ".join(t for t in slugify(slug).split("-") if t and not t.isdigit() and t not in _SLUG_STOP)[:60]
+    itens = "".join(
+        f'<a class="it" href="/product/{slugify(r["name"])}">{escape(r["name"])}'
+        f'{" — R$ " + format(float(r["price"]), ".2f").replace(".", ",") if r.get("price") else ""}</a>'
+        for r in sugestoes)
+    return f"""<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
+<title>Produto não encontrado · M.T.F Refrigeração</title>
+<style>body{{font-family:system-ui,sans-serif;background:#f4f7fa;color:#0f172a;margin:0;padding:32px 16px}}
+.box{{max-width:640px;margin:0 auto;background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:24px}}
+h1{{font-size:1.3rem;margin:0 0 6px}}p{{color:#475569;margin:0 0 16px}}
+.it{{display:block;padding:11px 12px;border:1px solid #e2e8f0;border-radius:10px;margin-bottom:8px;color:#0e7490;text-decoration:none;font-weight:600}}
+.it:hover{{background:#ecfeff}}.bt{{display:inline-block;margin:10px 8px 0 0;padding:11px 16px;border-radius:10px;text-decoration:none;font-weight:700}}
+.b1{{background:#0e7490;color:#fff}}.b2{{background:#25d366;color:#fff}}</style></head><body><div class="box">
+<h1>Este produto não está mais disponível com este endereço</h1>
+<p>Ele pode ter mudado de nome. Veja os parecidos ou procure no catálogo:</p>
+{itens or ""}
+<a class="bt b1" href="/catalogo?q={escape(q)}">🔍 Procurar "{escape(q)}"</a>
+<a class="bt b2" href="https://wa.me/5521971538839?text={escape('Olá! Procuro: ' + q)}">💬 Perguntar no WhatsApp</a>
+<p style="margin-top:18px"><a href="/" style="color:#64748b">← Voltar para a loja</a></p></div></body></html>"""
+
+
 async def _old_slug_target(slug: str, rows) -> str | None:
     """Slug antigo/variante -> slug atual do mesmo produto (ou None)."""
     current = {slugify(r["name"]): r for r in rows}
@@ -1145,7 +1189,11 @@ async def product_page(request: Request, slug: str):
         target = await _old_slug_target(slug, rows)
         if target:
             return _Redirect(f"/product/{target}", status_code=301)
-        return HTMLResponse("Produto não encontrado", status_code=404)
+        # produto renomeado sem histórico: o mais parecido pelo nome (muito parecido -> 301; senão página com sugestões)
+        parecidos = _slug_parecidos(slug, rows)
+        if parecidos and parecidos[0][0] >= 0.75:
+            return _Redirect(f"/product/{slugify(parecidos[0][1]['name'])}", status_code=301)
+        return HTMLResponse(_pagina_nao_encontrado(slug, [r for _, r in parecidos[:6]]), status_code=404)
 
     # Fire-and-forget трекинг просмотра
     ip = _client_ip(request)
