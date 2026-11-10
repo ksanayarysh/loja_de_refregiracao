@@ -5,7 +5,7 @@ import httpx
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse, PlainTextResponse, JSONResponse, Response
+from fastapi.responses import HTMLResponse, PlainTextResponse, JSONResponse, Response, RedirectResponse
 from sqlalchemy import text
 from lalamove import get_quote, LalamoveError
 
@@ -71,10 +71,22 @@ async def img_proxy(src: str, w: int = 0):
         else:
             url = src
 
-        async with httpx.AsyncClient(timeout=10) as client:
-            resp = await client.get(url)
-            if resp.status_code != 200:
-                return Response(status_code=404)
+        resp = None
+        async with httpx.AsyncClient(timeout=10, follow_redirects=True,
+                                     headers={"User-Agent": "MTF-catalog-img-proxy/1.0"}) as client:
+            for _ in range(2):                       # 2 tentativas
+                try:
+                    resp = await client.get(url)
+                    if resp.status_code == 200 and resp.content:
+                        break
+                except Exception:
+                    resp = None
+        if resp is None or resp.status_code != 200 or not resp.content:
+            # não conseguiu baixar do admin: manda o navegador buscar a imagem direto (melhor que imagem quebrada)
+            _blog_log.warning("img-proxy falhou (%s) para %s", getattr(resp, "status_code", "erro"), url)
+            if ADMIN_URL and url.startswith(ADMIN_URL + "/static/"):     # só imagens da própria admin (sem open redirect)
+                return RedirectResponse(url, status_code=302, headers={"Cache-Control": "no-store"})
+            return Response(status_code=404)
 
         content = resp.content
 
@@ -109,6 +121,10 @@ async def img_proxy(src: str, w: int = 0):
             headers={"Cache-Control": "public, max-age=2592000, immutable"}
         )
     except Exception:
+        _blog_log.exception("img-proxy erro para %s", src)
+        alvo = src if src.startswith("http") else f"{ADMIN_URL}{src}"
+        if ADMIN_URL and alvo.startswith(ADMIN_URL + "/static/"):
+            return RedirectResponse(alvo, status_code=302, headers={"Cache-Control": "no-store"})
         return Response(status_code=500)
 
 # ── КЭШКЭШ ПРОДУКТОВ (5 минут) ───────────────────────────────────────────────
