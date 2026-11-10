@@ -483,13 +483,16 @@
       <a href="/product/{{ p.slug }}" style="display:contents;color:inherit;text-decoration:none;">
         {% if p.image %}<img class="promo-img" src="{{ p.image | imgurl(240) }}" alt="{{ p.name }}" loading="lazy">{% else %}<div class="promo-img-ph">📦</div>{% endif %}
         <div class="promo-name">{{ p.name }}</div>
+        {% if p.kind == 'par' %}<div style="font-size:.74rem;font-weight:800;color:#15803d;margin-top:2px;">🎁 Leve 2: a 2ª com {{ '%g'|format(p.pct2)|replace('.', ',') }}% off</div>{% endif %}
         {% if p.days_left is not none %}<div class="promo-left">⏳ {% if p.days_left == 0 %}Termina hoje{% elif p.days_left == 1 %}Termina amanhã{% else %}Termina em {{ p.days_left }} dias{% endif %}</div>{% endif %}
         <div class="promo-pr">
           <div class="promo-old">R$ {{ ("%.2f"|format(p.sale_price))|replace(".", ",") }}</div>
           <div class="promo-new">R$ {{ ("%.2f"|format(p.price))|replace(".", ",") }}{% if p.unit %}<span style="font-size:.72rem;color:var(--muted);font-weight:400;"> / {{ p.unit }}</span>{% endif %}</div>
         </div>
       </a>
-      {% if p.in_stock and so_balcao(p) %}
+      {% if p.kind == 'par' and p.in_stock %}
+      <a class="promo-add" href="/product/{{ p.slug }}" style="text-align:center;text-decoration:none;">Ver oferta →</a>
+      {% elif p.in_stock and so_balcao(p) %}
       <a class="promo-add" href="/product/{{ p.slug }}" style="text-align:center;text-decoration:none;">Só na loja</a>
       {% elif p.in_stock %}
       <button class="promo-add" onclick='addToCart({{ p.id }}, {{ p.name | tojson }}, {{ p.price }}, {{ p.image | tojson }})'>🛒 Adicionar</button>

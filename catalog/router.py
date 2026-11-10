@@ -929,19 +929,31 @@ async def _old_slug_target(slug: str, rows) -> str | None:
     return None
 
 
+# Promoções na vitrine: só produtos de preço normal >= PROMO_VITRINE_MIN (peças baratas, ex. sensor de R$ 6, ficam fora)
+PROMO_VITRINE_MIN = float(os.environ.get("PROMO_VITRINE_MIN", "30"))
+
+
 def _promo_list(rows, limit: int = 12) -> list:
-    """Produtos em promoção (promo_price < sale_price): em estoque primeiro, maior desconto primeiro."""
+    """Promoções para a vitrine: preço promocional e "2ª unidade com X% off".
+    Em estoque primeiro, maior economia em R$ primeiro."""
     promos = []
     for r in rows:
-        if r.get("on_promo") and r.get("sale_price"):
-            promos.append({
-                "id": r["id"], "name": r["name"], "slug": slugify(r["name"]), "image": r.get("image") or "",
-                "unit": r.get("unit") or "", "sale_price": r["sale_price"], "price": r["price"],
-                "off": round((1 - r["price"] / r["sale_price"]) * 100),
-                "days_left": r.get("promo_days_left"),
-                "in_stock": float(r.get("current_stock") or 0) > 0,
-            })
-    promos.sort(key=lambda x: (not x["in_stock"], -x["off"]))
+        sale = float(r.get("sale_price") or 0)
+        if sale < PROMO_VITRINE_MIN:
+            continue
+        base = {"id": r["id"], "name": r["name"], "slug": slugify(r["name"]), "image": r.get("image") or "",
+                "in_stock": float(r.get("current_stock") or 0) > 0, "unit": r.get("unit") or ""}
+        if r.get("on_promo"):
+            promos.append(dict(base, kind="preco", sale_price=sale, price=r["price"],
+                               off=round((1 - r["price"] / sale) * 100), economia=sale - r["price"],
+                               days_left=r.get("promo_days_left")))
+        elif r.get("promo2_pct"):
+            p = float(r["price"])
+            par = round(p + p * (100 - r["promo2_pct"]) / 100, 2)
+            promos.append(dict(base, kind="par", sale_price=p * 2, price=par, unit="2 un",
+                               off=round(r["promo2_pct"] / 2), economia=p * 2 - par,
+                               pct2=r["promo2_pct"], days_left=r.get("promo2_days_left")))
+    promos.sort(key=lambda x: (not x["in_stock"], -x["economia"]))
     return promos[:limit]
 
 
