@@ -127,6 +127,11 @@
         {% if not k.active %}<span class="kit-badge gray">inativo</span>{% endif %}
         {% if k.show_on_site %}<span class="kit-badge" style="background:#eff6ff;color:#1e40af;">🌐 no site</span>{% endif %}
         {% if k.car_only %}<span class="kit-badge gray">🚗 só carro</span>{% endif %}
+        {% if k.show_on_site and k.active %}
+        <div style="margin-top:6px;font-size:.82rem;">🔗 <a href="{{ site_url }}/kit/{{ k.id }}" target="_blank" rel="noopener">{{ site_url }}/kit/{{ k.id }}</a>
+          <button type="button" style="margin-left:6px;font-size:.78rem;padding:2px 8px;border-radius:6px;border:1px solid #cbd5e1;background:#fff;cursor:pointer;"
+                  onclick="navigator.clipboard.writeText('{{ site_url }}/kit/{{ k.id }}');this.textContent='copiado ✓'">copiar link</button></div>
+        {% endif %}
       </div>
       <div class="kit-total">
         {% if k.full_total != k.total %}<div class="old">R$ {{ ('%.2f' % k.full_total) | replace('.', ',') }}</div>{% endif %}

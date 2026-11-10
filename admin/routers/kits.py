@@ -14,6 +14,7 @@ Incluir no main.py da admin:
 Independente do desconto do kit de instalação do site (/kit-discount).
 """
 import json
+import os
 from datetime import date
 from urllib.parse import urlencode
 from decimal import Decimal, ROUND_HALF_UP
@@ -174,6 +175,7 @@ async def kits_page(request: Request, edit: int | None = None, _=Depends(basic_a
     return templates.TemplateResponse("kits.html", {
         "request": request, "active_page": "kits", "kits": kits, "products": products,
         "editing": editing, "new": request.query_params.get("new") == "1",
+        "site_url": os.environ.get("SITE_URL", "https://www.mtfrefrigeracao.com.br").rstrip("/"),
         "ok": request.query_params.get("ok"), "err": request.query_params.get("err"),
     })
 
