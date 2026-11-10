@@ -47,7 +47,8 @@ templates.env.filters["imgurl"] = _imgurl
 # ── Endpoint ресайза изображений ──────────────────────────────────────────────
 # ── In-memory кеш для img-proxy ───────────────────────────────────────────────
 _img_cache: dict = {}  # key -> (content, media_type, timestamp)
-_IMG_CACHE_TTL = 3600  # 1 час
+_IMG_CACHE_TTL = 12 * 3600  # 12 h (imagens quase não mudam; menos pedidos à admin)
+ADMIN_INTERNAL_URL = os.environ.get("ADMIN_INTERNAL_URL", "").rstrip("/")
 
 @router.get("/img-proxy")
 async def img_proxy(src: str, w: int = 0):
@@ -70,17 +71,23 @@ async def img_proxy(src: str, w: int = 0):
             url = f"{ADMIN_URL}{src}"
         else:
             url = src
+        # rede privada do Railway (sem limite 429 do domínio público): ADMIN_INTERNAL_URL=http://<serviço>.railway.internal:<porta>
+        busca = url
+        if ADMIN_INTERNAL_URL and ADMIN_URL and url.startswith(ADMIN_URL + "/"):
+            busca = ADMIN_INTERNAL_URL + url[len(ADMIN_URL):]
 
         resp = None
         async with httpx.AsyncClient(timeout=10, follow_redirects=True,
                                      headers={"User-Agent": "MTF-catalog-img-proxy/1.0"}) as client:
             for _ in range(2):                       # 2 tentativas
                 try:
-                    resp = await client.get(url)
+                    resp = await client.get(busca)
                     if resp.status_code == 200 and resp.content:
                         break
                 except Exception:
                     resp = None
+                if busca != url:                     # rede interna falhou: tenta o endereço público
+                    busca = url
         if resp is None or resp.status_code != 200 or not resp.content:
             # não conseguiu baixar do admin: manda o navegador buscar a imagem direto (melhor que imagem quebrada)
             _blog_log.warning("img-proxy falhou (%s) para %s", getattr(resp, "status_code", "erro"), url)
@@ -111,7 +118,7 @@ async def img_proxy(src: str, w: int = 0):
         # Сохраняем в кеш
         _img_cache[cache_key] = (content, media_type, time.time())
         # Ограничиваем размер кеша
-        if len(_img_cache) > 500:
+        if len(_img_cache) > 1500:
             oldest = min(_img_cache.keys(), key=lambda k: _img_cache[k][2])
             del _img_cache[oldest]
 
