@@ -373,6 +373,9 @@
   .kits-calc-link:hover{background:#d6edf4;border-color:var(--accent);}
   .kits-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr));gap:18px;align-items:stretch;}
   .kits-grid.n1{grid-template-columns:minmax(0,560px);}
+  .kit-more{display:inline-block;margin-top:2px;font-size:.85rem;font-weight:700;color:var(--accent);text-decoration:none;}
+  .kit-more:hover{text-decoration:underline;}
+  a.kit-name:hover{color:var(--accent)!important;}
   .kit-card.kit-banner{padding:0;overflow:hidden;gap:0;}
   .kit-card.kit-banner img{display:block;width:100%;height:auto;aspect-ratio:3/2;object-fit:cover;}
   .kit-card.kit-banner .kit-btns{padding:12px;}
@@ -807,8 +810,9 @@ fetch('/api/kits-site').then(r => r.json()).then(kits => {
       ${k.save >= 1 ? `<div class="kit-save">Economize ${kitBRL(k.save)}</div>` : ''}
       <a class="kit-name" href="/kit/${k.id}/${k.slug || ''}" style="color:inherit;text-decoration:none;">${kitEsc(k.name)}</a>
       ${k.description ? `<div class="kit-desc">${kitEsc(k.description)}</div>` : ''}
-      <div class="kit-thumbs">${thumbs}</div>
+      <a class="kit-thumbs" href="/kit/${k.id}/${k.slug || ''}" style="text-decoration:none;">${thumbs}</a>
       <ul class="kit-list">${list}</ul>
+      <a class="kit-more" href="/kit/${k.id}/${k.slug || ''}">Ver detalhes do kit →</a>
       <div class="kit-price-row">
         <div>
           ${k.save >= 0.01 ? `<div class="kit-old">Separado: ${kitBRL(k.full_total)}</div>` : ''}
