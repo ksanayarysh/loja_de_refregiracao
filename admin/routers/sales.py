@@ -311,10 +311,12 @@ async def sales_checkout(
         total_cost = Decimal(0)
         grand_total = Decimal(0)
         for item in items:
-            qty_d = money2(Decimal(str(item["qty"])))
+            qty_exata = Decimal(str(item["qty"]))
+            # kg/metro vendidos "por valor" (ex.: R$ 50 de gás): o total sai da qtd exata -> R$ 50,00, não 49,98
+            qty_d = qty_exata.quantize(Decimal("0.001"), rounding=ROUND_HALF_UP)
             base_price_d = money2(Decimal(str(item["unit_price"])))
             price_d = money2(base_price_d * discount_factor)
-            total_d = money2(qty_d * price_d)
+            total_d = money2(qty_exata * price_d)
             grand_total += total_d
             total_cost += qty_d * cost_map.get(int(item["product_id"]), Decimal(0))
             item["_discounted_price"] = price_d

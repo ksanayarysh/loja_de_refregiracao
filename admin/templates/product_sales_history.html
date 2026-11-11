@@ -49,18 +49,18 @@
   <div class="summary-grid">
     <div class="sum-card">
       <div class="sum-label">Total vendido</div>
-      <div class="sum-value">{{ '%.2f'|format(summary.total_qty) }}</div>
+      <div class="sum-value">{{ summary.total_qty|qtd }}</div>
       <div class="sum-sub">unidades/kg (todas as vendas)</div>
     </div>
     <div class="sum-card">
       <div class="sum-label">Receita total</div>
-      <div class="sum-value">R$ {{ '%.2f'|format(summary.total_revenue) }}</div>
+      <div class="sum-value">{{ (summary.total_revenue)|brl }}</div>
       <div class="sum-sub">{{ summary.sales_count }} venda(s)</div>
     </div>
     <div class="sum-card">
       <div class="sum-label">Preço médio</div>
       <div class="sum-value">
-        {% if summary.avg_unit_price is not none %}R$ {{ '%.2f'|format(summary.avg_unit_price) }}{% else %}—{% endif %}
+        {% if summary.avg_unit_price is not none %}{{ (summary.avg_unit_price)|brl }}{% else %}—{% endif %}
       </div>
       <div class="sum-sub">receita ÷ quantidade</div>
     </div>
@@ -90,9 +90,9 @@
           {% for r in rows %}
             <tr>
               <td>{{ r.sold_at.strftime('%d/%m/%Y %H:%M') if r.sold_at.strftime is defined else r.sold_at }}</td>
-              <td class="num">{{ '%.2f'|format(r.qty) }}</td>
-              <td class="num">{% if r.unit_price is not none %}R$ {{ '%.2f'|format(r.unit_price) }}{% else %}—{% endif %}</td>
-              <td class="num">R$ {{ '%.2f'|format(r.total) }}</td>
+              <td class="num">{{ r.qty|qtd(r.unit) }}</td>
+              <td class="num">{% if r.unit_price is not none %}{{ (r.unit_price)|brl }}{% else %}—{% endif %}</td>
+              <td class="num">{{ (r.total)|brl }}</td>
               <td>
                 {% if r.payment_type %}
                   <span class="pay-badge pay-{{ r.payment_type }}">{{ r.payment_type }}</span>

@@ -97,7 +97,7 @@
           </div>
         </div>
         <div class="{% if client.balance > 0 %}balance-big{% elif client.balance < 0 %}balance-big neg{% else %}balance-big zero{% endif %}">
-          R$ {{ '%.2f'|format(client.balance) }}
+          {{ (client.balance)|brl }}
         </div>
       </div>
       <!-- Editar -->
@@ -139,7 +139,7 @@
       <!-- NOVA VENDA CARRINHO -->
       <div class="card">
         <div class="section-title">🛒 Nova venda por saldo</div>
-        <div class="hint" style="margin-bottom:12px">Saldo disponível: <b id="saldo-disp">R$ {{ '%.2f'|format(client.balance) }}</b></div>
+        <div class="hint" style="margin-bottom:12px">Saldo disponível: <b id="saldo-disp">{{ (client.balance)|brl }}</b></div>
 
         <!-- Busca produto -->
         <div class="prod-wrap" style="margin-bottom:10px">
@@ -211,7 +211,7 @@
             <td>{{ d.created_at.strftime('%d/%m/%Y') if d.created_at else '—' }}</td>
             <td>💰 Depósito</td>
             <td>{{ d.note or '—' }}</td>
-            <td class="amount-pos">+ R$ {{ '%.2f'|format(d.amount) }}</td>
+            <td class="amount-pos">+ {{ (d.amount)|brl }}</td>
             <td></td>
           </tr>
           {% endfor %}
@@ -219,8 +219,8 @@
           <tr>
             <td>{{ s.sold_at.strftime('%d/%m/%Y') if s.sold_at else '—' }}</td>
             <td>🛒 Venda</td>
-            <td>{{ s.product_name }} × {{ s.qty }}</td>
-            <td class="amount-neg">− R$ {{ '%.2f'|format(s.total) }}</td>
+            <td>{{ s.product_name }} × {{ s.qty|qtd(s.unit) }}</td>
+            <td class="amount-neg">− {{ (s.total)|brl }}</td>
             <td>
               <form method="post" action="/clients/{{ client.id }}/sale/{{ s.id }}/delete" onsubmit="return confirm('Excluir esta venda?')">
                 <button type="submit" style="background:none;border:none;color:#dc2626;cursor:pointer;font-size:.85rem;font-weight:700;padding:2px 6px;">✕</button>
@@ -387,10 +387,10 @@ function sendWA() {
   let lines = [`*Extrato — ${name}*`, `Saldo atual: R$ ${balance.toFixed(2).replace('.',',')}`, ''];
 
   {% for d in deposits %}
-  lines.push(`💰 {{ d.created_at.strftime('%d/%m/%Y') if d.created_at else '' }} Depósito +R$ {{ '%.2f'|format(d.amount) }}{{ (' — ' + d.note) if d.note else '' }}`);
+  lines.push(`💰 {{ d.created_at.strftime('%d/%m/%Y') if d.created_at else '' }} Depósito +{{ (d.amount)|brl }}{{ (' — ' + d.note) if d.note else '' }}`);
   {% endfor %}
   {% for s in sales %}
-  lines.push(`🛒 {{ s.sold_at.strftime('%d/%m/%Y') if s.sold_at else '' }} {{ s.product_name }} ×{{ s.qty }} −R$ {{ '%.2f'|format(s.total) }}`);
+  lines.push(`🛒 {{ s.sold_at.strftime('%d/%m/%Y') if s.sold_at else '' }} {{ s.product_name }} ×{{ s.qty|qtd(s.unit) }} −{{ (s.total)|brl }}`);
   {% endfor %}
 
   const msg = encodeURIComponent(lines.join('\n'));

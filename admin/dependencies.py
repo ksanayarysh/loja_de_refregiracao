@@ -21,6 +21,32 @@ AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=F
 
 templates = Jinja2Templates(directory="templates")
 
+
+def _num(v):
+    try:
+        return float(v)
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def brl(v) -> str:
+    """1234.5 -> 'R$ 1.234,50' (formato brasileiro)"""
+    s = f"{_num(v):,.2f}"
+    return "R$ " + s.replace(",", "X").replace(".", ",").replace("X", ".")
+
+
+def qtd(v, unit: str = "") -> str:
+    """Quantidade: unidade sem casas ('1', '12'); kg/m com até 3 casas e vírgula ('0,51', '1,250')."""
+    x = _num(v)
+    if abs(x - round(x)) < 1e-9:
+        return str(int(round(x)))
+    s = f"{x:.3f}".rstrip("0").rstrip(".")
+    return s.replace(".", ",")
+
+
+templates.env.filters["brl"] = brl
+templates.env.filters["qtd"] = qtd
+
 ADMIN_USER = os.environ.get("ADMIN_USER", "")
 ADMIN_PASS = os.environ.get("ADMIN_PASS", "change-me")
 
