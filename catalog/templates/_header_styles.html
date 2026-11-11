@@ -51,33 +51,60 @@ window.addEventListener('load', function() {
 /* Busca rápida do topo (todas as páginas): todas as palavras precisam aparecer (nome, categoria ou descrição);
    ordem: palavra inteira no NOME > começo de palavra no nome > dentro do nome > categoria > só na descrição.
    "rele" acha "Relé"; "rele 1/4" acha "Rele embraco 1/4" antes do kit que só cita relé na descrição. */
+/* palavras que não ajudam a achar o produto */
+var MTF_STOP = {de:1,da:1,do:1,das:1,dos:1,para:1,pra:1,pro:1,com:1,e:1,a:1,o:1,no:1,na:1,em:1,'p/':1,p:1,um:1,uma:1};
+/* sinônimos do jeito que o cliente fala -> como está no nome do produto */
+var MTF_SIN = {congelado:'freezer', congelados:'freezer', congelador:'freezer', refrigerador:'geladeira',
+  lavadora:'maquina', lava:'maquina', ventilacao:'ventilador', ventilação:'ventilador', split:'ar', ac:'ar'};
 function mtfSearch(products, q, limit){
-  var n = function(s){ return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); };
-  var toks = n(q).split(/\s+/).filter(Boolean);
+  var n = function(s){ return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); };
+  var toks = n(q).split(/\s+/).filter(function(t){ return t && !MTF_STOP[t]; });
+  if (!toks.length) toks = n(q).split(/\s+/).filter(Boolean);
   if (!toks.length) return [];
-  var qq = toks.join(' ');
-  var out = [];
-  products.forEach(function(p, i){
-    var nome = n(p.name), cat = n(p.category), desc = n(p.description);
-    var words = nome.split(/[^a-z0-9/.,]+/).filter(Boolean);
-    var score = 0;
-    for (var k = 0; k < toks.length; k++) {
-      var t = toks[k];
-      if (words.indexOf(t) >= 0) score += 10;
-      else if (words.some(function(w){ return w.indexOf(t) === 0; })) score += 7;
-      else if (nome.indexOf(t) >= 0) score += 4;
-      else if (cat.indexOf(t) >= 0) score += 2;
-      else if (desc.indexOf(t) >= 0) score += 0.5;
-      else return;                                   // falta uma palavra: fora
-    }
-    if (nome.indexOf(qq) === 0) score += 6;          // nome começa com a busca
-    else if (nome.indexOf(qq) >= 0) score += 3;      // frase inteira no nome
-    if (p.in_stock === false) score -= 3;            // sem estoque vai para o fim do grupo
-    if (!p.sale_price) score -= 1;                   // "consulte" depois dos que têm preço
-    out.push({ p: p, s: score, i: i, l: nome.length });
-  });
-  out.sort(function(a, b){ return (b.s - a.s) || (a.l - b.l) || (a.i - b.i); });
-  return out.slice(0, limit || 8).map(function(x){ return x.p; });
+  var qq = n(q).trim();
+  // número digitado com um dígito a mais (ex.: "4404" -> "404")
+  function quaseNumero(t, words){
+    if (!/^\d{4,}$/.test(t)) return false;
+    for (var x = 0; x < t.length; x++) { var v = t.slice(0, x) + t.slice(x + 1); if (words.indexOf(v) >= 0) return true; }
+    return false;
+  }
+  function pontua(t, nome, words, cat, desc){
+    if (words.indexOf(t) >= 0) return 10;
+    if (words.some(function(w){ return w.indexOf(t) === 0; })) return 7;
+    if (nome.indexOf(t) >= 0) return 4;
+    if (cat.indexOf(t) >= 0) return 2;
+    if (desc.indexOf(t) >= 0) return 0.5;
+    if (quaseNumero(t, words)) return 5;
+    var sin = MTF_SIN[t];
+    if (sin && (nome.indexOf(sin) >= 0 || cat.indexOf(sin) >= 0)) return 3;
+    return -1;
+  }
+  function busca(minPct){
+    var out = [];
+    products.forEach(function(p, i){
+      var nome = n(p.name), cat = n(p.category), desc = n(p.description);
+      var words = nome.split(/[^a-z0-9/.,]+/).filter(Boolean);
+      var score = 0, achou = 0;
+      for (var k = 0; k < toks.length; k++) {
+        var pt = pontua(toks[k], nome, words, cat, desc);
+        if (pt >= 0) { score += pt; achou++; }
+        else if (minPct >= 1) return;                // modo exato: falta uma palavra, fora
+      }
+      if (achou / toks.length < minPct || achou === 0) return;
+      if (minPct < 1 && pontua(toks[0], nome, words, cat, desc) < 2) return;  // modo flexível: a 1ª palavra (o que é) tem que estar
+      score -= (toks.length - achou) * 6;
+      if (nome.indexOf(qq) === 0) score += 6;
+      else if (nome.indexOf(qq) >= 0) score += 3;
+      if (p.in_stock === false) score -= 3;
+      if (!p.sale_price) score -= 1;
+      out.push({ p: p, s: score, i: i, l: nome.length });
+    });
+    out.sort(function(a, b){ return (b.s - a.s) || (a.l - b.l) || (a.i - b.i); });
+    return out;
+  }
+  var r = busca(1);                                   // 1º: todas as palavras
+  if (!r.length && toks.length >= 2) r = busca(0.5);  // 2º: pelo menos metade (ex.: "chave seletora da ventilação")
+  return r.slice(0, limit || 8).map(function(x){ return x.p; });
 }
 /* registra a busca (com quantos produtos achou) 1,5 s depois que a pessoa para de digitar */
 var _mtfBuscaT = null;
