@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <link rel="icon" type="image/png" href="/static/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  {% set brl = "%.2f"|format(kit.total) | replace(".", ",") %}
+  {% set lista = kit['items'] | map(attribute='name') | join(', ') %}
+  <title>{{ kit.name }} — R$ {{ brl }} | M.T.F Refrigeração</title>
+  <meta name="description" content="{{ kit.name }} por R$ {{ brl }}{% if kit.save >= 1 %} (economize R$ {{ "%.2f"|format(kit.save)|replace('.', ',') }}){% endif %}. O kit contém: {{ lista[:180] }}. Retire na loja (Av. Brasil, 6818 – Bonsucesso) ou receba no Rio.">
+  <link rel="canonical" href="{{ site_url }}/kit/{{ kit.id }}/{{ kit.slug }}">
+  <meta property="og:type" content="product">
+  <meta property="og:title" content="{{ kit.name }} — R$ {{ brl }}">
+  <meta property="og:url" content="{{ site_url }}/kit/{{ kit.id }}/{{ kit.slug }}">
+  {% if kit.banner %}<meta property="og:image" content="{{ kit.banner }}">{% endif %}
+  <script type="application/ld+json">
+  {{ {
+    "@context": "https://schema.org", "@type": "Product",
+    "name": kit.name,
+    "description": (kit.description or ("O kit contém: " + lista))[:500],
+    "image": [kit.banner] if kit.banner else (kit['items'] | selectattr('image') | map(attribute='image') | list)[:3],
+    "brand": {"@type": "Brand", "name": "M.T.F Refrigeração"},
+    "offers": {"@type": "Offer", "priceCurrency": "BRL", "price": "%.2f"|format(kit.total),
+               "availability": "https://schema.org/InStock", "url": site_url ~ "/kit/" ~ kit.id ~ "/" ~ kit.slug}
+  } | tojson }}
+  </script>
+  {% include '_header_styles.html' %}
+  <style>
+    .kp-wrap{max-width:1100px;margin:0 auto;padding:22px 20px 80px;}
+    .kp-crumbs{font-size:.82rem;color:var(--muted);margin-bottom:14px;}
+    .kp-crumbs a{color:var(--muted);text-decoration:none;}
+    .kp-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:28px;align-items:start;}
+    .kp-banner{width:100%;border-radius:16px;border:1px solid var(--border);display:block;background:#fff;}
+    .kp-ph{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+    .kp-ph img,.kp-ph div{width:100%;aspect-ratio:1;object-fit:contain;background:#fff;border:1px solid var(--border);border-radius:12px;}
+    .kp-ph div{display:flex;align-items:center;justify-content:center;font-size:2rem;}
+    .kp-tag{font-size:.72rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);}
+    .kp-h1{font-size:clamp(1.4rem,3.4vw,2rem);font-weight:800;letter-spacing:-.02em;line-height:1.15;margin:6px 0 8px;}
+    .kp-desc{color:var(--muted);line-height:1.55;margin-bottom:14px;}
+    .kp-box{background:var(--surface);border:1.5px solid var(--accent);border-radius:16px;padding:18px;margin-bottom:14px;}
+    .kp-old{font-size:.9rem;color:var(--muted);text-decoration:line-through;}
+    .kp-price{font-size:2.1rem;font-weight:900;color:var(--accent);line-height:1.1;}
+    .kp-save{display:inline-block;background:#e2144a;color:#fff;font-weight:800;font-size:.82rem;padding:4px 10px;border-radius:999px;margin-top:6px;}
+    .kp-badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+    .kp-badges span{font-size:.78rem;font-weight:700;border:1px solid var(--border);border-radius:999px;padding:4px 10px;background:var(--bg);}
+    .kp-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;}
+    .kp-btn{padding:14px;border-radius:12px;font-family:inherit;font-weight:800;font-size:.98rem;cursor:pointer;text-align:center;text-decoration:none;}
+    .kp-add{background:#fff;color:var(--text);border:1.5px solid var(--text);}
+    .kp-buy{background:var(--accent);color:#fff;border:none;}
+    .kp-ok{display:none;margin-top:10px;font-weight:700;color:#15803d;font-size:.9rem;}
+    .kp-ok a{color:#15803d;}
+    .kp-wa{display:block;margin-top:10px;font-size:.88rem;font-weight:700;color:#15803d;}
+    .kp-sec{margin-top:30px;}
+    .kp-sec h2{font-size:1.1rem;font-weight:800;margin-bottom:12px;}
+    .kp-items{display:grid;gap:10px;}
+    .kp-item{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 12px;text-decoration:none;color:inherit;}
+    .kp-item:hover{border-color:var(--accent);}
+    .kp-item img,.kp-item .ph{width:56px;height:56px;object-fit:contain;background:#fff;border-radius:8px;flex-shrink:0;}
+    .kp-item .ph{display:flex;align-items:center;justify-content:center;font-size:1.4rem;border:1px solid var(--border);}
+    .kp-q{font-weight:800;min-width:52px;}
+    .kp-n{flex:1;font-size:.92rem;line-height:1.35;}
+    .kp-gift{display:inline-block;margin-left:6px;background:#fef3c7;color:#92400e;font-size:.72rem;font-weight:800;padding:2px 8px;border-radius:999px;}
+    .kp-p{font-size:.82rem;color:var(--muted);white-space:nowrap;text-align:right;}
+    @media(max-width:820px){
+      .kp-grid{grid-template-columns:minmax(0,1fr);gap:18px;}
+      .kp-wrap{padding:14px 16px 90px;}
+    }
+  </style>
+</head>
+<body>
+{% include '_header.html' %}
+<div class="kp-wrap">
+  <div class="kp-crumbs"><a href="/">Início</a> › <a href="/#kits-grid">Kits</a> › {{ kit.name }}</div>
+  <div class="kp-grid">
+    <div>
+      {% if kit.banner %}
+      <img class="kp-banner" src="{{ kit.banner | imgurl(1200) }}" alt="{{ kit.name }} — R$ {{ brl }}" fetchpriority="high">
+      {% else %}
+      <div class="kp-ph">
+        {% for i in kit['items'][:6] %}{% if i.image %}<img src="{{ i.image | imgurl(300) }}" alt="{{ i.name }}" loading="lazy">{% else %}<div>📦</div>{% endif %}{% endfor %}
+      </div>
+      {% endif %}
+    </div>
+    <div>
+      <div class="kp-tag">🧰 Kit com desconto</div>
+      <h1 class="kp-h1">{{ kit.name }}</h1>
+      {% if kit.description %}<p class="kp-desc">{{ kit.description }}</p>{% endif %}
+      <div class="kp-box">
+        {% if kit.save >= 0.01 %}<div class="kp-old">Comprando separado: R$ {{ "%.2f"|format(kit.full_total)|replace('.', ',') }}</div>{% endif %}
+        <div class="kp-price">R$ {{ brl }}</div>
+        <div style="font-size:.82rem;color:var(--muted);margin-top:2px;">ou em até 12x no cartão · Pix</div>
+        {% if kit.save >= 1 %}<div class="kp-save">Economize R$ {{ "%.2f"|format(kit.save)|replace('.', ',') }}</div>{% endif %}
+        <div class="kp-badges">
+          <span>🏪 Retirada grátis na loja</span>
+          <span>{% if kit.car_only %}🚗 Entrega de carro no Rio{% else %}🛵 Entrega no Rio no mesmo dia{% endif %}</span>
+          {% if kit.gift_value >= 0.01 %}<span>🎁 Com brinde</span>{% endif %}
+        </div>
+        <div class="kp-btns">
+          <button class="kp-btn kp-add" type="button" onclick="kitAdd(false)">🛒 Adicionar</button>
+          <button class="kp-btn kp-buy" type="button" onclick="kitAdd(true)">Comprar agora</button>
+        </div>
+        <div class="kp-ok" id="kp-ok">✓ Kit no carrinho · <a href="/checkout">Finalizar compra →</a></div>
+        {% set wa_msg = "Olá! Tenho interesse no " + kit.name + " (R$ " + brl + ")." %}
+        <a class="kp-wa wa-track" href="https://wa.me/{{ wa_number }}?text={{ wa_msg | urlencode }}" target="_blank" rel="noopener" data-product="{{ kit.name }}">💬 Dúvida? Fale no WhatsApp</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="kp-sec">
+    <h2>O kit contém</h2>
+    <div class="kp-items">
+      {% for i in kit['items'] %}
+      <a class="kp-item" href="/product/{{ i.slug }}">
+        {% if i.image %}<img src="{{ i.image | imgurl(120) }}" alt="{{ i.name }}" loading="lazy">{% else %}<div class="ph">📦</div>{% endif %}
+        <span class="kp-q">{{ '%g'|format(i.qty) }} {{ i.unit }}</span>
+        <span class="kp-n">{{ i.name }}{% if i.is_gift %}<span class="kp-gift">🎁 Brinde</span>{% endif %}</span>
+        <span class="kp-p">{% if i.is_gift %}grátis{% else %}R$ {{ "%.2f"|format(i.price)|replace('.', ',') }}/{{ i.unit }}{% endif %}</span>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% include '_footer.html' %}
+<script>
+const KIT_ITEM = {{ cart_item | tojson }};
+function kitAdd(go) {
+  let cart = [];
+  try { cart = JSON.parse(localStorage.getItem('mtf_cart') || '[]'); } catch (e) {}
+  const ex = cart.find(i => i.kit_id === KIT_ITEM.kit_id);
+  if (ex) ex.qty = (Number(ex.qty) || 0) + 1; else cart.push(Object.assign({}, KIT_ITEM));
+  try { localStorage.setItem('mtf_cart', JSON.stringify(cart)); } catch (e) {}
+  if (typeof gtag === 'function') gtag('event', 'add_to_cart', { currency: 'BRL', value: KIT_ITEM.price,
+    items: [{ item_id: KIT_ITEM.id, item_name: KIT_ITEM.name, price: KIT_ITEM.price, quantity: 1 }] });
+  const n = cart.reduce((s, i) => s + (Number(i.qty) || 0), 0);
+  const c = document.getElementById('cartCount'); if (c) c.textContent = n;
+  if (go) { location.href = '/checkout'; return; }
+  document.getElementById('kp-ok').style.display = 'block';
+}
+// nesta página não há a gaveta do carrinho: o botão do topo leva ao checkout
+if (typeof window.cartOpen !== 'function') window.cartOpen = function () { location.href = '/checkout'; };
+(function () {
+  let cart = []; try { cart = JSON.parse(localStorage.getItem('mtf_cart') || '[]'); } catch (e) {}
+  const c = document.getElementById('cartCount'); if (c) c.textContent = cart.reduce((s, i) => s + (Number(i.qty) || 0), 0);
+})();
+</script>
+</body>
+</html>

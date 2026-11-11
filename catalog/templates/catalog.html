@@ -796,7 +796,7 @@ fetch('/api/kits-site').then(r => r.json()).then(kits => {
     const list = k.items.map(i => `<li><span class="q">${kitQty(i.qty)} ${kitEsc(i.unit)}</span><span>${kitEsc(i.name)}${i.is_gift ? '<span class="kit-gift">🎁 Brinde</span>' : ''}</span></li>`).join('');
     if (k.banner) {   // arte pronta: só a imagem + botões
       return `<div class="kit-card kit-banner">
-        <a href="/kit/${k.id}" title="${kitEsc(k.name)}"><img loading="lazy" src="${imgProxy(k.banner, 900)}" alt="${kitEsc(k.name)} — ${kitBRL(k.total)}"></a>
+        <a href="/kit/${k.id}/${k.slug || ''}" title="${kitEsc(k.name)}"><img loading="lazy" src="${imgProxy(k.banner, 900)}" alt="${kitEsc(k.name)} — ${kitBRL(k.total)}"></a>
         <div class="kit-btns">
           <button class="kit-add" onclick="kitToCartSite(${k.id})">🛒 Adicionar</button>
           <button class="kit-buy" onclick="kitToCartSite(${k.id}, true)">Comprar agora</button>
@@ -805,7 +805,7 @@ fetch('/api/kits-site').then(r => r.json()).then(kits => {
     }
     return `<div class="kit-card">
       ${k.save >= 1 ? `<div class="kit-save">Economize ${kitBRL(k.save)}</div>` : ''}
-      <div class="kit-name">${kitEsc(k.name)}</div>
+      <a class="kit-name" href="/kit/${k.id}/${k.slug || ''}" style="color:inherit;text-decoration:none;">${kitEsc(k.name)}</a>
       ${k.description ? `<div class="kit-desc">${kitEsc(k.description)}</div>` : ''}
       <div class="kit-thumbs">${thumbs}</div>
       <ul class="kit-list">${list}</ul>

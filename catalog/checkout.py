@@ -702,20 +702,35 @@ async def checkout_page(request: Request, c: str = "", cep: str = ""):
     return await _checkout_com_link(request, c, cep)
 
 
+def _kit_cart_item(k: dict) -> dict:
+    nome = k["name"] if k["name"].lower().startswith(("kit", "combo")) else "Kit " + k["name"]
+    return {"id": f"kit-{k['id']}", "kit_id": k["id"], "name": "🧰 " + nome, "price": k["total"], "unit": "kit",
+            "qty": 1, "car_only": k["car_only"], "image": next((i["image"] for i in k["items"] if i["image"]), ""),
+            "items": [{"name": i["name"], "qty": i["qty"], "unit": i["unit"], "is_gift": i["is_gift"]} for i in k["items"]]}
+
+
 @router.get("/kit/{kit_id}", response_class=HTMLResponse)
+@router.get("/kit/{kit_id}/{slug}", response_class=HTMLResponse)
+async def kit_page(request: Request, kit_id: int, slug: str = ""):
+    """Página do kit: banner, descrição, o que vem (com fotos e links) e botões de compra."""
+    if slug == "comprar":
+        return await checkout_kit(request, kit_id)
+    from kits_public import load_site_kits
+    kits = await load_site_kits([kit_id])
+    if not kits:
+        return RedirectResponse("/#kits-grid", status_code=302)
+    k = kits[0]
+    return templates.TemplateResponse("kit.html", _page_ctx(request, kit=k, cart_item=_kit_cart_item(k)))
+
+
 async def checkout_kit(request: Request, kit_id: int):
     """Link de um kit (para mandar ao cliente): abre o checkout com o kit no carrinho."""
     from kits_public import load_site_kits
     kits = await load_site_kits([kit_id])
     if not kits:
         return RedirectResponse("/#kits-grid", status_code=302)
-    k = kits[0]
-    nome = k["name"] if k["name"].lower().startswith("kit") or k["name"].lower().startswith("combo") else "Kit " + k["name"]
-    item = {"id": f"kit-{k['id']}", "kit_id": k["id"], "name": "🧰 " + nome, "price": k["total"], "unit": "kit",
-            "qty": 1, "car_only": k["car_only"], "image": next((i["image"] for i in k["items"] if i["image"]), ""),
-            "items": [{"name": i["name"], "qty": i["qty"], "unit": i["unit"], "is_gift": i["is_gift"]} for i in k["items"]]}
     ctx = _page_ctx(request)
-    ctx["link_cart"] = [item]
+    ctx["link_cart"] = [_kit_cart_item(kits[0])]
     ctx["link_cep"] = ""
     return templates.TemplateResponse("checkout.html", ctx)
 

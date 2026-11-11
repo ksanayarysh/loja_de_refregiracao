@@ -66,6 +66,10 @@ async def load_site_kits(kit_ids: list[int] | None = None) -> list[dict]:
         from router import _nice_name          # mesmo "nome bonito" do resto do site
     except Exception:
         _nice_name = lambda n: n
+    try:
+        from router import slugify
+    except Exception:
+        slugify = lambda n: ""
     by_kit: dict[int, list] = {}
     for r in rows:
         by_kit.setdefault(r["kit_id"], []).append(dict(r))
@@ -112,10 +116,11 @@ async def load_site_kits(kit_ids: list[int] | None = None) -> list[dict]:
             items.append({
                 "id": it["product_id"], "name": _nice_name(it["name"]), "unit": it["unit"] or "un",
                 "qty": float(qty), "price": float(price), "line_total": float(lt),
-                "is_gift": gift, "image": img,
+                "is_gift": gift, "image": img, "slug": slugify(it["name"]),
             })
         out.append({
             "id": k["id"], "name": _nice_name(k["name"]), "description": k["description"] or "",
+            "slug": slugify(k["name"]),
             "car_only": bool(k["car_only"]),
             "banner": (admin + k["banner"]) if (k.get("banner") or "").startswith("/static/") else (k.get("banner") or ""),
             "full_total": float(full + gift_value),      # quanto custaria tudo separado (com brindes)

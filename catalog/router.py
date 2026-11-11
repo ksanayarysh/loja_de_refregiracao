@@ -2679,6 +2679,12 @@ async def sitemap():
         if not sl or sl in seen_products: continue
         seen_products.add(sl)
         add_url(f"{base}/product/{sl}", "0.8")
+    try:
+        from kits_public import load_site_kits
+        for k in await load_site_kits():
+            add_url(f"{base}/kit/{k['id']}/{k['slug']}", "0.8")
+    except Exception:
+        pass
     xml = f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{"".join(items)}\n</urlset>'
     return PlainTextResponse(xml, media_type="application/xml")
 
