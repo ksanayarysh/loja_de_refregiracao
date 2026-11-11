@@ -73,7 +73,7 @@ function mtfSearch(products, q, limit){
     if (words.some(function(w){ return w.indexOf(t) === 0; })) return 7;
     if (nome.indexOf(t) >= 0) return 4;
     if (cat.indexOf(t) >= 0) return 2;
-    if (desc.indexOf(t) >= 0) return 0.5;
+    if (desc.indexOf(t) >= 0) return (/\d/.test(t) && t.length >= 4) ? 8 : 0.5;   // código/modelo no texto vale quase como no nome
     if (quaseNumero(t, words)) return 5;
     var sin = MTF_SIN[t];
     if (sin && (nome.indexOf(sin) >= 0 || cat.indexOf(sin) >= 0)) return 3;
