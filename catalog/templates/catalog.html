@@ -373,6 +373,9 @@
   .kits-calc-link:hover{background:#d6edf4;border-color:var(--accent);}
   .kits-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr));gap:18px;align-items:stretch;}
   .kits-grid.n1{grid-template-columns:minmax(0,560px);}
+  .kit-card.kit-banner{padding:0;overflow:hidden;gap:0;}
+  .kit-card.kit-banner img{display:block;width:100%;height:auto;aspect-ratio:3/2;object-fit:cover;}
+  .kit-card.kit-banner .kit-btns{padding:12px;}
   .kit-card{background:var(--surface);border:1.5px solid var(--border);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px;position:relative;transition:border-color .15s,box-shadow .15s;}
   .kit-card:hover{border-color:var(--accent);box-shadow:0 6px 20px rgba(14,124,153,.12);}
   .kit-save{position:absolute;top:-10px;right:14px;background:var(--accent);color:#fff;font-size:.74rem;font-weight:800;padding:4px 10px;border-radius:999px;box-shadow:0 2px 6px rgba(226,20,74,.3);}
@@ -412,8 +415,9 @@
   <div class="kits-grid" id="kits-grid"></div>
 </div>
 
-<!-- PROMO BANNER R32 -->
-{% if promo_product or promos %}<div class="section-wrap" style="padding-bottom:0;"><div class="section-title">🔥 Promoções</div></div>{% endif %}
+<!-- PROMO BANNER (destaque) desligado na home: as promoções aparecem nos cartões abaixo -->
+{% set promo_product = none %}
+{% if promos %}<div class="section-wrap" style="padding-bottom:0;"><div class="section-title">🔥 Promoções</div></div>{% endif %}
 {% if promo_product %}
 {% set pp_price = "%.2f"|format(promo_product.price) %}
 {% set pp_reais = pp_price.split('.')[0] %}
@@ -790,6 +794,15 @@ fetch('/api/kits-site').then(r => r.json()).then(kits => {
       ? `<img loading="lazy" src="${imgProxy(i.image, 92)}" alt="${kitEsc(i.name)}" title="${kitEsc(i.name)}">`
       : `<div class="kt-ph" title="${kitEsc(i.name)}">📦</div>`).join('');
     const list = k.items.map(i => `<li><span class="q">${kitQty(i.qty)} ${kitEsc(i.unit)}</span><span>${kitEsc(i.name)}${i.is_gift ? '<span class="kit-gift">🎁 Brinde</span>' : ''}</span></li>`).join('');
+    if (k.banner) {   // arte pronta: só a imagem + botões
+      return `<div class="kit-card kit-banner">
+        <a href="/kit/${k.id}" title="${kitEsc(k.name)}"><img loading="lazy" src="${imgProxy(k.banner, 900)}" alt="${kitEsc(k.name)} — ${kitBRL(k.total)}"></a>
+        <div class="kit-btns">
+          <button class="kit-add" onclick="kitToCartSite(${k.id})">🛒 Adicionar</button>
+          <button class="kit-buy" onclick="kitToCartSite(${k.id}, true)">Comprar agora</button>
+        </div>
+      </div>`;
+    }
     return `<div class="kit-card">
       ${k.save >= 1 ? `<div class="kit-save">Economize ${kitBRL(k.save)}</div>` : ''}
       <div class="kit-name">${kitEsc(k.name)}</div>

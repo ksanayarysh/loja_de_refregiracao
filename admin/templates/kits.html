@@ -65,7 +65,7 @@
   {# ── EDITOR ── #}
   <div class="card" style="margin-bottom:18px;">
     <h2 style="margin-bottom:12px;">{% if editing %}Editar kit{% else %}Novo kit{% endif %}</h2>
-    <form method="post" action="/kits/save" id="kitForm">
+    <form method="post" action="/kits/save" id="kitForm" enctype="multipart/form-data">
       <input type="hidden" name="kit_id" value="{{ editing.id if editing else '' }}">
       <input type="hidden" name="items_json" id="items_json">
 
@@ -106,6 +106,14 @@
       <input id="k-desc" name="description" maxlength="300" value="{{ (editing.description or '') if editing else '' }}"
              placeholder="Ex.: Tudo para instalar um split 9.000–12.000 BTU até 3 m">
 
+      <label for="k-banner" style="margin-top:12px;">🖼 Banner do kit para o site (opcional)</label>
+      {% if editing and editing.banner %}
+      <div style="margin:4px 0 6px;"><img src="{{ editing.banner }}" alt="" style="max-width:260px;border-radius:8px;border:1px solid #e2e8f0;display:block;">
+        <label class="ed-check" style="margin-top:4px;"><input type="checkbox" name="remover_banner" value="1"> Remover banner</label></div>
+      {% endif %}
+      <input id="k-banner" name="banner" type="file" accept="image/*">
+      <div style="font-size:.8rem;color:#64748b;margin-top:2px;">Arte pronta (ex.: 1536×1024). No site ela aparece no lugar do cartão com a lista. Vazio = mantém o atual.</div>
+
       <div class="btns" style="margin-top:16px;">
         <button class="btn-primary" type="submit">Salvar kit</button>
         <a class="btn-secondary" href="/kits">Cancelar</a>
@@ -127,6 +135,7 @@
         {% if not k.active %}<span class="kit-badge gray">inativo</span>{% endif %}
         {% if k.show_on_site %}<span class="kit-badge" style="background:#eff6ff;color:#1e40af;">🌐 no site</span>{% endif %}
         {% if k.car_only %}<span class="kit-badge gray">🚗 só carro</span>{% endif %}
+        {% if k.banner %}<span class="kit-badge" style="background:#f0fdf4;color:#166534;">🖼 banner</span>{% endif %}
         {% if k.show_on_site and k.active %}
         <div style="margin-top:6px;font-size:.82rem;">🔗 <a href="{{ site_url }}/kit/{{ k.id }}" target="_blank" rel="noopener">{{ site_url }}/kit/{{ k.id }}</a>
           <button type="button" style="margin-left:6px;font-size:.78rem;padding:2px 8px;border-radius:6px;border:1px solid #cbd5e1;background:#fff;cursor:pointer;"

@@ -45,7 +45,7 @@ async def load_site_kits(kit_ids: list[int] | None = None) -> list[dict]:
                 where += " AND k.id = ANY(:ids)"
                 params["ids"] = list(kit_ids)
             kits = [dict(r) for r in (await conn.execute(text(
-                f"SELECT id, name, description, discount_percent, fixed_price, car_only "
+                f"SELECT k.* "
                 f"FROM kits k WHERE {where} ORDER BY k.name"
             ), params)).mappings().all()]
             if not kits:
@@ -117,6 +117,7 @@ async def load_site_kits(kit_ids: list[int] | None = None) -> list[dict]:
         out.append({
             "id": k["id"], "name": _nice_name(k["name"]), "description": k["description"] or "",
             "car_only": bool(k["car_only"]),
+            "banner": (admin + k["banner"]) if (k.get("banner") or "").startswith("/static/") else (k.get("banner") or ""),
             "full_total": float(full + gift_value),      # quanto custaria tudo separado (com brindes)
             "total": float(total),
             "save": float(full + gift_value - total),

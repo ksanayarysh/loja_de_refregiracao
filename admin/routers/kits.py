@@ -19,7 +19,7 @@ from datetime import date
 from urllib.parse import urlencode
 from decimal import Decimal, ROUND_HALF_UP
 
-from fastapi import APIRouter, Depends, Form, Request
+from fastapi import APIRouter, Depends, File, Form, Request, UploadFile
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from sqlalchemy import text
 
@@ -69,7 +69,29 @@ async def _ensure_tables():
         await conn.execute(text("ALTER TABLE kits ADD COLUMN IF NOT EXISTS show_on_site BOOLEAN NOT NULL DEFAULT FALSE"))
         await conn.execute(text("ALTER TABLE kits ADD COLUMN IF NOT EXISTS description TEXT"))
         await conn.execute(text("ALTER TABLE kits ADD COLUMN IF NOT EXISTS car_only BOOLEAN NOT NULL DEFAULT FALSE"))
+        # banner (arte pronta do kit): no site aparece no lugar do cartão com lista
+        await conn.execute(text("ALTER TABLE kits ADD COLUMN IF NOT EXISTS banner TEXT"))
     _ready = True
+
+
+async def _salvar_banner(file) -> str | None:
+    """Salva a arte do kit sem cortar (máx. 1400 px de largura) em static/images; devolve /static/images/..."""
+    if not file or not getattr(file, "filename", ""):
+        return None
+    try:
+        import io, uuid
+        from PIL import Image
+        from routers.products import STATIC_DIR
+        data = await file.read()
+        if len(data) > 12 * 1024 * 1024:
+            return None
+        img = Image.open(io.BytesIO(data)).convert("RGB")
+        img.thumbnail((1400, 1400), Image.LANCZOS)
+        fname = f"kit_{uuid.uuid4().hex}.jpg"
+        img.save(os.path.join(STATIC_DIR, fname), format="JPEG", quality=86, optimize=True)
+        return f"/static/images/{fname}"
+    except Exception:
+        return None
 
 
 async def _load_kits(conn, only_active: bool = False, kit_id: int | None = None) -> list[dict]:
@@ -192,9 +214,12 @@ async def kits_save(
     car_only: str = Form(""),
     description: str = Form(""),
     items_json: str = Form("[]"),
+    banner: UploadFile = File(None),
+    remover_banner: str = Form(""),
     _=Depends(basic_auth),
 ):
     await _ensure_tables()
+    novo_banner = await _salvar_banner(banner)
     name = name.strip()[:160]
     fixed = None
     pct = Decimal(0)
@@ -236,12 +261,16 @@ async def kits_save(
             ), {"n": name, "d": pct, "f": fixed, "a": bool(active), "s": bool(show_on_site),
                 "c": bool(car_only), "ds": description.strip()[:300] or None, "id": kid})
             await conn.execute(text("DELETE FROM kit_items WHERE kit_id = :id"), {"id": kid})
+            if novo_banner or remover_banner:
+                await conn.execute(text("UPDATE kits SET banner = :b WHERE id = :id"), {"b": novo_banner, "id": kid})
         else:
             kid = (await conn.execute(text(
                 "INSERT INTO kits (name, discount_percent, fixed_price, active, show_on_site, car_only, description) "
                 "VALUES (:n, :d, :f, :a, :s, :c, :ds) RETURNING id"
             ), {"n": name, "d": pct, "f": fixed, "a": bool(active), "s": bool(show_on_site),
                 "c": bool(car_only), "ds": description.strip()[:300] or None})).scalar()
+            if novo_banner:
+                await conn.execute(text("UPDATE kits SET banner = :b WHERE id = :id"), {"b": novo_banner, "id": kid})
         for pid, q, gift in items:
             await conn.execute(text(
                 "INSERT INTO kit_items (kit_id, product_id, qty, is_gift) VALUES (:k, :p, :q, :g)"
