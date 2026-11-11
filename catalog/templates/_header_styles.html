@@ -64,8 +64,14 @@ function mtfSearch(products, q, limit){
   var qq = n(q).trim();
   // número digitado com um dígito a mais (ex.: "4404" -> "404")
   function quaseNumero(t, words){
-    if (!/^\d{4,}$/.test(t)) return false;
-    for (var x = 0; x < t.length; x++) { var v = t.slice(0, x) + t.slice(x + 1); if (words.indexOf(v) >= 0) return true; }
+    var dig = t.replace(/\D/g, '');                     // "r4404" ou "4404" -> "4404"
+    if (dig.length < 4) return false;
+    var nums = [];                                     // números dentro do nome: "r404a" -> "404"
+    words.forEach(function(w){ (w.match(/\d+/g) || []).forEach(function(d){ nums.push(d); }); });
+    for (var x = 0; x < dig.length; x++) {             // um dígito a mais (4404 -> 404)
+      var v = dig.slice(0, x) + dig.slice(x + 1);
+      if (nums.indexOf(v) >= 0) return true;
+    }
     return false;
   }
   function pontua(t, nome, words, cat, desc){
