@@ -17,6 +17,7 @@ from sqlalchemy import text
 from dependencies import engine, templates, basic_auth
 from routers.kit_discount import _slugify
 from routers.kits import _ensure_tables as _ensure_kits, _load_kits
+from routers.products import _ensure_promo_column
 
 router = APIRouter()
 BRT = timezone(timedelta(hours=-3))
@@ -64,7 +65,8 @@ _COLS = "id, name, unit, sale_price, promo_price, promo_until, promo2_pct, promo
 async def cartazes_page(request: Request, _=Depends(basic_auth)):
     hoje = datetime.now(BRT).date()
     await _ensure_kits()
-    async with engine.connect() as conn:
+    async with engine.begin() as conn:
+        await _ensure_promo_column(conn)
         rows = (await conn.execute(text(f"""
             SELECT {_COLS} FROM products
             WHERE active = TRUE AND (

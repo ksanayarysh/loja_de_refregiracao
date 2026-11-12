@@ -60,6 +60,11 @@
 
         <label for="note">Observação (opcional)</label>
         <textarea id="note" name="note">{{ sale.note or '' }}</textarea>
+        <label style="display:flex;align-items:center;gap:8px;font-weight:700;margin-top:12px;cursor:pointer;">
+          <input type="checkbox" name="fora_relatorio" value="1" {% if sale.fora_relatorio %}checked{% endif %} style="width:auto;">
+          🚫 Fora dos relatórios (ex.: fraude / cartão roubado)
+        </label>
+        <div class="hint">A venda continua na lista e no estoque, mas não entra em Relatórios, Vendas mensais e resumo diário.</div>
 
         <div class="btns">
           <button class="btn-primary" type="submit">Salvar alterações</button>

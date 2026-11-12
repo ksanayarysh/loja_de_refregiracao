@@ -395,7 +395,7 @@ async def _tg_notify_checkout(items: list, payment_type: str, discount_pct: Deci
 async def sale_edit_form(sale_id: int, request: Request, _=Depends(basic_auth)):
     async with engine.connect() as conn:
         res = await conn.execute(
-            text("SELECT id, sold_at, product_id, qty, unit_price, total, note, payment_type FROM sales WHERE id = :id"),
+            text("SELECT id, sold_at, product_id, qty, unit_price, total, note, payment_type, fora_relatorio FROM sales WHERE id = :id"),
             {"id": sale_id},
         )
         sale = res.mappings().first()
@@ -420,6 +420,7 @@ async def sale_edit_save(
     total: str = Form(""),
     note: str = Form(""),
     payment_type: str = Form("dinheiro"),
+    fora_relatorio: str = Form(""),
     _=Depends(basic_auth),
 ):
     qty_d = Decimal(qty.replace(",", "."))
@@ -435,11 +436,13 @@ async def sale_edit_save(
     async with engine.begin() as conn:
         await conn.execute(
             text("""UPDATE sales SET sold_at=:sold_at, product_id=:product_id, qty=:qty,
-                        unit_price=:unit_price, total=:total, note=:note, payment_type=:payment_type
+                        unit_price=:unit_price, total=:total, note=:note, payment_type=:payment_type,
+                        fora_relatorio=:fora
                     WHERE id=:id"""),
             {"id": sale_id, "sold_at": sold_at_date, "product_id": product_id,
              "qty": qty_d, "unit_price": price_d, "total": total_d,
-             "note": note.strip() or None, "payment_type": payment_type},
+             "note": note.strip() or None, "payment_type": payment_type,
+             "fora": bool(fora_relatorio)},
         )
     return RedirectResponse(url=f"/sales/{sale_id}/edit?ok=1", status_code=303)
 
@@ -519,7 +522,7 @@ async def sales_list(
         rows_res = await conn.execute(
             text(f"""
                 SELECT s.id, s.sold_at, s.qty, s.unit_price, s.total, s.note,
-                       s.payment_type, p.name AS product_name, p.unit
+                       s.payment_type, s.fora_relatorio, p.name AS product_name, p.unit
                 FROM sales s
                 JOIN products p ON p.id = s.product_id
                 WHERE {where_sql}

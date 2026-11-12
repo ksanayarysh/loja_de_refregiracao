@@ -117,7 +117,7 @@ async def stock_forecast(
             ) stock_sub ON stock_sub.product_id = p.id
             LEFT JOIN (
                 SELECT product_id, SUM(qty) AS sold_in_period
-                FROM sales
+                FROM sales_rel
                 WHERE sold_at::date >= :since
                 GROUP BY product_id
             ) sales_sub ON sales_sub.product_id = p.id
@@ -240,7 +240,7 @@ async def reports(
                 COALESCE(SUM(s.total), 0)      AS total_revenue,
                 COALESCE(AVG(s.total), 0)      AS avg_ticket,
                 COALESCE(MAX(s.total), 0)      AS max_sale
-            FROM sales s
+            FROM sales_rel s
             WHERE s.sold_at::date BETWEEN :d_from AND :d_to
         """), params)
         summary = summary_res.mappings().first()
@@ -258,13 +258,13 @@ async def reports(
             SELECT
                 COALESCE((
                     SELECT SUM(s.total)
-                    FROM sales s
+                    FROM sales_rel s
                     WHERE s.sold_at::date = b.today
                 ), 0) AS today_revenue,
 
                 COALESCE((
                     SELECT SUM(s.total)
-                    FROM sales s
+                    FROM sales_rel s
                     WHERE s.sold_at::date BETWEEN b.week_7_from AND b.today
                       AND EXTRACT(ISODOW FROM s.sold_at::date) BETWEEN 1 AND 6
                 ), 0)
@@ -277,7 +277,7 @@ async def reports(
 
                 COALESCE((
                     SELECT SUM(s.total)
-                    FROM sales s
+                    FROM sales_rel s
                     WHERE s.sold_at::date BETWEEN b.month_from AND b.today
                       AND EXTRACT(ISODOW FROM s.sold_at::date) BETWEEN 1 AND 6
                 ), 0)
@@ -290,13 +290,13 @@ async def reports(
 
                 COALESCE((
                     SELECT SUM(s.total)
-                    FROM sales s
+                    FROM sales_rel s
                     WHERE s.sold_at::date BETWEEN b.week_from AND b.today
                 ), 0) AS this_week,
 
                 COALESCE((
                     SELECT SUM(s.total)
-                    FROM sales s
+                    FROM sales_rel s
                     WHERE s.sold_at::date BETWEEN b.month_from AND b.today
                 ), 0) AS this_month,
 
@@ -323,7 +323,7 @@ async def reports(
                 COALESCE(SUM(CASE WHEN p.cost_price IS NOT NULL AND p.cost_price > 0 THEN s.qty * p.cost_price ELSE 0 END), 0) AS cost_with_cost,
                 COALESCE(SUM(CASE WHEN p.cost_price IS NULL OR p.cost_price <= 0 THEN s.total ELSE 0 END), 0) AS revenue_without_cost,
                 COUNT(*) FILTER (WHERE p.cost_price IS NULL OR p.cost_price <= 0) AS sales_without_cost
-            FROM sales s
+            FROM sales_rel s
             JOIN products p ON p.id = s.product_id
             WHERE s.sold_at::date BETWEEN :d_from AND :d_to
         """), params)
@@ -348,7 +348,7 @@ async def reports(
                 s.sold_at::date AS sold_at,
                 COUNT(*) AS cnt,
                 COALESCE(SUM(s.total), 0) AS revenue
-            FROM sales s
+            FROM sales_rel s
             WHERE s.sold_at::date BETWEEN :d_from AND :d_to
             GROUP BY s.sold_at::date
             ORDER BY s.sold_at::date ASC
@@ -366,7 +366,7 @@ async def reports(
                 COALESCE(SUM(s.qty), 0) AS total_qty,
                 COALESCE(SUM(s.total), 0) AS total_revenue,
                 COALESCE(SUM(CASE WHEN p.cost_price IS NOT NULL AND p.cost_price > 0 THEN s.qty * p.cost_price ELSE 0 END), 0) AS total_cost
-            FROM sales s
+            FROM sales_rel s
             JOIN products p ON p.id = s.product_id
             WHERE s.sold_at::date BETWEEN :d_from AND :d_to
             GROUP BY p.id, p.name, p.unit, p.cost_price
@@ -410,7 +410,7 @@ async def reports(
                 s.payment_type,
                 COUNT(*) AS cnt,
                 COALESCE(SUM(s.total), 0) AS revenue
-            FROM sales s
+            FROM sales_rel s
             WHERE s.sold_at::date BETWEEN :d_from AND :d_to
             GROUP BY s.payment_type
             ORDER BY revenue DESC
@@ -423,7 +423,7 @@ async def reports(
                 EXTRACT(DOW FROM s.sold_at::date)::int AS dow,
                 COUNT(*) AS cnt,
                 COALESCE(SUM(s.total), 0) AS revenue
-            FROM sales s
+            FROM sales_rel s
             WHERE s.sold_at::date BETWEEN :d_from AND :d_to
             GROUP BY EXTRACT(DOW FROM s.sold_at::date)
             ORDER BY dow
@@ -436,7 +436,7 @@ async def reports(
                 EXTRACT(DAY FROM s.sold_at::date)::int AS dom,
                 COUNT(*) AS cnt,
                 COALESCE(SUM(s.total), 0) AS revenue
-            FROM sales s
+            FROM sales_rel s
             WHERE s.sold_at::date BETWEEN :d_from AND :d_to
             GROUP BY EXTRACT(DAY FROM s.sold_at::date)
             ORDER BY dom
@@ -483,7 +483,7 @@ async def reports(
                 COALESCE(c.name, 'Outro') AS category,
                 COALESCE(SUM(s.total), 0) AS revenue,
                 COUNT(*) AS cnt
-            FROM sales s
+            FROM sales_rel s
             JOIN products p ON p.id = s.product_id
             LEFT JOIN categories c ON c.id = p.category_id
             WHERE s.sold_at::date BETWEEN :d_from AND :d_to
@@ -498,7 +498,7 @@ async def reports(
                 DATE_TRUNC('month', s.sold_at::date)::date AS month,
                 COALESCE(SUM(s.total), 0)                  AS revenue,
                 COUNT(*)                                    AS cnt
-            FROM sales s
+            FROM sales_rel s
             WHERE s.sold_at::date >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '5 months'
             GROUP BY DATE_TRUNC('month', s.sold_at::date)
             ORDER BY month ASC
@@ -553,7 +553,7 @@ async def reports(
                 COALESCE(SUM(CASE WHEN p.cost_price IS NOT NULL AND p.cost_price > 0 THEN s.total ELSE 0 END), 0) AS revenue_with_cost,
                 COALESCE(SUM(CASE WHEN p.cost_price IS NOT NULL AND p.cost_price > 0 THEN s.qty * p.cost_price ELSE 0 END), 0) AS cogs,
                 COALESCE(SUM(CASE WHEN p.cost_price IS NULL OR p.cost_price <= 0 THEN s.total ELSE 0 END), 0) AS revenue_no_cost
-            FROM sales s
+            FROM sales_rel s
             JOIN products p ON p.id = s.product_id
             WHERE s.sold_at::date >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '5 months'
             GROUP BY DATE_TRUNC('month', s.sold_at::date)
@@ -657,7 +657,7 @@ async def reports(
             JOIN products p ON p.id = sq.product_id
             LEFT JOIN (
                 SELECT product_id, MAX(sold_at) AS last_sale
-                FROM sales
+                FROM sales_rel
                 GROUP BY product_id
             ) ls ON ls.product_id = p.id
             WHERE ls.last_sale IS NULL OR ls.last_sale::date < CURRENT_DATE - INTERVAL '60 days'
@@ -722,7 +722,7 @@ async def reports(
 
                 sales_before_res = await conn.execute(text("""
                     SELECT COALESCE(SUM(total), 0) AS rev, COUNT(DISTINCT sold_at::date) AS days_with_sale
-                    FROM sales
+                    FROM sales_rel
                     WHERE product_id = :pid
                       AND sold_at::date >= :d_start AND sold_at::date < :d_end
                 """), {"pid": pid, "d_start": stockout_date - timedelta(days=30), "d_end": stockout_date})
@@ -761,7 +761,7 @@ async def reports(
                 s.sold_at::date AS day,
                 COALESCE(SUM(s.total), 0) AS revenue,
                 COUNT(*) AS cnt
-            FROM sales s
+            FROM sales_rel s
             WHERE s.sold_at::date >= :since
             GROUP BY DATE_TRUNC('month', s.sold_at::date), s.sold_at::date
             ORDER BY month ASC, day ASC
@@ -809,7 +809,7 @@ async def reports(
                 p.name                                      AS gas_name,
                 COALESCE(SUM(s.qty), 0)                    AS total_qty,
                 COALESCE(SUM(s.total), 0)                  AS total_revenue
-            FROM sales s
+            FROM sales_rel s
             JOIN products p ON p.id = s.product_id
             JOIN categories c ON c.id = p.category_id
             WHERE s.sold_at::date >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '11 months'
@@ -940,7 +940,7 @@ async def monthly_sales_report(
                     CASE WHEN p.cost_price IS NOT NULL AND p.cost_price > 0
                          THEN s.qty * p.cost_price ELSE 0 END
                 ), 0) AS total_cost
-            FROM sales s
+            FROM sales_rel s
             JOIN products p ON p.id = s.product_id
             WHERE s.sold_at::date BETWEEN :d_from AND :d_to
             GROUP BY p.id, p.name, p.unit, p.cost_price

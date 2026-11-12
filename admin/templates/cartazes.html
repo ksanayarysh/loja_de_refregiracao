@@ -3,6 +3,8 @@
 
 {% block extra_styles %}
   .content { padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+  .content .content { padding: 0; }
+  @media screen and (max-width: 900px) { .content { padding: 12px; } .folha { zoom: .42; } }
   h1 { font-size: 1.4rem; color: #111; }
   .sub { color: #555; font-size: .88rem; margin-top: 4px; line-height: 1.45; max-width: 760px; }
   .painel { background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
@@ -10,11 +12,15 @@
   .opts { display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: flex-end; }
   .opts label { margin: 0 0 4px; font-size: .82rem; }
   .opts select, .opts input[type=text] { padding: 8px 10px; border: 1px solid #ccc; border-radius: 8px; font-family: inherit; font-size: .92rem; }
+  /* o _base_admin estica todo input/label (width:100%, display:block) — aqui não */
+  .painel input[type=checkbox] { width: 18px; height: 18px; padding: 0; margin: 0; flex: 0 0 auto; }
+  .painel label.it, .painel label.chk { margin: 0; font-weight: 400; color: #111; }
+  .painel label.chk { font-weight: 700; }
   .chk { display: flex; align-items: center; gap: 6px; font-size: .9rem; font-weight: 700; cursor: pointer; }
   .lista { display: grid; gap: 6px; max-height: 360px; overflow: auto; }
   .it { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 1px solid #eee; border-radius: 8px; cursor: pointer; font-size: .9rem; }
   .it:hover { background: #fafafa; }
-  .it .n { flex: 1; }
+  .it .n { flex: 1; min-width: 0; text-align: left; }
   .it .tag { font-size: .72rem; font-weight: 800; padding: 2px 7px; border-radius: 999px; background: #f3f4f6; color: #333; white-space: nowrap; }
   .it .tag.kit { background: #e0f2fe; color: #075985; }
   .it .tag.p2 { background: #fef3c7; color: #92400e; }

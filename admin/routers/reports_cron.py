@@ -58,7 +58,7 @@ async def monthly_report(request: Request):
                 COALESCE(SUM(s.total), 0)               AS revenue,
                 COUNT(*)                                  AS sales_count,
                 COALESCE(SUM(p.cost_price * s.qty), 0)  AS cost
-            FROM sales s
+            FROM sales_rel s
             JOIN products p ON p.id = s.product_id
             WHERE s.sold_at >= :from AND s.sold_at <= :to
         """), {"from": first_prev, "to": last_prev})
@@ -72,7 +72,7 @@ async def monthly_report(request: Request):
         # Топ-3 товаров
         top_products = await conn.execute(text("""
             SELECT p.name, SUM(s.total) AS total
-            FROM sales s
+            FROM sales_rel s
             JOIN products p ON p.id = s.product_id
             WHERE s.sold_at >= :from AND s.sold_at <= :to
             GROUP BY p.name
@@ -84,7 +84,7 @@ async def monthly_report(request: Request):
         # Топ-3 категорий
         top_cats = await conn.execute(text("""
             SELECT COALESCE(c.name, 'Outro') AS cat, SUM(s.total) AS total
-            FROM sales s
+            FROM sales_rel s
             JOIN products p ON p.id = s.product_id
             LEFT JOIN categories c ON c.id = p.category_id
             WHERE s.sold_at >= :from AND s.sold_at <= :to
@@ -99,7 +99,7 @@ async def monthly_report(request: Request):
             SELECT EXTRACT(DOW FROM sold_at)::int AS dow,
                    SUM(total) AS total,
                    COUNT(DISTINCT sold_at) AS days_count
-            FROM sales
+            FROM sales_rel
             WHERE sold_at >= :from AND sold_at <= :to
             GROUP BY dow
             ORDER BY total DESC

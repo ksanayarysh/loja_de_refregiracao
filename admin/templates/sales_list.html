@@ -164,7 +164,7 @@
               <div class="sale-card-row">
                 <span>Qtd: <b>{{ dr.qty|qtd(dr.unit) }}</b></span>
                 <span>Unit: <b>{{ ((dr.unit_price if dr.unit_price == dr.unit_price else 0) or 0)|brl }}</b></span>
-                <span class="pay-badge pay-{{ pt }}">{{ pt_labels.get(pt, pt) }}</span>
+                <span class="pay-badge pay-{{ pt }}">{{ pt_labels.get(pt, pt) }}</span>{% if dr.fora_relatorio %} <span class="pay-badge" style="background:#fee2e2;color:#991b1b;" title="Não entra nos relatórios">🚫 fora dos relatórios</span>{% endif %}
               </div>
               {% if dr.note %}
               <div style="font-size:.8rem;color:#777;margin-top:4px;">📝 {{ dr.note }}</div>
@@ -213,7 +213,7 @@
                     <td>{{ dr.qty|qtd(dr.unit) }}</td>
                     <td class="price">{{ ((dr.unit_price if dr.unit_price == dr.unit_price else 0) or 0)|brl }}</td>
                     <td class="price">{{ (dr.total or 0)|brl }}</td>
-                    <td><span class="pay-badge pay-{{ pt }}">{{ pt_labels.get(pt, pt) }}</span></td>
+                    <td><span class="pay-badge pay-{{ pt }}">{{ pt_labels.get(pt, pt) }}</span>{% if dr.fora_relatorio %} <span class="pay-badge" style="background:#fee2e2;color:#991b1b;" title="Não entra nos relatórios">🚫 fora dos relatórios</span>{% endif %}</td>
                     <td style="color:#555;font-size:.85rem;">{{ dr.note or '—' }}</td>
                     <td>
                       <div class="action-cell">
@@ -272,7 +272,7 @@
                   <td>{{ dr.qty|qtd(dr.unit) }}</td>
                   <td class="price">{{ ((dr.unit_price if dr.unit_price == dr.unit_price else 0) or 0)|brl }}</td>
                   <td class="price">{{ (dr.total or 0)|brl }}</td>
-                  <td><span class="pay-badge pay-{{ pt }}">{{ pt_labels.get(pt, pt) }}</span></td>
+                  <td><span class="pay-badge pay-{{ pt }}">{{ pt_labels.get(pt, pt) }}</span>{% if dr.fora_relatorio %} <span class="pay-badge" style="background:#fee2e2;color:#991b1b;" title="Não entra nos relatórios">🚫 fora dos relatórios</span>{% endif %}</td>
                   <td style="color:#555;font-size:.85rem;">{{ dr.note or '—' }}</td>
                   <td>
                     <div class="action-cell">

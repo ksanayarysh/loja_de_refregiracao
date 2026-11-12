@@ -61,3 +61,18 @@ async def init_db():
 
         await conn.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS cost_price NUMERIC(12,2) DEFAULT 0"))
         await conn.execute(text("ALTER TABLE stock_movements ADD COLUMN IF NOT EXISTS unit_cost NUMERIC(12,2)"))
+
+        # vendas fora dos relatórios (ex.: compras com cartão roubado de 19–20/10/2026):
+        # continuam na lista de vendas e no estoque, mas os relatórios leem a view sales_rel
+        await conn.execute(text("ALTER TABLE sales ADD COLUMN IF NOT EXISTS fora_relatorio BOOLEAN NOT NULL DEFAULT FALSE"))
+        await conn.execute(text("CREATE TABLE IF NOT EXISTS migracoes (nome TEXT PRIMARY KEY, feita_em TIMESTAMPTZ DEFAULT NOW())"))
+        feita = (await conn.execute(text(
+            "INSERT INTO migracoes (nome) VALUES ('fraude_cartao_2026_10') ON CONFLICT DO NOTHING RETURNING nome"
+        ))).first()
+        if feita:   # só uma vez: depois a marcação é manual (editar venda)
+            await conn.execute(text("""
+                UPDATE sales SET fora_relatorio = TRUE
+                WHERE payment_type = 'cartao_credito' AND sold_at::date IN ('2026-10-19', '2026-10-20')
+            """))
+        await conn.execute(text("DROP VIEW IF EXISTS sales_rel"))
+        await conn.execute(text("CREATE VIEW sales_rel AS SELECT * FROM sales WHERE fora_relatorio = FALSE"))

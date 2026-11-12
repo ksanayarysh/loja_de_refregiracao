@@ -26,7 +26,7 @@ async def product_sales_history(
         # Lista de produtos que já tiveram alguma venda (para o filtro)
         prods_res = await conn.execute(text("""
             SELECT DISTINCT p.id, p.name
-            FROM sales s
+            FROM sales_rel s
             JOIN products p ON p.id = s.product_id
             ORDER BY p.name
         """))
@@ -43,7 +43,7 @@ async def product_sales_history(
                     s.total,
                     (s.total / NULLIF(s.qty, 0)) AS unit_price,
                     s.payment_type
-                FROM sales s
+                FROM sales_rel s
                 WHERE s.product_id = :pid
                 ORDER BY s.sold_at DESC
                 LIMIT 300
@@ -68,7 +68,7 @@ async def product_sales_history(
                     COALESCE(SUM(s.total), 0)   AS total_revenue,
                     MIN(s.sold_at)               AS first_sale,
                     MAX(s.sold_at)               AS last_sale
-                FROM sales s
+                FROM sales_rel s
                 WHERE s.product_id = :pid
             """), {"pid": product_id})
             sr = sum_res.mappings().first()
