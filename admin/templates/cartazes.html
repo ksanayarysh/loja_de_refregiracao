@@ -1,0 +1,236 @@
+{% extends '_base_admin.html' %}
+{% block title %}Cartazes — M.T.F{% endblock %}
+
+{% block extra_styles %}
+  .content { padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+  h1 { font-size: 1.4rem; color: #111; }
+  .sub { color: #555; font-size: .88rem; margin-top: 4px; line-height: 1.45; max-width: 760px; }
+  .painel { background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+  .painel h2 { font-size: 1rem; margin-bottom: 10px; color: #111; }
+  .opts { display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: flex-end; }
+  .opts label { margin: 0 0 4px; font-size: .82rem; }
+  .opts select, .opts input[type=text] { padding: 8px 10px; border: 1px solid #ccc; border-radius: 8px; font-family: inherit; font-size: .92rem; }
+  .chk { display: flex; align-items: center; gap: 6px; font-size: .9rem; font-weight: 700; cursor: pointer; }
+  .lista { display: grid; gap: 6px; max-height: 360px; overflow: auto; }
+  .it { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 1px solid #eee; border-radius: 8px; cursor: pointer; font-size: .9rem; }
+  .it:hover { background: #fafafa; }
+  .it .n { flex: 1; }
+  .it .tag { font-size: .72rem; font-weight: 800; padding: 2px 7px; border-radius: 999px; background: #f3f4f6; color: #333; white-space: nowrap; }
+  .it .tag.kit { background: #e0f2fe; color: #075985; }
+  .it .tag.p2 { background: #fef3c7; color: #92400e; }
+  .it .pr { font-weight: 800; white-space: nowrap; }
+  .it .pr s { color: #999; font-weight: 400; margin-right: 4px; }
+  .busca { display: flex; gap: 8px; margin-top: 12px; }
+  .busca input { flex: 1; padding: 9px 10px; border: 1px solid #ccc; border-radius: 8px; font-size: .92rem; }
+  #busca-res .it { border-style: dashed; }
+  .acoes { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .dica { font-size: .82rem; color: #666; }
+  #preview { display: flex; flex-direction: column; gap: 18px; align-items: flex-start; }
+
+  /* ── folha e cartazes (medidas reais em mm) ── */
+  .folha { width: 210mm; height: 297mm; background: #fff; box-shadow: 0 2px 14px rgba(0,0,0,.18); display: grid; overflow: hidden; }
+  .folha.a4 { grid-template: 1fr / 1fr; }
+  .folha.a5 { grid-template: 1fr 1fr / 1fr; }
+  .folha.a6 { grid-template: 1fr 1fr / 1fr 1fr; }
+  .cz { --s: 1; position: relative; display: flex; flex-direction: column; overflow: hidden; font-family: Arial, Helvetica, sans-serif; color: #0b1f3a; border: .3mm dashed #ccc; }
+  .folha.a5 .cz { --s: .62; }
+  .folha.a6 .cz { --s: .48; }
+  .cz-top { background: #E2144A; color: #fff; text-align: center; font-weight: 900; letter-spacing: .04em; font-size: calc(30mm * var(--s)); line-height: 1; padding: calc(7mm * var(--s)) 4mm; text-transform: uppercase; }
+  .tinta .cz-top { background: #fff; color: #E2144A; border-bottom: calc(2.5mm * var(--s)) solid #E2144A; }
+  .cz-mid { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: calc(8mm * var(--s)) calc(12mm * var(--s)) calc(4mm * var(--s)); gap: calc(5mm * var(--s)); min-height: 0; }
+  .cz-nome { font-weight: 900; font-size: calc(15mm * var(--s)); line-height: 1.12; text-align: center; overflow-wrap: anywhere; }
+  .cz-nome.longo { font-size: calc(11mm * var(--s)); }
+  .cz-nome.mlongo { font-size: calc(8.5mm * var(--s)); }
+  .cz-lista { font-size: calc(5.6mm * var(--s)); line-height: 1.35; text-align: center; color: #334155; }
+  .cz-foto { display: block; margin: 0 auto; max-width: 70%; max-height: calc(70mm * var(--s)); object-fit: contain; }
+  .cz-preco { text-align: center; }
+  .cz-de { font-size: calc(9mm * var(--s)); color: #475569; }
+  .cz-de s { text-decoration-thickness: .5mm; }
+  .cz-por { display: inline-flex; align-items: flex-start; justify-content: center; color: #E2144A; font-weight: 900; line-height: .9; }
+  .cz-por .rs { font-size: calc(13mm * var(--s)); margin-top: calc(4mm * var(--s)); margin-right: calc(2mm * var(--s)); }
+  .cz-por .int { font-size: calc(48mm * var(--s)); letter-spacing: -.02em; }
+  .cz-por .cent { font-size: calc(17mm * var(--s)); margin-top: calc(4mm * var(--s)); }
+  .cz-un { font-size: calc(7mm * var(--s)); color: #475569; font-weight: 700; margin-top: calc(1mm * var(--s)); }
+  .cz-p2 { margin: calc(3mm * var(--s)) auto 0; display: table; background: #0b1f3a; color: #fff; border-radius: calc(4mm * var(--s)); padding: calc(3mm * var(--s)) calc(7mm * var(--s)); font-weight: 900; font-size: calc(9mm * var(--s)); line-height: 1.2; text-align: center; }
+  .cz-p2 small { display: block; font-size: .62em; font-weight: 700; opacity: .9; }
+  .tinta .cz-p2 { background: #fff; color: #0b1f3a; border: .6mm solid #0b1f3a; }
+  .cz-base { display: flex; align-items: center; gap: calc(6mm * var(--s)); padding: calc(5mm * var(--s)) calc(12mm * var(--s)); border-top: .4mm solid #e2e8f0; }
+  .cz-qr { width: calc(46mm * var(--s)); height: calc(46mm * var(--s)); flex-shrink: 0; }
+  .cz-qr svg, .cz-qr img { width: 100%; height: 100%; display: block; }
+  .cz-txt { flex: 1; font-size: calc(6mm * var(--s)); line-height: 1.3; color: #1e293b; }
+  .cz-txt b { display: block; font-size: 1.15em; color: #0b1f3a; margin-bottom: calc(1.5mm * var(--s)); }
+  .cz-val { margin-top: calc(2.5mm * var(--s)); font-size: .85em; color: #475569; }
+  .cz-rod { background: #0b1f3a; color: #fff; text-align: center; font-weight: 700; font-size: calc(5.6mm * var(--s)); padding: calc(3mm * var(--s)); }
+  .tinta .cz-rod { background: #fff; color: #0b1f3a; border-top: .4mm solid #0b1f3a; }
+  [contenteditable]:hover { outline: .4mm dashed #3b82f6; }
+  [contenteditable]:focus { outline: .4mm solid #3b82f6; }
+
+  @media print {
+    @page { size: A4; margin: 0; }
+    body { background: #fff !important; }
+    .sidebar, nav, header, .navbar, .no-print { display: none !important; }
+    .layout { display: block !important; }
+    .content { padding: 0 !important; gap: 0 !important; }
+    #preview { gap: 0; display: block; }
+    .folha { box-shadow: none; break-after: page; page-break-after: always; }
+    .folha:last-child { break-after: auto; page-break-after: auto; }
+    [contenteditable] { outline: none !important; }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+{% endblock %}
+
+{% block content %}
+<div class="content">
+  <div class="no-print">
+    <h1>🖨 Cartazes para a loja</h1>
+    <div class="sub">Marque as promoções e os kits, escolha o tamanho e imprima. Cada cartaz tem um <b>QR code</b>:
+      o cliente aponta a câmera do celular e abre a página do produto no site (os acessos aparecem com origem “cartaz”).
+      Clique em qualquer texto do cartaz para corrigir antes de imprimir.</div>
+  </div>
+
+  <div class="painel no-print">
+    <h2>1. O que vai no cartaz</h2>
+    {% if itens %}
+    <div class="lista" id="lista">
+      {% for i in itens %}
+      <label class="it"><input type="checkbox" value="{{ i.key }}" {% if i.tipo != 'kit' or i.no_site %}checked{% endif %}>
+        <span class="n">{{ i.nome }}</span>
+        {% if i.tipo == 'kit' %}<span class="tag kit">kit</span>{% endif %}
+        {% if i.p2 %}<span class="tag p2">2ª un. -{{ '%g'|format(i.p2) }}%</span>{% endif %}
+        <span class="pr">{% if i.de %}<s>{{ i.de|brl }}</s>{% endif %}{{ i.preco|brl }}</span>
+      </label>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="dica">Nenhuma promoção ou kit ativo agora. Busque um produto abaixo.</div>
+    {% endif %}
+    <div class="busca"><input id="q" placeholder="Outro produto (novidade, preço normal)… digite o nome" autocomplete="off"></div>
+    <div class="lista" id="busca-res" style="margin-top:6px;"></div>
+  </div>
+
+  <div class="painel no-print">
+    <h2>2. Como imprimir</h2>
+    <div class="opts">
+      <div><label for="fmt">Tamanho</label>
+        <select id="fmt">
+          <option value="a4">A4 — 1 por folha (vitrine, parede)</option>
+          <option value="a5" selected>A5 — 2 por folha (balcão)</option>
+          <option value="a6">A6 — 4 por folha (prateleira)</option>
+        </select></div>
+      <div><label for="titulo">Título</label>
+        <select id="titulo">
+          <option value="auto">Automático (OFERTA / KIT)</option>
+          <option>OFERTA</option><option>PROMOÇÃO</option><option>NOVIDADE</option>
+          <option>BLACK FRIDAY</option><option>QUEIMA DE ESTOQUE</option>
+        </select></div>
+      <div><label for="val">Validade (vazio = data da promoção)</label>
+        <input type="text" id="val" placeholder="ex.: até 30/11" style="width:200px"></div>
+      <label class="chk"><input type="checkbox" id="foto"> Com foto</label>
+      <label class="chk"><input type="checkbox" id="tinta"> Economizar tinta</label>
+      <label class="chk"><input type="checkbox" id="qr" checked> QR code</label>
+    </div>
+  </div>
+
+  <div class="acoes no-print">
+    <button class="btn-primary" type="button" onclick="window.print()">🖨 Imprimir</button>
+    <span class="dica" id="conta"></span>
+    <span class="dica">Na janela de impressão: papel A4, margens “Nenhuma”, escala 100%, “Gráficos de plano de fundo” ligado.</span>
+  </div>
+
+  <div id="preview"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script>
+const ITENS = {{ itens | tojson }};
+const EXTRA = {};          // produtos vindos da busca
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const brl = v => 'R$ ' + Number(v).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+const POR = { a4: 1, a5: 2, a6: 4 };
+
+function qrSvg(url) {
+  if (typeof qrcode !== 'function') return '';
+  const q = qrcode(0, 'M'); q.addData(url); q.make();
+  return q.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
+}
+
+function dataBR(iso) { if (!iso) return ''; const [y, m, d] = iso.split('-'); return `${d}/${m}`; }
+
+function cartaz(i) {
+  const tit = $('titulo').value === 'auto' ? (i.tipo === 'kit' ? 'KIT' : (i.de || i.p2 ? 'OFERTA' : 'NOVIDADE')) : $('titulo').value;
+  const [int, cent] = Number(i.preco).toFixed(2).split('.');
+  const intFmt = int.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  const len = i.nome.length;
+  const cls = len > 70 ? 'mlongo' : len > 38 ? 'longo' : '';
+  const un = i.unit && i.unit !== 'un' && i.unit !== 'kit' ? `por ${esc(i.unit)}` : '';
+  const val = $('val').value.trim() || (i.ate ? `Válido até ${dataBR(i.ate)}` : '');
+  const valTxt = (val ? esc(val) + ' ou enquanto durar o estoque' : (i.de || i.p2 ? 'Enquanto durar o estoque' : ''));
+  return `<div class="cz">
+    <div class="cz-top" contenteditable>${esc(tit)}</div>
+    <div class="cz-mid">
+      <div class="cz-nome ${cls}" contenteditable>${esc(i.nome)}</div>
+      ${i.lista ? `<div class="cz-lista" contenteditable>${i.lista.map(esc).join(' · ')}</div>` : ''}
+      ${$('foto').checked && i.foto ? `<img class="cz-foto" src="${esc(i.foto)}" alt="">` : ''}
+      <div class="cz-preco">
+        ${i.de ? `<div class="cz-de">${i.tipo === 'kit' ? 'Separado' : 'De'} <s>${brl(i.de)}</s> por</div>` : ''}
+        <div class="cz-por"><span class="rs">R$</span><span class="int">${intFmt}</span><span class="cent">,${cent}</span></div>
+        ${un ? `<div class="cz-un">${un}</div>` : ''}
+        ${i.p2 ? `<div class="cz-p2">2ª unidade com ${String(i.p2).replace('.', ',')}% OFF<small>Leve 2 por ${brl(i.par)}</small></div>` : ''}
+      </div>
+    </div>
+    <div class="cz-base">
+      ${$('qr').checked ? `<div class="cz-qr">${qrSvg(i.url)}</div>` : ''}
+      <div class="cz-txt">
+        ${$('qr').checked ? '<b>📱 Aponte a câmera do celular</b>Veja os detalhes e compre pelo site — retire aqui ou receba em casa.' : '<b>Pix ou cartão</b>Retire aqui ou receba em casa.'}
+        ${valTxt ? `<div class="cz-val" contenteditable>${valTxt}</div>` : ''}
+      </div>
+    </div>
+    <div class="cz-rod">M.T.F Refrigeração · mtfrefrigeracao.com.br · WhatsApp {{ store_phone }}</div>
+  </div>`;
+}
+
+function selecionados() {
+  const all = Object.assign({}, ...ITENS.map(i => ({ [i.key]: i })), EXTRA);
+  return [...document.querySelectorAll('#lista input:checked, #busca-res input:checked')].map(c => all[c.value]).filter(Boolean);
+}
+
+function render() {
+  const fmt = $('fmt').value, n = POR[fmt], sel = selecionados();
+  const folhas = [];
+  for (let k = 0; k < sel.length; k += n) {
+    const parte = sel.slice(k, k + n).map(cartaz);
+    while (parte.length < n) parte.push('<div></div>');
+    folhas.push(`<div class="folha ${fmt}${$('tinta').checked ? ' tinta' : ''}">${parte.join('')}</div>`);
+  }
+  $('preview').innerHTML = folhas.join('') || '<div class="dica no-print">Marque pelo menos um item.</div>';
+  $('conta').textContent = sel.length ? `${sel.length} cartaz(es) · ${folhas.length} folha(s)` : '';
+}
+
+document.addEventListener('change', e => { if (e.target.closest('.painel')) render(); });
+$('val').addEventListener('input', render);
+
+let tBusca = null;
+$('q').addEventListener('input', () => {
+  clearTimeout(tBusca);
+  tBusca = setTimeout(async () => {
+    const q = $('q').value.trim(), box = $('busca-res');
+    const marcados = [...box.querySelectorAll('input:checked')].map(c => c.value);
+    box.querySelectorAll('.it').forEach(el => { if (!el.querySelector('input:checked')) el.remove(); });
+    if (q.length < 2) return;
+    const r = await fetch('/api/cartazes/busca?q=' + encodeURIComponent(q)); if (!r.ok) return;
+    for (const i of await r.json()) {
+      if (marcados.includes(i.key) || document.querySelector(`#lista input[value="${i.key}"]`)) continue;
+      EXTRA[i.key] = i;
+      box.insertAdjacentHTML('beforeend', `<label class="it"><input type="checkbox" value="${i.key}"><span class="n">${esc(i.nome)}</span>
+        <span class="pr">${i.de ? `<s>${brl(i.de)}</s>` : ''}${brl(i.preco)}</span></label>`);
+    }
+  }, 300);
+});
+
+render();
+</script>
+{% endblock %}
