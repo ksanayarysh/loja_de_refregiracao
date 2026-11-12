@@ -98,18 +98,22 @@ async def img_proxy(src: str, w: int = 0):
         content = resp.content
 
         if w > 0:
-            try:
+            # redimensionar numa thread: PIL é pesado e, no loop do servidor, travava as outras páginas
+            # (com 30 imagens ao mesmo tempo as páginas de produto iam de 0,4 s para 2,4 s)
+            def _resize(raw: bytes):
                 from PIL import Image
                 import io
-                img = Image.open(io.BytesIO(content))
-                ratio = w / img.width
-                h = int(img.height * ratio)
-                img = img.resize((w, h), Image.LANCZOS)
+                img = Image.open(io.BytesIO(raw))
+                if img.width > w:
+                    img = img.resize((w, int(img.height * w / img.width)), Image.LANCZOS)
                 buf = io.BytesIO()
                 fmt = "WEBP" if src.endswith(".webp") else "JPEG"
+                if fmt == "JPEG" and img.mode not in ("RGB", "L"):
+                    img = img.convert("RGB")
                 img.save(buf, fmt, quality=82, optimize=True)
-                content = buf.getvalue()
-                media_type = "image/webp" if fmt == "WEBP" else "image/jpeg"
+                return buf.getvalue(), ("image/webp" if fmt == "WEBP" else "image/jpeg")
+            try:
+                content, media_type = await asyncio.to_thread(_resize, content)
             except Exception:
                 media_type = resp.headers.get("content-type", "image/jpeg")
         else:
