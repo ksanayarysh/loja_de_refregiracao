@@ -75,7 +75,7 @@ async def cartazes_page(request: Request, _=Depends(basic_auth)):
             ORDER BY name
         """), {"hoje": hoje})).mappings().all()
         kits = await _load_kits(conn, only_active=True)
-    itens = [_produto(r, hoje) for r in rows]
+    itens = []                      # kits primeiro (com arte pronta = banner), depois os produtos
     for k in kits:
         if not k["items"] or k["total"] <= 0:
             continue
@@ -88,7 +88,9 @@ async def cartazes_page(request: Request, _=Depends(basic_auth)):
             "foto": _foto(k.get("banner")),
             "lista": [f"{i['qty']:g} {i['unit']} {i['name']}" for i in k["items"]][:6],
             "no_site": bool(k.get("show_on_site")),
+            "banner": bool(_foto(k.get("banner"))),
         })
+    itens += [_produto(r, hoje) for r in rows]
     return templates.TemplateResponse("cartazes.html", {
         "request": request, "active_page": "cartazes", "itens": itens, "site_url": _site(),
         "store_phone": "(21) 97153-8839",

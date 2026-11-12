@@ -43,12 +43,17 @@
   .folha.a6 .cz { --s: .48; }
   .cz-top { background: #E2144A; color: #fff; text-align: center; font-weight: 900; letter-spacing: .04em; font-size: calc(30mm * var(--s)); line-height: 1; padding: calc(7mm * var(--s)) 4mm; text-transform: uppercase; }
   .tinta .cz-top { background: #fff; color: #E2144A; border-bottom: calc(2.5mm * var(--s)) solid #E2144A; }
-  .cz-mid { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: calc(8mm * var(--s)) calc(12mm * var(--s)) calc(4mm * var(--s)); gap: calc(5mm * var(--s)); min-height: 0; }
+  .cz-mid { flex: 1; display: flex; flex-direction: column; justify-content: safe center; padding: calc(8mm * var(--s)) calc(12mm * var(--s)) calc(4mm * var(--s)); gap: calc(5mm * var(--s)); min-height: 0; }
   .cz-nome { font-weight: 900; font-size: calc(15mm * var(--s)); line-height: 1.12; text-align: center; overflow-wrap: anywhere; }
   .cz-nome.longo { font-size: calc(11mm * var(--s)); }
   .cz-nome.mlongo { font-size: calc(8.5mm * var(--s)); }
   .cz-lista { font-size: calc(5.6mm * var(--s)); line-height: 1.35; text-align: center; color: #334155; }
-  .cz-foto { display: block; margin: 0 auto; max-width: 70%; max-height: calc(70mm * var(--s)); object-fit: contain; }
+  /* a foto encolhe para caber: nome, preço e QR nunca ficam por cima uns dos outros */
+  .cz-foto { display: block; margin: 0 auto; width: 70%; flex: 1 1 0; min-height: 0; max-height: calc(70mm * var(--s)); object-fit: contain; }
+  .cz-mid > * { flex-shrink: 0; }
+  .cz-mid > .cz-foto, .cz-mid > .cz-banner { flex-shrink: 1; }
+  .cz-banner { display: block; width: 100%; height: auto; flex: 0 1 auto; min-height: 0; object-fit: contain; border-radius: calc(3mm * var(--s)); }
+  .cz.com-banner .cz-mid { padding-top: calc(6mm * var(--s)); gap: calc(8mm * var(--s)); }
   .cz-preco { text-align: center; }
   .cz-de { font-size: calc(9mm * var(--s)); color: #475569; }
   .cz-de s { text-decoration-thickness: .5mm; }
@@ -100,7 +105,7 @@
     <label class="chk" style="margin:0 0 8px 10px;"><input type="checkbox" id="todos"> Marcar / desmarcar todos</label>
     <div class="lista" id="lista">
       {% for i in itens %}
-      <label class="it"><input type="checkbox" value="{{ i.key }}" {% if i.tipo != 'kit' or i.no_site %}checked{% endif %}>
+      <label class="it"><input type="checkbox" value="{{ i.key }}" checked>
         <span class="n">{{ i.nome }}</span>
         {% if i.tipo == 'kit' %}<span class="tag kit">kit</span>{% endif %}
         {% if i.p2 %}<span class="tag p2">2ª un. -{{ '%g'|format(i.p2) }}%</span>{% endif %}
@@ -176,12 +181,16 @@ function cartaz(i) {
   const un = i.unit && i.unit !== 'un' && i.unit !== 'kit' ? `por ${esc(i.unit)}` : '';
   const val = $('val').value.trim() || (i.ate ? `Válido até ${dataBR(i.ate)}` : '');
   const valTxt = (val ? esc(val) + ' ou enquanto durar o estoque' : (i.de || i.p2 ? 'Enquanto durar o estoque' : ''));
-  return `<div class="cz">
-    <div class="cz-top" contenteditable>${esc(tit)}</div>
-    <div class="cz-mid">
-      <div class="cz-nome ${cls}" contenteditable>${esc(i.nome)}</div>
+  // kit com arte pronta (banner da página Kits): a arte entra no lugar do título, nome e lista
+  const topo = i.banner
+    ? `<img class="cz-banner" src="${esc(i.foto)}" alt="${esc(i.nome)}">`
+    : `<div class="cz-nome ${cls}" contenteditable>${esc(i.nome)}</div>
       ${i.lista ? `<div class="cz-lista" contenteditable>${i.lista.map(esc).join(' · ')}</div>` : ''}
-      ${$('foto').checked && i.foto ? `<img class="cz-foto" src="${esc(i.foto)}" alt="">` : ''}
+      ${$('foto').checked && i.foto ? `<img class="cz-foto" src="${esc(i.foto)}" alt="">` : ''}`;
+  return `<div class="cz${i.banner ? ' com-banner' : ''}">
+    ${i.banner ? '' : `<div class="cz-top" contenteditable>${esc(tit)}</div>`}
+    <div class="cz-mid">
+      ${topo}
       <div class="cz-preco">
         ${i.de ? `<div class="cz-de">${i.tipo === 'kit' ? 'Separado' : 'De'} <s>${brl(i.de)}</s> por</div>` : ''}
         <div class="cz-por"><span class="rs">R$</span><span class="int">${intFmt}</span><span class="cent">,${cent}</span></div>
