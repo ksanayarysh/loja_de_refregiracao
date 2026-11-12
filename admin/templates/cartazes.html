@@ -53,7 +53,14 @@
   .cz-mid > * { flex-shrink: 0; }
   .cz-mid > .cz-foto, .cz-mid > .cz-banner { flex-shrink: 1; }
   .cz-banner { display: block; width: 100%; height: auto; flex: 0 1 auto; min-height: 0; object-fit: contain; border-radius: calc(3mm * var(--s)); }
-  .cz.com-banner .cz-mid { padding-top: calc(6mm * var(--s)); gap: calc(8mm * var(--s)); }
+  /* kit com arte pronta: a arte ocupa toda a largura e já traz o preço */
+  .cz.com-banner .cz-mid { padding: 0; justify-content: safe center; background: #fff; }
+  .cz.com-banner .cz-banner { border-radius: 0; max-height: 100%; }
+  /* a arte já tem a marca: sem rodapé e com o QR menor, para a arte ficar o mais larga possível */
+  .cz.com-banner .cz-rod { display: none; }
+  .cz.com-banner .cz-base { padding: calc(3mm * var(--s)) calc(10mm * var(--s)); }
+  .cz.com-banner .cz-qr { width: calc(30mm * var(--s)); height: calc(30mm * var(--s)); }
+  .cz.com-banner .cz-txt { font-size: calc(5mm * var(--s)); }
   .cz-preco { text-align: center; }
   .cz-de { font-size: calc(9mm * var(--s)); color: #475569; }
   .cz-de s { text-decoration-thickness: .5mm; }
@@ -191,12 +198,12 @@ function cartaz(i) {
     ${i.banner ? '' : `<div class="cz-top" contenteditable>${esc(tit)}</div>`}
     <div class="cz-mid">
       ${topo}
-      <div class="cz-preco">
+      ${i.banner ? '' : `<div class="cz-preco">
         ${i.de ? `<div class="cz-de">${i.tipo === 'kit' ? 'Separado' : 'De'} <s>${brl(i.de)}</s> por</div>` : ''}
         <div class="cz-por"><span class="rs">R$</span><span class="int">${intFmt}</span><span class="cent">,${cent}</span></div>
         ${un ? `<div class="cz-un">${un}</div>` : ''}
         ${i.p2 ? `<div class="cz-p2">2ª unidade com ${String(i.p2).replace('.', ',')}% OFF<small>Leve 2 por ${brl(i.par)}</small></div>` : ''}
-      </div>
+      </div>`}
     </div>
     <div class="cz-base">
       ${$('qr').checked ? `<div class="cz-qr">${qrSvg(i.url)}</div>` : ''}
@@ -233,12 +240,40 @@ function syncTodos() {
   t.checked = cs.length > 0 && n === cs.length;
   t.indeterminate = n > 0 && n < cs.length;
 }
+// a seleção e as opções ficam salvas neste navegador (item novo entra marcado)
+const SAVE_KEY = 'mtf_cartazes';
+const OPTS = ['fmt', 'titulo', 'val', 'foto', 'tinta', 'qr'];
+function salvar() {
+  try {
+    const sel = {};
+    document.querySelectorAll('#lista input').forEach(c => { sel[c.value] = c.checked; });
+    const extra = [...document.querySelectorAll('#busca-res input:checked')].map(c => EXTRA[c.value]).filter(Boolean);
+    const opts = {};
+    OPTS.forEach(id => { const el = $(id); opts[id] = el.type === 'checkbox' ? el.checked : el.value; });
+    localStorage.setItem(SAVE_KEY, JSON.stringify({ sel, extra, opts }));
+  } catch (e) {}
+}
+function restaurar() {
+  let d = null; try { d = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); } catch (e) {}
+  if (!d) return;
+  document.querySelectorAll('#lista input').forEach(c => { if (d.sel && c.value in d.sel) c.checked = d.sel[c.value]; });
+  (d.extra || []).forEach(i => {
+    if (!i || !i.key || document.querySelector(`#lista input[value="${i.key}"]`)) return;
+    EXTRA[i.key] = i;
+    $('busca-res').insertAdjacentHTML('beforeend', `<label class="it"><input type="checkbox" value="${esc(i.key)}" checked><span class="n">${esc(i.nome)}</span>
+      <span class="pr">${i.de ? `<s>${brl(i.de)}</s>` : ''}${brl(i.preco)}</span></label>`);
+  });
+  OPTS.forEach(id => { const el = $(id); if (!d.opts || !(id in d.opts)) return; if (el.type === 'checkbox') el.checked = !!d.opts[id]; else el.value = d.opts[id]; });
+  if (!$('fmt').value) $('fmt').value = 'a5';
+  if (!$('titulo').value) $('titulo').value = 'auto';
+}
 document.addEventListener('change', e => {
   if (e.target.id === 'todos') document.querySelectorAll('#lista input, #busca-res input').forEach(c => { c.checked = e.target.checked; });
-  if (e.target.closest('.painel')) { syncTodos(); render(); }
+  if (e.target.closest('.painel')) { syncTodos(); render(); salvar(); }
 });
+restaurar();
 syncTodos();
-$('val').addEventListener('input', render);
+$('val').addEventListener('input', () => { render(); salvar(); });
 
 let tBusca = null;
 $('q').addEventListener('input', () => {
