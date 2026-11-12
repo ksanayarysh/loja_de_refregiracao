@@ -430,9 +430,9 @@ async function calcFrete(auto) {
     const lugar = [d.bairro, d.cidade, d.uf].filter(Boolean).map(esc).join(', ');
     const isMe = !!d.correios;
     $('doc-box').classList.toggle('co-hidden', !isMe);
-    $('entrega-note').textContent = isMe
+    $('entrega-note').innerHTML = isMe
       ? 'Enviamos em até 1 dia útil após o pagamento. Você recebe o código de rastreio pelo WhatsApp.'
-      : 'Pedido pago até 16h: entrega hoje (seg. a sáb.). Depois disso, no próximo dia útil.';
+      : notaLocal();
     if (d.combinar) {
       const wa = encodeURIComponent('Olá! Quero fazer um pedido com entrega para o CEP ' + $('f-cep').value + '. Qual o valor do frete?');
       const bloq = (d.nao_envia || []).length
@@ -508,15 +508,34 @@ async function calcFrete(auto) {
   }
 }
 
+// entrega no Rio: aviso conforme a hora do Rio (loja seg–sáb 8h30–18h; pago até 16h sai no mesmo dia)
+function notaLocal() {
+  const p = {};
+  new Intl.DateTimeFormat('en-US', { timeZone: 'America/Sao_Paulo', weekday: 'short', hour: 'numeric', minute: 'numeric', hourCycle: 'h23' })
+    .formatToParts(new Date()).forEach(x => { p[x.type] = x.value; });
+  const d = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(p.weekday), m = (+p.hour) * 60 + (+p.minute);
+  const fechado = t => `<span style="display:block;background:#eef2ff;border:1px solid #c7d2fe;color:#1e3a8a;border-radius:10px;padding:9px 11px;font-size:.86rem;line-height:1.4;">${t}</span>`;
+  if (d === 0)
+    return fechado('🌙 <strong>Hoje (domingo) estamos fechados</strong>, mas pode fazer o seu pedido tranquilo: na <strong>segunda-feira</strong> cedo entramos em contato e enviamos o seu pedido!');
+  if (d === 6 && m >= 1080)
+    return fechado('🌙 <strong>Já fechamos por hoje</strong>, mas pode fazer o seu pedido tranquilo: na <strong>segunda-feira</strong> cedo entramos em contato e enviamos o seu pedido!');
+  if (m >= 1080)
+    return fechado('🌙 <strong>Já fechamos por hoje</strong>, mas pode fazer o seu pedido tranquilo: <strong>amanhã</strong> cedo entramos em contato e enviamos o seu pedido!');
+  if (m < 510)
+    return fechado('☀️ <strong>Ainda não abrimos</strong> (abrimos às 8h30), mas pode fazer o seu pedido: assim que abrirmos entramos em contato e enviamos <strong>hoje</strong>!');
+  if (m >= 960) return 'Pedidos pagos agora (depois das 16h): entrega no próximo dia útil.';
+  return 'Pedido pago até 16h: entrega hoje (seg. a sáb.). Depois disso, no próximo dia útil.';
+}
+
 function pickService() {
   const r = document.querySelector('input[name="service"]:checked');
   frete = r ? { service: r.value, price: parseFloat(r.dataset.price) } : null;
   // Correios/transportadora (também dentro do Rio): pede CPF e muda o aviso de prazo
   const me = !!(frete && String(frete.service).startsWith('ME-'));
   $('doc-box').classList.toggle('co-hidden', !me);
-  $('entrega-note').textContent = me
+  $('entrega-note').innerHTML = me
     ? 'Enviamos em até 1 dia útil após o pagamento. Você recebe o código de rastreio pelo WhatsApp.'
-    : 'Pedido pago até 16h: entrega hoje (seg. a sáb.). Depois disso, no próximo dia útil.';
+    : notaLocal();
   renderSummary();
 }
 
@@ -628,6 +647,7 @@ try {
   if (cep) { $('f-cep').value = cep; try { localStorage.setItem('mtf_cep', cep); } catch (e) {} }
 } catch (e) {}
 
+$('entrega-note').innerHTML = notaLocal();
 renderSummary();
 syncStock();
 setTimeout(enviarLead, 4000);   // WhatsApp já preenchido de um pedido anterior
