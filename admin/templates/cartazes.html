@@ -97,6 +97,7 @@
   <div class="painel no-print">
     <h2>1. O que vai no cartaz</h2>
     {% if itens %}
+    <label class="chk" style="margin:0 0 8px 10px;"><input type="checkbox" id="todos"> Marcar / desmarcar todos</label>
     <div class="lista" id="lista">
       {% for i in itens %}
       <label class="it"><input type="checkbox" value="{{ i.key }}" {% if i.tipo != 'kit' or i.no_site %}checked{% endif %}>
@@ -216,7 +217,18 @@ function render() {
   $('conta').textContent = sel.length ? `${sel.length} cartaz(es) · ${folhas.length} folha(s)` : '';
 }
 
-document.addEventListener('change', e => { if (e.target.closest('.painel')) render(); });
+function syncTodos() {
+  const cs = [...document.querySelectorAll('#lista input, #busca-res input')], t = $('todos');
+  if (!t) return;
+  const n = cs.filter(c => c.checked).length;
+  t.checked = cs.length > 0 && n === cs.length;
+  t.indeterminate = n > 0 && n < cs.length;
+}
+document.addEventListener('change', e => {
+  if (e.target.id === 'todos') document.querySelectorAll('#lista input, #busca-res input').forEach(c => { c.checked = e.target.checked; });
+  if (e.target.closest('.painel')) { syncTodos(); render(); }
+});
+syncTodos();
 $('val').addEventListener('input', render);
 
 let tBusca = null;
