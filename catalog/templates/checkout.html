@@ -47,7 +47,8 @@
     .co-kit{display:inline-block;margin-left:4px;padding:0 7px;border-radius:999px;background:#fff0f4;color:var(--accent);border:1px solid #ffd0dc;font-size:.7rem;font-weight:800;}
 
     .co-msg{font-size:.85rem;margin:6px 0 10px;}
-    .co-err{color:var(--accent);}
+    .co-err{color:#dc2626;font-weight:700;}
+    .co-input.co-bad{border-color:#dc2626;background:#fef2f2;}
     .co-local{font-size:.8rem;color:var(--muted);margin:8px 0;}
     .co-note{font-size:.75rem;color:var(--muted);margin-top:4px;line-height:1.5;}
     .co-tec{margin:6px 0 10px;border:1px dashed var(--border);border-radius:10px;padding:8px 10px;}
@@ -120,7 +121,8 @@
         </div>
         <div class="co-field">
           <label for="f-email">E-mail</label>
-          <input class="co-input" id="f-email" type="email" autocomplete="email" maxlength="160">
+          <input class="co-input" id="f-email" type="email" inputmode="email" autocomplete="email" maxlength="160" placeholder="voce@email.com">
+          <div class="co-note" style="margin-top:4px;font-size:.74rem;">O Mercado Pago envia o comprovante para este e-mail.</div>
         </div>
       </div>
     </div>
@@ -543,24 +545,35 @@ async function syncStock() {
 // ── pagamento ──
 async function pagar() {
   const msg = $('pay-msg'); msg.innerHTML = '';
-  const err = t => { msg.innerHTML = `<span class="co-err">${esc(t)}</span>`; };
+  document.querySelectorAll('.co-bad').forEach(el => el.classList.remove('co-bad'));
+  // no celular o campo com problema fica lá em cima: marca em vermelho, rola até ele e põe o cursor
+  const err = (t, campo) => {
+    msg.innerHTML = `<span class="co-err">${esc(t)}</span>`;
+    const el = campo && $(campo);
+    if (el) {
+      el.classList.add('co-bad');
+      el.addEventListener('input', () => el.classList.remove('co-bad'), { once: true });
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => el.focus({ preventScroll: true }), 350);
+    }
+  };
   const name = $('f-name').value.trim(), phone = $('f-phone').value, email = $('f-email').value.trim();
-  if (name.length < 2) return err('Informe seu nome.');
-  if (!celOk(phone)) return err('Informe um celular (WhatsApp) válido com DDD, ex.: (21) 99999-9999.');
-  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return err('Informe um e-mail válido.');
+  if (name.length < 2) return err('Informe seu nome.', 'f-name');
+  if (!celOk(phone)) return err('Informe um celular (WhatsApp) válido com DDD, ex.: (21) 99999-9999.', 'f-phone');
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return err('Informe um e-mail válido.', 'f-email');
 
   const delivery = { type: dtype() };
   if (delivery.type === 'lalamove') {
-    if (!frete) return err('Calcule o frete para o seu CEP.');
+    if (!frete) return err('Calcule o frete para o seu CEP.', 'f-cep');
     Object.assign(delivery, {
       cep: $('f-cep').value, service: frete.service,
       rua: $('f-rua').value.trim(), numero: $('f-num').value.trim(), complemento: $('f-comp').value.trim(),
     });
-    if (!delivery.rua || !delivery.numero) return err('Informe a rua e o número para a entrega.');
+    if (!delivery.rua || !delivery.numero) return err('Informe a rua e o número para a entrega.', delivery.rua ? 'f-num' : 'f-rua');
     if (String(frete.service).startsWith('ME-')) {
       delivery.doc = $('f-doc').value;
       const dd = delivery.doc.replace(/\D/g, '');
-      if (dd.length !== 11 && dd.length !== 14) return err('Informe o CPF (ou CNPJ) de quem vai receber — a transportadora exige.');
+      if (dd.length !== 11 && dd.length !== 14) return err('Informe o CPF (ou CNPJ) de quem vai receber — a transportadora exige.', 'f-doc');
     }
   }
 
