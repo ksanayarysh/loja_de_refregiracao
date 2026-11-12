@@ -30,12 +30,28 @@
   .vazio { background: #fff; border-radius: 12px; padding: 24px; color: #666; text-align: center; }
   .dica { background: #fffbeb; border: 1px solid #fde68a; border-radius: 12px; padding: 12px 14px; font-size: .84rem; color: #78350f; line-height: 1.45; }
   @media (max-width: 600px) { .content { padding: 14px; } }
+  .pdf-btn { margin-left: auto; padding: 7px 13px; border-radius: 8px; border: 1px solid #E2144A; background: #E2144A; color: #fff; font-weight: 700; font-size: .85rem; cursor: pointer; font-family: inherit; }
+  .print-only { display: none; }
+  /* PDF (Imprimir -> Salvar como PDF): só o relatório, sem menu e sem botões */
+  @media print {
+    @page { size: A4; margin: 12mm; }
+    body { background: #fff !important; font-size: 11px; }
+    .navbar, .sidebar, .period-bar, .pdf-btn, .dica, nav, header { display: none !important; }
+    .layout { display: block !important; }
+    .content { max-width: none; padding: 0; gap: 10px; }
+    .print-only { display: block; color: #444; font-size: .8rem; margin-top: 4px; }
+    .f-card, .pessoa { box-shadow: none; border-top: 1px solid #ddd; border-right: 1px solid #ddd; border-bottom: 1px solid #ddd; }
+    .pessoa { break-inside: avoid; page-break-inside: avoid; }
+    a { color: #111; text-decoration: none; }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
 {% endblock %}
 
 {% block content %}
 <div class="content">
   <div>
     <h1>🛒 Quem quis comprar</h1>
+    <p class="print-only">M.T.F Refrigeração · Período: {% for k, label in periodos %}{% if period == k %}{{ label }}{% endif %}{% endfor %} · gerado em <span id="pdf-data"></span></p>
     <p class="sub">Cada cartão é uma pessoa (mesmo IP) que calculou o frete, clicou em comprar, abriu o checkout ou fez pedido — e tudo o que ela fez no site no período, em ordem.</p>
   </div>
 
@@ -43,6 +59,7 @@
     {% for k, label in periodos %}
       <a class="period-btn {{ 'active' if period == k }}" href="/reports/interesse?period={{ k }}">{{ label }}</a>
     {% endfor %}
+    <button class="pdf-btn" type="button" onclick="baixarPdf()">📄 Baixar PDF</button>
   </div>
 
   <div class="funil">
@@ -77,4 +94,14 @@
   <div class="vazio">Ninguém calculou frete nem clicou em comprar neste período.</div>
   {% endfor %}
 </div>
+<script>
+function baixarPdf() {
+  const d = new Date();
+  document.getElementById('pdf-data').textContent = d.toLocaleString('pt-BR');
+  const t = document.title;
+  document.title = 'Quem-quis-comprar_' + d.toISOString().slice(0, 10);   // nome sugerido do arquivo PDF
+  window.print();
+  setTimeout(() => { document.title = t; }, 1000);
+}
+</script>
 {% endblock %}
