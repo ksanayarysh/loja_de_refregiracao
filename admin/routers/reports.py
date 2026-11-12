@@ -1344,6 +1344,10 @@ async def interesse_report(request: Request, period: str = Query("today"), _=Dep
         pedidos = await q("""
             SELECT id, ip, created_at AS t, status, total, pay_method, delivery_type, src
             FROM site_orders WHERE ip = ANY(:ips) AND created_at >= :t0 AND created_at < :t1""", p)
+        acoes = await q("""
+            SELECT ip, created_at AS t, ev, msg FROM checkout_eventos
+            WHERE ip = ANY(:ips) AND created_at >= :t0 AND created_at < :t1
+              AND ev IN ('clique', 'erro', 'whatsapp')""", p)    # o frete já vem do frete_log
 
         por_ip = {ip: {"ip": ip, "linhas": [], "src": "", "device": "", "pago": False, "pedido": False,
                        "checkout": False, "carrinho": False, "whats": False, "frete": False} for ip in ips}
@@ -1422,6 +1426,19 @@ async def interesse_report(request: Request, period: str = Query("today"), _=Dep
                 continue
             pe["whats"] = True
             pe["linhas"].append((_to_brt(r["t"], BRT), "💬", f"foi para o WhatsApp ({r['product_name']})"))
+        for r in acoes:   # dentro do checkout: tocou em Pagar, erro mostrado, WhatsApp (desde 12/11/2026)
+            pe = por_ip.get(r["ip"])
+            if not pe:
+                continue
+            if r["ev"] == "clique":
+                pe["clicou_pagar"] = True
+                pe["linhas"].append((_to_brt(r["t"], BRT), "👆", f"tocou em Pagar ({r['msg'] or ''})"))
+            elif r["ev"] == "erro":
+                pe["erro_pagar"] = True
+                pe["linhas"].append((_to_brt(r["t"], BRT), "⚠️", f"o site mostrou: {r['msg'] or 'erro'}"))
+            elif r["ev"] == "whatsapp":
+                pe["whats"] = True
+                pe["linhas"].append((_to_brt(r["t"], BRT), "💬", "no checkout, foi para o WhatsApp"))
         for r in pedidos:
             pe = por_ip.get(r["ip"])
             if not pe:
@@ -1449,6 +1466,10 @@ async def interesse_report(request: Request, period: str = Query("today"), _=Dep
                 pe["resultado"], pe["cor"] = "🏪 Reservou para retirar na loja", "ok"
             elif pe["pedido"]:
                 pe["resultado"], pe["cor"] = "📝 Fez o pedido, mas não pagou", "warn"
+            elif pe["checkout"] and pe.get("erro_pagar"):
+                pe["resultado"], pe["cor"] = "⚠️ Tocou em Pagar, viu erro e desistiu", "bad"
+            elif pe["checkout"] and pe.get("clicou_pagar"):
+                pe["resultado"], pe["cor"] = "👆 Tocou em Pagar e desistiu", "warn"
             elif pe["checkout"]:
                 pe["resultado"], pe["cor"] = "👀 Abriu o checkout e desistiu", "warn"
             elif pe["frete"] and not pe["carrinho"]:
