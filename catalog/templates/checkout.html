@@ -484,7 +484,8 @@ async function calcFrete(auto) {
     const itensTxt = cart.map(i => `${i.name} × ${i.qty}`).join(', ');
     const waDuv = encodeURIComponent(`Olá! Estou no site com: ${itensTxt}. Calculei o frete para o CEP ${$('f-cep').value}. Tenho uma dúvida antes de pagar: `);
     $('frete-opts').innerHTML +=
-      (minP >= sub * 0.5 ? `<div class="co-note" style="margin-top:8px;background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:9px 11px;color:#78350f;">💡 O frete sai quase o valor das peças. Aproveite e adicione outras peças ao pedido — o frete é um só.${isMe ? '' : ' Ou escolha <strong>Retirada na loja</strong> (grátis).'}</div>` : '')
+      (isMe ? '' : notaFechado())
+      + (minP >= sub * 0.5 ? `<div class="co-note" style="margin-top:8px;background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:9px 11px;color:#78350f;">💡 O frete sai quase o valor das peças. Aproveite e adicione outras peças ao pedido — o frete é um só.${isMe ? '' : ' Ou escolha <strong>Retirada na loja</strong> (grátis).'}</div>` : '')
       + `<a class="co-wa-link" style="display:block;margin-top:10px;" href="https://wa.me/${WA_NUMBER}?text=${waDuv}" target="_blank" rel="noopener">💬 Ficou com dúvida se serve? Fale com a gente no WhatsApp →</a>`
       + (isMe ? '' : `<div class="co-note" style="margin-top:6px;">🛵 Prefere chamar seu próprio <strong>Uber Moto ou 99</strong> para retirar aqui? <a href="https://wa.me/${WA_NUMBER}?text=${encodeURIComponent('Olá! Quero comprar (' + itensTxt + ') e mandar meu próprio motoboy (Uber/99) buscar. Podemos combinar?')}" target="_blank" rel="noopener" style="color:#128c4a;font-weight:700;">Fale com a gente</a> para combinarmos os detalhes.</div>`);
     logEv('frete', `${cep} ${[d.bairro, d.cidade, d.uf].filter(Boolean).join(', ')}${isMe ? '' : ' · ' + Number(d.distance_km || 0).toFixed(1).replace('.', ',') + ' km'}: `
@@ -509,21 +510,29 @@ async function calcFrete(auto) {
 }
 
 // entrega no Rio: aviso conforme a hora do Rio (loja seg–sáb 8h30–18h; pago até 16h sai no mesmo dia)
-function notaLocal() {
+function notaFechado() {   // loja fechada agora: aviso destacado (vai logo abaixo das opções de entrega)
   const p = {};
   new Intl.DateTimeFormat('en-US', { timeZone: 'America/Sao_Paulo', weekday: 'short', hour: 'numeric', minute: 'numeric', hourCycle: 'h23' })
     .formatToParts(new Date()).forEach(x => { p[x.type] = x.value; });
   const d = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(p.weekday), m = (+p.hour) * 60 + (+p.minute);
-  const fechado = t => `<span style="display:block;background:#eef2ff;border:1px solid #c7d2fe;color:#1e3a8a;border-radius:10px;padding:9px 11px;font-size:.86rem;line-height:1.4;">${t}</span>`;
+  const box = t => `<div id="nota-loja" style="margin-top:10px;background:#eef2ff;border:1px solid #c7d2fe;color:#1e3a8a;border-radius:10px;padding:9px 11px;font-size:.86rem;line-height:1.4;">${t}</div>`;
   if (d === 0)
-    return fechado('🌙 <strong>Hoje (domingo) estamos fechados</strong>, mas pode fazer o seu pedido tranquilo: na <strong>segunda-feira</strong> cedo entramos em contato e enviamos o seu pedido!');
+    return box('🌙 <strong>Hoje (domingo) estamos fechados</strong>, mas pode fazer o seu pedido tranquilo: na <strong>segunda-feira</strong> cedo entramos em contato e enviamos o seu pedido!');
   if (d === 6 && m >= 1080)
-    return fechado('🌙 <strong>Já fechamos por hoje</strong>, mas pode fazer o seu pedido tranquilo: na <strong>segunda-feira</strong> cedo entramos em contato e enviamos o seu pedido!');
+    return box('🌙 <strong>Já fechamos por hoje</strong>, mas pode fazer o seu pedido tranquilo: na <strong>segunda-feira</strong> cedo entramos em contato e enviamos o seu pedido!');
   if (m >= 1080)
-    return fechado('🌙 <strong>Já fechamos por hoje</strong>, mas pode fazer o seu pedido tranquilo: <strong>amanhã</strong> cedo entramos em contato e enviamos o seu pedido!');
+    return box('🌙 <strong>Já fechamos por hoje</strong>, mas pode fazer o seu pedido tranquilo: <strong>amanhã</strong> cedo entramos em contato e enviamos o seu pedido!');
   if (m < 510)
-    return fechado('☀️ <strong>Ainda não abrimos</strong> (abrimos às 8h30), mas pode fazer o seu pedido: assim que abrirmos entramos em contato e enviamos <strong>hoje</strong>!');
-  if (m >= 960) return 'Pedidos pagos agora (depois das 16h): entrega no próximo dia útil.';
+    return box('☀️ <strong>Ainda não abrimos</strong> (abrimos às 8h30), mas pode fazer o seu pedido: assim que abrirmos entramos em contato e enviamos <strong>hoje</strong>!');
+  return '';
+}
+// texto pequeno do prazo (embaixo do endereço); com a loja fechada o aviso já aparece em cima
+function notaLocal() {
+  if (notaFechado()) return '';
+  const p = {};
+  new Intl.DateTimeFormat('en-US', { timeZone: 'America/Sao_Paulo', hour: 'numeric', minute: 'numeric', hourCycle: 'h23' })
+    .formatToParts(new Date()).forEach(x => { p[x.type] = x.value; });
+  if ((+p.hour) * 60 + (+p.minute) >= 960) return 'Pedidos pagos agora (depois das 16h): entrega no próximo dia útil.';
   return 'Pedido pago até 16h: entrega hoje (seg. a sáb.). Depois disso, no próximo dia útil.';
 }
 
@@ -533,6 +542,7 @@ function pickService() {
   // Correios/transportadora (também dentro do Rio): pede CPF e muda o aviso de prazo
   const me = !!(frete && String(frete.service).startsWith('ME-'));
   $('doc-box').classList.toggle('co-hidden', !me);
+  if ($('nota-loja')) $('nota-loja').style.display = me ? 'none' : '';
   $('entrega-note').innerHTML = me
     ? 'Enviamos em até 1 dia útil após o pagamento. Você recebe o código de rastreio pelo WhatsApp.'
     : notaLocal();
