@@ -2785,7 +2785,13 @@ async def product_feed():
             continue
 
         # Если изображение относительное — делаем абсолютным
-        if image_url.startswith("/"):
+        # imagem pelo próprio domínio da loja (img-proxy, com cache): o Google não vê o endereço da admin
+        # e não depende do limite de pedidos do domínio público da admin (os 429 de 10/11)
+        if ADMIN_URL and image_url.startswith(ADMIN_URL + "/static/"):
+            image_url = image_url[len(ADMIN_URL):]
+        if image_url.startswith("/static/"):
+            image_url = f"{base}/img-proxy?src={image_url}&w=1000"
+        elif image_url.startswith("/"):
             image_url = f"{base}{image_url}"
 
         price_str = f"{price:.2f} BRL"
