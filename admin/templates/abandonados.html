@@ -22,6 +22,19 @@
   .feito-txt { font-size: .8rem; color: #15803d; font-weight: 700; }
   .vazio { background: #fff; border-radius: 12px; padding: 24px; color: #666; text-align: center; }
   .dica { background: #fffbeb; border: 1px solid #fde68a; border-radius: 12px; padding: 12px 14px; font-size: .84rem; color: #78350f; line-height: 1.45; }
+  .resumo { background: #fff; border-radius: 12px; padding: 14px 16px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+  .resumo h2 { font-size: 1rem; margin-bottom: 10px; color: #111; }
+  .r-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+  .r-card { border: 1px solid #eee; border-radius: 10px; padding: 10px; }
+  .r-num { font-size: 1.4rem; font-weight: 900; color: #111; }
+  .r-lbl { font-size: .76rem; color: #555; line-height: 1.3; }
+  .r-erros { margin-top: 10px; font-size: .85rem; color: #333; line-height: 1.5; }
+  .l-conc { font-size: .84rem; font-weight: 800; color: #92400e; margin: -4px 0 8px; }
+  .l-tl { list-style: none; border-left: 2px solid #eee; margin: 0 0 10px 4px; padding-left: 10px; }
+  .l-tl li { font-size: .82rem; color: #333; padding: 2px 0; line-height: 1.35; }
+  .l-tl li.erro, .l-tl li.frete_erro { color: #b91c1c; font-weight: 700; }
+  .l-tl .h { color: #888; font-family: monospace; margin-right: 6px; }
+  .l-sem { font-size: .78rem; color: #999; margin: -4px 0 8px; }
   @media (max-width: 600px) { .content { padding: 14px; } }
 {% endblock %}
 
@@ -38,6 +51,25 @@
     {% endfor %}
   </div>
 
+  {% if resumo and resumo.total %}
+  <div class="resumo">
+    <h2>Onde as pessoas param</h2>
+    <div class="r-grid">
+      <div class="r-card"><div class="r-num">{{ resumo.com_dados }}</div><div class="r-lbl">abandonos com dados{% if resumo.com_dados < resumo.total %} (de {{ resumo.total }}; os anteriores a 12/11 não têm){% endif %}</div></div>
+      <div class="r-card"><div class="r-num">{{ resumo.viu_frete }}</div><div class="r-lbl">calcularam o frete</div></div>
+      <div class="r-card"><div class="r-num">{{ resumo.clicou }}</div><div class="r-lbl">tocaram em Pagar</div></div>
+      <div class="r-card"><div class="r-num">{{ resumo.erro }}</div><div class="r-lbl">viram erro ao pagar</div></div>
+      <div class="r-card"><div class="r-num">{{ resumo.whatsapp }}</div><div class="r-lbl">foram pro WhatsApp</div></div>
+      <div class="r-card"><div class="r-num">{{ nao_pagos }}</div><div class="r-lbl">chegaram ao Mercado Pago e não pagaram (ver Pedidos site)</div></div>
+    </div>
+    {% if erros_top %}
+    <div class="r-erros"><b>Erros mais vistos:</b>
+      {% for m, n in erros_top %}<br>⚠️ {{ m }} — <b>{{ n }}×</b>{% endfor %}
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
   {% for l in leads %}
   <div class="lead {{ 'feito' if l.contatado }}">
     <div class="l-top">
@@ -45,6 +77,12 @@
       <span class="l-meta">{{ l.quando }}{% if l.src %} · veio de: {{ l.src }}{% endif %}</span>
     </div>
     <div class="l-itens">{{ l.itens }} — <b>R$ {{ l.subtotal }}</b></div>
+    {% if l.conclusao %}<div class="l-conc">{{ l.conclusao }}</div>{% endif %}
+    {% if l.eventos %}
+    <ul class="l-tl">
+      {% for e in l.eventos %}<li class="{{ e.tipo }}"><span class="h">{{ e.hora }}</span>{{ e.ic }} {{ e.ev }}{% if e.msg %}: {{ e.msg }}{% endif %}</li>{% endfor %}
+    </ul>
+    {% else %}<div class="l-sem">sem registro de ações (calcular frete, tocar em Pagar)</div>{% endif %}
     <div class="l-acoes">
       <a class="btn-wa" href="{{ l.wa }}" target="_blank" rel="noopener">💬 Chamar no WhatsApp</a>
       {% if l.contatado %}

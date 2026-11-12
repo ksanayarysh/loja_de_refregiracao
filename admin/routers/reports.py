@@ -1517,13 +1517,36 @@ async def abandonados_report(request: Request, dias: int = Query(7), _=Depends(b
     try:
         async with engine.connect() as conn:
             rows = (await conn.execute(text("""
-                SELECT id, created_at, updated_at, phone, name, items, subtotal, src, contatado_at
+                SELECT id, created_at, updated_at, phone, name, items, subtotal, src, contatado_at, ip
                 FROM checkout_leads
                 WHERE order_id IS NULL AND created_at >= NOW() - make_interval(days => :d)
                   AND updated_at < NOW() - INTERVAL '20 minutes'          -- dá tempo de terminar o pedido
                 ORDER BY created_at DESC LIMIT 200"""), {"d": dias})).mappings().all()
     except Exception:
         rows = []   # tabela ainda não existe
+    # o que cada pessoa fez no checkout (gravado pelo site desde 12/11/2026)
+    eventos, nao_pagos = [], 0
+    try:
+        async with engine.connect() as conn:
+            eventos = (await conn.execute(text("""
+                SELECT created_at, ip, phone, ev, msg FROM checkout_eventos
+                WHERE created_at >= NOW() - make_interval(days => :d) - INTERVAL '3 hours'
+                ORDER BY created_at"""), {"d": dias})).mappings().all()
+    except Exception:
+        eventos = []
+    try:
+        async with engine.connect() as conn:
+            nao_pagos = (await conn.execute(text("""
+                SELECT COUNT(*) FROM site_orders
+                WHERE status <> 'paid' AND created_at >= NOW() - make_interval(days => :d)
+                  AND created_at < NOW() - INTERVAL '30 minutes'"""), {"d": dias})).scalar() or 0
+    except Exception:
+        nao_pagos = 0
+    from datetime import timedelta as _td
+    ICONE = {"frete": "🚚", "frete_erro": "❌", "clique": "👆", "erro": "⚠️", "whatsapp": "💬"}
+    NOME = {"frete": "frete", "frete_erro": "erro no frete", "clique": "tocou em Pagar", "erro": "erro mostrado", "whatsapp": "foi pro WhatsApp"}
+    resumo = {"total": 0, "com_dados": 0, "clicou": 0, "erro": 0, "viu_frete": 0, "whatsapp": 0}
+    erros_cont: dict = {}
     leads = []
     for r in rows:
         itens = r["items"] if isinstance(r["items"], list) else _json.loads(r["items"] or "[]")
@@ -1533,7 +1556,36 @@ async def abandonados_report(request: Request, dias: int = Query(7), _=Depends(b
                f"Vi que você estava finalizando o pedido de {nomes} no nosso site. "
                f"Ficou alguma dúvida — sobre compatibilidade, frete ou pagamento? Posso ajudar por aqui.")
         p = r["phone"] or ""
+        ini, fim = r["created_at"] - _td(hours=2), r["updated_at"] + _td(hours=3)
+        evs = [e for e in eventos if ini <= e["created_at"] <= fim
+               and ((p and e["phone"] == p) or (r["ip"] and e["ip"] == r["ip"]))]
+        tl = [{"hora": e["created_at"].astimezone(BRT).strftime("%H:%M"), "ic": ICONE.get(e["ev"], "•"),
+               "ev": NOME.get(e["ev"], e["ev"]), "msg": e["msg"] or "", "tipo": e["ev"]} for e in evs]
+        tipos = {e["ev"] for e in evs}
+        resumo["total"] += 1
+        if evs or (eventos and r["created_at"] >= eventos[0]["created_at"]):   # lead de antes da gravação: sem dados
+            resumo["com_dados"] += 1
+            resumo["clicou"] += "clique" in tipos
+            resumo["erro"] += "erro" in tipos
+            resumo["viu_frete"] += "frete" in tipos
+            resumo["whatsapp"] += "whatsapp" in tipos
+            for e in evs:
+                if e["ev"] == "erro" and e["msg"]:
+                    erros_cont[e["msg"]] = erros_cont.get(e["msg"], 0) + 1
+        if "erro" in tipos:
+            conclusao = "Tocou em Pagar e o site mostrou erro — provavelmente travou no formulário"
+        elif "clique" in tipos:
+            conclusao = "Tocou em Pagar"
+        elif "whatsapp" in tipos:
+            conclusao = "Não tocou em Pagar, foi pro WhatsApp"
+        elif "frete" in tipos:
+            conclusao = "Viu o frete e saiu sem tocar em Pagar"
+        elif evs:
+            conclusao = "Saiu sem tocar em Pagar"
+        else:
+            conclusao = ""
         leads.append({
+            "eventos": tl, "conclusao": conclusao,
             "id": r["id"], "nome": r["name"] or "Sem nome",
             "tel": f"({p[:2]}) {p[2:7]}-{p[7:]}" if len(p) == 11 else p,
             "quando": r["created_at"].astimezone(BRT).strftime("%d/%m %H:%M"),
@@ -1541,7 +1593,9 @@ async def abandonados_report(request: Request, dias: int = Query(7), _=Depends(b
             "src": r["src"] or "", "wa": f"https://wa.me/55{p}?text={quote(msg)}",
             "contatado": r["contatado_at"].astimezone(BRT).strftime("%d/%m %H:%M") if r["contatado_at"] else "",
         })
-    return templates.TemplateResponse("abandonados.html", {"request": request, "leads": leads, "dias": dias})
+    erros_top = sorted(erros_cont.items(), key=lambda x: -x[1])[:5]
+    return templates.TemplateResponse("abandonados.html", {"request": request, "leads": leads, "dias": dias,
+                                                           "resumo": resumo, "erros_top": erros_top, "nao_pagos": nao_pagos})
 
 
 @router.post("/reports/abandonados/{lead_id}/contatado")

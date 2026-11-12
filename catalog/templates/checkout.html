@@ -387,6 +387,18 @@ function enviarLead() {
   } catch (e) {}
 }
 ['f-phone', 'f-name', 'f-email'].forEach(id => $(id).addEventListener('blur', enviarLead));
+// o que a pessoa fez aqui (frete visto, toque em Pagar, erro, WhatsApp) -> relatório de abandonados
+function logEv(ev, msg) {
+  try {
+    const body = JSON.stringify({ ev, msg: String(msg || '').slice(0, 240), phone: $('f-phone').value });
+    if (navigator.sendBeacon && navigator.sendBeacon('/api/checkout/evento', new Blob([body], { type: 'application/json' }))) return;
+    fetch('/api/checkout/evento', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, keepalive: true }).catch(() => {});
+  } catch (e) {}
+}
+document.addEventListener('click', e => {
+  const a = e.target.closest && e.target.closest('a[href*="wa.me"]');
+  if (a) logEv('whatsapp', (a.textContent || '').trim().slice(0, 80));
+});
 $('f-phone').addEventListener('input', () => { if (celOk($('f-phone').value)) setTimeout(enviarLead, 800); });
 $('f-phone').addEventListener('input', e => {
   let v = e.target.value.replace(/\D/g, '');
@@ -407,7 +419,7 @@ async function calcFrete(auto) {
   const cep = $('f-cep').value.replace(/\D/g, '');
   cepCalculado = cep;
   frete = null; $('frete-opts').innerHTML = ''; $('addr-box').classList.add('co-hidden'); renderSummary();
-  if (cep.length !== 8) { $('frete-msg').innerHTML = '<div class="co-msg co-err">Digite um CEP válido (8 dígitos).</div>'; return; }
+  if (cep.length !== 8) { $('frete-msg').innerHTML = '<div class="co-msg co-err">Digite um CEP válido (8 dígitos).</div>'; logEv('frete_erro', 'CEP inválido: ' + cep); return; }
   const btn = $('cep-btn'); btn.disabled = true; btn.textContent = '...'; $('frete-msg').innerHTML = '';
   try {
     const r = await fetch('/api/frete-cep?cep=' + cep + '&src=checkout&valor=' + subtotal().toFixed(2) + '&itens=' + encodeURIComponent(JSON.stringify(cartPayload()))
@@ -429,6 +441,7 @@ async function calcFrete(auto) {
       $('frete-msg').innerHTML = `<div class="co-local">📍 ${lugar}</div>
         <div class="co-msg">${bloq}<br>
         <a class="co-wa-link" href="https://wa.me/${WA_NUMBER}?text=${wa}" target="_blank" rel="noopener">Falar com o vendedor →</a></div>`;
+      logEv('frete', `${cep} ${[d.cidade, d.uf].filter(Boolean).join('/')}: frete a combinar` + ((d.nao_envia || []).length ? ' (gás/inflamável)' : ''));
       return;
     }
     $('frete-msg').innerHTML = isMe
@@ -441,6 +454,7 @@ async function calcFrete(auto) {
       const wa = encodeURIComponent('Olá! Quero o kit com entrega para o CEP ' + $('f-cep').value + '. Qual o valor do frete?');
       $('frete-msg').innerHTML += `<div class="co-msg"><strong>Para este kit, o frete é combinado com o vendedor.</strong><br>
         <a class="co-wa-link" href="https://wa.me/${WA_NUMBER}?text=${wa}" target="_blank" rel="noopener">Falar com o vendedor →</a></div>`;
+      logEv('frete', `${cep}: kit sem opção de carro, frete a combinar`);
       return;
     }
     if (hasKit) $('frete-msg').innerHTML += '<div class="co-note" style="margin-bottom:8px;">O kit vai de carro (as peças não cabem na moto).</div>';
@@ -473,6 +487,8 @@ async function calcFrete(auto) {
       (minP >= sub * 0.5 ? `<div class="co-note" style="margin-top:8px;background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:9px 11px;color:#78350f;">💡 O frete sai quase o valor das peças. Aproveite e adicione outras peças ao pedido — o frete é um só.${isMe ? '' : ' Ou escolha <strong>Retirada na loja</strong> (grátis).'}</div>` : '')
       + `<a class="co-wa-link" style="display:block;margin-top:10px;" href="https://wa.me/${WA_NUMBER}?text=${waDuv}" target="_blank" rel="noopener">💬 Ficou com dúvida se serve? Fale com a gente no WhatsApp →</a>`
       + (isMe ? '' : `<div class="co-note" style="margin-top:6px;">🛵 Prefere chamar seu próprio <strong>Uber Moto ou 99</strong> para retirar aqui? <a href="https://wa.me/${WA_NUMBER}?text=${encodeURIComponent('Olá! Quero comprar (' + itensTxt + ') e mandar meu próprio motoboy (Uber/99) buscar. Podemos combinar?')}" target="_blank" rel="noopener" style="color:#128c4a;font-weight:700;">Fale com a gente</a> para combinarmos os detalhes.</div>`);
+    logEv('frete', `${cep} ${[d.bairro, d.cidade, d.uf].filter(Boolean).join(', ')}${isMe ? '' : ' · ' + Number(d.distance_km || 0).toFixed(1).replace('.', ',') + ' km'}: `
+      + opts.map(o => `${o.label} ${o.price === 0 ? 'grátis' : brl(o.price)}`).join(' | ') + ` · produtos ${brl(subtotal())}`);
     document.querySelectorAll('input[name="service"]').forEach(r => r.addEventListener('change', pickService));
     pickService();
     // a rua pertence ao CEP: trocou o CEP -> troca a rua (ou limpa) e zera número/complemento
@@ -486,6 +502,7 @@ async function calcFrete(auto) {
     if (!auto && !$('f-num').value) ($('f-rua').value ? $('f-num') : $('f-rua')).focus();   // ao abrir a página não pula o passo 1
   } catch (e) {
     $('frete-msg').innerHTML = `<div class="co-msg co-err">${esc(e.message)}</div>`;
+    logEv('frete_erro', cep + ': ' + e.message);
   } finally {
     btn.disabled = false; btn.textContent = 'Calcular';
   }
@@ -547,8 +564,10 @@ async function pagar() {
   const msg = $('pay-msg'); msg.innerHTML = '';
   document.querySelectorAll('.co-bad').forEach(el => el.classList.remove('co-bad'));
   // no celular o campo com problema fica lá em cima: marca em vermelho, rola até ele e põe o cursor
+  logEv('clique', `${pmethod() === 'card' ? 'Cartão' : 'Pix'} · ${dtype() === 'lalamove' ? 'entrega' : 'retirada'} · ${brl(subtotal() + (frete ? frete.price : 0))}`);
   const err = (t, campo) => {
     msg.innerHTML = `<span class="co-err">${esc(t)}</span>`;
+    logEv('erro', t);
     const el = campo && $(campo);
     if (el) {
       el.classList.add('co-bad');

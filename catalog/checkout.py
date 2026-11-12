@@ -1146,6 +1146,53 @@ async def checkout_lead(request: Request):
     return JSONResponse({"ok": True})
 
 
+# ── o que a pessoa fez no checkout (frete visto, toque em Pagar, erro mostrado, WhatsApp) ──
+# Vai para Relatórios → Checkouts abandonados, para entender onde o cliente desiste.
+_ev_ok = False
+_EV_TIPOS = {"frete", "frete_erro", "clique", "erro", "whatsapp"}
+
+
+async def _ensure_eventos_table():
+    global _ev_ok
+    if _ev_ok:
+        return
+    async with engine.begin() as conn:
+        await conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS checkout_eventos (
+                id         SERIAL PRIMARY KEY,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                ip         VARCHAR(64),
+                phone      VARCHAR(20),
+                ev         VARCHAR(20) NOT NULL,
+                msg        VARCHAR(240)
+            )"""))
+        await conn.execute(text("CREATE INDEX IF NOT EXISTS ix_checkout_eventos_t ON checkout_eventos(created_at)"))
+    _ev_ok = True
+
+
+@router.post("/api/checkout/evento")
+async def checkout_evento(request: Request):
+    try:
+        body = await request.json()
+    except Exception:
+        return JSONResponse({"ok": False})
+    ev = str(body.get("ev") or "")
+    ua = request.headers.get("user-agent", "")
+    ip = _client_ip(request)
+    if ev not in _EV_TIPOS or _is_owner(request) or _is_bot(ua) or _is_datacenter(ip):
+        return JSONResponse({"ok": True, "skip": True})
+    try:
+        await _ensure_eventos_table()
+        async with engine.begin() as conn:
+            await conn.execute(text(
+                "INSERT INTO checkout_eventos (ip, phone, ev, msg) VALUES (:ip, :p, :ev, :m)"),
+                {"ip": ip, "p": _norm_cel(body.get("phone", "")) or None, "ev": ev,
+                 "m": str(body.get("msg") or "")[:240] or None})
+    except Exception:
+        _blog_log.exception("checkout: falha ao gravar evento")
+    return JSONResponse({"ok": True})
+
+
 def _avisar_checkout_aberto(ip: str, items: list, subtotal: float, src: str = ""):
     """Telegram assim que alguém abre o checkout com produtos (antes de pagar).
     Mesmo IP + mesmo carrinho: no máximo um aviso a cada 30 min."""
