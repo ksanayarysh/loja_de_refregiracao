@@ -315,7 +315,7 @@ function calcular(){
   const items=RELATED[gas]||[];
   const rb=document.getElementById('related-block');
   if(items.length){
-    document.getElementById('related-list').innerHTML=items.map(p=>`<a class="related-item" href="/product/${p.slug}"><div><div class="related-item-name">${p.name}</div><div class="related-item-hint">${p.hint}</div></div><span class="related-arrow">Ver →</span></a>`).join('');
+    document.getElementById('related-list').innerHTML=items.map(p=>`<a class="related-item" href="/catalogo?q=${encodeURIComponent(p.name.replace(/^Gás /,'gas '))}"><div><div class="related-item-name">${p.name}</div><div class="related-item-hint">${p.hint}</div></div><span class="related-arrow">Ver →</span></a>`).join('');
     rb.style.display='block';
   }else{rb.style.display='none';}
   document.getElementById('result').style.display='block';

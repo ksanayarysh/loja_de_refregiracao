@@ -8,6 +8,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, PlainTextResponse, JSONResponse, Response, RedirectResponse
 from sqlalchemy import text
 from lalamove import get_quote, LalamoveError
+from urllib.parse import quote as _quote_url
 
 from dependencies import engine, templates
 from articles import ARTICLES, ARTICLES_BY_SLUG
@@ -868,16 +869,30 @@ async def _remember_slugs(rows):
 
 
 _SLUG_STOP = {"de", "da", "do", "para", "com", "e", "a", "o", "em", "p", "x"}
+# palavras de endereços antigos -> como estão nos nomes atuais (erros de digitação e nomes antigos)
+_SLUG_SIN = {"fluido": "gas", "liquido": "gas", "manqueira": "mangueira", "tenperatura": "temperatura",
+             "valvulca": "valvula", "aqua": "agua", "evoporador": "evaporador", "hutler": "hulter",
+             "r410a": "r410", "r134a": "r134", "r600a": "r600", "r404a": "r404", "refrigerante": "",
+             "unidade": "", "un": "", "kg": "", "orig": "original"}
+
+
+def _slug_tokens(texto: str) -> set:
+    out = set()
+    for t in slugify(texto).split("-"):
+        t = _SLUG_SIN.get(t, t)
+        if t and t not in _SLUG_STOP:
+            out.add(t)
+    return out
 
 
 def _slug_parecidos(slug: str, rows) -> list:
     """[(nota 0..1, produto)] por palavras do endereço em comum, melhor primeiro."""
-    alvo = {t for t in slugify(slug).split("-") if t and t not in _SLUG_STOP}
+    alvo = _slug_tokens(slug)
     if not alvo:
         return []
     out = []
     for r in rows:
-        toks = {t for t in slugify(r["name"]).split("-") if t and t not in _SLUG_STOP}
+        toks = _slug_tokens(r["name"])
         if not toks:
             continue
         comum = len(alvo & toks)
@@ -1189,6 +1204,22 @@ async def _product_ids(product_id: int) -> dict:
         return {}
 
 
+@router.get("/product/")
+@router.get("/product")
+async def product_sem_slug():
+    return _Redirect("/catalogo", status_code=301)
+
+
+@router.get("/produto/{slug}")
+async def produto_pt(slug: str):
+    return _Redirect(f"/product/{slug}", status_code=301)
+
+
+@router.get("/favicon.ico")
+async def favicon_ico():
+    return _Redirect("/static/favicon.png", status_code=301)
+
+
 @router.get("/product/{slug}", response_class=HTMLResponse)
 async def product_page(request: Request, slug: str):
     async with engine.connect() as conn:
@@ -1207,9 +1238,17 @@ async def product_page(request: Request, slug: str):
             return _Redirect(f"/product/{target}", status_code=301)
         # produto renomeado sem histórico: o mais parecido pelo nome (muito parecido -> 301; senão página com sugestões)
         parecidos = _slug_parecidos(slug, rows)
-        if parecidos and parecidos[0][0] >= 0.75:
-            return _Redirect(f"/product/{slugify(parecidos[0][1]['name'])}", status_code=301)
-        return HTMLResponse(_pagina_nao_encontrado(slug, [r for _, r in parecidos[:6]]), status_code=404)
+        if parecidos:
+            top = parecidos[0][0]
+            seg = parecidos[1][0] if len(parecidos) > 1 else 0
+            # muito parecido, ou claramente o mais parecido -> o produto
+            if top >= 0.75 or (top >= 0.5 and top - seg >= 0.15):
+                return _Redirect(f"/product/{slugify(parecidos[0][1]['name'])}", status_code=301)
+        # sem um produto certo (removido, endereço genérico tipo "gas-r32"): busca no catálogo com as palavras
+        # do endereço. Link antigo do Google/anúncio nunca cai em página de erro ("página de destino corrompida").
+        q = " ".join(t for t in slugify(slug).split("-")
+                     if t and not t.isdigit() and t not in _SLUG_STOP and "{" not in t and "$" not in t)[:60]
+        return _Redirect("/catalogo" + (f"?q={_quote_url(q)}" if q else ""), status_code=301)
 
     # Fire-and-forget трекинг просмотра
     ip = _client_ip(request)
@@ -2382,7 +2421,17 @@ async def blog_index(request: Request):
 async def blog_article(request: Request, slug: str):
     article = ARTICLES_BY_SLUG.get(slug)
     if not article or not article.get("published"):
-        return HTMLResponse("Artigo não encontrado", status_code=404)
+        # endereço antigo/variante -> artigo mais parecido pelo endereço; senão a lista do blog (nunca 404)
+        alvo = _slug_tokens(slug)
+        melhor, nota = None, 0.0
+        for a in ARTICLES:
+            if not a.get("published") or a["slug"] == slug:
+                continue
+            toks = _slug_tokens(a["slug"])
+            n = len(alvo & toks) / len(alvo | toks) if alvo and toks else 0
+            if n > nota:
+                melhor, nota = a["slug"], n
+        return _Redirect(f"/blog/{melhor}" if melhor and nota >= 0.3 else "/blog", status_code=301)
 
     site_url = SITE_URL.rstrip("/")  # evita "//blog/..." no canonical se SITE_URL termina em "/"
 
