@@ -29,7 +29,9 @@ async def force_domain(request: Request, call_next):
     host = request.headers.get("host", "").split(":")[0].lower()
 
     if host == "mtf-catalog.up.railway.app" or host == "mtfrefrigeracao.com.br":
-        new_url = str(request.url).replace(host, "www.mtfrefrigeracao.com.br", 1)
+        # sempre https direto (atrás do proxy da Railway request.url vem como http -> 2 redirecionamentos)
+        q = request.url.query
+        new_url = "https://www.mtfrefrigeracao.com.br" + request.url.path + (("?" + q) if q else "")
         return RedirectResponse(new_url, status_code=301)
 
     response = await call_next(request)

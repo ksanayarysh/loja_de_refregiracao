@@ -2807,6 +2807,12 @@ async def product_feed():
         gcat      = (r.get("google_category") or "").strip()
         gcat_tag  = (f"\n    <g:google_product_category>{escape(gcat)}</g:google_product_category>" if gcat else "")
         link = f"{base}/product/{sl}"
+        # gás por kg e botijas: o site não vende (só no balcão) -> fora do Shopping e das listagens online;
+        # continuam no inventário local ("disponível na loja"). Anunciar algo que não dá para comprar
+        # na página é o que o Google chama de "página de destino não funciona".
+        so_loja = unit.strip().lower() == "kg" or "botija" in name.lower()
+        excl_tag = ("\n    <g:excluded_destination>Shopping_ads</g:excluded_destination>"
+                    "\n    <g:excluded_destination>Free_listings</g:excluded_destination>") if so_loja else ""
 
         # identificadores: GTIN válido e/ou marca real + MPN; senão identifier_exists=no
         ids   = ids_by_product.get(r.get("id")) or {}
@@ -2846,7 +2852,7 @@ async def product_feed():
     <g:availability>{availability}</g:availability>
     <g:condition>new</g:condition>
     <g:brand>{escape(brand)}</g:brand>{ident_tag}{gcat_tag}
-    <g:product_type>{escape(category + (" > " + tipo if tipo else ""))}</g:product_type>{ship_tag}
+    <g:product_type>{escape(category + (" > " + tipo if tipo else ""))}</g:product_type>{ship_tag}{excl_tag}
   </item>"""
         items.append(item)
 
@@ -2917,7 +2923,7 @@ async def local_inventory_feed():
 
 @router.get("/robots.txt", response_class=PlainTextResponse)
 async def robots():
-    return f"User-agent: *\nAllow: /\nDisallow: /l/\nDisallow: /checkout\nSitemap: {SITE_URL}/sitemap.xml\n"
+    return f"User-agent: *\nAllow: /\nDisallow: /l/\nSitemap: {SITE_URL}/sitemap.xml\n"
 
 
 import re
