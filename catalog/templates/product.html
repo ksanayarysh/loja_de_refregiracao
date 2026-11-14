@@ -745,7 +745,7 @@
     </div>
     {% endif %}
 
-    {% if not is_kg %}
+    {% if not is_kg and product.current_stock and product.current_stock > 0 %}
     <div class="frete-box" id="frete-box">
       <div class="frete-title">🚚 Calcule o frete</div>
       <div class="frete-row">
