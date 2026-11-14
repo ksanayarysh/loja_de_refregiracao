@@ -234,10 +234,48 @@ async def criar_link_carrinho(request: Request, _=Depends(basic_auth)):
     return {"ok": True, "url": f"{site}/l/{token}"}
 
 
+# Kit de instalação rápido (PDV): produtos usados, pelo nome exato (minúsculas)
+_KIT_INST_NOMES = {
+    "cobre_1/4": "tubo de cobre de 1/4", "cobre_3/8": "tubo de cobre de 3/8", "cobre_1/2": "tubo de cobre de 1/2",
+    "cobre_5/8": "tubo de cobre de 5/8", "cobre_3/4": "tubo de cobre de 3/4",
+    "esp_1/4": "tubo esponjoso blindado 1/4 2 metros", "esp_3/8": "tubo esponjoso blindado 3/8 2 metros",
+    "esp_1/2": "tubo esponjoso blindado 1/2 2 metros", "esp_5/8": "tubo esponjoso blindado 5/8 2 metros",
+    "esp_3/4": "tubo esponjoso blindado 3/4 2 metros",
+    "sup_40": "suporte ar condicionado split 7000 12000 btus 40cm chapa pintada",
+    "sup_450": "suporte 450mm ar cond split 12 a 30.000 btus ate 80kg",
+    "cabo_15": "cabo pp 4v x 1,5mm", "cabo_25": "cabo pp 4v x 2,5mm", "fita": "fita pvc",
+}
+
+
+async def _kit_inst_data(conn) -> dict:
+    out = {"produtos": {}, "desconto": 0}
+    try:
+        rows = (await conn.execute(text(
+            "SELECT id, name, sale_price, unit FROM products WHERE active = TRUE AND LOWER(TRIM(name)) = ANY(:n)"),
+            {"n": list(_KIT_INST_NOMES.values())})).mappings().all()
+        por_nome = {r["name"].strip().lower(): r for r in rows}
+        for k, nome in _KIT_INST_NOMES.items():
+            r = por_nome.get(nome)
+            if r:
+                out["produtos"][k] = {"id": r["id"], "name": r["name"], "price": float(r["sale_price"] or 0),
+                                      "unit": r["unit"] or "un"}
+    except Exception:
+        pass
+    try:
+        out["desconto"] = float((await conn.execute(text(
+            "SELECT discount_percent FROM kit_settings WHERE id = 1"))).scalar() or 0)
+    except Exception:
+        pass
+    return out
+
+
 @router.get("/checkout", response_class=HTMLResponse)
 async def checkout_page(request: Request, _=Depends(basic_auth)):
+    async with engine.connect() as conn:
+        kit_inst = await _kit_inst_data(conn)
     return templates.TemplateResponse("checkout.html", {
         "request": request,
+        "kit_inst": kit_inst,
         "wa_number": os.environ.get("WA_OWNER_NUMBER", ""),
         "site_url": os.environ.get("SITE_URL", "https://www.mtfrefrigeracao.com.br").rstrip("/"),
     })
