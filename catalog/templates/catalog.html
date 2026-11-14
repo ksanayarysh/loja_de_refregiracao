@@ -34,6 +34,14 @@
     .hero-cat-link{display:inline-block;margin-top:4px;padding:10px 0 6px;color:var(--accent);font-weight:700;font-size:.95rem;text-decoration:none;border-bottom:1.5px solid var(--accent-b);}
     .hero-cat-link:hover{border-color:var(--accent);}
     .hero-banners{display:flex;flex-direction:column;gap:10px;min-width:320px;max-width:460px;}
+    /* promoção relógio (R$ 100 no site) */
+    @media(min-width:901px){.hero.has-promo{grid-template-columns:minmax(0,1fr) 430px;align-items:center;}}
+    .promo-rel{display:block;position:relative;border-radius:18px;overflow:hidden;text-decoration:none;
+      background:radial-gradient(circle at 80% 10%,#2f8cff 0,transparent 50%),linear-gradient(135deg,#0a2a6b 0%,#0b4fb3 60%,#0a2a6b 100%);
+      box-shadow:0 10px 30px rgba(10,42,107,.25);transition:transform .2s,box-shadow .2s;}
+    .promo-rel:hover{transform:translateY(-2px);box-shadow:0 14px 36px rgba(10,42,107,.32);}
+    .promo-rel img{display:block;width:100%;height:auto;aspect-ratio:3/2;}
+    .promo-rel .pr-cta{display:block;text-align:center;background:#ffd400;color:#0a2a6b;font-weight:900;font-size:.92rem;padding:9px 12px;}
     .hero-text h1{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:700;line-height:1.15;letter-spacing:-.03em;}
     .hero-text h1 span{color:var(--accent);}
     .hero-text p{color:var(--muted);margin-top:12px;font-size:1rem;line-height:1.65;}
@@ -170,6 +178,8 @@
       .hero{grid-template-columns:minmax(0,1fr);padding:24px 16px 20px;gap:24px;}
       .hero-text{order:2;}
       .hero-banners{order:1;min-width:0;max-width:100%;}
+      .promo-rel{order:1;border-radius:14px;}
+      .promo-rel .pr-cta{font-size:.85rem;padding:8px 10px;}
       .hero-banners{display:flex;flex-direction:column;gap:8px;}
       .hero-text h1{font-size:clamp(1.6rem,7vw,2.2rem);}
       .hero-text p{font-size:.92rem;}
@@ -342,7 +352,7 @@
 </div>
 
 <!-- HERO -->
-<div class="hero">
+<div class="hero has-promo">
   <div class="hero-text">
     <h1>Loja de peças e gases para<br><span>refrigeração, climatização e máquinas de lavar no RJ</span></h1>
     <p class="hero-sub">Peças para geladeira, ar-condicionado e máquina de lavar, gases refrigerantes, ferramentas e kits de instalação. Compre online com Pix, retire hoje na Av. Brasil ou receba em casa.</p>
@@ -363,6 +373,10 @@
     </div>
 
   </div>
+  <a class="promo-rel" href="/catalogo" aria-label="Super Promoção: compras a partir de R$ 100 no site ganham um relógio de pulso">
+    <img src="/static/images/promo-relogio.webp" width="960" height="640" alt="Super Promoção: faça R$ 100,00 em compras pelo site e leve um relógio de pulso" fetchpriority="high">
+    <span class="pr-cta">🎁 Compre R$ 100 no site e ganhe um relógio →</span>
+  </a>
 </div>
 
 <!-- KITS (montados na admin em /kits, marcados "mostrar no site") -->
