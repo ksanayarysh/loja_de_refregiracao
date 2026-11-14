@@ -50,6 +50,11 @@
     .kp-ok{display:none;margin-top:10px;font-weight:700;color:#15803d;font-size:.9rem;}
     .kp-ok a{color:#15803d;}
     .kp-wa{display:block;margin-top:10px;font-size:.88rem;font-weight:700;color:#15803d;}
+    .kp-monte{display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,#0a2a6b,#0b4fb3);color:#fff;border-radius:14px;padding:14px 16px;text-decoration:none;font-size:.9rem;line-height:1.4;}
+    .kp-monte b{color:#ffd400;font-size:1rem;}
+    .kp-monte-ic{font-size:1.8rem;flex-shrink:0;}
+    .kp-monte-seta{margin-left:auto;font-size:1.4rem;font-weight:900;flex-shrink:0;}
+    .kp-monte:hover{filter:brightness(1.08);}
     .kp-sec{margin-top:30px;}
     .kp-sec h2{font-size:1.1rem;font-weight:800;margin-bottom:12px;}
     .kp-items{display:grid;gap:10px;}
@@ -100,9 +105,22 @@
           <button class="kp-btn kp-buy" type="button" onclick="kitAdd(true)">Comprar agora</button>
         </div>
         <div class="kp-ok" id="kp-ok">✓ Kit no carrinho · <a href="/checkout">Finalizar compra →</a></div>
-        {% set wa_msg = "Olá! Tenho interesse no " + kit.name + " (R$ " + brl + ")." %}
+        {% set sep = "%.2f"|format(kit.full_total)|replace('.', ',') %}
+        {% set eco = "%.2f"|format(kit.save)|replace('.', ',') %}
+        {% if kit.save >= 0.01 %}
+        {% set wa_msg = "Olá! Tenho interesse no " + kit.name + " por R$ " + brl + " (preço de kit: comprando os itens separados sairia R$ " + sep + ", economia de R$ " + eco + "). Vi no site: " + site_url + "/kit/" + kit.id|string + "/" + kit.slug %}
+        {% else %}
+        {% set wa_msg = "Olá! Tenho interesse no " + kit.name + " (R$ " + brl + "). Vi no site: " + site_url + "/kit/" + kit.id|string + "/" + kit.slug %}
+        {% endif %}
         <a class="kp-wa wa-track" href="https://wa.me/{{ wa_number }}?text={{ wa_msg | urlencode }}" target="_blank" rel="noopener" data-product="{{ kit.name }}">💬 Dúvida? Fale no WhatsApp</a>
       </div>
+      {% if 'instala' in kit.name|lower %}
+      <a class="kp-monte" href="/calculadora-instalacao" onclick="kitMonteClick('kit {{ kit.id }}')">
+        <span class="kp-monte-ic">🧮</span>
+        <span><b>Quer montar o seu próprio kit?</b><br>Escolha a distância e as medidas do seu ar-condicionado e veja o preço com desconto de kit.</span>
+        <span class="kp-monte-seta">→</span>
+      </a>
+      {% endif %}
     </div>
   </div>
 
@@ -135,6 +153,13 @@ function kitAdd(go) {
   const c = document.getElementById('cartCount'); if (c) c.textContent = n;
   if (go) { location.href = '/checkout'; return; }
   document.getElementById('kp-ok').style.display = 'block';
+}
+function kitMonteClick(origem) {
+  try {
+    const body = JSON.stringify({origem, src: sessionStorage.getItem('mtf_src') || ''});
+    if (!(navigator.sendBeacon && navigator.sendBeacon('/api/track/kit-montar', new Blob([body], {type: 'application/json'}))))
+      fetch('/api/track/kit-montar', {method: 'POST', headers: {'Content-Type': 'application/json'}, body, keepalive: true});
+  } catch (e) {}
 }
 // nesta página não há a gaveta do carrinho: o botão do topo leva ao checkout
 if (typeof window.cartOpen !== 'function') window.cartOpen = function () { location.href = '/checkout'; };

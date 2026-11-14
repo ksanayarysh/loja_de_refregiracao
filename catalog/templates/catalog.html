@@ -377,6 +377,17 @@
   .kit-more:hover{text-decoration:underline;}
   a.kit-name:hover{color:var(--accent)!important;}
   .kit-card.kit-banner{padding:0;overflow:hidden;gap:0;}
+  /* último cartão: "Quer montar o seu kit?" no mesmo estilo dos banners (azul, 3:2) */
+  .kit-card.kit-monte{padding:0;overflow:hidden;gap:0;text-decoration:none;color:#fff;}
+  .kit-monte .km-art{aspect-ratio:3/2;background:radial-gradient(circle at 85% 15%,#2f8cff 0,transparent 45%),linear-gradient(135deg,#0a2a6b 0%,#0b4fb3 55%,#0a2a6b 100%);display:flex;flex-direction:column;justify-content:center;gap:10px;padding:22px 24px;position:relative;}
+  .kit-monte .km-tag{align-self:flex-start;background:#ffd400;color:#0a2a6b;font-weight:900;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:4px 12px;}
+  .kit-monte .km-t{font-size:clamp(1.35rem,2.6vw,1.75rem);font-weight:900;line-height:1.12;text-shadow:0 2px 0 rgba(0,0,0,.25);}
+  .kit-monte .km-t b{color:#ffd400;}
+  .kit-monte .km-s{font-size:.92rem;line-height:1.4;opacity:.92;max-width:calc(100% - 70px);}
+  .kit-monte .km-ic{position:absolute;right:16px;bottom:12px;font-size:2.6rem;opacity:.95;}
+  .kit-monte .kit-btns{padding:12px;display:block;}
+  .kit-monte .km-btn{display:block;text-align:center;background:var(--accent);color:#fff;border-radius:12px;padding:13px;font-weight:800;}
+  .kit-monte:hover .km-btn{filter:brightness(1.08);}
   .kit-card.kit-banner img{display:block;width:100%;height:auto;aspect-ratio:3/2;object-fit:cover;}
   .kit-card.kit-banner .kit-btns{padding:12px;}
   .kit-card{background:var(--surface);border:1.5px solid var(--border);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px;position:relative;transition:border-color .15s,box-shadow .15s;}
@@ -411,10 +422,7 @@
   }
 </style>
 <div class="section-wrap" id="kits-wrap" style="display:none;">
-  <div class="section-title" style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;">
-    <span>🧰 Kits com desconto</span>
-    <a href="/calculadora-instalacao" class="kits-calc-link">🧮 <span class="kcl-long">Monte o kit de instalação pela distância</span><span class="kcl-short">Calcular kit pela distância</span> →</a>
-  </div>
+  <div class="section-title">🧰 Kits com desconto</div>
   <div class="kits-grid" id="kits-grid"></div>
 </div>
 
@@ -789,6 +797,13 @@ function kitToCartSite(id, go) {
   if (go) { location.href = '/checkout'; return; }
   cartOpen(); cartRender();
 }
+function kitMonteClick(origem) {
+  try {
+    const body = JSON.stringify({origem, src: sessionStorage.getItem('mtf_src') || ''});
+    if (!(navigator.sendBeacon && navigator.sendBeacon('/api/track/kit-montar', new Blob([body], {type: 'application/json'}))))
+      fetch('/api/track/kit-montar', {method: 'POST', headers: {'Content-Type': 'application/json'}, body, keepalive: true});
+  } catch (e) {}
+}
 fetch('/api/kits-site').then(r => r.json()).then(kits => {
   SITE_KITS = kits || [];
   if (!SITE_KITS.length) return;
@@ -825,8 +840,20 @@ fetch('/api/kits-site').then(r => r.json()).then(kits => {
         <button class="kit-buy" onclick="kitToCartSite(${k.id}, true)">Comprar agora</button>
       </div>
     </div>`;
-  }).join('');
-  document.getElementById('kits-grid').classList.toggle('n1', SITE_KITS.length === 1);
+  }).join('') + `<a class="kit-card kit-monte" href="/calculadora-instalacao" onclick="kitMonteClick('home')">
+      <div class="km-art">
+        <span class="km-tag" id="km-tag">Kit sob medida</span>
+        <div class="km-t">Quer montar o seu kit <b>com desconto?</b></div>
+        <div class="km-s">Escolha a distância e as medidas do seu ar-condicionado — o desconto de kit entra na hora.</div>
+        <div class="km-ic">🧮</div>
+      </div>
+      <div class="kit-btns"><span class="km-btn">Montar meu kit →</span></div>
+    </a>`;
+  fetch('/api/kit-config', {cache: 'no-store'}).then(r => r.json()).then(c => {
+    const d = Number(c && c.discount_percent) || 0;
+    const t = document.getElementById('km-tag');
+    if (t && d > 0) t.textContent = d.toString().replace('.', ',') + '% de desconto';
+  }).catch(() => {});
   document.getElementById('kits-wrap').style.display = '';
 }).catch(() => {});
 

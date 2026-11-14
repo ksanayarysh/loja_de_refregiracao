@@ -2587,6 +2587,37 @@ async def track_search(request: Request):
         return JSONResponse({"ok": False})
 
 
+_kit_montar_cache: dict = {}
+
+
+@router.post("/api/track/kit-montar")
+async def track_kit_montar(request: Request):
+    """Clique em "Quer montar o seu kit?" (home / página do kit) -> aviso no Telegram."""
+    try:
+        import time
+        body = await request.json()
+        ip, ua = _client_ip(request), request.headers.get("user-agent", "")
+        if _is_owner(request) or _is_bot(ua) or _is_datacenter(ip):
+            return JSONResponse({"ok": True, "skip": True})
+        if time.time() - _kit_montar_cache.get(ip, 0) < 1800:     # 1 aviso por pessoa a cada 30 min
+            return JSONResponse({"ok": True, "skip": "dup"})
+        _kit_montar_cache[ip] = time.time()
+        origem = str(body.get("origem") or "")[:40]
+        onde = "na página inicial" if origem == "home" else (f"na página do kit #{origem[4:]}" if origem.startswith("kit ") else origem)
+        src = str(body.get("src") or "")[:60]
+        device = "📱" if any(m in ua.lower() for m in ("mobile", "android", "iphone")) else "🖥"
+        await _send_tg(
+            f"🧮 <b>Quer montar o próprio kit!</b>\n"
+            f"Clicou em \"Quer montar o seu kit?\" {onde}\n"
+            f"{('Veio de: ' + src + chr(10)) if src else ''}"
+            f"{device} IP: <code>{ip}</code>\n"
+            f"Horário: {datetime.now(BRT).strftime('%d/%m %H:%M')}"
+        )
+    except Exception:
+        _blog_log.exception("aviso kit-montar falhou")
+    return JSONResponse({"ok": True})
+
+
 @router.post("/api/track/whatsapp")
 async def track_whatsapp_click(request: Request):
     try:

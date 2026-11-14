@@ -431,9 +431,9 @@ function buildOrder(total, discount, final){
   lines.push('');
   if (discount > 0){
     lines.push('Subtotal: ' + brl(total));
-    lines.push('Desconto de ' + String(discountPct).replace('.', ',') + '%: − ' + brl(discount));
+    lines.push('Desconto de kit (' + String(discountPct).replace('.', ',') + '%, comprando tudo junto): − ' + brl(discount));
   }
-  lines.push('Total: ' + brl(final));
+  lines.push((discount > 0 ? 'Total com desconto: ' : 'Total: ') + brl(final));
   lines.push('');
   lines.push('Ver o kit: ' + kitLink());
   a.href = 'https://wa.me/' + WA_NUMBER + '?text=' + encodeURIComponent(lines.join('\n'));
