@@ -95,68 +95,10 @@
     .btn-lala:disabled { opacity: .55; cursor: default; }
     .btn-lala.sec { background: #fff; color: #ea580c; border: 1.5px solid #ea580c; }
     @media (max-width: 600px) { .lala-grid { grid-template-columns: 1fr; } }
-    .ki-card { margin-bottom: 14px; }
-    .ki-card summary { cursor: pointer; font-weight: 800; font-size: 1.05rem; color: #111; list-style: none; }
-    .ki-card summary::-webkit-details-marker { display: none; }
-    .ki-card summary::before { content: '▸ '; color: #888; }
-    .ki-card details[open] summary::before { content: '▾ '; }
-    .ki-sub { font-weight: 400; font-size: .82rem; color: #666; margin-left: 6px; }
-    .ki-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 14px; }
-    .ki-grid label { font-size: .8rem; margin: 0 0 4px; }
-    .ki-grid input, .ki-grid select { width: 100%; padding: 9px 10px; border: 1px solid #ccc; border-radius: 8px; font-size: .95rem; }
-    .ki-opts { display: flex; gap: 18px; flex-wrap: wrap; margin: 12px 0 6px; }
-    .ki-opts label { display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: .9rem; margin: 0; cursor: pointer; }
-    .ki-opts input { width: auto; margin: 0; }
-    .ki-prev { font-size: .88rem; background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px 12px; margin: 8px 0 10px; }
-    .ki-prev table { width: 100%; border-collapse: collapse; }
-    .ki-prev td { padding: 3px 4px; }
-    .ki-prev td.r { text-align: right; white-space: nowrap; }
-    .ki-prev .tot td { border-top: 1px solid #ddd; font-weight: 800; padding-top: 6px; }
-    .ki-prev .falta { color: #b91c1c; font-weight: 700; }
-    .btn-ki { background: #0e7c99; color: #fff; border: none; border-radius: 10px; padding: 11px 18px; font-weight: 800; font-size: .95rem; cursor: pointer; }
-    .ki-hint { font-size: .78rem; color: #777; margin-top: 6px; }
-    @media (max-width: 700px) { .ki-grid { grid-template-columns: 1fr 1fr; } }
     @media (max-width: 600px) { .cart-table th:nth-child(2), .cart-table td:nth-child(2) { display: none; } }
 {% endblock %}
 
 {% block content %}
-    <div class="card ki-card">
-      <details id="ki-box">
-        <summary>🧰 Kit de instalação rápido <span class="ki-sub">metragem + medida → cobre, esponjoso, suporte e cabo</span></summary>
-        <div class="ki-grid">
-          <div><label for="ki-m">Metros de tubulação</label>
-            <input type="number" id="ki-m" min="1" step="1" value="3" oninput="kiPrev()"></div>
-          <div><label for="ki-med">Medida</label>
-            <select id="ki-med" onchange="kiSupAuto(); kiPrev()">
-              <option value="1/4|3/8">1/4 + 3/8 (7–12 mil BTUs)</option>
-              <option value="1/4|1/2">1/4 + 1/2 (18 mil BTUs)</option>
-              <option value="1/4|5/8">1/4 + 5/8 (22–30 mil BTUs)</option>
-              <option value="3/8|5/8">3/8 + 5/8</option>
-              <option value="1/4|3/4">1/4 + 3/4</option>
-            </select></div>
-          <div><label for="ki-sup">Suporte</label>
-            <select id="ki-sup" onchange="kiPrev()">
-              <option value="sup_40">40 cm (7–12 mil)</option>
-              <option value="sup_450">450 mm (12–30 mil)</option>
-              <option value="">Sem suporte</option>
-            </select></div>
-          <div><label for="ki-cabo">Cabo PP</label>
-            <select id="ki-cabo" onchange="kiPrev()">
-              <option value="cabo_15">4 × 1,5 mm</option>
-              <option value="cabo_25">4 × 2,5 mm</option>
-              <option value="">Sem cabo</option>
-            </select></div>
-        </div>
-        <div class="ki-opts">
-          <label><input type="checkbox" id="ki-fita" checked onchange="kiPrev()"> Fita PVC</label>
-          <label id="ki-desc-l"><input type="checkbox" id="ki-desc" checked onchange="kiPrev()"> Desconto de kit <span id="ki-desc-pct"></span></label>
-        </div>
-        <div id="ki-prev" class="ki-prev"></div>
-        <button type="button" class="btn-ki" onclick="kiAdd()">➕ Adicionar ao carrinho</button>
-        <div class="ki-hint">Depois de adicionar dá para mudar quantidade ou remover qualquer item no carrinho.</div>
-      </details>
-    </div>
-
     <div class="card">
       <h1>🛒 Finalizar Pedido</h1>
 
@@ -369,61 +311,6 @@
     const n = document.getElementById(`p2-${idx}`); if (n) n.innerHTML = p2Nota(cart[idx]);
     updateTotal();
   }
-
-  // ── Kit de instalação rápido ──
-  const KI = {{ kit_inst | tojson }};
-  const kiR = v => Math.round(v * 100) / 100;
-  function kiSupAuto() {
-    const g = document.getElementById('ki-med').value.split('|')[1];
-    document.getElementById('ki-sup').value = (g === '3/8') ? 'sup_40' : 'sup_450';
-  }
-  function kiLinhas() {
-    const m = Math.max(1, Math.ceil(parseFloat(document.getElementById('ki-m').value) || 1));
-    const [a, b] = document.getElementById('ki-med').value.split('|');
-    const barras = Math.ceil(m / 2);
-    const want = [['cobre_' + a, m], ['cobre_' + b, m], ['esp_' + a, barras], ['esp_' + b, barras]];
-    const sup = document.getElementById('ki-sup').value; if (sup) want.push([sup, 1]);
-    const cabo = document.getElementById('ki-cabo').value; if (cabo) want.push([cabo, m]);
-    if (document.getElementById('ki-fita').checked) want.push(['fita', 1]);
-    const pct = (document.getElementById('ki-desc').checked ? KI.desconto : 0) || 0;
-    const linhas = [], faltam = [];
-    want.forEach(([k, q]) => {
-      const p = KI.produtos[k];
-      if (!p) { faltam.push(k.replace('_', ' ')); return; }
-      linhas.push({id: p.id, name: p.name, unit: p.unit, qty: q, cheio: p.price,
-                   price: pct ? kiR(p.price * (100 - pct) / 100) : p.price, kit: pct > 0});
-    });
-    return {linhas, faltam, pct};
-  }
-  function kiPrev() {
-    const {linhas, faltam, pct} = kiLinhas();
-    const cheio = linhas.reduce((s, l) => s + l.cheio * l.qty, 0), fin = linhas.reduce((s, l) => s + l.price * l.qty, 0);
-    document.getElementById('ki-prev').innerHTML = '<table>' + linhas.map(l =>
-        `<tr><td>${l.qty} ${l.unit}</td><td>${l.name}</td><td class="r">${fmt(l.price * l.qty)}</td></tr>`).join('') +
-      (pct ? `<tr><td></td><td style="color:#15803d">Desconto de kit ${String(pct).replace('.', ',')}%</td><td class="r" style="color:#15803d">− ${fmt(cheio - fin)}</td></tr>` : '') +
-      `<tr class="tot"><td></td><td>Total do kit</td><td class="r">${fmt(fin)}</td></tr></table>` +
-      (faltam.length ? `<div class="falta">⚠️ Não achei no cadastro: ${faltam.join(', ')}</div>` : '');
-  }
-  function kiAdd() {
-    const {linhas} = kiLinhas();
-    if (!linhas.length) return;
-    linhas.forEach(l => {
-      const ex = cart.find(i => i.id === l.id && !!i.kit === l.kit && Math.abs(i.price - l.price) < 0.005);
-      if (ex) ex.qty = kiR(ex.qty + l.qty);
-      else cart.push({id: l.id, name: l.name, price: l.price, qty: l.qty, unit: l.unit, ...(l.kit ? {kit: true} : {})});
-    });
-    saveCart();
-    document.getElementById('checkout-content').style.display = '';
-    document.getElementById('empty-msg').style.display = 'none';
-    renderCart();
-    document.getElementById('ki-box').open = false;
-    document.getElementById('cart-table').scrollIntoView({behavior: 'smooth', block: 'start'});
-  }
-  (function kiInit() {
-    if (KI.desconto > 0) document.getElementById('ki-desc-pct').textContent = '(' + String(KI.desconto).replace('.', ',') + '%)';
-    else document.getElementById('ki-desc-l').style.display = 'none';
-    kiPrev();
-  })();
 
   function removeItem(idx) {
     cart.splice(idx, 1);

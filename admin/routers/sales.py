@@ -269,13 +269,17 @@ async def _kit_inst_data(conn) -> dict:
     return out
 
 
-@router.get("/checkout", response_class=HTMLResponse)
-async def checkout_page(request: Request, _=Depends(basic_auth)):
+@router.get("/kit-rapido", response_class=HTMLResponse)
+async def kit_rapido_page(request: Request, _=Depends(basic_auth)):
     async with engine.connect() as conn:
         kit_inst = await _kit_inst_data(conn)
+    return templates.TemplateResponse("kit_rapido.html", {"request": request, "kit_inst": kit_inst})
+
+
+@router.get("/checkout", response_class=HTMLResponse)
+async def checkout_page(request: Request, _=Depends(basic_auth)):
     return templates.TemplateResponse("checkout.html", {
         "request": request,
-        "kit_inst": kit_inst,
         "wa_number": os.environ.get("WA_OWNER_NUMBER", ""),
         "site_url": os.environ.get("SITE_URL", "https://www.mtfrefrigeracao.com.br").rstrip("/"),
     })
