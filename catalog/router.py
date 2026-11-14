@@ -454,11 +454,10 @@ async def track_visit(request: Request):
         source = "direto"
         if src == "Google Ads":
             source = "💰 Google Ads (anúncio pago)"
-        elif src == "Google (grátis)" and str(page).startswith("/product/"):
-            source = "🛍 Google grátis (aba Shopping / produto no Google)"
         elif src == "Google (grátis)":
-            # a marca srsltid também vem na busca normal: entrou na home/blog = busca orgânica
-            source = "🔍 Google (busca orgânica)"
+            # srsltid: o Google põe essa marca em QUALQUER clique orgânico de site com Merchant Center
+            # (busca normal e aba Shopping) — não dá para separar, então tudo = busca grátis do Google
+            source = "🔍 Google (busca grátis)"
         elif referrer:
             if "google" in referrer: source = "🔍 Google (busca orgânica)"
             elif "facebook" in referrer or "instagram" in referrer: source = "📘 Facebook/IG"
