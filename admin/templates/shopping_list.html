@@ -191,7 +191,7 @@ function sendWhatsApp() {
 
   const today = new Date().toLocaleDateString('pt-BR');
   const msg = `🛒 *Lista de compras MTF* (${today})\n\n` + lines.join('\n');
-  const phone = '5521997982467'; // Douglas
+  const phone = '5521997982467'; // celular da Ksenia
   window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
 }
 </script>
