@@ -96,6 +96,44 @@ def _coords_do_texto(s: str):
     return None
 
 
+async def _resolver_link_maps(s: str):
+    """Link curto do Maps (maps.app.goo.gl, goo.gl/maps, g.co/kgs...) não traz as coordenadas: segue o link
+    e procura no endereço final (e na página). -> ((lat, lng) | None, endereço em texto | None)"""
+    m = re.search(r"https?://(?:maps\.app\.goo\.gl|goo\.gl/maps|g\.co/kgs|maps\.google\.[a-z.]+|(?:www\.)?google\.[a-z.]+/maps)\S*", s or "")
+    if not m:
+        return None, None
+    url = m.group(0)
+    try:
+        async with httpx.AsyncClient(timeout=8, follow_redirects=True,
+                                     headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+                                              "Accept-Language": "pt-BR,pt;q=0.9"}) as c:
+            r = await c.get(url)
+        final = str(r.url)
+        from urllib.parse import unquote, urlparse, parse_qs
+        fim = unquote(final)
+        pin = _coords_do_texto(fim)
+        if pin:
+            return pin, None
+        # página às vezes traz as coordenadas no HTML (meta/JS)
+        html = r.text[:400000] if r.status_code == 200 else ""
+        for pat in (r"center=(-?\d+\.\d+)%2C(-?\d+\.\d+)", r"\[null,null,(-?\d+\.\d+),(-?\d+\.\d+)\]",
+                    r"@(-?\d+\.\d+),(-?\d+\.\d+)"):
+            mm = re.search(pat, html)
+            if mm:
+                lat, lng = float(mm.group(1)), float(mm.group(2))
+                if -34 < lat < 6 and -75 < lng < -30:
+                    return (lat, lng), None
+        # sem coordenadas, mas com endereço: ?q=Rua+X / /maps/place/Rua+X/ / /maps/search/...
+        q = parse_qs(urlparse(final).query).get("q", [""])[0]
+        if not q:
+            mm = re.search(r"/maps/(?:place|search)/([^/@?]+)", final)
+            q = unquote(mm.group(1)).replace("+", " ") if mm else ""
+        return None, (q.strip() or None)
+    except Exception:
+        log.exception("lalamove-balcao: falha ao abrir link do Maps %s", url)
+        return None, None
+
+
 async def _cep(cep: str):
     async with httpx.AsyncClient(timeout=8) as c:
         try:
@@ -157,7 +195,21 @@ async def lala_cotar(request: Request, _=Depends(basic_auth)):
                                      f"{cidade} - {uf}" if cidade else "",
                                      f"{cep[:5]}-{cep[5:]}" if len(cep) == 8 else ""] if x)
     aviso = ""
-    pin = _coords_do_texto(str(b.get("localizacao", "")))
+    loc_txt = str(b.get("localizacao", ""))
+    pin = _coords_do_texto(loc_txt)
+    if not pin and loc_txt.strip():
+        # link curto do Google Maps (maps.app.goo.gl/...) -> abre e pega as coordenadas / o endereço
+        pin, end_link = await _resolver_link_maps(loc_txt)
+        if not pin and end_link and _google_key():
+            g = await _geocode(end_link)
+            if g:
+                pin = (g[0], g[1])
+                if not endereco:
+                    endereco = g[2]
+        if not pin and not (rua and numero):
+            return JSONResponse({"error": "Não consegui ler essa localização. Peça ao cliente para mandar a "
+                                          "localização pelo WhatsApp (📎 → Localização) ou digite rua e número."},
+                                status_code=400)
     if pin:
         lat, lng = pin
         if not endereco:
