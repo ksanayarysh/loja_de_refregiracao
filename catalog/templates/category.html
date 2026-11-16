@@ -155,6 +155,15 @@
     .other-cats{max-width:900px;margin:0 auto;padding:0 20px 60px;}
     .other-cats-title{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding-bottom:10px;border-bottom:1px solid var(--border);margin-bottom:12px;}
     .cats-grid{display:flex;flex-wrap:wrap;gap:8px;}
+    .flt-wrap{max-width:900px;margin:0 auto 12px;padding:0 20px;display:flex;flex-direction:column;gap:8px;}
+    .flt-row{display:flex;gap:6px;overflow-x:auto;align-items:center;padding-bottom:2px;scrollbar-width:none;}
+    .flt-row::-webkit-scrollbar{display:none;}
+    .flt-lbl{font-size:.7rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);white-space:nowrap;margin-right:4px;}
+    .flt-chip{padding:6px 12px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface);font-size:.82rem;font-weight:600;color:var(--text);white-space:nowrap;cursor:pointer;font-family:inherit;}
+    .flt-chip small{color:var(--muted);font-weight:500;margin-left:2px;}
+    .flt-chip:hover{border-color:var(--accent);}
+    .flt-chip.on{background:var(--accent);border-color:var(--accent);color:#fff;}
+    .flt-chip.on small{color:rgba(255,255,255,.8);}
     .cat-chip{padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface);font-size:.82rem;font-weight:500;color:var(--muted);text-decoration:none;transition:all .15s;white-space:nowrap;}
     .cat-chip:hover{border-color:var(--accent);color:var(--accent);}
     .cat-chip.current{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700;}
@@ -283,6 +292,23 @@
   </div>
 </div>
 
+{% if filtro_marcas or filtro_tipos %}
+<div class="flt-wrap">
+  {% if filtro_marcas %}
+  <div class="flt-row"><span class="flt-lbl">Marca</span>
+    <button type="button" class="flt-chip on" data-grp="marca" data-v="" onclick="setFiltro(this)">Todas</button>
+    {% for m, n in filtro_marcas %}<button type="button" class="flt-chip" data-grp="marca" data-v="{{ m|lower }}" onclick="setFiltro(this)">{{ m }} <small>{{ n }}</small></button>{% endfor %}
+  </div>
+  {% endif %}
+  {% if filtro_tipos %}
+  <div class="flt-row"><span class="flt-lbl">Tipo de placa</span>
+    <button type="button" class="flt-chip on" data-grp="tipo" data-v="" onclick="setFiltro(this)">Todas</button>
+    {% for t, n in filtro_tipos %}<button type="button" class="flt-chip" data-grp="tipo" data-v="{{ t|lower }}" onclick="setFiltro(this)">{{ t }} <small>{{ n }}</small></button>{% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
 <div class="stats-bar">
   <b id="visibleCount">{{ total }}</b> produtos encontrados
 </div>
@@ -375,7 +401,7 @@
   <div class="product-grid">
   {% for p in products %}
   {% set wa_msg = "Ol%C3%A1%21%20Tenho%20interesse%20no%20produto%3A%20" + p.name|urlencode + "%20%28" + p.unit|urlencode + "%29.%20Est%C3%A1%20dispon%C3%ADvel%3F" %}
-  <div class="product-card" data-name="{{ p.name | lower }}">
+  <div class="product-card" data-name="{{ p.name | lower }}" data-marcas="|{{ (p.marcas or [])|join('|')|lower }}|" data-tipo="{{ (p.tipo_placa or '')|lower }}">
     <a href="/product/{{ p.slug }}" style="display:contents;text-decoration:none;">
       <div class="prod-img-wrap">
         {% if p.image %}
@@ -666,13 +692,22 @@ function sendCartWA() {
 }
 updateBadge();
 
+function setFiltro(el) {
+  document.querySelectorAll('.flt-chip[data-grp="' + el.dataset.grp + '"]').forEach(b => b.classList.toggle('on', b === el));
+  filterProducts();
+}
+
 function filterProducts() {
   const _nrm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   const q = _nrm(document.getElementById('searchInput').value.trim());
   let visible = 0;
+  const fm = (document.querySelector('.flt-chip.on[data-grp="marca"]') || {}).dataset?.v || '';
+  const ft = (document.querySelector('.flt-chip.on[data-grp="tipo"]') || {}).dataset?.v || '';
   document.querySelectorAll('.product-card').forEach(row => {
     const name = row.dataset.name || '';
-    const show = !q || _nrm(name).includes(q);
+    const show = (!q || _nrm(name).includes(q))
+      && (!fm || (row.dataset.marcas || '').includes('|' + fm + '|'))
+      && (!ft || row.dataset.tipo === ft);
     row.style.display = show ? '' : 'none';
     if (show) visible++;
   });

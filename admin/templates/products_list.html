@@ -119,7 +119,7 @@
   {% set base = "/products" %}
   {% set dir_toggle = "desc" if direction == "asc" else "asc" %}
   {% macro url(p, sort_key=None, dir_key=None) -%}
-    {{ base }}?page={{ p }}&per_page={{ per_page }}&sort={{ sort_key or sort }}&direction={{ dir_key or direction }}{% if cat_filter %}&cat={{ cat_filter|urlencode }}{% endif %}
+    {{ base }}?page={{ p }}&per_page={{ per_page }}&sort={{ sort_key or sort }}&direction={{ dir_key or direction }}{% if cat_filter %}&cat={{ cat_filter|urlencode }}{% endif %}{% if marca_filter %}&marca={{ marca_filter|urlencode }}{% endif %}{% if tipo_filter %}&tipo={{ tipo_filter }}{% endif %}
   {%- endmacro %}
 
   <div class="topbar">
@@ -137,6 +137,8 @@
         <input type="hidden" name="sort" value="{{ sort }}">
         <input type="hidden" name="direction" value="{{ direction }}">
         <input type="hidden" name="cat" value="{{ cat_filter }}">
+        <input type="hidden" name="marca" value="{{ marca_filter }}">
+        <input type="hidden" name="tipo" value="{{ tipo_filter }}">
         <label style="font-weight:800;font-size:.88rem;">Por página</label>
         <select name="per_page" onchange="this.form.submit()">
           {% for n in [10,25,50,100,200] %}<option value="{{ n }}" {% if per_page==n %}selected{% endif %}>{{ n }}</option>{% endfor %}
@@ -177,12 +179,21 @@
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
       <input type="text" class="cat-filter-input" id="cat-filter" name="cat" value="{{ cat_filter }}" placeholder="Filtrar por categoria...">
     </div>
+    <select name="marca" class="cat-filter-input" style="max-width:170px;padding-left:10px;" onchange="this.form.submit()">
+      <option value="">Todas as marcas</option>
+      {% for m in marcas %}<option value="{{ m }}" {% if marca_filter|lower == m|lower %}selected{% endif %}>{{ m }}</option>{% endfor %}
+    </select>
+    <select name="tipo" class="cat-filter-input" style="max-width:190px;padding-left:10px;" onchange="this.form.submit()" title="Para placas">
+      <option value="">Placa: qualquer tipo</option>
+      <option value="potencia" {% if tipo_filter=='potencia' %}selected{% endif %}>Placa de potência</option>
+      <option value="interface" {% if tipo_filter=='interface' %}selected{% endif %}>Placa de interface / display</option>
+    </select>
     <button class="search-button" type="submit">Filtrar</button>
-    {% if cat_filter %}<a class="model-clear-btn" style="text-decoration:none;" href="/products?per_page={{ per_page }}&sort={{ sort }}&direction={{ direction }}">✕ Limpar</a>{% endif %}
+    {% if cat_filter or marca_filter or tipo_filter %}<a class="model-clear-btn" style="text-decoration:none;" href="/products?per_page={{ per_page }}&sort={{ sort }}&direction={{ direction }}">✕ Limpar</a>{% endif %}
   </form>
 
   {% if not rows or rows|length == 0 %}
-    <div class="empty">{% if cat_filter %}Nenhum produto na categoria "{{ cat_filter }}".{% else %}Nenhum produto cadastrado ainda.{% endif %}</div>
+    <div class="empty">{% if cat_filter or marca_filter or tipo_filter %}Nenhum produto com esses filtros.{% else %}Nenhum produto cadastrado ainda.{% endif %}</div>
   {% else %}
     <div class="pager" style="margin-top:0;margin-bottom:12px;">
       <div class="pages">

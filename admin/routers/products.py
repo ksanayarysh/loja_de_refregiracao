@@ -441,6 +441,11 @@ async def delete_product(product_id: int, _=Depends(basic_auth)):
     return RedirectResponse(url="/products?deleted=1", status_code=303)
 
 
+MARCAS_FILTRO = ["Electrolux", "Brastemp", "Consul", "Samsung", "LG", "Springer", "Midea", "Carrier", "Elgin",
+                 "Philco", "Gree", "Komeco", "Agratto", "Fujitsu", "Daikin", "Continental", "Bosch", "Esmaltec",
+                 "Colormaq", "Panasonic", "Embraco", "Tecumseh", "Danfoss", "Hulter", "Suryha"]
+
+
 @router.get("/products", response_class=HTMLResponse)
 async def products_list(
     request: Request,
@@ -449,6 +454,8 @@ async def products_list(
     sort: str = Query("name"),
     direction: str = Query("asc"),
     cat: str = Query(""),
+    marca: str = Query(""),
+    tipo: str = Query(""),
     _=Depends(basic_auth),
 ):
     sort_col      = SORT_FIELDS.get(sort, SORT_FIELDS["name"])
@@ -461,6 +468,15 @@ async def products_list(
     if cat_q:
         where += " AND LOWER(COALESCE(c.name, 'Outro')) LIKE LOWER(:cat)"
         fparams["cat"] = f"%{cat_q}%"
+    marca_q = marca.strip()
+    if marca_q:   # marca: campo "marca" do produto OU no nome
+        where += " AND (LOWER(COALESCE(p.brand, '')) LIKE LOWER(:marca) OR LOWER(p.name) LIKE LOWER(:marca))"
+        fparams["marca"] = f"%{marca_q}%"
+    tipo_q = tipo.strip().lower()
+    if tipo_q == "potencia":
+        where += " AND (LOWER(p.name) LIKE '%potência%' OR LOWER(p.name) LIKE '%potencia%')"
+    elif tipo_q == "interface":
+        where += " AND (LOWER(p.name) LIKE '%interface%' OR LOWER(p.name) LIKE '%display%' OR LOWER(p.name) LIKE '%painel%')"
 
     async with engine.begin() as conn:
         await _ensure_shelf_code_column(conn)
@@ -506,6 +522,7 @@ async def products_list(
         "total_pages": total_pages, "total_count": total_count,
         "categories": categories,
         "cat_filter": cat_q,
+        "marca_filter": marca_q, "tipo_filter": tipo_q, "marcas": MARCAS_FILTRO,
         "sort": sort if sort in SORT_FIELDS else "name",
         "direction": "desc" if direction.lower() == "desc" else "asc",
         "deleted": request.query_params.get("deleted") == "1",

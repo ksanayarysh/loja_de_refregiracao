@@ -1292,6 +1292,40 @@ async def product_page(request: Request, slug: str):
     })
 
 
+_MARCAS = ["Electrolux", "Brastemp", "Consul", "Samsung", "LG", "Springer", "Midea", "Carrier", "Elgin", "Philco",
+           "Gree", "Komeco", "Agratto", "Fujitsu", "Daikin", "Continental", "Bosch", "Esmaltec", "Colormaq",
+           "Panasonic", "Hitachi", "Whirlpool", "Embraco", "Tecumseh", "Danfoss", "Hulter", "Suryha"]
+import re as _re_marca
+_MARCA_RX = [(m, _re_marca.compile(r"(?<![a-z0-9])" + _re_marca.escape(m.lower()) + r"(?![a-z0-9])")) for m in _MARCAS]
+
+
+def _marcas_do_produto(nome: str, brand: str = "") -> list:
+    """Marcas citadas no nome (ex.: 'Brastemp/Consul' -> as duas) + a marca cadastrada na admin."""
+    n = (nome or "").lower()
+    achadas = [m for m, rx in _MARCA_RX if rx.search(n)]
+    b = (brand or "").strip()
+    if b:
+        canon = next((m for m in _MARCAS if m.lower() == b.lower()), b)
+        if canon not in achadas:
+            achadas.insert(0, canon)
+    return achadas
+
+
+def _tipo_placa(nome: str) -> str:
+    n = (nome or "").lower()
+    if not n.startswith("placa") and " placa " not in f" {n} ":
+        return ""
+    pot = "potência" in n or "potencia" in n
+    itf = any(w in n for w in ("interface", "display", "painel"))
+    if pot and itf:
+        return "Potência + interface"
+    if pot:
+        return "Potência"
+    if itf:
+        return "Interface / display"
+    return "Outras placas"
+
+
 @router.get("/category/{cat_slug}", response_class=HTMLResponse)
 async def category_page(request: Request, cat_slug: str):
     async with engine.connect() as conn:
@@ -1315,6 +1349,27 @@ async def category_page(request: Request, cat_slug: str):
                 rd = dict(r)
                 rd["slug"] = slugify(rd["name"])
                 products.append(rd)
+
+    # marca (campo "brand" da admin ou pelo nome) e tipo de placa (pelo nome) -> filtros da página
+    try:
+        async with engine.connect() as conn:
+            brand_map = {r["id"]: (r["brand"] or "") for r in (await conn.execute(text(
+                "SELECT id, brand FROM products WHERE id = ANY(:ids)"), {"ids": list(seen_ids)})).mappings()}
+    except Exception:
+        brand_map = {}
+    cont_marca, cont_tipo = {}, {}
+    for x in products:
+        ms = _marcas_do_produto(x["name"], brand_map.get(x["id"], ""))
+        x["marcas"] = ms
+        for m in ms:
+            cont_marca[m] = cont_marca.get(m, 0) + 1
+        t = _tipo_placa(x["name"])
+        x["tipo_placa"] = t
+        if t:
+            cont_tipo[t] = cont_tipo.get(t, 0) + 1
+    filtro_marcas = sorted(cont_marca.items(), key=lambda kv: (-kv[1], kv[0])) if len(cont_marca) >= 2 else []
+    filtro_tipos = [(t, cont_tipo[t]) for t in ("Potência", "Interface / display", "Potência + interface", "Outras placas")
+                    if t in cont_tipo] if len(cont_tipo) >= 2 else []
 
     # promoções (preço promocional ou 2ª unidade com desconto) primeiro, depois A-Z
     def _em_promo(x):
@@ -1351,6 +1406,8 @@ async def category_page(request: Request, cat_slug: str):
         "cat_slug":      cat_slug,
         "products":      products,
         "cat_kits":      cat_kits,
+        "filtro_marcas": filtro_marcas,
+        "filtro_tipos":  filtro_tipos,
         "n_promos":      n_promos,
         "mostra_monte":  mostra_monte,
         "all_cats":      all_cats,
