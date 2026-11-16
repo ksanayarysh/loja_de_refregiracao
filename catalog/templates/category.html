@@ -300,8 +300,14 @@
   </div>
 </div>
 
-{% if filtro_marcas or filtro_tipos %}
+{% if filtro_marcas or filtro_tipos or filtro_aparelhos %}
 <div class="flt-wrap">
+  {% if filtro_aparelhos %}
+  <div class="flt-grp"><span class="flt-lbl">Aparelho</span><div class="flt-row">
+    <button type="button" class="flt-chip on" data-grp="aparelho" data-v="" onclick="setFiltro(this)">Todos</button>
+    {% for a, n in filtro_aparelhos %}<button type="button" class="flt-chip" data-grp="aparelho" data-v="{{ '' if a == 'Outros' else a|lower }}{{ '__outros' if a == 'Outros' else '' }}" onclick="setFiltro(this)">{{ a }} <small>{{ n }}</small></button>{% endfor %}
+  </div></div>
+  {% endif %}
   {% if filtro_marcas %}
   <div class="flt-grp"><span class="flt-lbl">Marca</span><div class="flt-row">
     <button type="button" class="flt-chip on" data-grp="marca" data-v="" onclick="setFiltro(this)">Todas</button>
@@ -409,7 +415,7 @@
   <div class="product-grid">
   {% for p in products %}
   {% set wa_msg = "Ol%C3%A1%21%20Tenho%20interesse%20no%20produto%3A%20" + p.name|urlencode + "%20%28" + p.unit|urlencode + "%29.%20Est%C3%A1%20dispon%C3%ADvel%3F" %}
-  <div class="product-card" data-name="{{ p.name | lower }}" data-marcas="|{{ (p.marcas or [])|join('|')|lower }}|" data-tipo="{{ (p.tipo_placa or '')|lower }}">
+  <div class="product-card" data-name="{{ p.name | lower }}" data-marcas="|{{ (p.marcas or [])|join('|')|lower }}|" data-tipo="{{ (p.tipo_placa or '')|lower }}" data-aparelho="{{ (p.aparelho or '__outros')|lower }}">
     <a href="/product/{{ p.slug }}" style="display:contents;text-decoration:none;">
       <div class="prod-img-wrap">
         {% if p.image %}
@@ -700,7 +706,7 @@ function sendCartWA() {
 }
 updateBadge();
 
-const FILTRO = {marca: '', tipo: ''};
+const FILTRO = {marca: '', tipo: '', aparelho: ''};
 function setFiltroSel(grp, v) {
   FILTRO[grp] = v;
   document.querySelectorAll('.flt-chip[data-grp="' + grp + '"]').forEach(b => b.classList.toggle('on', b.dataset.v === v));
@@ -716,12 +722,13 @@ function filterProducts() {
   const _nrm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   const q = _nrm(document.getElementById('searchInput').value.trim());
   let visible = 0;
-  const fm = FILTRO.marca, ft = FILTRO.tipo;
+  const fm = FILTRO.marca, ft = FILTRO.tipo, fa = FILTRO.aparelho;
   document.querySelectorAll('.product-card').forEach(row => {
     const name = row.dataset.name || '';
     const show = (!q || _nrm(name).includes(q))
       && (!fm || (row.dataset.marcas || '').includes('|' + fm + '|'))
-      && (!ft || row.dataset.tipo === ft);
+      && (!ft || row.dataset.tipo === ft)
+      && (!fa || row.dataset.aparelho === fa);
     row.style.display = show ? '' : 'none';
     if (show) visible++;
   });

@@ -1311,6 +1311,20 @@ def _marcas_do_produto(nome: str, brand: str = "") -> list:
     return achadas
 
 
+_AP_AR = _re_marca.compile(r"ar[- ]?condicionado|\bar cond|\bsplit\b|evaporadora|condensadora|ar janela|\bjanela\b|piso teto|cassete|\bbtus?\b", _re_marca.I)
+_AP_LAV = _re_marca.compile(r"lavadora|m[aá]quina de lavar|lava[- ]?roupas?|lava e seca|tanquinho|\blr\b|\b(?:bw[a-z]|cw[a-z]|lt[a-z]?|lt\d|ltd|lac|lpr|lte|ltc|les|led|lse|lst|lm)\d", _re_marca.I)
+_AP_GEL = _re_marca.compile(r"geladeira|refrigerador|freezer|frost|\b(?:brm|crm|df|dfn|dfx|dfw|dw|di|dt|tf|rcct)\d", _re_marca.I)
+
+
+def _aparelho(nome: str) -> str:
+    """Para qual aparelho é a peça (pelo nome): Ar-condicionado / Máquina de lavar / Geladeira."""
+    n = nome or ""
+    for rotulo, rx in (("Ar-condicionado", _AP_AR), ("Máquina de lavar", _AP_LAV), ("Geladeira", _AP_GEL)):
+        if rx.search(n):
+            return rotulo
+    return ""
+
+
 def _tipo_placa(nome: str) -> str:
     n = (nome or "").lower()
     if not n.startswith("placa") and " placa " not in f" {n} ":
@@ -1357,16 +1371,21 @@ async def category_page(request: Request, cat_slug: str):
                 "SELECT id, brand FROM products WHERE id = ANY(:ids)"), {"ids": list(seen_ids)})).mappings()}
     except Exception:
         brand_map = {}
-    cont_marca, cont_tipo = {}, {}
+    cont_marca, cont_tipo, cont_ap = {}, {}, {}
     for x in products:
         ms = _marcas_do_produto(x["name"], brand_map.get(x["id"], ""))
         x["marcas"] = ms
         for m in ms:
             cont_marca[m] = cont_marca.get(m, 0) + 1
+        ap = _aparelho(x["name"])
+        x["aparelho"] = ap
+        cont_ap[ap or "Outros"] = cont_ap.get(ap or "Outros", 0) + 1
         t = _tipo_placa(x["name"])
         x["tipo_placa"] = t
         if t:
             cont_tipo[t] = cont_tipo.get(t, 0) + 1
+    filtro_aparelhos = [(a, cont_ap[a]) for a in ("Ar-condicionado", "Máquina de lavar", "Geladeira", "Outros")
+                        if a in cont_ap] if len([a for a in cont_ap if a != "Outros"]) >= 2 else []
     filtro_marcas = sorted(cont_marca.items(), key=lambda kv: (-kv[1], kv[0])) if len(cont_marca) >= 2 else []
     filtro_tipos = [(t, cont_tipo[t]) for t in ("Potência", "Interface / display", "Potência + interface", "Outras placas")
                     if t in cont_tipo] if len(cont_tipo) >= 2 else []
@@ -1407,6 +1426,7 @@ async def category_page(request: Request, cat_slug: str):
         "products":      products,
         "cat_kits":      cat_kits,
         "filtro_marcas": filtro_marcas,
+        "filtro_aparelhos": filtro_aparelhos,
         "filtro_tipos":  filtro_tipos,
         "n_promos":      n_promos,
         "mostra_monte":  mostra_monte,
