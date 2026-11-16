@@ -55,6 +55,17 @@
     .kp-monte-ic{font-size:1.8rem;flex-shrink:0;}
     .kp-monte-seta{margin-left:auto;font-size:1.4rem;font-weight:900;flex-shrink:0;}
     .kp-monte:hover{filter:brightness(1.08);}
+    .kp-outros{margin-top:16px;}
+    .kp-outros-t{font-size:.72rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+    .kp-outros-l{display:flex;flex-direction:column;gap:8px;}
+    .kp-ok2{display:flex;align-items:center;gap:12px;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:8px 12px 8px 8px;text-decoration:none;color:inherit;transition:border-color .15s,box-shadow .15s;}
+    .kp-ok2:hover{border-color:var(--accent);box-shadow:0 4px 14px rgba(14,124,153,.12);}
+    .kp-ok2 img,.kp-ok2 .ph{width:84px;height:56px;border-radius:8px;object-fit:cover;background:#fff;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.4rem;border:1px solid var(--border);}
+    .kp-ok2 img.ct{object-fit:contain;}
+    .kp-ok2-n{font-weight:700;font-size:.86rem;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+    .kp-ok2-p{font-family:'DM Mono',monospace;font-weight:700;color:var(--accent);font-size:.95rem;margin-top:2px;}
+    .kp-ok2-p s{color:var(--muted);font-weight:400;font-size:.75rem;margin-left:6px;}
+    .kp-ok2-seta{margin-left:auto;color:var(--accent);font-weight:900;font-size:1.2rem;flex-shrink:0;}
     .kp-sec{margin-top:30px;}
     .kp-sec h2{font-size:1.1rem;font-weight:800;margin-bottom:12px;}
     .kp-items{display:grid;gap:10px;}
@@ -120,6 +131,26 @@
         <span><b>Quer montar o seu próprio kit?</b><br>Escolha a distância e as medidas do seu ar-condicionado e veja o preço com desconto de kit.</span>
         <span class="kp-monte-seta">→</span>
       </a>
+      {% endif %}
+      {% if outros_kits %}
+      <div class="kp-outros">
+        <div class="kp-outros-t">🧰 Veja também nossos outros kits</div>
+        <div class="kp-outros-l">
+          {% for o in outros_kits %}
+          {% set oimg = o['items'] | selectattr('image') | map(attribute='image') | first %}
+          <a class="kp-ok2" href="/kit/{{ o.id }}/{{ o.slug }}">
+            {% if o.banner %}<img src="{{ o.banner | imgurl(200) }}" alt="{{ o.name }}" loading="lazy">
+            {% elif oimg %}<img class="ct" src="{{ oimg | imgurl(120) }}" alt="{{ o.name }}" loading="lazy">
+            {% else %}<span class="ph">🧰</span>{% endif %}
+            <span>
+              <span class="kp-ok2-n">{{ o.name }}</span>
+              <span class="kp-ok2-p">R$ {{ "%.2f"|format(o.total)|replace('.', ',') }}{% if o.save >= 1 %}<s>R$ {{ "%.2f"|format(o.full_total)|replace('.', ',') }}</s>{% endif %}</span>
+            </span>
+            <span class="kp-ok2-seta">→</span>
+          </a>
+          {% endfor %}
+        </div>
+      </div>
       {% endif %}
     </div>
   </div>

@@ -716,11 +716,12 @@ async def kit_page(request: Request, kit_id: int, slug: str = ""):
     if slug == "comprar":
         return await checkout_kit(request, kit_id)
     from kits_public import load_site_kits
-    kits = await load_site_kits([kit_id])
-    if not kits:
+    todos = await load_site_kits()
+    k = next((x for x in todos if x["id"] == kit_id), None)
+    if not k:
         return RedirectResponse("/#kits-grid", status_code=302)
-    k = kits[0]
-    return templates.TemplateResponse("kit.html", _page_ctx(request, kit=k, cart_item=_kit_cart_item(k)))
+    outros = [x for x in todos if x["id"] != kit_id][:4]
+    return templates.TemplateResponse("kit.html", _page_ctx(request, kit=k, cart_item=_kit_cart_item(k), outros_kits=outros))
 
 
 async def checkout_kit(request: Request, kit_id: int):
