@@ -1315,7 +1315,31 @@ async def category_page(request: Request, cat_slug: str):
                 rd["slug"] = slugify(rd["name"])
                 products.append(rd)
 
-    products.sort(key=lambda x: x["name"].lower())
+    # promoções (preço promocional ou 2ª unidade com desconto) primeiro, depois A-Z
+    def _em_promo(x):
+        return bool(x.get("on_promo") or x.get("promo2_pct"))
+    products.sort(key=lambda x: (not _em_promo(x), x["name"].lower()))
+    n_promos = sum(1 for x in products if _em_promo(x))
+
+    # kits do site cuja categoria "principal" (a da maioria dos itens pagos) é esta
+    cat_kits = []
+    try:
+        from kits_public import load_site_kits
+        cats_por_prod = {}
+        for r in rows:
+            cats_por_prod[r["id"]] = {c for c in (r["category_name"], r.get("category2_name")) if c}
+        for k in await load_site_kits():
+            cont = {}
+            for it in k["items"]:
+                if it["is_gift"]:
+                    continue
+                for c in cats_por_prod.get(it["id"], ()):
+                    cont[c] = cont.get(c, 0) + 1
+            if cont and cont.get(matched_cat, 0) == max(cont.values()):
+                cat_kits.append(k)
+    except Exception:
+        cat_kits = []
+    mostra_monte = "ar-condicionado" in cat_slug or "instala" in cat_slug
 
     all_cats = list(dict.fromkeys(r["category_name"] for r in rows))
     cat_slugs_map = {cat: slugify(cat) for cat in all_cats}
@@ -1325,6 +1349,9 @@ async def category_page(request: Request, cat_slug: str):
         "category":      matched_cat,
         "cat_slug":      cat_slug,
         "products":      products,
+        "cat_kits":      cat_kits,
+        "n_promos":      n_promos,
+        "mostra_monte":  mostra_monte,
         "all_cats":      all_cats,
         "cat_slugs_map": cat_slugs_map,
         "total":         len(products),

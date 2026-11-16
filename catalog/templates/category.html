@@ -106,6 +106,28 @@
     .product-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.08);transform:translateY(-2px);}
     .prod-img-wrap{position:relative;width:100%;aspect-ratio:1;background:var(--bg);overflow:hidden;}
     /* ── PROMOÇÃO ── */
+    .promo-sticker.p2{background:#15803d;box-shadow:0 2px 6px rgba(21,128,61,.3);}
+    /* kits da categoria */
+    .ck-wrap{max-width:900px;margin:0 auto 22px;padding:0 20px;}
+    .ck-title{font-size:.72rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+    .ck-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:14px;}
+    .ck-card{display:flex;flex-direction:column;background:var(--surface);border:1.5px solid var(--border);border-radius:14px;overflow:hidden;text-decoration:none;color:inherit;position:relative;transition:border-color .15s,box-shadow .15s;}
+    .ck-card:hover{border-color:var(--accent);box-shadow:0 6px 20px rgba(14,124,153,.12);}
+    .ck-card img.ck-banner{display:block;width:100%;aspect-ratio:3/2;object-fit:cover;}
+    .ck-thumbs{display:flex;gap:6px;padding:14px 14px 0;flex-wrap:nowrap;overflow:hidden;}
+    .ck-thumbs img{width:48px;height:48px;border-radius:8px;object-fit:contain;background:#fff;border:1px solid var(--border);flex-shrink:0;}
+    .ck-body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:6px;flex:1;}
+    .ck-name{font-weight:800;font-size:.98rem;line-height:1.3;}
+    .ck-row{display:flex;align-items:flex-end;justify-content:space-between;gap:8px;margin-top:auto;}
+    .ck-old{font-size:.78rem;color:var(--muted);text-decoration:line-through;}
+    .ck-price{font-family:'DM Mono',monospace;font-weight:700;font-size:1.3rem;color:var(--accent);line-height:1.1;}
+    .ck-btn{background:var(--accent);color:#fff;font-weight:800;font-size:.85rem;padding:9px 14px;border-radius:10px;white-space:nowrap;}
+    .ck-save{position:absolute;top:10px;right:10px;background:var(--accent);color:#fff;font-size:.72rem;font-weight:800;padding:3px 9px;border-radius:999px;}
+    .ck-monte{background:radial-gradient(circle at 85% 15%,#2f8cff 0,transparent 45%),linear-gradient(135deg,#0a2a6b 0%,#0b4fb3 55%,#0a2a6b 100%);color:#fff;border:none;justify-content:center;gap:8px;padding:20px;min-height:180px;}
+    .ck-monte .ck-name{font-size:1.25rem;font-weight:900;}
+    .ck-monte .ck-name b{color:#ffd400;}
+    .ck-monte .ck-s{font-size:.88rem;opacity:.92;}
+    .ck-monte .ck-btn{align-self:flex-start;background:#ffd400;color:#0a2a6b;margin-top:6px;}
     .promo-sticker{position:absolute;top:8px;left:8px;z-index:2;background:var(--accent);color:#fff;font-size:.62rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:6px;line-height:1.3;box-shadow:0 2px 6px rgba(226,20,74,.3);}
     .prod-price-old{display:block;font-family:'DM Sans',sans-serif;font-size:.74rem;font-weight:400;color:var(--muted);text-decoration:line-through;line-height:1.2;}
 
@@ -313,6 +335,41 @@
 </div>
 {% endif %}
 
+{% if cat_kits or mostra_monte %}
+<div class="ck-wrap">
+  <div class="ck-title">🧰 Kits com desconto</div>
+  <div class="ck-grid">
+  {% for k in cat_kits %}
+    <a class="ck-card" href="/kit/{{ k.id }}/{{ k.slug }}">
+      {% if k.banner %}
+      <img class="ck-banner" src="{{ k.banner | imgurl(640) }}" alt="{{ k.name }}" loading="lazy">
+      {% else %}
+      {% if k.save >= 1 %}<span class="ck-save">Economize R$ {{ ("%.2f"|format(k.save))|replace(".", ",") }}</span>{% endif %}
+      <div class="ck-thumbs">{% for i in k["items"][:6] %}{% if i.image %}<img src="{{ i.image | imgurl(96) }}" alt="{{ i.name }}" loading="lazy">{% endif %}{% endfor %}</div>
+      {% endif %}
+      <div class="ck-body">
+        <div class="ck-name">{{ k.name }}</div>
+        <div class="ck-row">
+          <div>
+            {% if k.save >= 0.01 %}<div class="ck-old">Separado: R$ {{ ("%.2f"|format(k.full_total))|replace(".", ",") }}</div>{% endif %}
+            <div class="ck-price">R$ {{ ("%.2f"|format(k.total))|replace(".", ",") }}</div>
+          </div>
+          <span class="ck-btn">Ver kit →</span>
+        </div>
+      </div>
+    </a>
+  {% endfor %}
+  {% if mostra_monte %}
+    <a class="ck-card ck-monte" href="/calculadora-instalacao">
+      <div class="ck-name">Quer montar o seu kit <b>com desconto?</b></div>
+      <div class="ck-s">Escolha a distância e as medidas do seu ar-condicionado — o desconto de kit entra na hora.</div>
+      <span class="ck-btn">Montar meu kit →</span>
+    </a>
+  {% endif %}
+  </div>
+</div>
+{% endif %}
+
 <div class="catalog" id="catalog">
   <div class="cat-title">{{ category }}</div>
   <div class="product-grid">
@@ -330,7 +387,7 @@
         {% else %}
         <div class="prod-img-placeholder">📦</div>
         {% endif %}
-        {% if p.on_promo %}<span class="promo-sticker">Promoção</span>{% endif %}
+        {% if p.on_promo %}<span class="promo-sticker">Promoção</span>{% elif p.promo2_pct %}<span class="promo-sticker p2">2ª un −{{ p.promo2_pct|int }}%</span>{% endif %}
       </div>
       <div class="prod-card-body">
         <div class="prod-name">{{ p.name }}</div>
