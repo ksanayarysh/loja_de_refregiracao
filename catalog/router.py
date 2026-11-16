@@ -794,6 +794,7 @@ for _old, _new in _BLOG_OLD_SLUGS.items():
 # 1) _SLUG_SEED: URLs antigas que o Google tinha indexadas (Search Console, out/2026) -> id do produto
 # 2) product_slug_history: daqui pra frente, cada slug que já existiu fica guardado -> 301 automático
 _SLUG_SEED = {
+    "esponjoso-3-8": 87,   # tubo esponjoso blindado 3/8 2 metros
     "gas-r22-700g": 23,
     "gas-r32-3kg-jcm": 145,
     "gas-r22": 28,
