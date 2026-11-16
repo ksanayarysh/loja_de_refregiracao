@@ -652,7 +652,7 @@
   <div class="product-img-wrap">
     {% if product.on_promo %}<span class="promo-sticker">Promoção</span>{% endif %}
     {% if product.image %}
-    <img class="product-img" src="{{ product.image }}" alt="{{ product.name }}" loading="eager">
+    <img class="product-img" src="{{ product.image | proxyimg(800) }}" alt="{{ product.name }}" loading="eager" fetchpriority="high" onerror="if(!this.dataset.r){this.dataset.r=1;this.src='{{ product.image }}';}">
     {% else %}
     <div class="product-img-ph">
       <div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:24px;text-align:center;">
@@ -919,7 +919,7 @@
     {% for r in related %}
     <a class="related-item" href="/product/{{ r.slug }}">
       {% if r.image %}
-      <img class="related-thumb" src="{{ r.image }}" alt="{{ r.name }}">
+      <img class="related-thumb" src="{{ r.image | proxyimg(200) }}" alt="{{ r.name }}" loading="lazy" onerror="if(!this.dataset.r){this.dataset.r=1;this.src='{{ r.image }}';}">
       {% else %}
       <div class="related-thumb-ph" title="Foto em breve">📷</div>
       {% endif %}

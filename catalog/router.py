@@ -45,6 +45,21 @@ def _imgurl(path: str, w: int = 0) -> str:
 
 templates.env.filters["imgurl"] = _imgurl
 
+
+def _proxyimg(url: str, w: int = 800) -> str:
+    """Imagem da admin servida pelo próprio domínio da loja (img-proxy com cache).
+    Se a admin cair por um instante, a página continua mostrando a foto que está no cache."""
+    if not url:
+        return ""
+    if ADMIN_URL and url.startswith(ADMIN_URL + "/static/"):
+        url = url[len(ADMIN_URL):]
+    if url.startswith("/static/images/"):
+        return f"/img-proxy?src={url}&w={w}"
+    return url
+
+
+templates.env.filters["proxyimg"] = _proxyimg
+
 # ── Endpoint ресайза изображений ──────────────────────────────────────────────
 # ── In-memory кеш для img-proxy ───────────────────────────────────────────────
 _img_cache: dict = {}  # key -> (content, media_type, timestamp)
@@ -89,6 +104,11 @@ async def img_proxy(src: str, w: int = 0):
                     resp = None
                 if busca != url:                     # rede interna falhou: tenta o endereço público
                     busca = url
+        if (resp is None or resp.status_code != 200 or not resp.content) and cache_key in _img_cache:
+            # admin fora do ar / lenta: usa a cópia antiga do cache (melhor que imagem quebrada para o cliente e o Google)
+            content, media_type, _ts = _img_cache[cache_key]
+            return Response(content=content, media_type=media_type,
+                            headers={"Cache-Control": "public, max-age=3600"})
         if resp is None or resp.status_code != 200 or not resp.content:
             # não conseguiu baixar do admin: manda o navegador buscar a imagem direto (melhor que imagem quebrada)
             _blog_log.warning("img-proxy falhou (%s) para %s", getattr(resp, "status_code", "erro"), url)
@@ -1142,7 +1162,11 @@ def _product_seo(p: dict, cat_slug: str) -> dict:
 
     # JSON-LD Product (merchant listing)
     image = p.get("image") or f"{SITE_URL}/static/og-catalog.jpg"
-    if image.startswith("/"):
+    if ADMIN_URL and image.startswith(ADMIN_URL + "/static/"):
+        image = image[len(ADMIN_URL):]
+    if image.startswith("/static/images/"):
+        image = f"{SITE_URL}/img-proxy?src={image}&w=1000"     # o mesmo endereço do feed do Merchant Center
+    elif image.startswith("/"):
         image = SITE_URL + image
     offer = {
         "@type": "Offer",
