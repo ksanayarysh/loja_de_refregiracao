@@ -1300,10 +1300,18 @@ async def product_page(request: Request, slug: str):
 
     product.update(await _product_ids(product["id"]))
     seo = _product_seo(product, slugify(product["category_name"]))
+    pix_preco = None
+    try:   # preço com desconto do Pix no site (mesma regra do checkout)
+        from pix_desconto import ids_elegiveis, pix_pct
+        if product.get("price") and product.get("unit") != "kg" and await ids_elegiveis([product["id"]]):
+            pix_preco = (round(float(product["price"]) * (100 - pix_pct()) / 100, 2), pix_pct())
+    except Exception:
+        pix_preco = None
 
     return templates.TemplateResponse("product.html", {
         "request":       request,
         "product":       product,
+        "pix_preco":     pix_preco,
         "seo":           seo,
         "related":       related,
         "cat_slug":      slugify(product["category_name"]),

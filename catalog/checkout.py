@@ -112,6 +112,7 @@ async def _ensure_orders_table():
         await conn.execute(text("ALTER TABLE site_orders ADD COLUMN IF NOT EXISTS margem_obs TEXT"))
         # forma de pagamento: 'pix' ou 'card' (Checkout Pro); link da página de pagamento do MP
         await conn.execute(text("ALTER TABLE site_orders ADD COLUMN IF NOT EXISTS pay_method VARCHAR(10) DEFAULT 'pix'"))
+        await conn.execute(text("ALTER TABLE site_orders ADD COLUMN IF NOT EXISTS desconto_pix NUMERIC(10,2)"))
         await conn.execute(text("ALTER TABLE site_orders ADD COLUMN IF NOT EXISTS mp_init_point TEXT"))
         # envio por transportadora (Melhor Envio): nome do serviço, prazo e CPF/CNPJ de quem recebe
         await conn.execute(text("ALTER TABLE site_orders ADD COLUMN IF NOT EXISTS delivery_label VARCHAR(80)"))
@@ -522,7 +523,8 @@ async def _mark_paid(order_id: int, extra: str = ""):
             WHERE id = :id AND status = 'pending'
             RETURNING id, customer_name, customer_phone, delivery_type, delivery_service,
                       address, numero, complemento, items, frete, total, frete_lalamove, margem, margem_obs,
-                      pay_method, delivery_label, delivery_days, customer_doc, tecnico_codigo, desconto_tecnico
+                      pay_method, delivery_label, delivery_days, customer_doc, tecnico_codigo, desconto_tecnico,
+                      desconto_pix
         """), {"id": order_id})).mappings().first()
     if not row:
         return
@@ -561,7 +563,8 @@ async def _mark_paid(order_id: int, extra: str = ""):
         f"Total: <b>{_brl(float(row['total']))}</b>\n"
         f"Cliente: {row['customer_name']} · {row['customer_phone']}\n"
         + (f"🔧 Técnico {row['tecnico_codigo']} · desconto {_brl(float(row['desconto_tecnico'] or 0))}\n"
-           if row.get("tecnico_codigo") else "") + "\n"
+           if row.get("tecnico_codigo") else "")
+        + (f"⚡ Desconto Pix: {_brl(float(row['desconto_pix']))}\n" if row.get("desconto_pix") else "") + "\n"
         f"{lines}\n\n{entrega}" + _margem_txt(row) + extra
     )
     await _send_tg(_msg_cliente_pago(row))
@@ -987,6 +990,15 @@ async def checkout_pix(request: Request):
         items, subtotal, desc_tec = aplicar_desconto(items, tecnico_pct())
         tec_codigo = tec["codigo"]
         margem = round(float(margem or 0) - desc_tec, 2)
+    desc_pix = 0.0
+    if method == "pix" and not tec:   # desconto do Pix (não soma com preço de técnico)
+        try:
+            from pix_desconto import aplicar_pix
+            items, subtotal, desc_pix = await aplicar_pix(items)
+            margem = round(float(margem or 0) - desc_pix, 2)
+        except Exception:
+            _blog_log.exception("checkout: falha no desconto do Pix (segue sem desconto)")
+            desc_pix = 0.0
     total = round(subtotal + (frete or 0), 2)
     if method == "card":
         try:
@@ -1004,10 +1016,10 @@ async def checkout_pix(request: Request):
             INSERT INTO site_orders (token, customer_name, customer_phone, customer_email,
                 delivery_type, delivery_service, cep, address, numero, complemento, lat, lng,
                 items, subtotal, frete, total, frete_lalamove, margem, margem_obs, pay_method,
-                delivery_label, delivery_days, customer_doc, ip, src, tecnico_codigo, desconto_tecnico)
+                delivery_label, delivery_days, customer_doc, ip, src, tecnico_codigo, desconto_tecnico, desconto_pix)
             VALUES (:token, :name, :phone, :email, :dtype, :service, :cep, :address, :numero, :compl,
                 :lat, :lng, CAST(:items AS JSONB), :subtotal, :frete, :total, :frete_lalamove, :margem, :margem_obs,
-                :pay_method, :delivery_label, :delivery_days, :customer_doc, :ip, :src, :tec, :desc_tec)
+                :pay_method, :delivery_label, :delivery_days, :customer_doc, :ip, :src, :tec, :desc_tec, :desc_pix)
             RETURNING id
         """), {
             "token": token, "name": name, "phone": phone, "email": email,
@@ -1021,7 +1033,7 @@ async def checkout_pix(request: Request):
             "pay_method": method,
             "delivery_label": me_label, "delivery_days": me_dias, "customer_doc": doc,
             "ip": _client_ip(request), "src": str(body.get("src") or "")[:80] or None,
-            "tec": tec_codigo, "desc_tec": desc_tec or None,
+            "tec": tec_codigo, "desc_tec": desc_tec or None, "desc_pix": desc_pix or None,
         })).scalar()
     try:   # fez o pedido: sai da lista de checkouts abandonados
         await _ensure_leads_table()
@@ -1221,6 +1233,16 @@ def _avisar_checkout_aberto(ip: str, items: list, subtotal: float, src: str = ""
     ))
 
 
+async def _pix_info(items: list) -> dict:
+    try:
+        from pix_desconto import ids_elegiveis, pix_pct
+        elig = await ids_elegiveis([i["id"] for i in items if isinstance(i.get("id"), int) and i["id"] > 0])
+        return {"pix_pct": pix_pct(), "pix_ids": sorted(elig)}
+    except Exception:
+        _blog_log.exception("checkout: falha ao ver desconto do Pix")
+        return {"pix_pct": 0, "pix_ids": []}
+
+
 @router.post("/api/checkout/stock")
 async def checkout_stock(request: Request):
     """O checkout chama ao abrir: diz o que tirar/ajustar no carrinho antes do cliente preencher tudo."""
@@ -1238,6 +1260,7 @@ async def checkout_stock(request: Request):
         "stock": {str(s["id"]): s["stock"] for s in short if s.get("id")},
         "kits": [s["kit_id"] for s in short if s.get("kit_id")],
         "promo2": {str(i["id"]): i["promo2"] for i in items if i.get("promo2")},
+        **(await _pix_info(items)),
         "message": _stock_msg(kg, short),
     }, headers={"Cache-Control": "no-store"})
 
