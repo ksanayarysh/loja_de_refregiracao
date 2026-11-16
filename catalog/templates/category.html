@@ -165,11 +165,12 @@
     .flt-chip:hover{border-color:var(--accent);}
     .flt-chip.on{background:var(--accent);border-color:var(--accent);color:#fff;}
     .flt-chip.on small{color:rgba(255,255,255,.75);}
-    .flt-sel{display:none;}
     @media(max-width:640px){
-      .flt-wrap{display:none;}
-      .flt-sel{display:flex;gap:8px;padding:0 20px;margin:0 0 10px;}
-      .flt-sel select{flex:1;min-width:0;padding:9px 30px 9px 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='3'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 10px center;color:var(--text);font-size:.85rem;font-weight:600;font-family:inherit;-webkit-appearance:none;appearance:none;}
+      .flt-wrap{padding:0 20px;gap:10px;}
+      .flt-grp{flex-direction:column;align-items:stretch;gap:6px;}
+      .flt-lbl{min-width:0;font-size:.64rem;}
+      .flt-row{flex-wrap:wrap;overflow:visible;padding:0;}
+      .flt-chip{font-size:.78rem;padding:5px 10px;}
     }
     .cat-chip{padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface);font-size:.82rem;font-weight:500;color:var(--muted);text-decoration:none;transition:all .15s;white-space:nowrap;}
     .cat-chip:hover{border-color:var(--accent);color:var(--accent);}
@@ -300,20 +301,6 @@
 </div>
 
 {% if filtro_marcas or filtro_tipos %}
-<div class="flt-sel">
-  {% if filtro_marcas %}
-  <select id="fsel-marca" onchange="setFiltroSel('marca', this.value)" aria-label="Marca">
-    <option value="">Marca: todas</option>
-    {% for m, n in filtro_marcas %}<option value="{{ m|lower }}">{{ m }} ({{ n }})</option>{% endfor %}
-  </select>
-  {% endif %}
-  {% if filtro_tipos %}
-  <select id="fsel-tipo" onchange="setFiltroSel('tipo', this.value)" aria-label="Tipo de placa">
-    <option value="">Tipo: todos</option>
-    {% for t, n in filtro_tipos %}<option value="{{ t|lower }}">{{ t }} ({{ n }})</option>{% endfor %}
-  </select>
-  {% endif %}
-</div>
 <div class="flt-wrap">
   {% if filtro_marcas %}
   <div class="flt-grp"><span class="flt-lbl">Marca</span><div class="flt-row">
@@ -721,7 +708,6 @@ function setFiltroSel(grp, v) {
 }
 function setFiltro(el) {
   FILTRO[el.dataset.grp] = el.dataset.v;
-  const sel = document.getElementById('fsel-' + el.dataset.grp); if (sel) sel.value = el.dataset.v;
   document.querySelectorAll('.flt-chip[data-grp="' + el.dataset.grp + '"]').forEach(b => b.classList.toggle('on', b === el));
   filterProducts();
 }
