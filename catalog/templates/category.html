@@ -155,15 +155,23 @@
     .other-cats{max-width:900px;margin:0 auto;padding:0 20px 60px;}
     .other-cats-title{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding-bottom:10px;border-bottom:1px solid var(--border);margin-bottom:12px;}
     .cats-grid{display:flex;flex-wrap:wrap;gap:8px;}
-    .flt-wrap{max-width:900px;margin:0 auto 12px;padding:0 20px;display:flex;flex-direction:column;gap:8px;}
-    .flt-row{display:flex;gap:6px;overflow-x:auto;align-items:center;padding-bottom:2px;scrollbar-width:none;}
+    .flt-wrap{max-width:900px;margin:0 auto 10px;padding:0 20px;display:flex;flex-direction:column;gap:8px;}
+    .flt-grp{display:flex;align-items:center;gap:10px;min-width:0;}
+    .flt-lbl{font-size:.68rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);white-space:nowrap;min-width:112px;}
+    .flt-row{display:flex;gap:6px;overflow-x:auto;padding:2px 0;scrollbar-width:none;min-width:0;flex:1;}
     .flt-row::-webkit-scrollbar{display:none;}
-    .flt-lbl{font-size:.7rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);white-space:nowrap;margin-right:4px;}
-    .flt-chip{padding:6px 12px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface);font-size:.82rem;font-weight:600;color:var(--text);white-space:nowrap;cursor:pointer;font-family:inherit;}
-    .flt-chip small{color:var(--muted);font-weight:500;margin-left:2px;}
+    .flt-chip{flex-shrink:0;padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surface);font-size:.8rem;font-weight:600;color:var(--text);white-space:nowrap;cursor:pointer;font-family:inherit;line-height:1.3;}
+    .flt-chip small{color:var(--muted);font-weight:500;margin-left:3px;font-size:.72rem;}
     .flt-chip:hover{border-color:var(--accent);}
     .flt-chip.on{background:var(--accent);border-color:var(--accent);color:#fff;}
-    .flt-chip.on small{color:rgba(255,255,255,.8);}
+    .flt-chip.on small{color:rgba(255,255,255,.75);}
+    @media(max-width:640px){
+      .flt-wrap{padding:0;gap:10px;}
+      .flt-grp{flex-direction:column;align-items:stretch;gap:5px;}
+      .flt-lbl{padding:0 16px;min-width:0;font-size:.64rem;}
+      .flt-row{padding:2px 16px;-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent);}
+      .flt-chip{font-size:.78rem;padding:5px 10px;}
+    }
     .cat-chip{padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface);font-size:.82rem;font-weight:500;color:var(--muted);text-decoration:none;transition:all .15s;white-space:nowrap;}
     .cat-chip:hover{border-color:var(--accent);color:var(--accent);}
     .cat-chip.current{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700;}
@@ -295,16 +303,16 @@
 {% if filtro_marcas or filtro_tipos %}
 <div class="flt-wrap">
   {% if filtro_marcas %}
-  <div class="flt-row"><span class="flt-lbl">Marca</span>
+  <div class="flt-grp"><span class="flt-lbl">Marca</span><div class="flt-row">
     <button type="button" class="flt-chip on" data-grp="marca" data-v="" onclick="setFiltro(this)">Todas</button>
     {% for m, n in filtro_marcas %}<button type="button" class="flt-chip" data-grp="marca" data-v="{{ m|lower }}" onclick="setFiltro(this)">{{ m }} <small>{{ n }}</small></button>{% endfor %}
-  </div>
+  </div></div>
   {% endif %}
   {% if filtro_tipos %}
-  <div class="flt-row"><span class="flt-lbl">Tipo de placa</span>
+  <div class="flt-grp"><span class="flt-lbl">Tipo de placa</span><div class="flt-row">
     <button type="button" class="flt-chip on" data-grp="tipo" data-v="" onclick="setFiltro(this)">Todas</button>
     {% for t, n in filtro_tipos %}<button type="button" class="flt-chip" data-grp="tipo" data-v="{{ t|lower }}" onclick="setFiltro(this)">{{ t }} <small>{{ n }}</small></button>{% endfor %}
-  </div>
+  </div></div>
   {% endif %}
 </div>
 {% endif %}
