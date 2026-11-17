@@ -77,6 +77,8 @@
     .co-flash{animation:coFlash 1.2s ease;}
     @keyframes coFlash{0%,100%{box-shadow:none;}30%{box-shadow:0 0 0 3px var(--accent);}}
     .co-line{display:flex;justify-content:space-between;font-size:.95rem;margin-top:8px;}
+    .co-brinde{margin:8px 0;padding:9px 12px;border-radius:10px;background:#fff7ed;border:1px dashed #fb923c;color:#9a3412;font-size:.88rem;}
+    .co-brinde.ok{background:#f0fdf4;border:1px solid #86efac;color:#166534;}
     .co-pix-off{display:inline-block;background:#15803d;color:#fff;font-size:.72rem;font-weight:800;padding:2px 8px;border-radius:999px;margin-left:6px;vertical-align:middle;}
     .co-total{display:flex;justify-content:space-between;font-size:1.25rem;font-weight:800;margin-top:14px;padding-top:14px;border-top:2px solid var(--border);}
     .co-pay{width:100%;margin-top:16px;padding:16px;border:none;border-radius:12px;background:var(--accent);color:#fff;font-family:inherit;font-size:1.08rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 6px 20px rgba(226,20,74,.25);}
@@ -200,6 +202,7 @@
       </details>
       <div class="co-line"><span>Produtos</span><span class="co-money" id="sum-sub">R$ 0,00</span></div>
       <div class="co-line co-hidden" id="p2-line" style="color:#15803d;"><span>Promoção 2ª unidade</span><span class="co-money" id="sum-p2">− R$ 0,00</span></div>
+      <div class="co-brinde co-hidden" id="brinde-line"></div>
       <div class="co-line co-hidden" id="pix-line" style="color:#15803d;"><span id="pix-lbl">Desconto Pix</span><span class="co-money" id="sum-pix">− R$ 0,00</span></div>
       <div class="co-line co-hidden" id="tec-line" style="color:#15803d;"><span id="tec-lbl">Desconto de técnico</span><span class="co-money" id="sum-tec">− R$ 0,00</span></div>
       <div class="co-line"><span>Frete</span><span class="co-money" id="sum-frete">Grátis</span></div>
@@ -281,7 +284,8 @@ function subtotal() { return cart.reduce((s, i) => s + i.price * i.qty, 0); }
 let tec = null;   // {codigo, pct, nome}
 // ── "2ª unidade com X% off" (o servidor diz quais produtos têm e recalcula no pedido) ──
 let P2 = {};   // id -> %
-let PIX = { pct: 0, ids: new Set() };   // desconto do Pix: % e produtos que entram (o servidor decide)
+let PIX = { pct: 0, ids: new Set() };
+let BRINDE_MIN = 0;   // promoção do relógio (vem do servidor)   // desconto do Pix: % e produtos que entram (o servidor decide)
 function descPix() {
   if (pmethod() !== 'pix' || tec || !PIX.pct) return 0;
   return cart.reduce((s, i) => (i.kit || i.kit_id || P2[String(i.id)] || !PIX.ids.has(Number(i.id))) ? s
@@ -361,6 +365,13 @@ function renderSummary() {
   if (podePix) $('pix-off').textContent = `−${String(PIX.pct).replace('.', ',')}%`;
   $('sum-frete').textContent = fr === null ? '—' : (fr === 0 ? 'Grátis' : brl(fr));
   $('sum-total').textContent = brl(sub - p2 - dt - dp + (fr || 0));
+  // brinde: relógio em compras a partir de BRINDE_MIN (valor dos produtos, sem frete)
+  const prod = sub - p2 - dt - dp, bl = $('brinde-line');
+  if (BRINDE_MIN > 0 && cart.length) {
+    bl.classList.remove('co-hidden');
+    if (prod >= BRINDE_MIN - 0.005) { bl.className = 'co-brinde ok'; bl.innerHTML = '🎁 <b>Você ganhou um relógio de pulso!</b> Vai junto com o pedido.'; }
+    else { bl.className = 'co-brinde'; bl.innerHTML = `🎁 Faltam <b>${brl(BRINDE_MIN - prod)}</b> para ganhar um relógio de pulso de presente`; }
+  } else bl.classList.add('co-hidden');
   $('pay-btn').disabled = dtype() === 'lalamove' && !frete;
 }
 
@@ -578,6 +589,7 @@ async function syncStock() {
   const kg = new Set((d.kg || []).map(Number)), stock = d.stock || {}, kits = new Set((d.kits || []).map(Number));
   P2 = d.promo2 || {};
   PIX = { pct: Number(d.pix_pct) || 0, ids: new Set((d.pix_ids || []).map(Number)) };
+  BRINDE_MIN = Number(d.brinde_min) || 0;
   const notes = [];
   cart = cart.filter(i => {
     if (i.kit_id) {

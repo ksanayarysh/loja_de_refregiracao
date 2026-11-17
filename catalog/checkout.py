@@ -564,10 +564,27 @@ async def _mark_paid(order_id: int, extra: str = ""):
         f"Cliente: {row['customer_name']} · {row['customer_phone']}\n"
         + (f"🔧 Técnico {row['tecnico_codigo']} · desconto {_brl(float(row['desconto_tecnico'] or 0))}\n"
            if row.get("tecnico_codigo") else "")
-        + (f"⚡ Desconto Pix: {_brl(float(row['desconto_pix']))}\n" if row.get("desconto_pix") else "") + "\n"
+        + (f"⚡ Desconto Pix: {_brl(float(row['desconto_pix']))}\n" if row.get("desconto_pix") else "")
+        + ("🎁 <b>BRINDE: colocar 1 relógio de pulso no pedido!</b>\n" if _ganhou_brinde(row) else "") + "\n"
         f"{lines}\n\n{entrega}" + _margem_txt(row) + extra
     )
     await _send_tg(_msg_cliente_pago(row))
+
+
+def _brinde_min() -> float:
+    """Promoção do brinde (relógio): compras a partir de PROMO_BRINDE_MIN reais (0 = desligada)."""
+    try:
+        return float(os.environ.get("PROMO_BRINDE_MIN", "100") or 0)
+    except ValueError:
+        return 0.0
+
+
+def _ganhou_brinde(row) -> bool:
+    m = _brinde_min()
+    if m <= 0:
+        return False
+    produtos = float(row["total"] or 0) - float(row["frete"] or 0)
+    return produtos >= m - 0.005
 
 
 def _msg_cliente_pago(row) -> str:
@@ -585,7 +602,9 @@ def _msg_cliente_pago(row) -> str:
     texto = (f"Olá{', ' + nome if nome else ''}! Aqui é da MTF Refrigeração. 😊\n"
              f"Recebemos o pagamento do seu pedido nº {num_pedido(row['id'])} ✅\n"
              f"Ele já está em processamento e estamos separando os produtos.\n"
-             f"{fim}\nObrigado pela compra!")
+             + ("🎁 E como a compra passou de R$ 100, vai junto o seu relógio de pulso de presente!\n"
+                if _ganhou_brinde(row) else "")
+             + f"{fim}\nObrigado pela compra!")
     tel = re.sub(r"\D", "", row["customer_phone"] or "")
     if len(tel) in (10, 11):
         tel = "55" + tel
@@ -1261,6 +1280,7 @@ async def checkout_stock(request: Request):
         "kits": [s["kit_id"] for s in short if s.get("kit_id")],
         "promo2": {str(i["id"]): i["promo2"] for i in items if i.get("promo2")},
         **(await _pix_info(items)),
+        "brinde_min": _brinde_min(),
         "message": _stock_msg(kg, short),
     }, headers={"Cache-Control": "no-store"})
 
