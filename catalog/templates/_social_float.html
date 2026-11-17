@@ -26,8 +26,10 @@
       if (!wa || getComputedStyle(wa).display === 'none') { ig.style.display = 'none'; return; }
       var r = wa.getBoundingClientRect();
       ig.style.display = 'flex';
-      ig.style.right = Math.max(8, window.innerWidth - r.right + (r.width < 70 ? (r.width - 52) / 2 : 0)) + 'px';
-      ig.style.bottom = (window.innerHeight - r.top + 12) + 'px';
+      // clientWidth/clientHeight: sem a barra de rolagem (innerWidth inclui a barra e desalinhava no PC)
+      var vw = document.documentElement.clientWidth, vh = document.documentElement.clientHeight;
+      ig.style.right = Math.max(4, vw - r.right + (r.width - 52) / 2) + 'px';   // centralizado sobre o WhatsApp
+      ig.style.bottom = (vh - r.top + 12) + 'px';
     }
     place();
     window.addEventListener('resize', place);
