@@ -1419,8 +1419,10 @@ async def category_page(request: Request, cat_slug: str):
     filtro_aparelhos = [(a, cont_ap[a]) for a in ("Ar-condicionado", "Máquina de lavar", "Geladeira", "Outros")
                         if a in cont_ap] if len([a for a in cont_ap if a != "Outros"]) >= 2 else []
     filtro_marcas = sorted(cont_marca.items(), key=lambda kv: (-kv[1], kv[0])) if len(cont_marca) >= 2 else []
+    # "Tipo de placa" só na categoria de placas (nas outras categorias fica só a marca)
+    eh_cat_placa = "placa" in (cat_slug or "").lower()
     filtro_tipos = [(t, cont_tipo[t]) for t in ("Potência", "Interface / display", "Potência + interface", "Outras placas")
-                    if t in cont_tipo] if len(cont_tipo) >= 2 else []
+                    if t in cont_tipo] if (eh_cat_placa and len(cont_tipo) >= 2) else []
 
     # promoções (preço promocional ou 2ª unidade com desconto) primeiro, depois A-Z
     def _em_promo(x):
