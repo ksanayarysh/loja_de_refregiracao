@@ -24,15 +24,18 @@
     function place() {
       var wa = document.querySelector('.wa-float');
       if (!wa || getComputedStyle(wa).display === 'none') { ig.style.display = 'none'; return; }
-      var r = wa.getBoundingClientRect();
       ig.style.display = 'flex';
-      // clientWidth/clientHeight: sem a barra de rolagem (innerWidth inclui a barra e desalinhava no PC)
-      var vw = document.documentElement.clientWidth, vh = document.documentElement.clientHeight;
-      ig.style.right = Math.max(4, vw - r.right + (r.width - 52) / 2) + 'px';   // centralizado sobre o WhatsApp
-      ig.style.bottom = (vh - r.top + 12) + 'px';
+      // Usa o bottom/right do CSS do WhatsApp (não a altura da tela): no celular a barra do navegador
+      // some/aparece ao rolar e clientHeight não acompanha, por isso o Instagram pulava para baixo.
+      var cs = getComputedStyle(wa);
+      var b = parseFloat(cs.bottom) || 16, rt = parseFloat(cs.right) || 16;
+      var w = wa.offsetWidth || 52, h = wa.offsetHeight || 52;
+      ig.style.right = Math.max(4, rt + (w - 52) / 2) + 'px';   // centralizado sobre o WhatsApp
+      ig.style.bottom = (b + h + 12) + 'px';
     }
     place();
     window.addEventListener('resize', place);
+    window.addEventListener('orientationchange', place);
     new MutationObserver(place).observe(document.body, { attributes: true, attributeFilter: ['class'] });
     setTimeout(place, 600); setTimeout(place, 2000);   // depois de fontes/barra do carrinho
   }
