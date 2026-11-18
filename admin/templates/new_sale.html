@@ -463,6 +463,12 @@
       setTimeout(() => {
         normalizeQtyInputForUnit();
         document.getElementById('qty').dispatchEvent(new Event('input'));
+        // venda por valor (calculadora "R$ 20 de gás"): o total é o valor digitado, não 0,235 kg × preço = 19,98
+        const totalParam = parseFloat(params.get('total'));
+        if (totalParam > 0) {
+          totalEl.value = fmt2(totalParam);
+          totalEl.dispatchEvent(new Event('input'));
+        }
       }, 50);
     }
   })();
