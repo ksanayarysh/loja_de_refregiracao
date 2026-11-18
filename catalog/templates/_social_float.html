@@ -42,3 +42,35 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
 </script>
+
+<style>
+  .tel-pop{position:fixed;z-index:300;left:50%;bottom:28px;transform:translateX(-50%);background:#0b1a3a;color:#fff;border-radius:14px;
+    padding:14px 18px;box-shadow:0 8px 30px rgba(0,0,0,.35);font:600 15px/1.4 system-ui,sans-serif;display:flex;gap:14px;align-items:center;flex-wrap:wrap;justify-content:center;max-width:92vw}
+  .tel-pop b{font-size:18px;letter-spacing:.02em}
+  .tel-pop a{background:#25d366;color:#06301a;border-radius:999px;padding:7px 14px;text-decoration:none;font-weight:800;font-size:14px}
+  .tel-pop button{background:none;border:0;color:#9fb2d3;font-size:20px;cursor:pointer;line-height:1}
+</style>
+<script>
+/* No computador "tel:" não liga (abre nada ou um seletor de app): mostra o número, copia e oferece o WhatsApp */
+(function () {
+  var touch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0 || matchMedia('(pointer:coarse)').matches;
+  if (touch) return;
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a[href^="tel:"]');
+    if (!a) return;
+    e.preventDefault();
+    var num = a.getAttribute('href').slice(4).replace(/[^\d+]/g, '');
+    var d = num.replace(/^\+?55/, '');
+    var fmt = d.length === 11 ? '(' + d.slice(0, 2) + ') ' + d.slice(2, 7) + '-' + d.slice(7) : num;
+    try { navigator.clipboard && navigator.clipboard.writeText(fmt); } catch (er) {}
+    var old = document.querySelector('.tel-pop'); if (old) old.remove();
+    var p = document.createElement('div'); p.className = 'tel-pop';
+    p.innerHTML = '📞 <span>Ligue: <b>' + fmt + '</b> <small style="opacity:.7">(copiado)</small></span>' +
+      '<a href="https://wa.me/' + num.replace('+', '') + '" target="_blank" rel="noopener">Chamar no WhatsApp</a>' +
+      '<button type="button" aria-label="Fechar">×</button>';
+    p.querySelector('button').onclick = function () { p.remove(); };
+    document.body.appendChild(p);
+    setTimeout(function () { p.remove(); }, 12000);
+  });
+})();
+</script>
