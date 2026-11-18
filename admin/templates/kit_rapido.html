@@ -22,6 +22,10 @@
     .ki-prev .falta { color: #b91c1c; font-weight: 700; }
     .ki-gift { border: 1px solid #e5e7eb; background: #fff; border-radius: 999px; padding: 1px 8px; font-size: .8rem; cursor: pointer; opacity: .55; }
     .ki-gift.on { opacity: 1; background: #dcfce7; border-color: #86efac; color: #166534; font-weight: 800; }
+    .ki-del { border: none; background: none; cursor: pointer; font-size: .95rem; padding: 0 4px; opacity: .6; }
+    .ki-del:hover { opacity: 1; }
+    .ki-fora { margin-top: 8px; font-size: .8rem; color: #666; }
+    .ki-fora button { border: 1px dashed #ccc; background: #fff; border-radius: 999px; padding: 2px 8px; font-size: .78rem; cursor: pointer; margin: 2px; }
     .btn-ki { background: #0e7c99; color: #fff; border: none; border-radius: 10px; padding: 11px 18px; font-weight: 800; font-size: .95rem; cursor: pointer; }
     .ki-hint { font-size: .78rem; color: #777; margin-top: 6px; }
     .kp-list { display: grid; gap: 10px; margin-top: 12px; }
@@ -62,7 +66,7 @@
           <div><label for="ki-m">Metros de tubulação</label>
             <input type="number" id="ki-m" min="1" step="1" value="3" oninput="kiPrev()"></div>
           <div><label for="ki-med">Medida</label>
-            <select id="ki-med" onchange="kiSupAuto(); kiPrev()">
+            <select id="ki-med" onchange="kiFora.clear(); kiBrinde.clear(); kiSupAuto(); kiPrev()">
               <option value="1/4|3/8">1/4 + 3/8 (7–12 mil BTUs)</option>
               <option value="1/4|1/2">1/4 + 1/2 (18 mil BTUs)</option>
               <option value="1/4|5/8">1/4 + 5/8 (22–30 mil BTUs)</option>
@@ -88,7 +92,7 @@
         </div>
         <div id="ki-prev" class="ki-prev"></div>
         <button type="button" class="btn-ki" onclick="kiAdd()">➕ Adicionar ao carrinho e abrir</button>
-        <div class="ki-hint">Toque em 🎁 para dar o item de brinde. Os itens vão para o carrinho — lá dá para mudar quantidade ou remover qualquer um.</div>
+        <div class="ki-hint">Toque em 🎁 para dar o item de brinde e em 🗑 para tirar do kit. Os itens vão para o carrinho — lá dá para mudar quantidade ou remover qualquer um.</div>
       </details>
     </div>
 
@@ -102,6 +106,9 @@
   function fmt(n) { return 'R$ ' + parseFloat(n).toFixed(2).replace('.', ','); }
   const kiR = v => Math.round(v * 100) / 100;
   const kiBrinde = new Set();   // itens marcados como brinde (🎁) -> preço 0
+  const kiFora = new Set();     // itens removidos (🗑)
+  function kiRemover(k) { kiFora.add(k); kiPrev(); }
+  function kiVoltar(k) { kiFora.delete(k); kiPrev(); }
   function kiToggleBrinde(k) { kiBrinde.has(k) ? kiBrinde.delete(k) : kiBrinde.add(k); kiPrev(); }
   function kiSupAuto() {
     const g = document.getElementById('ki-med').value.split('|')[1];
@@ -118,6 +125,7 @@
     const pct = (document.getElementById('ki-desc').checked ? KI.desconto : 0) || 0;
     const linhas = [], faltam = [];
     want.forEach(([k, q]) => {
+      if (kiFora.has(k)) return;
       const p = KI.produtos[k];
       if (!p) { faltam.push(k.replace('_', ' ')); return; }
       const gift = kiBrinde.has(k);
@@ -132,9 +140,11 @@
     document.getElementById('ki-prev').innerHTML = '<table>' + linhas.map(l =>
         `<tr><td>${l.qty} ${l.unit}</td><td>${l.name}</td>` +
         `<td class="r"><button type="button" class="ki-gift${l.gift ? ' on' : ''}" onclick="kiToggleBrinde('${l.key}')" title="Brinde (de graça)">🎁${l.gift ? ' brinde' : ''}</button></td>` +
-        `<td class="r">${l.gift ? '<span style="color:#15803d">grátis</span>' : fmt(l.price * l.qty)}</td></tr>`).join('') +
-      (pct ? `<tr><td></td><td></td><td style="color:#15803d">Desconto de kit ${String(pct).replace('.', ',')}%</td><td class="r" style="color:#15803d">− ${fmt(cheio - fin)}</td></tr>` : '') +
-      `<tr class="tot"><td></td><td></td><td>Total do kit</td><td class="r">${fmt(fin)}</td></tr></table>` +
+        `<td class="r">${l.gift ? '<span style="color:#15803d">grátis</span>' : fmt(l.price * l.qty)}</td>` +
+        `<td class="r"><button type="button" class="ki-del" onclick="kiRemover('${l.key}')" title="Remover do kit">🗑</button></td></tr>`).join('') +
+      (pct ? `<tr><td></td><td></td><td style="color:#15803d">Desconto de kit ${String(pct).replace('.', ',')}%</td><td class="r" style="color:#15803d">− ${fmt(cheio - fin)}</td><td></td></tr>` : '') +
+      `<tr class="tot"><td></td><td></td><td>Total do kit</td><td class="r">${fmt(fin)}</td><td></td></tr></table>` +
+      (kiFora.size ? `<div class="ki-fora">Removidos: ${[...kiFora].map(k => `<button type="button" onclick="kiVoltar('${k}')">↩ ${(KI.produtos[k] || {}).name || k}</button>`).join(' ')}</div>` : '') +
       (faltam.length ? `<div class="falta">⚠️ Não achei no cadastro: ${faltam.join(', ')}</div>` : '');
   }
   function kiAdd() {
