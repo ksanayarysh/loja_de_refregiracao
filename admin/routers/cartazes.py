@@ -111,3 +111,66 @@ async def cartazes_busca(q: str = Query(""), _=Depends(basic_auth)):
             f"SELECT {_COLS} FROM products WHERE active = TRUE AND {where} ORDER BY name LIMIT 15"
         ), {f"t{i}": f"%{t}%" for i, t in enumerate(termos)})).mappings().all()
     return JSONResponse([_produto(r, hoje) for r in rows])
+
+
+# ── Catálogo para revenda (A4, imprimir / salvar como PDF) ─────────────────────
+_CAT_ORDEM = ["tubo de cobre", "esponjoso", "cabo", "fita", "suporte", "ar condicionado", "gases refrigerantes",
+              "capacitor", "rele", "protetor termico", "sensores", "termostato", "placa eletronica", "pressostato",
+              "compressor", "capilar", "valvula", "geladeira", "maquina de lavar", "bebedouro", "ventilador",
+              "lampada", "resistencia", "chuveiros", "soldas", "limpeza", "ferramentas", "chaves", "kit", "outro"]
+_CAT_NOME = {"tubo de cobre": "Tubos de cobre", "esponjoso": "Isolamento esponjoso", "cabo": "Cabos",
+             "fita": "Fitas e fixação", "suporte": "Suportes", "ar condicionado": "Peças para ar-condicionado",
+             "gases refrigerantes": "Gases refrigerantes", "capacitor": "Capacitores", "rele": "Relés",
+             "protetor termico": "Protetores térmicos", "sensores": "Sensores", "termostato": "Termostatos",
+             "placa eletronica": "Placas eletrônicas", "pressostato": "Pressostatos", "compressor": "Compressores",
+             "capilar": "Tubos capilares", "valvula": "Válvulas", "geladeira": "Peças para geladeira",
+             "maquina de lavar": "Peças para máquina de lavar", "bebedouro": "Bebedouros e purificadores",
+             "ventilador": "Micromotores", "lampada": "Lâmpadas", "resistencia": "Resistências",
+             "chuveiros": "Chuveiros", "soldas": "Soldas e vedação", "limpeza": "Limpeza e químicos",
+             "ferramentas": "Ferramentas", "chaves": "Chaves e contatores", "kit": "Kits", "outro": "Diversos"}
+_UNID = {"m": "/ metro", "kg": "/ kg"}
+
+
+@router.get("/catalogo-revenda", response_class=HTMLResponse)
+async def catalogo_revenda(request: Request, _=Depends(basic_auth)):
+    """Produtos ativos com estoque, por categoria, com foto e preço de venda (nunca custo)."""
+    hoje = datetime.now(BRT).date()
+    try:
+        margem_min = float(os.environ.get("PIX_MARGEM_MIN", "15") or 15) / 100
+    except ValueError:
+        margem_min = 0.15
+    async with engine.begin() as conn:
+        await _ensure_promo_column(conn)
+        rows = (await conn.execute(text(f"""
+            SELECT p.id, p.name, p.unit, p.sale_price, p.promo_price, p.promo_until, p.promo2_pct, p.promo2_until,
+                   p.image, p.brand, p.cost_price, COALESCE(c.name, 'outro') AS cat,
+                   COALESCE((SELECT SUM(sm.qty) FROM stock_movements sm WHERE sm.product_id = p.id), 0) AS estoque
+            FROM products p LEFT JOIN categories c ON c.id = p.category_id
+            WHERE p.active = TRUE AND p.sale_price > 0
+            ORDER BY p.name
+        """))).mappings().all()
+    grupos: dict[str, list] = {}
+    for r in rows:
+        if float(r["estoque"] or 0) <= 0:
+            continue
+        d = _produto(r, hoje)
+        venda = d["preco"]
+        custo = float(r["cost_price"] or 0)
+        cat = (r["cat"] or "outro").strip().lower()
+        brand = (r["brand"] or "").strip()
+        grupos.setdefault(cat, []).append({
+            "nome": d["nome"], "foto": d["foto"], "preco": venda, "de": d["de"],
+            "unid": _UNID.get((r["unit"] or "").strip().lower(), ""),
+            "marca": brand if brand.lower() not in ("", "m.t.f refrigeração", "mtf refrigeração") else "",
+            # preço especial (margem baixa ou promoção): não entra nos descontos de revenda
+            "liquido": bool(d["de"]) or (custo > 0 and (venda - custo) / venda < margem_min),
+        })
+    ordem = _CAT_ORDEM + sorted(k for k in grupos if k not in _CAT_ORDEM)
+    secoes = [{"nome": _CAT_NOME.get(k, k.capitalize()), "itens": grupos[k]} for k in ordem if grupos.get(k)]
+    return templates.TemplateResponse("catalogo_revenda.html", {
+        "request": request, "secoes": secoes, "total": sum(len(s["itens"]) for s in secoes),
+        "site_url": _site(), "data": hoje.strftime("%d/%m/%Y"),
+        "mes": ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro",
+                "outubro", "novembro", "dezembro"][hoje.month - 1] + f" de {hoje.year}",
+        "pix_pct": os.environ.get("PIX_DESCONTO_PCT", "3"),
+    })

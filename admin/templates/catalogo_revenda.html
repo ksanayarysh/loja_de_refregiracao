@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Catálogo M.T.F Refrigeração — Revenda {{ mes }}</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;800;900&family=Inter:wght@400;500;600;700&display=swap');
+  :root { --navy:#0b1a3a; --navy2:#13285a; --azul:#0e7c99; --gelo:#e8f4f8; --ouro:#f2b632; --tinta:#1b2433; --cinza:#6b7385; }
+  * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  html, body { margin: 0; background: #d9dee7; font-family: 'Inter', Arial, sans-serif; color: var(--tinta); }
+  .folha { width: 210mm; min-height: 297mm; margin: 12px auto; background: #fff; position: relative; overflow: hidden;
+           box-shadow: 0 4px 24px rgba(0,0,0,.18); }
+  h1, h2, h3, .mont { font-family: 'Montserrat', Arial, sans-serif; }
+
+  /* barra de ações (some na impressão) */
+  .acoes { position: sticky; top: 0; z-index: 9; background: var(--navy); color: #fff; padding: 10px 16px;
+           display: flex; gap: 14px; align-items: center; justify-content: center; flex-wrap: wrap; font-size: .9rem; }
+  .acoes button { background: var(--ouro); color: var(--navy); border: 0; border-radius: 8px; padding: 9px 18px;
+                  font-weight: 800; font-size: .95rem; cursor: pointer; }
+
+  /* ── capa ── */
+  .capa { height: 297mm; background: radial-gradient(120% 80% at 85% 10%, #1d3f7a 0%, var(--navy) 55%, #060f24 100%);
+          color: #fff; display: flex; flex-direction: column; padding: 22mm 18mm 16mm; }
+  .capa .floco { position: absolute; right: -40mm; top: 40mm; width: 170mm; opacity: .06; }
+  .capa .logo { width: 62mm; filter: drop-shadow(0 6px 18px rgba(0,0,0,.4)); }
+  .capa .tag { margin-top: 30mm; font-family: 'Montserrat', Arial, sans-serif; font-weight: 700; letter-spacing: .32em; font-size: 10pt;
+               color: var(--ouro); text-transform: uppercase; }
+  .capa h1 { font-size: 44pt; line-height: 1.02; margin: 5mm 0 0; font-weight: 900; letter-spacing: -.01em; }
+  .capa h1 span { color: #7fd3ea; }
+  .capa .sub { font-size: 13pt; color: #c9d5ea; margin-top: 7mm; max-width: 140mm; line-height: 1.5; }
+  .capa .chips { display: flex; gap: 3mm; flex-wrap: wrap; margin-top: 10mm; }
+  .capa .chip { border: 1px solid rgba(255,255,255,.25); border-radius: 999px; padding: 2.2mm 4.5mm; font-size: 9.5pt;
+                background: rgba(255,255,255,.06); }
+  .capa .rodape { margin-top: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; border-top: 1px solid rgba(255,255,255,.18);
+                  padding-top: 7mm; font-size: 10pt; color: #dfe7f5; line-height: 1.7; }
+  .capa .rodape b { color: #fff; }
+  .capa .ed { position: absolute; right: 18mm; top: 24mm; text-align: right; font-size: 9pt; color: #9fb2d3; line-height: 1.6; }
+
+  /* ── condições ── */
+  .pag { padding: 8mm 15mm 6mm; }
+  .titulo-sec { display: flex; align-items: baseline; gap: 4mm; border-bottom: 2.5px solid var(--navy); padding-bottom: 3mm; margin-bottom: 7mm; }
+  .titulo-sec h2 { margin: 0; font-size: 20pt; color: var(--navy); font-weight: 900; }
+  .titulo-sec small { color: var(--cinza); font-size: 9.5pt; }
+  .conds { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; }
+  .cond { border-radius: 4mm; padding: 6mm; background: var(--gelo); }
+  .cond.destaque { background: var(--navy); color: #fff; }
+  .cond .big { font-family: 'Montserrat', Arial, sans-serif; font-weight: 900; font-size: 30pt; line-height: 1; color: var(--azul); }
+  .cond.destaque .big { color: var(--ouro); }
+  .cond h3 { margin: 2mm 0 1.5mm; font-size: 12.5pt; }
+  .cond p { margin: 0; font-size: 9.5pt; line-height: 1.55; color: inherit; opacity: .9; }
+  .lista-cond { margin: 8mm 0 0; padding: 0; list-style: none; font-size: 9.8pt; line-height: 1.6; }
+  .lista-cond li { padding: 2.2mm 0 2.2mm 8mm; border-bottom: 1px solid #e6e9ef; position: relative; }
+  .lista-cond li::before { content: '✓'; position: absolute; left: 0; color: var(--azul); font-weight: 800; }
+  .indice { margin-top: 9mm; columns: 2; column-gap: 8mm; font-size: 9.8pt; }
+  .indice div { display: flex; justify-content: space-between; border-bottom: 1px dotted #c7ccd6; padding: 1.6mm 0; break-inside: avoid; }
+  .indice span:last-child { color: var(--cinza); }
+
+  /* ── produtos ── */
+  .secao { margin-top: 2mm; }
+  .secao + .secao { margin-top: 0; }
+  .faixa { break-after: avoid; }
+  @media screen { .secao { width: 210mm; margin: 0 auto; background: #fff; } }
+  .faixa { background: linear-gradient(90deg, var(--navy) 0%, var(--navy2) 70%, var(--azul) 100%); color: #fff;
+           padding: 5mm 15mm; display: flex; justify-content: space-between; align-items: center; }
+  .faixa h2 { margin: 0; font-size: 17pt; font-weight: 900; letter-spacing: .01em; }
+  .faixa span { font-size: 9pt; color: #bcd0ee; }
+  .grade { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3.5mm; padding: 5mm 15mm 7mm; }
+  .card { border: 1px solid #e3e7ee; border-radius: 3mm; overflow: hidden; break-inside: avoid; display: flex; flex-direction: column; background: #fff; }
+  .card .foto { height: 28mm; display: flex; align-items: center; justify-content: center; background: #fff; padding: 2.5mm; border-bottom: 1px solid #f0f2f6; }
+  .card .foto img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  .card .sem { color: #b9c0cc; font-size: 8pt; }
+  .card .info { padding: 2.6mm 3mm 3mm; display: flex; flex-direction: column; flex: 1; }
+  .card .marca { font-size: 6.8pt; font-weight: 700; color: var(--azul); text-transform: uppercase; letter-spacing: .06em; min-height: 3mm; }
+  .card .nome { font-size: 8.2pt; line-height: 1.3; font-weight: 600; margin-top: .8mm; flex: 1;
+                display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .card .preco { margin-top: 2mm; font-family: 'Montserrat', Arial, sans-serif; font-weight: 800; color: var(--navy); font-size: 11.5pt; white-space: nowrap; }
+  .card .preco small { font-family: 'Inter'; font-weight: 500; font-size: 7pt; color: var(--cinza); }
+  .card .preco s { font-family: 'Inter'; font-weight: 400; color: #a1a8b5; font-size: 7.5pt; margin-right: 1mm; }
+  .card .liq { position: absolute; }
+  .card { position: relative; }
+  .card .selo { position: absolute; top: 2mm; right: 2mm; background: var(--ouro); color: var(--navy); font-size: 6.2pt; font-weight: 800;
+                border-radius: 999px; padding: .6mm 2mm; letter-spacing: .02em; }
+
+  /* rodapé fixo em todas as páginas impressas */
+  .pe { position: fixed; bottom: 0; left: 0; right: 0; height: 11mm; display: none; align-items: center; justify-content: space-between;
+        padding: 0 15mm; font-size: 7.6pt; color: var(--cinza); border-top: 1px solid #e3e7ee; background: #fff; }
+  .pe b { color: var(--navy); }
+
+  .contra { height: 297mm; background: var(--navy); color: #fff; display: flex; flex-direction: column; align-items: center;
+            justify-content: center; text-align: center; padding: 20mm; }
+  .contra img { width: 52mm; }
+  .contra h2 { font-size: 26pt; margin: 12mm 0 4mm; font-weight: 900; }
+  .contra p { color: #c9d5ea; font-size: 11.5pt; line-height: 1.7; margin: 0; }
+  .contra .zap { margin-top: 10mm; background: #25d366; color: #06301a; font-family: 'Montserrat', Arial, sans-serif; font-weight: 900; font-size: 17pt;
+                 border-radius: 999px; padding: 4mm 10mm; }
+
+  @page { size: A4; margin: 9mm 0 12mm 0;
+    @bottom-left { content: "M.T.F Refrigeração  ·  Catálogo para revenda  ·  {{ mes }}"; font: 7.5pt Arial, sans-serif; color: #6b7385; padding-left: 15mm; }
+    @bottom-right { content: "WhatsApp (21) 97153-8839  ·  mtfrefrigeracao.com.br  ·  " counter(page); font: 7.5pt Arial, sans-serif; color: #6b7385; padding-right: 15mm; } }
+  @page cheia { margin: 0; @bottom-left { content: none; } @bottom-right { content: none; } }
+  .capa, .contra { page: cheia; }
+  @media print {
+    html, body { background: #fff; }
+    .acoes { display: none !important; }
+    .folha { margin: 0; box-shadow: none; width: auto; min-height: 0; overflow: visible; }
+    .capa, .contra { height: 100vh; break-after: page; }
+  }
+</style>
+</head>
+<body>
+<div class="acoes">
+  <span>{{ total }} produtos em estoque · preços de {{ data }}</span>
+  <button type="button" onclick="window.print()">⬇ Salvar como PDF</button>
+  <span style="opacity:.8">Na janela: Destino = <b>Salvar como PDF</b>, Margens = <b>Nenhuma</b>, ✓ <b>Gráficos de plano de fundo</b></span>
+</div>
+
+<!-- CAPA -->
+<section class="folha capa">
+  <svg class="floco" viewBox="0 0 100 100" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round">
+    <g id="r"><line x1="50" y1="50" x2="50" y2="6"/><line x1="50" y1="18" x2="40" y2="10"/><line x1="50" y1="18" x2="60" y2="10"/><line x1="50" y1="30" x2="42" y2="23"/><line x1="50" y1="30" x2="58" y2="23"/></g>
+    <use href="#r" transform="rotate(60 50 50)"/><use href="#r" transform="rotate(120 50 50)"/><use href="#r" transform="rotate(180 50 50)"/>
+    <use href="#r" transform="rotate(240 50 50)"/><use href="#r" transform="rotate(300 50 50)"/>
+  </svg>
+  <div class="ed">Edição {{ mes }}<br>Preços válidos em {{ data }}</div>
+  <img class="logo" src="{{ site_url }}/static/images/mtf-logo.png" alt="M.T.F Refrigeração">
+  <div class="tag">Catálogo para revenda</div>
+  <h1>Peças e insumos<br>para <span>refrigeração</span></h1>
+  <div class="sub">Ar-condicionado, geladeira, máquina de lavar, gases, ferramentas e tudo para instalação — com estoque a pronta entrega no Rio de Janeiro.</div>
+  <div class="chips">
+    <div class="chip">❄ {{ total }} itens em estoque</div>
+    <div class="chip">💠 {{ pix_pct }}% no Pix</div>
+    <div class="chip">📦 +5% acima de R$ 1.500</div>
+    <div class="chip">🚚 Retirada ou entrega</div>
+  </div>
+  <div class="rodape">
+    <div><b>Loja</b><br>Av. Brasil, 6818 — Bonsucesso<br>Rio de Janeiro — RJ</div>
+    <div><b>Pedidos</b><br>WhatsApp (21) 97153-8839<br>mtfrefrigeracao.com.br · @mtf_refrigeracao</div>
+  </div>
+</section>
+
+<!-- CONDIÇÕES + ÍNDICE -->
+<section class="folha pag">
+  <div class="titulo-sec"><h2>Condições para revenda</h2><small>válidas para pedidos pelo WhatsApp ou na loja</small></div>
+  <div class="conds">
+    <div class="cond">
+      <div class="big">{{ pix_pct }}%</div>
+      <h3>de desconto no Pix</h3>
+      <p>Pagamento à vista no Pix: {{ pix_pct }}% de desconto sobre os preços deste catálogo.</p>
+    </div>
+    <div class="cond destaque">
+      <div class="big">+5%</div>
+      <h3>em pedidos acima de R$ 1.500</h3>
+      <p>Pedidos a partir de R$ 1.500,00 ganham mais 5% de desconto, somado ao desconto do Pix.</p>
+    </div>
+  </div>
+  <ul class="lista-cond">
+    <li>Itens com o selo <b style="background:#f2b632;color:#0b1a3a;border-radius:99px;padding:0 6px;font-size:8.5pt">PREÇO ESPECIAL</b> já estão com o menor preço e não recebem descontos adicionais.</li>
+    <li>Preços em reais (R$), por unidade, salvo indicação (por metro ou por kg).</li>
+    <li>Estoque e preços sujeitos a alteração sem aviso prévio — confirme a disponibilidade antes de fechar o pedido.</li>
+    <li>Retirada na loja (Bonsucesso) ou entrega no Rio de Janeiro e envio para todo o Brasil, com frete à parte.</li>
+    <li>Emitimos nota fiscal. Pagamento em Pix, dinheiro ou cartão.</li>
+  </ul>
+  <div class="titulo-sec" style="margin-top:11mm"><h2>Índice</h2><small>{{ secoes|length }} categorias</small></div>
+  <div class="indice">
+    {% for s in secoes %}<div><span>{{ s.nome }}</span><span>{{ s['itens']|length }} itens</span></div>{% endfor %}
+  </div>
+</section>
+
+<!-- PRODUTOS -->
+{% for s in secoes %}
+<section class="secao"{% if loop.first %} style="break-before:page"{% endif %}>
+  <div class="faixa"><h2>{{ s.nome }}</h2><span>{{ s['itens']|length }} itens</span></div>
+  <div class="grade">
+    {% for p in s['itens'] %}
+    <div class="card">
+      {% if p.liquido %}<div class="selo">PREÇO ESPECIAL</div>{% endif %}
+      <div class="foto">{% if p.foto %}<img src="{{ p.foto }}" alt="" loading="eager">{% else %}<span class="sem">sem foto</span>{% endif %}</div>
+      <div class="info">
+        <div class="marca">{{ p.marca }}</div>
+        <div class="nome">{{ p.nome }}</div>
+        <div class="preco">{% if p.de %}<s>R$ {{ '%.2f'|format(p.de)|replace('.', ',') }}</s>{% endif %}R$ {{ '{:,.2f}'.format(p.preco).replace(',', 'X').replace('.', ',').replace('X', '.') }} <small>{{ p.unid }}</small></div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endfor %}
+
+<!-- CONTRACAPA -->
+<section class="folha contra" style="break-before:page">
+  <img src="{{ site_url }}/static/images/mtf-logo.png" alt="M.T.F Refrigeração">
+  <h2>Faça seu pedido</h2>
+  <p>Envie a lista pelo WhatsApp — separamos e confirmamos estoque e valores na hora.<br>
+     Av. Brasil, 6818 — Bonsucesso, Rio de Janeiro · mtfrefrigeracao.com.br · @mtf_refrigeracao</p>
+  <div class="zap">WhatsApp (21) 97153-8839</div>
+</section>
+</body>
+</html>
