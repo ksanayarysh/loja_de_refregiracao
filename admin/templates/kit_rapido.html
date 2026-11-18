@@ -22,10 +22,37 @@
     .ki-prev .falta { color: #b91c1c; font-weight: 700; }
     .btn-ki { background: #0e7c99; color: #fff; border: none; border-radius: 10px; padding: 11px 18px; font-weight: 800; font-size: .95rem; cursor: pointer; }
     .ki-hint { font-size: .78rem; color: #777; margin-top: 6px; }
+    .kp-list { display: grid; gap: 10px; margin-top: 12px; }
+    .kp-item { border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px 12px; display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+    .kp-item b { font-size: .98rem; }
+    .kp-itens { font-size: .8rem; color: #555; margin-top: 3px; }
+    .kp-preco { font-weight: 800; color: #0e7c99; white-space: nowrap; }
+    .kp-preco s { color: #999; font-weight: 400; font-size: .8rem; margin-right: 4px; }
+    .kp-falta { color: #b91c1c; font-size: .78rem; font-weight: 700; }
+    .btn-kp { background: #0e7c99; color: #fff; border: none; border-radius: 8px; padding: 9px 14px; font-weight: 800; cursor: pointer; white-space: nowrap; }
     @media (max-width: 700px) { .ki-grid { grid-template-columns: 1fr 1fr; } }
 {% endblock %}
 
 {% block content %}
+    {% if kits_prontos %}
+    <div class="card ki-card">
+      <div style="font-weight:800;font-size:1.05rem">📦 Kits prontos <span class="ki-sub">os kits cadastrados, com o preço do kit</span></div>
+      <div class="kp-list">
+        {% for k in kits_prontos %}
+        <div class="kp-item">
+          <div style="flex:1;min-width:200px">
+            <b>{{ k.name }}</b>
+            <div class="kp-itens">{% for i in k['items'] %}{{ i.qty|int if i.qty == i.qty|int else i.qty }} {{ i.unit }} {{ i.name }}{% if i.gift %} 🎁{% endif %}{% if not loop.last %} · {% endif %}{% endfor %}</div>
+            {% for i in k['items'] if i.stock < i.qty %}{% if loop.first %}<div class="kp-falta">⚠️ Estoque baixo: {% endif %}{{ i.name }}{% if not loop.last %}, {% endif %}{% if loop.last %}</div>{% endif %}{% endfor %}
+          </div>
+          <div class="kp-preco">{% if k.full_total > k.total + 0.004 %}<s>R$ {{ '%.2f'|format(k.full_total)|replace('.', ',') }}</s>{% endif %}R$ {{ '%.2f'|format(k.total)|replace('.', ',') }}</div>
+          <button type="button" class="btn-kp" onclick="kpAdd({{ loop.index0 }})">➕ Carrinho</button>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="ki-hint">Os itens entram no carrinho já com o preço do kit (marcados como KIT).</div>
+    </div>
+    {% endif %}
     <div class="card ki-card">
       <details id="ki-box" open>
         <summary style="pointer-events:none">🧰 Kit de instalação rápido <span class="ki-sub">metragem + medida → cobre, esponjoso, suporte e cabo</span></summary>
@@ -110,6 +137,27 @@
       const ex = cart.find(i => i.id === l.id && !!i.kit === l.kit && Math.abs(i.price - l.price) < 0.005);
       if (ex) ex.qty = kiR(ex.qty + l.qty);
       else cart.push({id: l.id, name: l.name, price: l.price, qty: l.qty, unit: l.unit, ...(l.kit ? {kit: true} : {})});
+    });
+    localStorage.setItem('mtf_cart', JSON.stringify(cart));
+    location.href = '/checkout';
+  }
+  // ── Kits prontos ──
+  const KP = {{ kits_prontos | tojson }};
+  function kpAdd(n) {
+    const k = KP[n]; if (!k) return;
+    k.items.forEach(i => {
+      const nome = i.name + (i.gift ? ' (brinde)' : '');
+      const cents = Math.round(i.line_total * 100);
+      const q = i.qty;
+      // preço do kit por unidade; se não dá centavos exatos (R$ 100 / 3), a última unidade leva a diferença
+      // -> a soma no carrinho é exatamente o preço do kit
+      if (q > 1 && Number.isInteger(q) && cents % q !== 0) {
+        const base = Math.floor(cents / q);
+        cart.push({id: i.id, name: nome, price: base / 100, qty: q - 1, unit: i.unit, kit: true});
+        cart.push({id: i.id, name: nome, price: (cents - base * (q - 1)) / 100, qty: 1, unit: i.unit, kit: true});
+      } else {
+        cart.push({id: i.id, name: nome, price: q ? Math.round(cents / q) / 100 : 0, qty: q, unit: i.unit, kit: true});
+      }
     });
     localStorage.setItem('mtf_cart', JSON.stringify(cart));
     location.href = '/checkout';

@@ -251,11 +251,12 @@ async def _kit_inst_data(conn) -> dict:
     out = {"produtos": {}, "desconto": 0}
     try:
         rows = (await conn.execute(text(
-            "SELECT id, name, sale_price, unit FROM products WHERE active = TRUE AND LOWER(TRIM(name)) = ANY(:n)"),
-            {"n": list(_KIT_INST_NOMES.values())})).mappings().all()
+            "SELECT id, name, sale_price, unit FROM products WHERE active = TRUE AND LOWER(TRIM(name)) LIKE ANY(:n)"),
+            {"n": [n + "%" for n in _KIT_INST_NOMES.values()]})).mappings().all()
         por_nome = {r["name"].strip().lower(): r for r in rows}
         for k, nome in _KIT_INST_NOMES.items():
-            r = por_nome.get(nome)
+            # nome exato; se o produto foi renomeado com algo a mais no fim ("fita PVC 10m X 100mm"), o mais curto que começa igual
+            r = por_nome.get(nome) or next((por_nome[n] for n in sorted(por_nome, key=len) if n.startswith(nome + " ")), None)
             if r:
                 out["produtos"][k] = {"id": r["id"], "name": r["name"], "price": float(r["sale_price"] or 0),
                                       "unit": r["unit"] or "un"}
@@ -273,7 +274,22 @@ async def _kit_inst_data(conn) -> dict:
 async def kit_rapido_page(request: Request, _=Depends(basic_auth)):
     async with engine.connect() as conn:
         kit_inst = await _kit_inst_data(conn)
-    return templates.TemplateResponse("kit_rapido.html", {"request": request, "kit_inst": kit_inst})
+    kits_prontos = []
+    try:   # kits cadastrados (página Kits) — para pôr no carrinho com o preço do kit
+        from routers.kits import _load_kits, _ensure_tables
+        await _ensure_tables()
+        async with engine.connect() as conn:
+            for k in await _load_kits(conn, only_active=True):
+                if k["items"]:
+                    kits_prontos.append({
+                        "id": k["id"], "name": k["name"], "total": k["total"], "full_total": k["full_total"],
+                        "items": [{"id": i["product_id"], "name": i["name"], "unit": i["unit"], "qty": i["qty"],
+                                   "line_total": i["line_total"], "gift": i["is_gift"], "stock": i["stock"]}
+                                  for i in k["items"]]})
+    except Exception:
+        pass
+    return templates.TemplateResponse("kit_rapido.html", {"request": request, "kit_inst": kit_inst,
+                                                          "kits_prontos": kits_prontos})
 
 
 @router.get("/checkout", response_class=HTMLResponse)
