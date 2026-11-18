@@ -20,6 +20,8 @@
     .ki-prev td.r { text-align: right; white-space: nowrap; }
     .ki-prev .tot td { border-top: 1px solid #ddd; font-weight: 800; padding-top: 6px; }
     .ki-prev .falta { color: #b91c1c; font-weight: 700; }
+    .ki-gift { border: 1px solid #e5e7eb; background: #fff; border-radius: 999px; padding: 1px 8px; font-size: .8rem; cursor: pointer; opacity: .55; }
+    .ki-gift.on { opacity: 1; background: #dcfce7; border-color: #86efac; color: #166534; font-weight: 800; }
     .btn-ki { background: #0e7c99; color: #fff; border: none; border-radius: 10px; padding: 11px 18px; font-weight: 800; font-size: .95rem; cursor: pointer; }
     .ki-hint { font-size: .78rem; color: #777; margin-top: 6px; }
     .kp-list { display: grid; gap: 10px; margin-top: 12px; }
@@ -86,7 +88,7 @@
         </div>
         <div id="ki-prev" class="ki-prev"></div>
         <button type="button" class="btn-ki" onclick="kiAdd()">➕ Adicionar ao carrinho e abrir</button>
-        <div class="ki-hint">Os itens vão para o carrinho — lá dá para mudar quantidade ou remover qualquer um.</div>
+        <div class="ki-hint">Toque em 🎁 para dar o item de brinde. Os itens vão para o carrinho — lá dá para mudar quantidade ou remover qualquer um.</div>
       </details>
     </div>
 
@@ -99,6 +101,8 @@
   let cart = []; try { cart = JSON.parse(localStorage.getItem('mtf_cart') || '[]'); } catch (e) {}
   function fmt(n) { return 'R$ ' + parseFloat(n).toFixed(2).replace('.', ','); }
   const kiR = v => Math.round(v * 100) / 100;
+  const kiBrinde = new Set();   // itens marcados como brinde (🎁) -> preço 0
+  function kiToggleBrinde(k) { kiBrinde.has(k) ? kiBrinde.delete(k) : kiBrinde.add(k); kiPrev(); }
   function kiSupAuto() {
     const g = document.getElementById('ki-med').value.split('|')[1];
     document.getElementById('ki-sup').value = (g === '3/8') ? 'sup_40' : 'sup_450';
@@ -116,8 +120,9 @@
     want.forEach(([k, q]) => {
       const p = KI.produtos[k];
       if (!p) { faltam.push(k.replace('_', ' ')); return; }
-      linhas.push({id: p.id, name: p.name, unit: p.unit, qty: q, cheio: p.price,
-                   price: pct ? kiR(p.price * (100 - pct) / 100) : p.price, kit: pct > 0});
+      const gift = kiBrinde.has(k);
+      linhas.push({key: k, gift, id: p.id, name: p.name, unit: p.unit, qty: q, cheio: gift ? 0 : p.price,
+                   price: gift ? 0 : (pct ? kiR(p.price * (100 - pct) / 100) : p.price), kit: pct > 0 || gift});
     });
     return {linhas, faltam, pct};
   }
@@ -125,9 +130,11 @@
     const {linhas, faltam, pct} = kiLinhas();
     const cheio = linhas.reduce((s, l) => s + l.cheio * l.qty, 0), fin = linhas.reduce((s, l) => s + l.price * l.qty, 0);
     document.getElementById('ki-prev').innerHTML = '<table>' + linhas.map(l =>
-        `<tr><td>${l.qty} ${l.unit}</td><td>${l.name}</td><td class="r">${fmt(l.price * l.qty)}</td></tr>`).join('') +
-      (pct ? `<tr><td></td><td style="color:#15803d">Desconto de kit ${String(pct).replace('.', ',')}%</td><td class="r" style="color:#15803d">− ${fmt(cheio - fin)}</td></tr>` : '') +
-      `<tr class="tot"><td></td><td>Total do kit</td><td class="r">${fmt(fin)}</td></tr></table>` +
+        `<tr><td>${l.qty} ${l.unit}</td><td>${l.name}</td>` +
+        `<td class="r"><button type="button" class="ki-gift${l.gift ? ' on' : ''}" onclick="kiToggleBrinde('${l.key}')" title="Brinde (de graça)">🎁${l.gift ? ' brinde' : ''}</button></td>` +
+        `<td class="r">${l.gift ? '<span style="color:#15803d">grátis</span>' : fmt(l.price * l.qty)}</td></tr>`).join('') +
+      (pct ? `<tr><td></td><td></td><td style="color:#15803d">Desconto de kit ${String(pct).replace('.', ',')}%</td><td class="r" style="color:#15803d">− ${fmt(cheio - fin)}</td></tr>` : '') +
+      `<tr class="tot"><td></td><td></td><td>Total do kit</td><td class="r">${fmt(fin)}</td></tr></table>` +
       (faltam.length ? `<div class="falta">⚠️ Não achei no cadastro: ${faltam.join(', ')}</div>` : '');
   }
   function kiAdd() {
@@ -136,7 +143,7 @@
     linhas.forEach(l => {
       const ex = cart.find(i => i.id === l.id && !!i.kit === l.kit && Math.abs(i.price - l.price) < 0.005);
       if (ex) ex.qty = kiR(ex.qty + l.qty);
-      else cart.push({id: l.id, name: l.name, price: l.price, qty: l.qty, unit: l.unit, ...(l.kit ? {kit: true} : {})});
+      else cart.push({id: l.id, name: l.name + (l.gift ? ' (brinde)' : ''), price: l.price, qty: l.qty, unit: l.unit, ...(l.kit ? {kit: true} : {})});
     });
     localStorage.setItem('mtf_cart', JSON.stringify(cart));
     location.href = '/checkout';
