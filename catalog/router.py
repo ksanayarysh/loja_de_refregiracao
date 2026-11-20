@@ -1317,11 +1317,13 @@ async def product_page(request: Request, slug: str):
                                                 {"id": product["id"]})).scalar())
     except Exception:
         car_only = False
+    sem_fg = await tem_sem_frete_gratis([product["id"]])
 
     return templates.TemplateResponse("product.html", {
         "request":       request,
         "product":       product,
         "car_only":      car_only,
+        "sem_frete_gratis": sem_fg,
         "pix_preco":     pix_preco,
         "seo":           seo,
         "related":       related,
@@ -2157,8 +2159,24 @@ FRETE_GRATIS_SEM_LIMITE = float(os.environ.get("FRETE_GRATIS_SEM_LIMITE", "999")
 FRETE_GRATIS_MAX_MARGEM = float(os.environ.get("FRETE_GRATIS_MAX_MARGEM", "0.7"))
 
 
-def frete_gratis(preco_lalamove: float, subtotal: float, margem: float, km=None) -> bool:
-    if margem <= 0 or FRETE_GRATIS_MIN <= 0:
+async def tem_sem_frete_gratis(ids) -> bool:
+    """Algum produto marcado na admin 'sem frete grátis' (margem pequena, ex.: serpentina)? Então o pedido
+    não ganha frete grátis — só o desconto normal (metade do frete, limitado à metade da margem)."""
+    ids = [int(i) for i in ids if i and int(i) > 0]
+    if not ids:
+        return False
+    try:
+        async with engine.begin() as conn:
+            await conn.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS sem_frete_gratis BOOLEAN NOT NULL DEFAULT FALSE"))
+            return bool((await conn.execute(text(
+                "SELECT 1 FROM products WHERE id = ANY(:ids) AND sem_frete_gratis LIMIT 1"), {"ids": ids})).scalar())
+    except Exception:
+        _blog_log.exception("frete: falha ao ler sem_frete_gratis")
+        return False
+
+
+def frete_gratis(preco_lalamove: float, subtotal: float, margem: float, km=None, gratis_ok: bool = True) -> bool:
+    if not gratis_ok or margem <= 0 or FRETE_GRATIS_MIN <= 0:
         return False
     try:
         km = float(km) if km is not None else None
@@ -2170,8 +2188,8 @@ def frete_gratis(preco_lalamove: float, subtotal: float, margem: float, km=None)
     return preco_lalamove <= margem * FRETE_GRATIS_MAX_MARGEM
 
 
-def frete_final(preco_lalamove: float, subtotal: float, margem: float, km=None) -> float:
-    if frete_gratis(preco_lalamove, subtotal, margem, km):
+def frete_final(preco_lalamove: float, subtotal: float, margem: float, km=None, gratis_ok: bool = True) -> float:
+    if frete_gratis(preco_lalamove, subtotal, margem, km, gratis_ok):
         return 0.0
     if subtotal <= FRETE_SUBSIDIO_MIN or margem <= 0:
         return round(preco_lalamove, 2)
@@ -2192,10 +2210,10 @@ ENVIO_SUBSIDIO_PARTE = float(os.environ.get("ENVIO_SUBSIDIO_PARTE", "0.3333"))
 ENVIO_GRATIS_MIN = float(os.environ.get("ENVIO_GRATIS_MIN", "1499"))
 
 
-def envio_final(preco: float, subtotal: float, margem: float, menor: float | None = None) -> float:
+def envio_final(preco: float, subtotal: float, margem: float, menor: float | None = None, gratis_ok: bool = True) -> float:
     if menor is None:
         menor = preco
-    if (ENVIO_GRATIS_MIN > 0 and subtotal >= ENVIO_GRATIS_MIN and margem > 0
+    if (gratis_ok and ENVIO_GRATIS_MIN > 0 and subtotal >= ENVIO_GRATIS_MIN and margem > 0
             and menor <= margem * FRETE_GRATIS_MAX_MARGEM):
         return round(max(0.0, preco - menor), 2)
     if subtotal <= ENVIO_SUBSIDIO_MIN or margem <= 0:
@@ -2415,9 +2433,10 @@ async def api_frete_cep(request: Request, cep: str = "", src: str = "", valor: s
             if subtotal > FRETE_SUBSIDIO_MIN and linhas:
                 margem, sem_custo = await margem_detalhe(linhas)
                 calc.update(margem=margem, sem_custo=sem_custo)
+                g_ok = not await tem_sem_frete_gratis([l[0] for l in linhas])
                 novas = []
                 for o in data["options"]:
-                    p = frete_final(o["price"], subtotal, margem, data.get("distance_km"))
+                    p = frete_final(o["price"], subtotal, margem, data.get("distance_km"), g_ok)
                     novas.append(dict(o, price=p))
                 if any(n["price"] != o["price"] for n, o in zip(novas, data["options"])):
                     log_opts = [dict(n, _lalamove=o["price"]) for n, o in zip(novas, data["options"])]
@@ -2474,7 +2493,8 @@ async def api_frete_cep(request: Request, cep: str = "", src: str = "", valor: s
                                 mg, sem_custo = await margem_detalhe(linhas_dos_itens(items))
                                 calc_me.update(margem=mg, sem_custo=sem_custo)
                                 menor_me = min(float(o["price"]) for o in q["options"])
-                                opts_pub = [dict(o, price=envio_final(o["price"], sub_me, mg, menor_me)) for o in q["options"]]
+                                g_ok = not await tem_sem_frete_gratis([i.get("id") for i in items if isinstance(i.get("id"), int)])
+                                opts_pub = [dict(o, price=envio_final(o["price"], sub_me, mg, menor_me, g_ok)) for o in q["options"]]
                                 opts_log = [dict(n, _cheio=o["price"]) for n, o in zip(opts_pub, q["options"])]
                         except Exception:
                             _blog_log.exception("frete: falha no desconto do envio (segue preço cheio)")

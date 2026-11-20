@@ -32,7 +32,7 @@ from dependencies import engine, templates
 from lalamove import get_quote, LalamoveError
 from router import (
     _apply_promo, _cep_to_coords, geocode_endereco, _km, _quote_cache, _send_tg, _blog_log, _ensure_kit_settings, slugify,
-    margem_detalhe, frete_final, linhas_dos_itens, FRETE_SUBSIDIO_MIN, envio_final, ENVIO_SUBSIDIO_MIN, ENVIO_GRATIS_MIN, _client_ip, _is_owner, log_product_events, _is_bot, _is_datacenter,
+    margem_detalhe, frete_final, linhas_dos_itens, tem_sem_frete_gratis, FRETE_SUBSIDIO_MIN, envio_final, ENVIO_SUBSIDIO_MIN, ENVIO_GRATIS_MIN, _client_ip, _is_owner, log_product_events, _is_bot, _is_datacenter,
     FRETE_MAX_KM, FRETE_OPTIONS, LALA_SERVICES, LALA_DEBUG_TOKEN,
     GA_ID, SITE_URL, STORE_ADDRESS, STORE_PHONE, WA_OWNER_NUMBER, ADMIN_URL,
 )
@@ -975,7 +975,8 @@ async def checkout_pix(request: Request):
         if subtotal > ENVIO_SUBSIDIO_MIN:
             try:
                 menor_me = min(float(o["price"]) for o in q["options"])
-                frete = envio_final(frete, subtotal, margem, menor_me)
+                g_ok = not await tem_sem_frete_gratis([l[0] for l in linhas_dos_itens(items)])
+                frete = envio_final(frete, subtotal, margem, menor_me, g_ok)
             except Exception:
                 _blog_log.exception("checkout: falha no desconto do envio (segue preço cheio)")
         geo = {"bairro": info.get("bairro", ""), "cidade": info.get("cidade", ""), "uf": info.get("uf", ""),
@@ -1006,7 +1007,8 @@ async def checkout_pix(request: Request):
         frete_lalamove = frete
         if subtotal > FRETE_SUBSIDIO_MIN:
             try:
-                frete = frete_final(frete, subtotal, margem, geo.get("distance_km"))
+                g_ok = not await tem_sem_frete_gratis([l[0] for l in linhas_dos_itens(items)])
+                frete = frete_final(frete, subtotal, margem, geo.get("distance_km"), g_ok)
             except Exception:
                 _blog_log.exception("checkout: falha no desconto do frete (segue preço cheio)")
         address = ", ".join(x for x in [rua, geo["bairro"], f'{geo["cidade"]} - {geo["uf"]}',
@@ -1301,6 +1303,7 @@ async def checkout_stock(request: Request):
         "kits": [s["kit_id"] for s in short if s.get("kit_id")],
         "promo2": {str(i["id"]): i["promo2"] for i in items if i.get("promo2")},
         "car_only": sorted({i["id"] for i in items if i.get("car_only") and not i.get("kit_id")}),
+        "sem_frete_gratis": await tem_sem_frete_gratis([l[0] for l in linhas_dos_itens(items)]),
         **(await _pix_info(items)),
         "brinde_min": _brinde_min(),
         "message": _stock_msg(kg, short),

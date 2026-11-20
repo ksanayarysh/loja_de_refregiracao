@@ -591,6 +591,7 @@ async function syncStock() {
   PIX = { pct: Number(d.pix_pct) || 0, ids: new Set((d.pix_ids || []).map(Number)) };
   BRINDE_MIN = Number(d.brinde_min) || 0;
   // produtos marcados "só carro" na admin: o frete mostra só carro/van (igual ao kit)
+  if (d.sem_frete_gratis) { FG.min = 0; FG.estados = 0; }   // produto sem frete grátis no carrinho: não promete
   const carOnly = new Set((d.car_only || []).map(Number));
   cart.forEach(i => { if (!i.kit_id) { if (carOnly.has(Number(i.id))) i.car_only = true; else delete i.car_only; } });
   const notes = [];

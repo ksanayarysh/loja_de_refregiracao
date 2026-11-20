@@ -124,6 +124,10 @@
           <input type="checkbox" name="car_only" value="1" style="width:18px;height:18px;" {% if product.car_only %}checked{% endif %}>
           🚗 Só entrega de carro no Rio (não cabe na moto)</label>
         <div class="hint">No site, com este produto no carrinho, o cliente só vê Carro/Van na entrega pela Lalamove.</div>
+        <label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-weight:700;">
+          <input type="checkbox" name="sem_frete_gratis" value="1" style="width:18px;height:18px;" {% if product.sem_frete_gratis %}checked{% endif %}>
+          🚫 Sem frete grátis (margem pequena)</label>
+        <div class="hint">Pedido com este produto não ganha frete grátis (nem acima de R$ 300) — só o desconto normal: a loja paga até metade do frete, limitado à metade do lucro.</div>
 
         <label for="sale_price">Preço de venda (R$)</label>
         <input id="sale_price" name="sale_price" inputmode="decimal" value="{{ '%.2f'|format(product.sale_price or 0) }}">
