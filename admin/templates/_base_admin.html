@@ -201,12 +201,30 @@
         document.title = tituloOriginal;
       }
     }
+    // Lembrete: enquanto houver pedido pago em aberto, a cada 5 min mostra de novo a notificação do Windows
+    // (com som; fica na tela até fechar). Funciona com a admin aberta em qualquer aba, mesmo minimizada.
+    const LEMBRETE_MS = 5 * 60 * 1000;
+    async function lembrar(n) {
+      try {
+        if (n <= 0) { localStorage.removeItem('mtf_lembrete_at'); return; }
+        if (!('Notification' in window) || Notification.permission !== 'granted' || !('serviceWorker' in navigator)) return;
+        const ult = Number(localStorage.getItem('mtf_lembrete_at') || 0);   // várias abas abertas: só uma avisa
+        if (Date.now() - ult < LEMBRETE_MS) return;
+        localStorage.setItem('mtf_lembrete_at', String(Date.now()));
+        if (!ult) return;   // o primeiro aviso já veio pelo push do servidor; daqui a 5 min começa o lembrete
+        const reg = await navigator.serviceWorker.ready;
+        await reg.showNotification(`🔔 ${n} pedido${n > 1 ? 's' : ''} do site esperando`, {
+          body: 'Pedido pago ainda em aberto. Toque para abrir.', icon: '/pwa/icon-192.png', badge: '/pwa/icon-192.png',
+          tag: 'mtf-pedido-aberto', renotify: true, requireInteraction: true, data: { url: '/site-orders' } });
+      } catch (e) {}
+    }
     async function checkSiteOrders() {
       try {
         const r = await fetch('/site-orders/count', { cache: 'no-store' });
         if (!r.ok) return;
         const n = (await r.json()).open || 0;
         piscarTitulo(n);
+        lembrar(n);
         document.querySelectorAll('a[href="/site-orders"]').forEach(a => {
           a.classList.toggle('so-alert', n > 0);
           let b = a.querySelector('.so-count');

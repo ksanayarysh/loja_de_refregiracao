@@ -15,6 +15,7 @@ self.addEventListener('push', event => {
     tag: data.tag || undefined,          // mesma tag = substitui a anterior em vez de empilhar
     renotify: !!data.tag,
     vibrate: [200, 100, 200],
+    requireInteraction: data.persist !== false,   // no computador fica na tela até clicar/fechar (não some sozinha)
     data: { url: data.url || '/site-orders' },
   }));
 });
