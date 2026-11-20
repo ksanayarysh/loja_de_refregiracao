@@ -166,12 +166,30 @@ async def _kit_discount_pct() -> float:
         return 0.0
 
 
+_car_only_ok = False
+
+
+async def ensure_car_only_column():
+    """products.car_only (marcado na admin): entrega no Rio só de carro. Cria a coluna se a admin ainda não criou."""
+    global _car_only_ok
+    if _car_only_ok:
+        return
+    try:
+        async with engine.begin() as conn:
+            await conn.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS car_only BOOLEAN NOT NULL DEFAULT FALSE"))
+        _car_only_ok = True
+    except Exception:
+        _blog_log.exception("checkout: falha ao garantir products.car_only")
+
+
 async def _fetch_products(ids: list) -> dict:
     if not ids:
         return {}
+    await ensure_car_only_column()
     async with engine.connect() as conn:
         res = await conn.execute(text("""
-            SELECT id, name, unit, sale_price, promo_price, promo_until, promo2_pct, promo2_until
+            SELECT id, name, unit, sale_price, promo_price, promo_until, promo2_pct, promo2_until,
+                   COALESCE(car_only, FALSE) AS car_only
             FROM products
             WHERE active = TRUE AND id = ANY(:ids)
         """), {"ids": list(ids)})
@@ -245,6 +263,8 @@ async def _load_items(raw_items: list) -> tuple[list, float]:
                 "subtotal": round(price * qty, 2)}
         if kit_ok:
             item.update({"kit": True, "discount_pct": pct, "full_price": r["price"]})
+        if r.get("car_only"):
+            item["car_only"] = True   # marcado na admin: não vai de moto
         p2 = r.get("promo2_pct") if not is_kit else None
         if p2:
             # "2ª unidade com X% off": em cada par, uma unidade com desconto -> vira 2 linhas
@@ -258,7 +278,8 @@ async def _load_items(raw_items: list) -> tuple[list, float]:
                 subtotal += price * (qty - n_desc)
                 items.append({"id": pid, "name": f"{r['name']} (2ª unidade -{p2:g}%)", "unit": r["unit"],
                               "price": p_desc, "qty": n_desc, "subtotal": round(p_desc * n_desc, 2),
-                              "promo2": p2, "promo2_linha": True, "full_price": price})
+                              "promo2": p2, "promo2_linha": True, "full_price": price,
+                              **({"car_only": True} if r.get("car_only") else {})})
                 subtotal += p_desc * n_desc
                 continue
         items.append(item)
@@ -965,7 +986,7 @@ async def checkout_pix(request: Request):
         cep = re.sub(r"\D", "", str(delivery.get("cep", "")))
         service = str(delivery.get("service", ""))
         if service in KIT_BLOCKED_SERVICES and any(i.get("kit") or i.get("car_only") for i in items):
-            return JSONResponse({"error": "O kit de instalação não cabe na moto. Escolha a entrega de carro."},
+            return JSONResponse({"error": "Este pedido não cabe na moto. Escolha a entrega de carro."},
                                 status_code=400)
         numero = str(delivery.get("numero", "")).strip()[:20]
         complemento = str(delivery.get("complemento", "")).strip()[:120]
@@ -1279,6 +1300,7 @@ async def checkout_stock(request: Request):
         "stock": {str(s["id"]): s["stock"] for s in short if s.get("id")},
         "kits": [s["kit_id"] for s in short if s.get("kit_id")],
         "promo2": {str(i["id"]): i["promo2"] for i in items if i.get("promo2")},
+        "car_only": sorted({i["id"] for i in items if i.get("car_only") and not i.get("kit_id")}),
         **(await _pix_info(items)),
         "brinde_min": _brinde_min(),
         "message": _stock_msg(kg, short),

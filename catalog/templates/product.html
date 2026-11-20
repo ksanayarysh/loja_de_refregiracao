@@ -1394,7 +1394,10 @@ async function calcFrete() {
         <a class="wa-seller-btn" href="https://wa.me/${WA_NUMBER}?text=${waTxt}" target="_blank" rel="noopener">Falar com o vendedor sobre o frete</a>`;
       return;
     }
-    const km = d.distance_km.toFixed(1).replace('.', ',');
+    {% if car_only %}// produto "só carro" (marcado na admin): sem moto
+    d.options = (d.options || []).filter(o => !['LALAGO', 'LALAPRO', 'UBER'].includes(o.service));
+    if (!d.options.length) { const e = new Error('Este produto vai só de carro. Fale com a gente para combinar a entrega.'); e.wa = true; throw e; }
+    {% endif %}const km = d.distance_km.toFixed(1).replace('.', ',');
     const local = [d.bairro, d.cidade].filter(Boolean).map(escHtml).join(', ');
     // "mais barato": marca a opção de menor preço (só quando há mais de uma)
     const minP = Math.min(...d.options.map(o => o.price));

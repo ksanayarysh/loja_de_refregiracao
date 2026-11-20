@@ -120,6 +120,10 @@
           <option value="sim" {% if product.ship_bloq == true %}selected{% endif %}>Não enviar (só retirada/Lalamove)</option>
         </select>
         <div class="hint">Medidas da caixa já embalada. Vazio = caixa padrão da categoria (plaquinha ~0,4 kg, compressor 9 kg…).</div>
+        <label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-weight:700;">
+          <input type="checkbox" name="car_only" value="1" style="width:18px;height:18px;" {% if product.car_only %}checked{% endif %}>
+          🚗 Só entrega de carro no Rio (não cabe na moto)</label>
+        <div class="hint">No site, com este produto no carrinho, o cliente só vê Carro/Van na entrega pela Lalamove.</div>
 
         <label for="sale_price">Preço de venda (R$)</label>
         <input id="sale_price" name="sale_price" inputmode="decimal" value="{{ '%.2f'|format(product.sale_price or 0) }}">

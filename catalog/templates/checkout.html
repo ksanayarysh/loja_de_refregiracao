@@ -479,12 +479,12 @@ async function calcFrete(auto) {
     const opts = hasKit ? d.options.filter(o => !KIT_BLOCKED.includes(o.service)) : d.options;
     if (!opts.length) {
       const wa = encodeURIComponent('Olá! Quero o kit com entrega para o CEP ' + $('f-cep').value + '. Qual o valor do frete?');
-      $('frete-msg').innerHTML += `<div class="co-msg"><strong>Para este kit, o frete é combinado com o vendedor.</strong><br>
+      $('frete-msg').innerHTML += `<div class="co-msg"><strong>Para este pedido, o frete é combinado com o vendedor.</strong><br>
         <a class="co-wa-link" href="https://wa.me/${WA_NUMBER}?text=${wa}" target="_blank" rel="noopener">Falar com o vendedor →</a></div>`;
       logEv('frete', `${cep}: kit sem opção de carro, frete a combinar`);
       return;
     }
-    if (hasKit) $('frete-msg').innerHTML += '<div class="co-note" style="margin-bottom:8px;">O kit vai de carro (as peças não cabem na moto).</div>';
+    if (hasKit) $('frete-msg').innerHTML += '<div class="co-note" style="margin-bottom:8px;">' + (cart.some(i => i.kit) ? 'O kit vai de carro (as peças não cabem na moto).' : 'Este pedido vai de carro (não cabe na moto).') + '</div>';
     // a opção mais barata vem marcada e já selecionada
     const minP = Math.min(...opts.map(o => o.price));
     const pick = opts.findIndex(o => o.price === minP);
@@ -590,6 +590,9 @@ async function syncStock() {
   P2 = d.promo2 || {};
   PIX = { pct: Number(d.pix_pct) || 0, ids: new Set((d.pix_ids || []).map(Number)) };
   BRINDE_MIN = Number(d.brinde_min) || 0;
+  // produtos marcados "só carro" na admin: o frete mostra só carro/van (igual ao kit)
+  const carOnly = new Set((d.car_only || []).map(Number));
+  cart.forEach(i => { if (!i.kit_id) { if (carOnly.has(Number(i.id))) i.car_only = true; else delete i.car_only; } });
   const notes = [];
   cart = cart.filter(i => {
     if (i.kit_id) {

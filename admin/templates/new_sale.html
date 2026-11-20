@@ -118,6 +118,8 @@
           <div class="troco-result" id="troco-result"></div>
         </div>
 
+        {% include '_lalamove_venda.html' %}
+
         <label for="note">Observação (opcional)</label>
         <textarea id="note" name="note" placeholder="Ex: desconto, cliente, motivo..."></textarea>
 
@@ -137,6 +139,17 @@
 <script>
 
   const productSel = document.getElementById("product_id");
+  // Lalamove nesta venda: total e linha do orçamento vêm do próprio formulário
+  window.LALA = {
+    total: () => parseNum(totalEl.value) || 0,
+    pct: () => 0,
+    linhas: () => {
+      const o = selectedOpt(); if (!o || !o.value) return [];
+      const q = parseNum(qtyEl.value) || 0, t = parseNum(totalEl.value) || 0;
+      const nome = (o.textContent || '').trim().replace(/\s*\([^)]*\)$/, '');
+      return [`• ${nome} — ${String(q).replace('.', ',')} ${o.dataset.unit || 'un'} = ${lalaFmt(t)}`];
+    },
+  };
   const qtyEl      = document.getElementById("qty");
   const priceEl    = document.getElementById("unit_price");
   const totalEl    = document.getElementById("total");

@@ -1308,9 +1308,20 @@ async def product_page(request: Request, slug: str):
     except Exception:
         pix_preco = None
 
+    car_only = False
+    try:   # marcado na admin: entrega no Rio só de carro
+        from checkout import ensure_car_only_column
+        await ensure_car_only_column()
+        async with engine.connect() as conn:
+            car_only = bool((await conn.execute(text("SELECT COALESCE(car_only, FALSE) FROM products WHERE id = :id"),
+                                                {"id": product["id"]})).scalar())
+    except Exception:
+        car_only = False
+
     return templates.TemplateResponse("product.html", {
         "request":       request,
         "product":       product,
+        "car_only":      car_only,
         "pix_preco":     pix_preco,
         "seo":           seo,
         "related":       related,

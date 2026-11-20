@@ -73,7 +73,8 @@ async def _ensure_google_category_column(conn):
     await conn.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS sku VARCHAR(100)"))
     # envio por transportadora (Melhor Envio): peso kg, medidas cm; ship_bloq NULL=automático
     for col, tipo in (("ship_peso", "NUMERIC(8,3)"), ("ship_comp", "NUMERIC(6,1)"), ("ship_larg", "NUMERIC(6,1)"),
-                      ("ship_alt", "NUMERIC(6,1)"), ("ship_bloq", "BOOLEAN")):
+                      ("ship_alt", "NUMERIC(6,1)"), ("ship_bloq", "BOOLEAN"),
+                      ("car_only", "BOOLEAN NOT NULL DEFAULT FALSE")):   # car_only: entrega no Rio só de carro (não cabe na moto)
         await conn.execute(text(f"ALTER TABLE products ADD COLUMN IF NOT EXISTS {col} {tipo}"))
     # custo estimado (script/estimar_custos.py) — vira FALSE quando alguém digita o custo de verdade
     await conn.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS cost_estimado BOOLEAN DEFAULT FALSE"))
@@ -278,7 +279,7 @@ async def edit_product_form(product_id: int, request: Request, _=Depends(basic_a
         res = await conn.execute(
             text("""SELECT id, name, category_id, category2_id, unit, sale_price, promo_price, promo_until, promo2_pct, promo2_until, cost_price, min_stock,
                            image, description, shelf_code, linked_product_id, linked_qty, google_category,
-                           gtin, brand, sku, ship_peso, ship_comp, ship_larg, ship_alt, ship_bloq, cost_estimado
+                           gtin, brand, sku, ship_peso, ship_comp, ship_larg, ship_alt, ship_bloq, car_only, cost_estimado
                     FROM products WHERE id = :id AND active = TRUE"""),
             {"id": product_id},
         )
@@ -321,6 +322,7 @@ async def update_product(
     ship_larg: str = Form(""),
     ship_alt: str = Form(""),
     ship_bloq: str = Form(""),
+    car_only: str = Form(""),
     image: UploadFile = File(None),
     remove_image: str = Form(""),
     _=Depends(basic_auth),
@@ -332,7 +334,8 @@ async def update_product(
         except ValueError:
             return None
     ship = {"ship_peso": _num(ship_peso), "ship_comp": _num(ship_comp), "ship_larg": _num(ship_larg),
-            "ship_alt": _num(ship_alt), "ship_bloq": {"sim": True, "nao": False}.get(ship_bloq)}
+            "ship_alt": _num(ship_alt), "ship_bloq": {"sim": True, "nao": False}.get(ship_bloq),
+            "car_only": bool(car_only)}
     price     = _parse_price(sale_price)
     cost      = _parse_price(cost_price)
     image_b64 = await _process_image(image)
@@ -362,7 +365,7 @@ async def update_product(
             res = await conn.execute(
                 text("""SELECT id, name, category_id, category2_id, unit, sale_price, promo_price, promo_until, promo2_pct, promo2_until, cost_price, min_stock,
                                image, description, shelf_code, linked_product_id, linked_qty, google_category,
-                               gtin, brand, sku, ship_peso, ship_comp, ship_larg, ship_alt, ship_bloq, cost_estimado
+                               gtin, brand, sku, ship_peso, ship_comp, ship_larg, ship_alt, ship_bloq, car_only, cost_estimado
                         FROM products WHERE id = :id"""),
                 {"id": product_id}
             )
@@ -416,7 +419,7 @@ async def update_product(
                         google_category=:google_category,
                         gtin=:gtin, brand=:brand, sku=:sku,
                         ship_peso=:ship_peso, ship_comp=:ship_comp, ship_larg=:ship_larg,
-                        ship_alt=:ship_alt, ship_bloq=:ship_bloq
+                        ship_alt=:ship_alt, ship_bloq=:ship_bloq, car_only=:car_only
                         {", cost_estimado=FALSE" if custo_mudou else ""}
                         {extra_sql}
                     WHERE id=:id"""),
