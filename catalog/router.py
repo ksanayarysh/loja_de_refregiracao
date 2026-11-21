@@ -1392,8 +1392,12 @@ async def category_page(request: Request, cat_slug: str):
 
     matched_cat = None
     for r in rows:
-        if slugify(r["category_name"]) == cat_slug:
-            matched_cat = r["category_name"]
+        # categoria principal OU segunda categoria (o /catalogo lista as duas; antes a segunda dava 404)
+        for c in (r["category_name"], r.get("category2_name")):
+            if c and slugify(c) == cat_slug:
+                matched_cat = c
+                break
+        if matched_cat:
             break
 
     if not matched_cat:
