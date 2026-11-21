@@ -10,6 +10,30 @@ from reservas import router as reservas_router
 app = FastAPI(title="M.T.F Refrigeração — Catálogo")
 
 app.add_middleware(GZipMiddleware, minimum_size=500)
+
+
+class _HeadComoGet:
+    """HEAD = GET sem corpo (FastAPI responde 405 a HEAD em rotas @get). Verificadores de link e alguns robôs
+    usam HEAD; assim recebem 200 com os mesmos cabeçalhos da página."""
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope.get("type") == "http" and scope.get("method") == "HEAD":
+            scope = dict(scope, method="GET")
+
+            async def send_sem_corpo(msg):
+                if msg.get("type") == "http.response.body":
+                    msg = {"type": "http.response.body", "body": b"", "more_body": False}
+                    if getattr(send_sem_corpo, "done", False):
+                        return
+                    send_sem_corpo.done = True
+                await send(msg)
+            return await self.app(scope, receive, send_sem_corpo)
+        return await self.app(scope, receive, send)
+
+
+app.add_middleware(_HeadComoGet)
 app.include_router(checkout_router)
 app.include_router(kits_router)
 app.include_router(tecnicos_router)
