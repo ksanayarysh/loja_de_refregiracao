@@ -21,6 +21,13 @@ from fastapi.staticfiles import StaticFiles
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+
+@app.get("/healthz", include_in_schema=False)
+async def healthz():
+    """Railway (Settings → Deploy → Healthcheck Path = /healthz): só manda tráfego para a versão nova
+    quando ela já responde — sem segundos de erro 502 a cada deploy."""
+    return {"ok": True}
+
 from fastapi import Request
 from fastapi.responses import RedirectResponse
 

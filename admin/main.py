@@ -25,6 +25,13 @@ except ImportError:
 
 app = FastAPI()
 
+
+@app.get("/healthz", include_in_schema=False)
+async def healthz():
+    """Railway (Settings → Deploy → Healthcheck Path = /healthz): só manda tráfego para a versão nova
+    quando ela já responde — sem segundos de erro 502 a cada deploy."""
+    return {"ok": True}
+
 app.include_router(site_orders_router)
 app.include_router(tecnicos_router)
 app.include_router(reservas_router)
