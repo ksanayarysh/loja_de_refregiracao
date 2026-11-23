@@ -2163,15 +2163,24 @@ FRETE_GRATIS_SEM_LIMITE = float(os.environ.get("FRETE_GRATIS_SEM_LIMITE", "999")
 FRETE_GRATIS_MAX_MARGEM = float(os.environ.get("FRETE_GRATIS_MAX_MARGEM", "0.7"))
 
 
+_sem_fg_ok = False
+
+
 async def tem_sem_frete_gratis(ids) -> bool:
     """Algum produto marcado na admin 'sem frete grátis' (margem pequena, ex.: serpentina)? Então o pedido
     não ganha frete grátis — só o desconto normal (metade do frete, limitado à metade da margem)."""
     ids = [int(i) for i in ids if i and int(i) > 0]
     if not ids:
         return False
+    global _sem_fg_ok
     try:
-        async with engine.begin() as conn:
-            await conn.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS sem_frete_gratis BOOLEAN NOT NULL DEFAULT FALSE"))
+        if not _sem_fg_ok:
+            # só UMA vez por processo: ALTER TABLE trava a tabela products inteira (antes rodava a cada página
+            # de produto e cada cálculo de frete, e as páginas ficavam lentas quando chegavam várias juntas)
+            async with engine.begin() as conn:
+                await conn.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS sem_frete_gratis BOOLEAN NOT NULL DEFAULT FALSE"))
+            _sem_fg_ok = True
+        async with engine.connect() as conn:
             return bool((await conn.execute(text(
                 "SELECT 1 FROM products WHERE id = ANY(:ids) AND sem_frete_gratis LIMIT 1"), {"ids": ids})).scalar())
     except Exception:
