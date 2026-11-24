@@ -2107,6 +2107,11 @@ async def _frete_cep_core(request: Request, cep: str = ""):
         options.append({"service": s, "label": label, "hint": hint, "price": float(q["price"])})
         distance_m = distance_m or int(q["distance_m"] or 0)
 
+    # "Moto com baú" mais caro (ou igual) que o carro não faz sentido para o cliente: não mostra
+    carro = next((o["price"] for o in options if o["service"] == "HATCHBACK"), None)
+    if carro is not None:
+        options = [o for o in options if not (o["service"] == "LALAPRO" and o["price"] >= carro)]
+
     if not options or distance_m / 1000 > FRETE_MAX_KM:
         data = _frete_combinar(geo)
         _quote_cache[cep] = (time.time(), data)

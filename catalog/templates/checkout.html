@@ -49,6 +49,7 @@
     .co-msg{font-size:.85rem;margin:6px 0 10px;}
     .co-err{color:#dc2626;font-weight:700;}
     .co-input.co-bad{border-color:#dc2626;background:#fef2f2;}
+    .co-field-err{color:#dc2626;font-weight:700;font-size:.85rem;margin:4px 0 2px;}
     .co-local{font-size:.8rem;color:var(--muted);margin:8px 0;}
     .co-note{font-size:.75rem;color:var(--muted);margin-top:4px;line-height:1.5;}
     .co-tec{margin:6px 0 10px;border:1px dashed var(--border);border-radius:10px;padding:8px 10px;}
@@ -625,6 +626,7 @@ async function syncStock() {
 async function pagar() {
   const msg = $('pay-msg'); msg.innerHTML = '';
   document.querySelectorAll('.co-bad').forEach(el => el.classList.remove('co-bad'));
+  document.querySelectorAll('.co-field-err').forEach(el => el.remove());
   // no celular o campo com problema fica lá em cima: marca em vermelho, rola até ele e põe o cursor
   logEv('clique', `${pmethod() === 'card' ? 'Cartão' : 'Pix'} · ${dtype() === 'lalamove' ? 'entrega' : 'retirada'} · ${brl(subtotal() + (frete ? frete.price : 0))}`);
   const err = (t, campo) => {
@@ -633,7 +635,11 @@ async function pagar() {
     const el = campo && $(campo);
     if (el) {
       el.classList.add('co-bad');
-      el.addEventListener('input', () => el.classList.remove('co-bad'), { once: true });
+      // aviso também logo abaixo do campo (antes só aparecia lá embaixo, perto do botão Pagar)
+      const aviso = document.createElement('div');
+      aviso.className = 'co-field-err'; aviso.textContent = t;
+      el.insertAdjacentElement('afterend', aviso);
+      el.addEventListener('input', () => { el.classList.remove('co-bad'); aviso.remove(); }, { once: true });
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
       setTimeout(() => el.focus({ preventScroll: true }), 350);
     }
